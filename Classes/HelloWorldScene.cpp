@@ -72,6 +72,14 @@ bool HelloWorld::init()
 
     // add the sprite as a child to this layer
     this->addChild(sprite, 0);
+
+    // listen to back button
+    auto listener = EventListenerKeyboard::create();
+    listener->onKeyReleased = [](EventKeyboard::KeyCode keyCode, Event* event) {
+        Director::getInstance()->end();
+    };
+
+    _eventDispatcher->addEventListenerWithSceneGraphPriority(listener, this);
     
     return true;
 }
@@ -93,3 +101,4 @@ void HelloWorld::menuCloseCallback(Ref* pSender)
     
     
 }
+

@@ -47,3 +47,7 @@ proj.win32/*.sdf
 proj.win32/*.opensdf
 proj.win32/Debug.*/
 proj.win32/Release.*/
+
+# Vim swap files
+[._]*.s[a-w][a-z]
+[._]s[a-w][a-z]
