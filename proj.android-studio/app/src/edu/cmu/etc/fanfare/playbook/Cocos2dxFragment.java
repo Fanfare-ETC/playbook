@@ -1,7 +1,6 @@
 package edu.cmu.etc.fanfare.playbook;
 
 import android.app.Activity;
-import android.app.Fragment;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.graphics.PixelFormat;
@@ -9,6 +8,8 @@ import android.media.AudioManager;
 import android.opengl.GLSurfaceView;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Message;
+import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -226,6 +227,9 @@ public abstract class Cocos2dxFragment extends Fragment implements Cocos2dxHelpe
         onLoadNativeLibraries();
 
         sContext = this;
+        //this.mHandler = new Cocos2dxHandler(getActivity());
+
+        Cocos2dxHelper.init(getActivity(), this);
 
         this.mGLContextAttrs = getGLContextAttrs();
         this.init();
@@ -253,6 +257,22 @@ public abstract class Cocos2dxFragment extends Fragment implements Cocos2dxHelpe
 
     //native method,call GLViewImpl::getGLContextAttrs() to get the OpenGL ES context attributions
     private static native int[] getGLContextAttrs();
+
+    // ===========================================================
+    // Methods for/from SuperClass/Interfaces
+    // ===========================================================
+    @Override
+    public void showDialog(final String pTitle, final String pMessage) {
+        Message msg = new Message();
+        msg.what = Cocos2dxHandler.HANDLER_SHOW_DIALOG;
+        msg.obj = new Cocos2dxHandler.DialogMessage(pTitle, pMessage);
+        this.mHandler.sendMessage(msg);
+    }
+
+    @Override
+    public void runOnGLThread(final Runnable pRunnable) {
+        this.mGLSurfaceView.queueEvent(pRunnable);
+    }
 
     protected ResizeLayout mFrameLayout = null;
     // ===========================================================

@@ -110,9 +110,14 @@ public class Cocos2dxHelper {
     }
 
     private static boolean sInited = false;
+
     public static void init(final Activity activity) {
+        Cocos2dxHelper.init(activity, (Cocos2dxHelperListener) activity);
+    }
+
+    public static void init(final Activity activity, Cocos2dxHelperListener listener) {
         sActivity = activity;
-        Cocos2dxHelper.sCocos2dxHelperListener = (Cocos2dxHelperListener)activity;
+        Cocos2dxHelper.sCocos2dxHelperListener = listener;
         if (!sInited) {
 
             PackageManager pm = activity.getPackageManager();
@@ -176,12 +181,12 @@ public class Cocos2dxHelper {
             
             int versionCode = 1;
             try {
-                versionCode = Cocos2dxActivity.getContext().getPackageManager().getPackageInfo(Cocos2dxHelper.getCocos2dxPackageName(), 0).versionCode;
+                versionCode = activity.getPackageManager().getPackageInfo(Cocos2dxHelper.getCocos2dxPackageName(), 0).versionCode;
             } catch (NameNotFoundException e) {
                 e.printStackTrace();
             }
             try {
-                Cocos2dxHelper.sOBBFile = APKExpansionSupport.getAPKExpansionZipFile(Cocos2dxActivity.getContext(), versionCode, 0);
+                Cocos2dxHelper.sOBBFile = APKExpansionSupport.getAPKExpansionZipFile(activity, versionCode, 0);
             } catch (IOException e) {
                 e.printStackTrace();
             }

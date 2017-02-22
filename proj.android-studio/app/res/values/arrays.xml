@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="menu_items">
+        <item>Home</item>
+        <item>Catch the Play</item>
+        <item>Section Score</item>
+        <item>Profile</item>
+    </string-array>
+</resources>
