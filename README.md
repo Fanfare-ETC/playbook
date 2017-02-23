@@ -1,6 +1,8 @@
 Fanfare
 -------
 
+[![Build Status](https://travis-ci.org/Fanfare-ETC/playbook.svg?branch=master)](https://travis-ci.org/Fanfare-ETC/playbook)
+
 Fanfare is a project by a group of six students from Carnegie Mellon University
 Entertainment Technology Center (CMU-ETC). We have teamed up with Verizon to
 further invigorate the stadium atmosphere. To do this, we have created a
