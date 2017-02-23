@@ -10,3 +10,7 @@ before_install:
 
 script:
   - docker run -it -v $(pwd):/playbook -w /playbook yjwong/playbook cocos compile -p android --app-abi x86:armeabi --android-studio --ap android-25
+
+notifications:
+  slack:
+    secure: g9sX6BlGqpCFPGrL2wiNG1nKd3b26y90K59P/vCpPaie+ETPpIyrExfsVFg6iQFjnCxdQj7VufIoP+5rdMDdeGp6ODFnrs8zsQBaKV8+NKf5YXM1W8tDESOE0xPNBVPLV8e8RbxgKPEKh1A3WpqdIuakkF29JyXyd7jXZrO3kc9vWgX7EFU8RIf7KLEazvGknaPNGuaJ6LMpvpfJfaYqOcJmu6wcrWteQe+DBFgm6tZEeE8Clt0BiALSOoRIHthPFK5V/w8quEFnkop0lF6JrBTCE2YmBILSCeoMGTAk0Kgj5dq66msSQX/KtGNX/3KG+Xqafr7sUyRl+2jUxeKJTsLx/e3rpw3N1glgJ8co0wtAThYjvdmZ0QqurCrsAdEYVGkxo7jS3p0q3awqaE3YMZ3JrxbdfuZQfQCZl90XVrZHaV3PTkI8/Qj+MXQb9vDI6frMrQgGF6W1VPt7t8dLzc0ZTyatGKmRX2Kwl0AkHF4Al8AdVrFl7Ef4rXHagDVvh6OH8CrFLYD7wrOrkL5hmvMmrfQyN7VILPw6eBwS6auukfKrQTPvOslqmP1iL48nz5YtLCz/XeR08bTlRs5pk1qOxcTEmcpfHBEto3C7I2MdSTwbX3O2MVAHzGMK2sbpc0xk4pwu3Ve84kqA3zMx1Wfrph6T2cqttysbgzuwGCA=
