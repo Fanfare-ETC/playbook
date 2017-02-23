@@ -1,0 +1,12 @@
+sudo: required
+
+services:
+  - docker
+
+language: c++
+
+before_install:
+  - docker pull yjwong/playbook
+
+script:
+  - docker run -it -v $(pwd):/playbook -w /playbook yjwong/playbook cocos compile -p android --app-abi x86:armeabi --android-studio --ap android-25
