@@ -114,6 +114,9 @@ public class AppActivity extends AppCompatActivity {
         mDrawerLayout.addDrawerListener(mDrawerToggle);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setHomeButtonEnabled(true);
+
+        // Set the home screen
+        selectItem(0);
     }
 
     @Override

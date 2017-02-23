@@ -235,7 +235,7 @@ public abstract class Cocos2dxFragment extends Fragment implements Cocos2dxHelpe
         this.init();
 
         if (mVideoHelper == null) {
-            //mVideoHelper = new Cocos2dxVideoHelper(this, mFrameLayout);
+            mVideoHelper = new Cocos2dxVideoHelper(getContext(), this, mFrameLayout);
         }
 
         if(mWebViewHelper == null){
