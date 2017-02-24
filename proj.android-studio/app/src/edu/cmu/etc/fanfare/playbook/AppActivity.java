@@ -121,6 +121,12 @@ public class AppActivity extends AppCompatActivity {
             case 1:
                 fragment = new CatchPlayFragment();
                 break;
+            case 2:
+                fragment = new SectionScoreFragment();
+                break;
+            case 3:
+                fragment = new ProfileFragment();
+                break;
             default:
                 fragment = new HomeFragment();
         };
