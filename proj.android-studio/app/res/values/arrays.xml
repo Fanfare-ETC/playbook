@@ -6,4 +6,10 @@
         <item>Section Score</item>
         <item>Profile</item>
     </string-array>
+    <array name="menu_item_icons">
+        <item>@drawable/ic_betting_board</item>
+        <item>@drawable/ic_catch_the_play_game</item>
+        <item>@drawable/ic_section_score</item>
+        <item>@drawable/ic_profile</item>
+    </array>
 </resources>
