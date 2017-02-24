@@ -249,8 +249,6 @@ public abstract class Cocos2dxFragment extends Fragment implements Cocos2dxHelpe
         Window window = this.getActivity().getWindow();
         window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN);
 
-        this.getActivity().setVolumeControlStream(AudioManager.STREAM_MUSIC);
-
         // Set framelayout as the content view
         return mFrameLayout;
     }
@@ -261,6 +259,25 @@ public abstract class Cocos2dxFragment extends Fragment implements Cocos2dxHelpe
     // ===========================================================
     // Methods for/from SuperClass/Interfaces
     // ===========================================================
+
+    @Override
+    public void onResume() {
+        Log.d(TAG, "onResume()");
+        super.onResume();
+        Cocos2dxHelper.onResume();
+        mGLSurfaceView.onResume();
+        this.getActivity().setVolumeControlStream(AudioManager.STREAM_MUSIC);
+    }
+
+    @Override
+    public void onPause() {
+        Log.d(TAG, "onPause()");
+        super.onPause();
+        Cocos2dxHelper.onPause();
+        mGLSurfaceView.onPause();
+        this.getActivity().setVolumeControlStream(AudioManager.USE_DEFAULT_STREAM_TYPE);
+    }
+
     @Override
     public void showDialog(final String pTitle, final String pMessage) {
         Message msg = new Message();
