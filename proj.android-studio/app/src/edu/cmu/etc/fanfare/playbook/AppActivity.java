@@ -24,8 +24,10 @@ THE SOFTWARE.
 package edu.cmu.etc.fanfare.playbook;
 
 import android.content.Context;
+import android.content.res.ColorStateList;
 import android.content.res.TypedArray;
 import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
@@ -98,6 +100,13 @@ public class AppActivity extends AppCompatActivity {
             if (item != null) {
                 mHolder.mTextView.setText(item.text);
                 mHolder.mTextView.setCompoundDrawablesRelativeWithIntrinsicBounds(null, item.icon, null, null);
+
+                ColorStateList stateList;
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    stateList = getResources().getColorStateList(R.color.drawer_list_item_selector, getTheme());
+                    mHolder.mTextView.setCompoundDrawableTintList(stateList);
+                }
+
             }
 
             return convertView;
