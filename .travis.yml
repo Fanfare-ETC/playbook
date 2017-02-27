@@ -1,15 +1,20 @@
 sudo: required
 
 services:
-  - docker
+- docker
 
 language: c++
 
 before_install:
-  - docker pull yjwong/playbook
+- openssl aes-256-cbc -K $encrypted_93f1b6e3c30c_key -iv $encrypted_93f1b6e3c30c_iv
+  -in proj.android-studio/app/src/debug/google-services.json.enc
+  -out proj.android-studio/app/src/debug/google-services.json
+  -d
+- docker pull yjwong/playbook
 
 script:
-  - docker run -it -v $(pwd):/playbook -w /playbook yjwong/playbook cocos compile -p android --app-abi x86:armeabi --android-studio --ap android-25
+- docker run -it -v $(pwd):/playbook -w /playbook yjwong/playbook cocos compile
+  -p android --app-abi x86:armeabi --android-studio --ap android-25
 
 notifications:
   slack:
