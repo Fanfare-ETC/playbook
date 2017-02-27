@@ -85,12 +85,12 @@ void SectionSprite::touchEvent(Touch* touch, Event* event)
 
 	request->setResponseCallback(CC_CALLBACK_2(SectionSprite::onHttpRequestCompleted, this));
 
-	char * postTest = "id=";
+	std::stringstream postTestSS;
+	postTestSS << "id=" << touchId;
+	std::string postTest = postTestSS.str();
 
-	strcat(postTest, (char*)touchId);
-
-	log("%s", postTest);
-	request->setRequestData(postTest, strlen(postTest));
+	log("%s", postTest.c_str());
+	request->setRequestData(postTest.c_str(), strlen(postTest.c_str()));
 	request->setTag("test 1");
 	network::HttpClient::getInstance()->send(request);
 
