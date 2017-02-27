@@ -1,0 +1,258 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <ImageView
+        android:id="@+id/home_team_logo"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        android:layout_marginTop="16dp"
+        app:layout_constraintTop_toTopOf="parent" />
+    <ImageView
+        android:id="@+id/away_team_logo"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        app:layout_constraintRight_toRightOf="parent"
+        android:layout_marginTop="16dp"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="SF"
+        android:id="@+id/home_team_name"
+        android:textAppearance="@style/TextAppearance.AppCompat.Headline"
+        android:layout_marginTop="16dp"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginStart="8dp"
+        app:layout_constraintLeft_toRightOf="@+id/home_team_logo" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="HOU"
+        android:id="@+id/away_team_name"
+        app:layout_constraintRight_toLeftOf="@+id/away_team_logo"
+        android:layout_marginTop="16dp"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginEnd="8dp"
+        android:textAppearance="@style/TextAppearance.AppCompat.Headline"
+        android:textAlignment="viewEnd" />
+
+    <TextView
+        android:text="TextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/home_team_score"
+        app:layout_constraintTop_toBottomOf="@+id/home_team_name"
+        app:layout_constraintLeft_toRightOf="@+id/home_team_logo"
+        android:layout_marginStart="8dp" />
+
+    <TextView
+        android:text="TextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/away_team_score"
+        app:layout_constraintRight_toLeftOf="@+id/away_team_logo"
+        android:layout_marginEnd="8dp"
+        app:layout_constraintTop_toBottomOf="@+id/away_team_name"
+        android:textAlignment="textEnd" />
+
+    <TableLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:id="@+id/score_by_innings"
+        android:layout_marginTop="16dp"
+        app:layout_constraintTop_toBottomOf="@+id/home_team_logo"
+        android:layout_marginStart="16dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        android:layout_marginEnd="16dp"
+        app:layout_constraintRight_toRightOf="parent">
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+            <TextView android:layout_weight="3" />
+            <TextView android:text="1"
+                android:layout_weight="1" />
+            <TextView android:text="2"
+                android:layout_weight="1" />
+            <TextView android:text="3"
+                android:layout_weight="1" />
+            <TextView android:text="4"
+                android:layout_weight="1" />
+            <TextView android:text="5"
+                android:layout_weight="1" />
+            <TextView android:text="6"
+                android:layout_weight="1" />
+            <TextView android:text="7"
+                android:layout_weight="1" />
+            <TextView android:text="8"
+                android:layout_weight="1" />
+            <TextView android:text="9"
+                android:layout_weight="1" />
+            <TextView android:text="R"
+                android:layout_weight="1" />
+            <TextView android:text="H"
+                android:layout_weight="1" />
+            <TextView android:text="E"
+                android:layout_weight="1" />
+        </TableRow>
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+            <TextView android:text="SF"
+                android:layout_weight="3"
+                android:textAppearance="@style/TextAppearance.AppCompat.Medium" />
+            <TextView android:text="0"
+                android:layout_weight="1"
+                android:textAppearance="@style/TextAppearance.AppCompat.Medium" />
+            <TextView android:text="0"
+                android:layout_weight="1"
+                android:textAppearance="@style/TextAppearance.AppCompat.Medium" />
+            <TextView android:text="2"
+                android:layout_weight="1"
+                android:textAppearance="@style/TextAppearance.AppCompat.Medium" />
+            <TextView android:text="0"
+                android:layout_weight="1"
+                android:textAppearance="@style/TextAppearance.AppCompat.Medium" />
+            <TextView android:text="0"
+                android:layout_weight="1"
+                android:textAppearance="@style/TextAppearance.AppCompat.Medium" />
+            <TextView android:text="0"
+                android:layout_weight="1"
+                android:textAppearance="@style/TextAppearance.AppCompat.Medium" />
+            <TextView android:layout_weight="1"
+                android:textAppearance="@style/TextAppearance.AppCompat.Medium" />
+            <TextView android:layout_weight="1"
+                android:textAppearance="@style/TextAppearance.AppCompat.Medium" />
+            <TextView android:layout_weight="1"
+                android:textAppearance="@style/TextAppearance.AppCompat.Medium" />
+            <TextView android:text="2"
+                android:layout_weight="1"
+                android:textAppearance="@style/TextAppearance.AppCompat.Medium" />
+            <TextView android:text="8"
+                android:layout_weight="1"
+                android:textAppearance="@style/TextAppearance.AppCompat.Medium" />
+            <TextView android:text="0"
+                android:layout_weight="1"
+                android:textAppearance="@style/TextAppearance.AppCompat.Medium" />
+        </TableRow>
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+            <TextView android:text="HOU"
+                android:layout_weight="3"
+                android:textAppearance="@style/TextAppearance.AppCompat.Medium" />
+            <TextView android:text="0"
+                android:layout_weight="1"
+                android:textAppearance="@style/TextAppearance.AppCompat.Medium" />
+            <TextView android:text="1"
+                android:layout_weight="1"
+                android:textAppearance="@style/TextAppearance.AppCompat.Medium" />
+            <TextView android:text="3"
+                android:layout_weight="1"
+                android:textAppearance="@style/TextAppearance.AppCompat.Medium" />
+            <TextView android:text="0"
+                android:layout_weight="1"
+                android:textAppearance="@style/TextAppearance.AppCompat.Medium" />
+            <TextView android:text="0"
+                android:layout_weight="1"
+                android:textAppearance="@style/TextAppearance.AppCompat.Medium" />
+            <TextView android:text="0"
+                android:layout_weight="1"
+                android:textAppearance="@style/TextAppearance.AppCompat.Medium" />
+            <TextView android:layout_weight="1"
+                android:textAppearance="@style/TextAppearance.AppCompat.Medium" />
+            <TextView android:layout_weight="1"
+                android:textAppearance="@style/TextAppearance.AppCompat.Medium" />
+            <TextView android:layout_weight="1"
+                android:textAppearance="@style/TextAppearance.AppCompat.Medium" />
+            <TextView android:text="4"
+                android:layout_weight="1"
+                android:textAppearance="@style/TextAppearance.AppCompat.Medium" />
+            <TextView android:text="7"
+                android:layout_weight="1"
+                android:textAppearance="@style/TextAppearance.AppCompat.Medium" />
+            <TextView android:text="0"
+                android:layout_weight="1"
+                android:textAppearance="@style/TextAppearance.AppCompat.Medium" />
+        </TableRow>
+
+    </TableLayout>
+
+    <TextView
+        android:text="Last Play"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:id="@+id/subtitle_last_play"
+        android:layout_marginTop="16dp"
+        app:layout_constraintTop_toBottomOf="@+id/score_by_innings"
+        android:layout_marginStart="16dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        android:layout_marginEnd="16dp"
+        app:layout_constraintRight_toRightOf="parent" />
+
+    <TextView
+        android:text="Pierzynski flied out to center fielder Trout, Beckham to third."
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:id="@+id/last_play"
+        android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+        android:textColor="?android:attr/textColorPrimary"
+        app:layout_constraintTop_toBottomOf="@+id/subtitle_last_play"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent" />
+
+    <TextView
+        android:text="Pitching"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/textView5"
+        app:layout_constraintTop_toBottomOf="@+id/last_play"
+        android:layout_marginStart="16dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        android:layout_marginTop="16dp" />
+
+    <TextView
+        android:text="A. Rios (0-2)"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/textView6"
+        android:layout_marginStart="16dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textView5"
+        android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+        android:textColor="?android:attr/textColorPrimary" />
+
+    <TextView
+        android:text="Batting"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/textView7"
+        android:layout_marginTop="16dp"
+        app:layout_constraintTop_toBottomOf="@+id/last_play"
+        android:layout_marginEnd="16dp"
+        app:layout_constraintRight_toRightOf="parent" />
+
+    <TextView
+        android:text="J. Williams (S.2IP)"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/textView8"
+        app:layout_constraintTop_toBottomOf="@+id/textView7"
+        android:layout_marginEnd="16dp"
+        app:layout_constraintRight_toRightOf="parent"
+        android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+        android:textColor="?android:attr/textColorPrimary" />
+
+</android.support.constraint.ConstraintLayout>

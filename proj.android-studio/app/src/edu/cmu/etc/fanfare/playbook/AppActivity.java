@@ -116,7 +116,7 @@ public class AppActivity extends AppCompatActivity {
     /** Swaps fragments in the main content view */
     private void selectItem(int position) {
         // Create a new fragment based on selected position
-        Fragment fragment = null;
+        Fragment fragment;
         switch (position) {
             case 1:
                 fragment = new CatchPlayFragment();

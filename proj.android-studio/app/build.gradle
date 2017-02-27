@@ -48,6 +48,8 @@ dependencies {
     compile project(':libcocos2dx')
     compile 'com.android.support:support-v4:25.2.0'
     compile 'com.android.support:appcompat-v7:25.2.0'
+    compile 'com.google.android.gms:play-services-auth:9.6.0'
+    compile 'com.android.support.constraint:constraint-layout:1.0.0'
 }
 
 task cleanAssets(type: Delete) {
@@ -60,3 +62,5 @@ task copyAssets(type: Copy) {
 
 clean.dependsOn cleanAssets
 preBuild.dependsOn copyAssets
+
+apply plugin: 'com.google.gms.google-services'

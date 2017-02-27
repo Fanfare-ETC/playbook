@@ -22,6 +22,9 @@ proj.android-studio/app/obj/
 proj.android-studio/app/libs/
 proj.android-studio/app/local.properties
 proj.android-studio/*/build/
+proj.android-studio/.idea/workspace.xml
+proj.android-studio/.idea/tasks.xml
+proj.android-studio/.idea/gradle.xml
 cocos2d/cocos/platform/android/libcocos2dx/build/
 
 # iOS project files
@@ -51,3 +54,6 @@ proj.win32/Release.*/
 # Vim swap files
 [._]*.s[a-w][a-z]
 [._]s[a-w][a-z]
+
+# Files that can contain credentials
+proj.android-studio/app/src/debug/google-services.json
