@@ -1,0 +1,2 @@
+/usr/bin/ar qc ../../lib/libcocos2d.a  CMakeFiles/cocos2d.dir/cc_dummy.c.o
+/usr/bin/ranlib ../../lib/libcocos2d.a

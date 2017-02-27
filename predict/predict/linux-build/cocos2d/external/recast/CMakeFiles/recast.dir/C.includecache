@@ -1,0 +1,14 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/ramya/predict/predict/cocos2d/external/recast/fastlz/fastlz.c
+fastlz.c
+/home/ramya/predict/predict/cocos2d/external/recast/fastlz/fastlz.c
+fastlz.c
+/home/ramya/predict/predict/cocos2d/external/recast/fastlz/fastlz.c
+

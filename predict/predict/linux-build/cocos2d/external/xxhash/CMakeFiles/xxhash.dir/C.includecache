@@ -1,0 +1,20 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/ramya/predict/predict/cocos2d/external/xxhash/xxhash.c
+xxhash.h
+/home/ramya/predict/predict/cocos2d/external/xxhash/xxhash.h
+stdlib.h
+-
+string.h
+-
+stdint.h
+-
+
+/home/ramya/predict/predict/cocos2d/external/xxhash/xxhash.h
+
