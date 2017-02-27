@@ -24,6 +24,7 @@ THE SOFTWARE.
  ****************************************************************************/
 package org.cocos2dx.lib;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Color;
@@ -46,7 +47,8 @@ import android.widget.TextView;
 
 public class Cocos2dxEditBoxHelper {
     private static final String TAG = Cocos2dxEditBoxHelper.class.getSimpleName();
-    private static Cocos2dxActivity mCocos2dxActivity;
+    private static Activity mActivity;
+    private static Cocos2dxHelper.Cocos2dxHelperListener mListener;
     private static ResizeLayout mFrameLayout;
 
     private static SparseArray<Cocos2dxEditBox> mEditBoxArray;
@@ -68,16 +70,22 @@ public class Cocos2dxEditBoxHelper {
         editBoxEditingDidEnd(index, text, action);
     }
 
-
     public Cocos2dxEditBoxHelper(ResizeLayout layout) {
+        this((Activity) Cocos2dxActivity.getContext(),
+                (Cocos2dxHelper.Cocos2dxHelperListener) Cocos2dxActivity.getContext(), layout);
+    }
+
+
+    public Cocos2dxEditBoxHelper(Activity activity, Cocos2dxHelper.Cocos2dxHelperListener listener, ResizeLayout layout) {
         Cocos2dxEditBoxHelper.mFrameLayout = layout;
 
-        Cocos2dxEditBoxHelper.mCocos2dxActivity = (Cocos2dxActivity) Cocos2dxActivity.getContext();
+        Cocos2dxEditBoxHelper.mActivity = activity;
+        Cocos2dxEditBoxHelper.mListener = listener;
         Cocos2dxEditBoxHelper.mEditBoxArray = new SparseArray<Cocos2dxEditBox>();
     }
 
     public static int convertToSP(float point){
-        Resources r = mCocos2dxActivity.getResources();
+        Resources r = mActivity.getResources();
 
         int convertedValue = (int)TypedValue.applyDimension(
                 TypedValue.COMPLEX_UNIT_SP, point, r.getDisplayMetrics());
@@ -88,10 +96,10 @@ public class Cocos2dxEditBoxHelper {
 
     public static int createEditBox(final int left, final int top, final int width, final int height, final float scaleX) {
         final int index = mViewTag;
-        mCocos2dxActivity.runOnUiThread(new Runnable() {
+        mActivity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                final Cocos2dxEditBox editBox = new Cocos2dxEditBox(mCocos2dxActivity);
+                final Cocos2dxEditBox editBox = new Cocos2dxEditBox(mActivity);
                 editBox.setFocusable(true);
                 editBox.setFocusableInTouchMode(true);
                 editBox.setInputFlag(5); //kEditBoxInputFlagLowercaseAllCharacters
@@ -103,7 +111,7 @@ public class Cocos2dxEditBoxHelper {
                 editBox.setTextColor(Color.WHITE);
                 editBox.setSingleLine();
                 editBox.setOpenGLViewScaleX(scaleX);
-                Resources r = mCocos2dxActivity.getResources();
+                Resources r = mActivity.getResources();
                 float density =  r.getDisplayMetrics().density;
                 int paddingBottom = (int)(height * 0.33f / density);
                 paddingBottom = convertToSP(paddingBottom  - 5 * scaleX / density);
@@ -140,7 +148,7 @@ public class Cocos2dxEditBoxHelper {
                         // Note that we must to copy a string to prevent string content is modified
                         // on UI thread while 's.toString' is invoked at the same time.
                         final String text = new String(s.toString());
-                        mCocos2dxActivity.runOnGLThread(new Runnable() {
+                        mListener.runOnGLThread(new Runnable() {
                             @Override
                             public void run() {
                                 Cocos2dxEditBoxHelper.__editBoxEditingChanged(index, text);
@@ -160,7 +168,7 @@ public class Cocos2dxEditBoxHelper {
                     @Override
                     public void onFocusChange(View v, boolean hasFocus) {
                         if (hasFocus) {
-                            mCocos2dxActivity.runOnGLThread(new Runnable() {
+                            mListener.runOnGLThread(new Runnable() {
                                 @Override
                                 public void run() {
                                     editBox.endAction = Cocos2dxEditBox.kEndActionUnknown;
@@ -169,21 +177,21 @@ public class Cocos2dxEditBoxHelper {
                             });
                             editBox.setSelection(editBox.getText().length());
                             mFrameLayout.setEnableForceDoLayout(true);
-                            mCocos2dxActivity.getGLSurfaceView().setSoftKeyboardShown(true);
+                            mListener.getGLSurfaceView().setSoftKeyboardShown(true);
                             Log.d(TAG, "edit box get focus");
                         } else {
                             editBox.setVisibility(View.GONE);
                             // Note that we must to copy a string to prevent string content is modified
                             // on UI thread while 's.toString' is invoked at the same time.
                             final String text = new String(editBox.getText().toString());
-                            mCocos2dxActivity.runOnGLThread(new Runnable() {
+                            mListener.runOnGLThread(new Runnable() {
                                 @Override
                                 public void run() {
                                     int action = editBox.endAction;
                                     Cocos2dxEditBoxHelper.__editBoxEditingDidEnd(index, text, action);
                                 }
                             });
-                            mCocos2dxActivity.hideVirtualButton();
+                            mListener.hideVirtualButton();
                             mFrameLayout.setEnableForceDoLayout(false);
                             Log.d(TAG, "edit box lose focus");
                         }
@@ -227,7 +235,7 @@ public class Cocos2dxEditBoxHelper {
     }
 
     public static void removeEditBox(final int index) {
-        mCocos2dxActivity.runOnUiThread(new Runnable() {
+        mActivity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 Cocos2dxEditBox editBox = mEditBoxArray.get(index);
@@ -241,7 +249,7 @@ public class Cocos2dxEditBoxHelper {
     }
 
     public static void setFont(final int index, final String fontName, final float fontSize){
-        mCocos2dxActivity.runOnUiThread(new Runnable() {
+        mActivity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 Cocos2dxEditBox editBox = mEditBoxArray.get(index);
@@ -250,7 +258,7 @@ public class Cocos2dxEditBoxHelper {
                     if (!fontName.isEmpty()) {
                         if (fontName.endsWith(".ttf")) {
                             try {
-                                tf = Cocos2dxTypefaces.get(mCocos2dxActivity.getContext(), fontName);
+                                tf = Cocos2dxTypefaces.get(mActivity, fontName);
                             } catch (final Exception e) {
                                 Log.e("Cocos2dxEditBoxHelper", "error to create ttf type face: "
                                         + fontName);
@@ -266,7 +274,7 @@ public class Cocos2dxEditBoxHelper {
                     }
                     // TODO: The font size is not the same across all the android devices...
                     if (fontSize >= 0){
-                        float density =  mCocos2dxActivity.getResources().getDisplayMetrics().density;
+                        float density =  mActivity.getResources().getDisplayMetrics().density;
 //                        Log.e("XXX", "density is " + density);
                         editBox.setTextSize(TypedValue.COMPLEX_UNIT_SP,
                                 fontSize / density );
@@ -278,7 +286,7 @@ public class Cocos2dxEditBoxHelper {
     }
 
     public static void setFontColor(final int index, final int red, final int green, final int blue, final int alpha){
-        mCocos2dxActivity.runOnUiThread(new Runnable() {
+        mActivity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 Cocos2dxEditBox editBox = mEditBoxArray.get(index);
@@ -290,7 +298,7 @@ public class Cocos2dxEditBoxHelper {
     }
 
     public static void setPlaceHolderText(final int index, final String text){
-        mCocos2dxActivity.runOnUiThread(new Runnable() {
+        mActivity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 Cocos2dxEditBox editBox = mEditBoxArray.get(index);
@@ -302,7 +310,7 @@ public class Cocos2dxEditBoxHelper {
     }
 
     public static void setPlaceHolderTextColor(final int index, final int red, final int green, final int blue, final int alpha){
-        mCocos2dxActivity.runOnUiThread(new Runnable() {
+        mActivity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 Cocos2dxEditBox editBox = mEditBoxArray.get(index);
@@ -314,7 +322,7 @@ public class Cocos2dxEditBoxHelper {
     }
 
     public static void setMaxLength(final int index, final int maxLength) {
-        mCocos2dxActivity.runOnUiThread(new Runnable() {
+        mActivity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 Cocos2dxEditBox editBox = mEditBoxArray.get(index);
@@ -326,7 +334,7 @@ public class Cocos2dxEditBoxHelper {
     }
 
     public static void setVisible(final int index, final boolean visible) {
-        mCocos2dxActivity.runOnUiThread(new Runnable() {
+        mActivity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 Cocos2dxEditBox editBox = mEditBoxArray.get(index);
@@ -339,7 +347,7 @@ public class Cocos2dxEditBoxHelper {
 
 
     public static void setText(final int index, final String text){
-        mCocos2dxActivity.runOnUiThread(new Runnable() {
+        mActivity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 Cocos2dxEditBox editBox = mEditBoxArray.get(index);
@@ -351,7 +359,7 @@ public class Cocos2dxEditBoxHelper {
     }
 
     public static void setReturnType(final int index, final int returnType) {
-        mCocos2dxActivity.runOnUiThread(new Runnable() {
+        mActivity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 Cocos2dxEditBox editBox = mEditBoxArray.get(index);
@@ -363,7 +371,7 @@ public class Cocos2dxEditBoxHelper {
     }
 
     public static void setTextHorizontalAlignment(final int index, final int alignment) {
-        mCocos2dxActivity.runOnUiThread(new Runnable() {
+        mActivity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 Cocos2dxEditBox editBox = mEditBoxArray.get(index);
@@ -375,7 +383,7 @@ public class Cocos2dxEditBoxHelper {
     }
 
     public static void setInputMode(final int index, final int inputMode) {
-        mCocos2dxActivity.runOnUiThread(new Runnable() {
+        mActivity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 Cocos2dxEditBox editBox = mEditBoxArray.get(index);
@@ -387,7 +395,7 @@ public class Cocos2dxEditBoxHelper {
     }
 
     public static void setInputFlag(final int index, final int inputFlag) {
-        mCocos2dxActivity.runOnUiThread(new Runnable() {
+        mActivity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 Cocos2dxEditBox editBox = mEditBoxArray.get(index);
@@ -400,7 +408,7 @@ public class Cocos2dxEditBoxHelper {
 
 
     public static void setEditBoxViewRect(final int index, final int left, final int top, final int maxWidth, final int maxHeight) {
-        mCocos2dxActivity.runOnUiThread(new Runnable() {
+        mActivity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 Cocos2dxEditBox editBox = mEditBoxArray.get(index);
@@ -415,7 +423,7 @@ public class Cocos2dxEditBoxHelper {
 
     public static void openKeyboard(final int index) {
 
-        mCocos2dxActivity.runOnUiThread(new Runnable() {
+        mActivity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
                openKeyboardOnUiThread(index);
@@ -429,12 +437,12 @@ public class Cocos2dxEditBoxHelper {
             return;
         }
 
-        final InputMethodManager imm = (InputMethodManager) mCocos2dxActivity.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+        final InputMethodManager imm = (InputMethodManager) mActivity.getSystemService(Context.INPUT_METHOD_SERVICE);
         Cocos2dxEditBox editBox = mEditBoxArray.get(index);
         if (null != editBox) {
             editBox.requestFocus();
             imm.showSoftInput(editBox, 0);
-            mCocos2dxActivity.getGLSurfaceView().setSoftKeyboardShown(true);
+            mListener.getGLSurfaceView().setSoftKeyboardShown(true);
         }
     }
 
@@ -444,20 +452,20 @@ public class Cocos2dxEditBoxHelper {
             return;
         }
         
-        final InputMethodManager imm = (InputMethodManager) mCocos2dxActivity.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+        final InputMethodManager imm = (InputMethodManager) mActivity.getSystemService(Context.INPUT_METHOD_SERVICE);
         Cocos2dxEditBox editBox = mEditBoxArray.get(index);
         if (null != editBox) {
             imm.hideSoftInputFromWindow(editBox.getWindowToken(), 0);
-            mCocos2dxActivity.getGLSurfaceView().setSoftKeyboardShown(false);
-            mCocos2dxActivity.getGLSurfaceView().requestFocus();
+            mListener.getGLSurfaceView().setSoftKeyboardShown(false);
+            mListener.getGLSurfaceView().requestFocus();
             // can take effect after GLSurfaceView has focus
-            mCocos2dxActivity.hideVirtualButton();
+            mListener.hideVirtualButton();
         }
     }
 
     // Note that closeKeyboard will be invoked on GL thread
     public static void closeKeyboard(final int index) {
-        mCocos2dxActivity.runOnUiThread(new Runnable() {
+        mActivity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 closeKeyboardOnUiThread(index);

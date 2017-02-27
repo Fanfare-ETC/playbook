@@ -687,6 +687,8 @@ public class Cocos2dxHelper {
         public void showDialog(final String pTitle, final String pMessage);
 
         public void runOnGLThread(final Runnable pRunnable);
+        public Cocos2dxGLSurfaceView getGLSurfaceView();
+        public void hideVirtualButton();
     }
 
     //Enhance API modification begin

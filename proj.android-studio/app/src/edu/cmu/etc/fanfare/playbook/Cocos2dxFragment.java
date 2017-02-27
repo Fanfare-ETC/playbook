@@ -22,6 +22,7 @@ import org.cocos2dx.lib.Cocos2dxEditBoxHelper;
 import org.cocos2dx.lib.Cocos2dxGLSurfaceView;
 import org.cocos2dx.lib.Cocos2dxHandler;
 import org.cocos2dx.lib.Cocos2dxHelper;
+import org.cocos2dx.lib.Cocos2dxReflectionHelper;
 import org.cocos2dx.lib.Cocos2dxRenderer;
 import org.cocos2dx.lib.Cocos2dxVideoHelper;
 import org.cocos2dx.lib.Cocos2dxWebViewHelper;
@@ -51,6 +52,10 @@ public abstract class Cocos2dxFragment extends Fragment implements Cocos2dxHelpe
     private Cocos2dxVideoHelper mVideoHelper = null;
     private Cocos2dxWebViewHelper mWebViewHelper = null;
     private Cocos2dxEditBoxHelper mEditBoxHelper = null;
+
+    public Cocos2dxGLSurfaceView getGLSurfaceView(){
+        return  mGLSurfaceView;
+    }
 
     public class Cocos2dxEGLConfigChooser implements GLSurfaceView.EGLConfigChooser
     {
@@ -243,7 +248,7 @@ public abstract class Cocos2dxFragment extends Fragment implements Cocos2dxHelpe
         }
 
         if(mEditBoxHelper == null){
-            mEditBoxHelper = new Cocos2dxEditBoxHelper(mFrameLayout);
+            mEditBoxHelper = new Cocos2dxEditBoxHelper(getActivity(), this, mFrameLayout);
         }
 
         Window window = this.getActivity().getWindow();
@@ -251,6 +256,10 @@ public abstract class Cocos2dxFragment extends Fragment implements Cocos2dxHelpe
 
         // Set framelayout as the content view
         return mFrameLayout;
+    }
+
+    public void hideVirtualButton() {
+        // This is a stub since we don't want to remove virtual buttons when operating in a fragment.
     }
 
     //native method,call GLViewImpl::getGLContextAttrs() to get the OpenGL ES context attributions

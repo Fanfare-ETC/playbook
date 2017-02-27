@@ -416,7 +416,7 @@ public abstract class Cocos2dxActivity extends Activity implements Cocos2dxHelpe
         return glSurfaceView;
     }
 
-    protected void hideVirtualButton() {
+    public void hideVirtualButton() {
 
         if (Build.VERSION.SDK_INT >= 19) {
             // use reflection to remove dependence of API level
