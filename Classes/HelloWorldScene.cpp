@@ -41,7 +41,10 @@ bool HelloWorld::init()
 
     // position the sprite on the center of the screen
     grass->setPosition(Vec2(visibleSize.width + origin.x, visibleSize.height + origin.y));
-
+    grass->setAnchorPoint(Vec2(0, 0));
+    grass->setPosition(Vec2(0.5,0.5));
+    grass->setScaleX(visibleSize.width / grass->getContentSize().width);
+    grass->setScaleY((visibleSize.height) / grass->getContentSize().height);
 
     // add the sprite as a child to this layer
     this->addChild(grass, 0);
@@ -109,7 +112,7 @@ void HelloWorld::processpoint(Point p)
     r[3]=Point((974.0/1440)*size_x,(1910.0/1920)*size_y);
     if(p.x>=r[0].x && p.x<=r[2].x && p.y<=r[0].y && p.y>=r[1].y)
     {
-        printf("Clicked grandslam\n");
+        CCLOG("Clicked grandslam\n");
         prediction[PredictionEvents::grandslam]=1;
     }
 
@@ -120,7 +123,7 @@ void HelloWorld::processpoint(Point p)
     r[3]=Point((1416.0/1440)*size_x,(1906.0/1920)*size_y);
     if(p.x>=r[0].x && p.x<=r[2].x && p.y<=r[0].y && p.y>=r[1].y)
     {
-        printf("Clicked shutout_inning\n");
+        CCLOG("Clicked shutout_inning\n");
         prediction[PredictionEvents::shutout_inning]=1;
     }
     //longout
@@ -131,7 +134,7 @@ void HelloWorld::processpoint(Point p)
 
     if(p.x>=r[0].x && p.x<=r[2].x && p.y<=r[0].y && p.y>=r[1].y)
     {
-        printf("Clicked Longout\n");
+        CCLOG("Clicked Longout\n");
         prediction[PredictionEvents::longout]=1;
     }
     //runs_batted
@@ -141,7 +144,7 @@ void HelloWorld::processpoint(Point p)
     r[3]=Point((1062.0/1440)*size_x,(1684.0/1920)*size_y);
     if(p.x>=r[0].x && p.x<=r[2].x && p.y<=r[0].y && p.y>=r[1].y)
     {
-        printf("Clicked runs_batted\n");
+        CCLOG("Clicked runs_batted\n");
         prediction[PredictionEvents::runs_batted]=1;
     }
     //pop_fly
@@ -151,7 +154,7 @@ void HelloWorld::processpoint(Point p)
     r[3]=Point((1412.0/1440)*size_x,(1662.0/1920)*size_y);
     if(p.x>=r[0].x && p.x<=r[2].x && p.y<=r[0].y && p.y>=r[1].y)
     {
-        printf("Clicked pop_fly\n");
+        CCLOG("Clicked pop_fly\n");
         prediction[PredictionEvents::pop_fly]=1;
     }
 
@@ -162,7 +165,7 @@ void HelloWorld::processpoint(Point p)
     r[3]=Point((400.0/1440)*size_x,(1216.0/1920)*size_y);
     if(p.x>=r[0].x && p.x<=r[2].x && p.y<=r[0].y && p.y>=r[1].y)
     {
-        printf("Clicked triple_play\n");
+        CCLOG("Clicked triple_play\n");
         prediction[PredictionEvents::triple_play]=1;
     }
 
@@ -173,7 +176,7 @@ void HelloWorld::processpoint(Point p)
     r[3]=Point((1000.0/1440)*size_x,(1404.0/1920)*size_y);
     if(p.x>=r[0].x && p.x<=r[2].x && p.y<=r[0].y && p.y>=r[1].y)
     {
-        printf("Clicked double_play\n");
+        CCLOG("Clicked double_play\n");
         prediction[PredictionEvents::double_play]=1;
     }
 
@@ -184,7 +187,7 @@ void HelloWorld::processpoint(Point p)
     r[3]=Point((1390.0/1440)*size_x,(1206.0/1920)*size_y);
     if(p.x>=r[0].x && p.x<=r[2].x && p.y<=r[0].y && p.y>=r[1].y)
     {
-        printf("Clicked grounder\n");
+        CCLOG("Clicked grounder\n");
         prediction[PredictionEvents::grounder]=1;
     }
 
@@ -195,7 +198,7 @@ void HelloWorld::processpoint(Point p)
     r[3]=Point((970.0/1440)*size_x,(1176.0/1920)*size_y);
     if(p.x>=r[0].x && p.x<=r[2].x && p.y<=r[0].y && p.y>=r[1].y)
     {
-        printf("Clicked steal\n");
+        CCLOG("Clicked steal\n");
         prediction[PredictionEvents::steal]=1;
     }
 
@@ -206,7 +209,7 @@ void HelloWorld::processpoint(Point p)
     r[3]=Point((630.0/1440)*size_x,(1014.0/1920)*size_y);
     if(p.x>=r[0].x && p.x<=r[2].x && p.y<=r[0].y && p.y>=r[1].y)
     {
-        printf("Clicked pick_offl\n");
+        CCLOG("Clicked pick_offl\n");
         prediction[PredictionEvents::pick_off]=1;
     }
     //walk
@@ -216,7 +219,7 @@ void HelloWorld::processpoint(Point p)
     r[3]=Point((1102.0/1440)*size_x,(1010.0/1920)*size_y);
     if(p.x>=r[0].x && p.x<=r[2].x && p.y<=r[0].y && p.y>=r[1].y)
     {
-        printf("Clicked walk\n");
+        CCLOG("Clicked walk\n");
         prediction[PredictionEvents::walk]=1;
     }
     //blocked_run
@@ -226,7 +229,7 @@ void HelloWorld::processpoint(Point p)
     r[3]=Point((936.0/1440)*size_x,(670.0/1920)*size_y);
     if(p.x>=r[0].x && p.x<=r[2].x && p.y<=r[0].y && p.y>=r[1].y)
     {
-        printf("Clicked blocked_run\n");
+        CCLOG("Clicked blocked_run\n");
         prediction[PredictionEvents::blocked_run]=1;
     }
     //strike_out
@@ -236,7 +239,7 @@ void HelloWorld::processpoint(Point p)
     r[3]=Point((864.0/1440)*size_x,(902.0/1920)*size_y);
     if(p.x>=r[0].x && p.x<=r[2].x && p.y<=r[0].y && p.y>=r[1].y)
     {
-        printf("Clicked strike_out\n");
+        CCLOG("Clicked strike_out\n");
         prediction[PredictionEvents::strike_out]=1;
     }
     //hit
@@ -246,7 +249,7 @@ void HelloWorld::processpoint(Point p)
     r[3]=Point((588.0/1440)*size_x,(616.0/1920)*size_y);
     if(p.x>=r[0].x && p.x<=r[2].x && p.y<=r[0].y && p.y>=r[1].y)
     {
-        printf("Clicked hit\n");
+        CCLOG("Clicked hit\n");
         prediction[PredictionEvents::hit]=1;
     }
     //homerun
@@ -256,7 +259,7 @@ void HelloWorld::processpoint(Point p)
     r[3]=Point((858.0/1440)*size_x,(338.0/1920)*size_y);
     if(p.x>=r[0].x && p.x<=r[2].x && p.y<=r[0].y && p.y>=r[1].y)
     {
-        printf("Clicked homerun\n");
+        CCLOG("Clicked homerun\n");
         prediction[PredictionEvents::homerun]=1;
     }
     //pitchcount_16
@@ -266,7 +269,7 @@ void HelloWorld::processpoint(Point p)
     r[3]=Point((1298.0/1440)*size_x,(474.0/1920)*size_y);
     if(p.x>=r[0].x && p.x<=r[2].x && p.y<=r[0].y && p.y>=r[1].y)
     {
-        printf("Clicked pitchcount_16\n");
+        CCLOG("Clicked pitchcount_16\n");
         prediction[PredictionEvents::pitchcount_16]=1;
     }
 
@@ -277,7 +280,7 @@ void HelloWorld::processpoint(Point p)
     r[3]=Point((414.0/1440)*size_x,(336.0/1920)*size_y);
     if(p.x>=r[0].x && p.x<=r[2].x && p.y<=r[0].y && p.y>=r[1].y)
     {
-        printf("Clicked walk_off\n");
+        CCLOG("Clicked walk_off\n");
         prediction[PredictionEvents::walk_off]=1;
     }
 
@@ -288,7 +291,7 @@ void HelloWorld::processpoint(Point p)
     r[3]=Point((1392.0/1440)*size_x,(382.0/1920)*size_y);
     if(p.x>=r[0].x && p.x<=r[2].x && p.y<=r[0].y && p.y>=r[1].y)
     {
-        printf("Clicked pitchcount_17\n");
+        CCLOG("Clicked pitchcount_17\n");
         prediction[PredictionEvents::pitchcount_17]=1;
     }
 
@@ -299,7 +302,7 @@ void HelloWorld::processpoint(Point p)
     r[3]=Point((1358.0/1440)*size_x,(914.0/1920)*size_y);
     if(p.x>=r[0].x && p.x<=r[2].x && p.y<=r[0].y && p.y>=r[1].y)
     {
-        printf("Clicked oneb\n");
+        CCLOG("Clicked oneb\n");
         prediction[PredictionEvents::oneb]=1;
     }
 
@@ -310,7 +313,7 @@ void HelloWorld::processpoint(Point p)
     r[3]=Point((862.0/1440)*size_x,(1420.0/1920)*size_y);
     if(p.x>=r[0].x && p.x<=r[2].x && p.y<=r[0].y && p.y>=r[1].y)
     {
-        printf("Clicked twob\n");
+        CCLOG("Clicked twob\n");
         prediction[PredictionEvents::twob]=1;
     }
 
@@ -321,7 +324,7 @@ void HelloWorld::processpoint(Point p)
     r[3]=Point((316.0/1440)*size_x,(918.0/1920)*size_y);
     if(p.x>=r[0].x && p.x<=r[2].x && p.y<=r[0].y && p.y>=r[1].y)
     {
-        printf("Clicked threeb\n");
+        CCLOG("Clicked threeb\n");
         prediction[PredictionEvents::threeb]=1;
     }
 }
