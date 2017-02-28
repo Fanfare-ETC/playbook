@@ -1,9 +1,10 @@
 #include "AppDelegate.h"
+#include "HelloWorldScene.h"
 #include "SectionSelectionScene.h"
 
 USING_NS_CC;
 
-static cocos2d::Size designResolutionSize = cocos2d::Size(1080, 1920);
+static cocos2d::Size designResolutionSize = cocos2d::Size(360, 640);
 static cocos2d::Size smallResolutionSize = cocos2d::Size(360, 640);
 static cocos2d::Size mediumResolutionSize = cocos2d::Size(720, 1280);
 static cocos2d::Size largeResolutionSize = cocos2d::Size(1080, 1920);
@@ -74,7 +75,7 @@ bool AppDelegate::applicationDidFinishLaunching() {
     register_all_packages();
 
     // create a scene. it's an autorelease object
-    auto scene = SectionSelection::createScene();
+    auto scene = HelloWorld::createScene();
 
     // run
     director->runWithScene(scene);
@@ -97,3 +98,34 @@ void AppDelegate::applicationWillEnterForeground() {
     // if you use SimpleAudioEngine, it must resume here
     // SimpleAudioEngine::getInstance()->resumeBackgroundMusic();
 }
+
+
+#if CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID
+
+extern "C" {
+
+JNIEXPORT void JNICALL
+Java_edu_cmu_etc_fanfare_playbook_Cocos2dxBridge_loadScene(JNIEnv* env, jclass clazz, jstring sceneName) {
+    jboolean isCopy;
+    const char* sceneNameCharPtr = env->GetStringUTFChars(sceneName, &isCopy);
+    std::string sceneNameStr (sceneNameCharPtr);
+
+    auto director = Director::getInstance();
+    director->getScheduler()->performFunctionInCocosThread([sceneNameStr, director](){
+        if (sceneNameStr == "HelloWorld") {
+            auto scene = HelloWorld::createScene();
+            director->replaceScene(scene);
+        } else if (sceneNameStr == "SectionSelection") {
+            auto scene = SectionSelection::createScene();
+            director->replaceScene(scene);
+        } else {
+            CCLOG("Attempting to load unknown scene!");
+        }
+    });
+
+    env->ReleaseStringUTFChars(sceneName, sceneNameCharPtr);
+}
+
+}
+
+#endif

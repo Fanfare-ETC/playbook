@@ -1,5 +1,5 @@
-#ifndef __HELLOWORLD_SCENE_H__
-#define __HELLOWORLD_SCENE_H__
+#ifndef __SECTIONSELECTION_SCENE_H__
+#define __SECTIONSELECTION_SCENE_H__
 
 #include "cocos2d.h"
 #include "cocos/network/HttpClient.h"
@@ -36,4 +36,4 @@ class SectionSprite : public cocos2d::Sprite
 	private:
 
 };
-#endif // __HELLOWORLD_SCENE_H__
+#endif // __SECTIONSELECTION_SCENE_H__

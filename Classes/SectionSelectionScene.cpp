@@ -138,7 +138,7 @@ bool SectionSelection::init()
     //////////////////////////////
     // 1. super init first
 
-	
+
 
     if ( !Layer::init() )
     {
@@ -157,7 +157,7 @@ bool SectionSelection::init()
                                            "CloseNormal.png",
                                            "CloseSelected.png",
                                            CC_CALLBACK_1(SectionSelection::menuCloseCallback, this));
-    
+
     closeItem->setPosition(Vec2(origin.x + visibleSize.width - closeItem->getContentSize().width/2 ,
                                 origin.y + closeItem->getContentSize().height/2));
 
@@ -189,12 +189,10 @@ bool SectionSelection::init()
 	leftSection1->setAnchorPoint(Vec2(0.5, 0.5));
 	rightSection1->setAnchorPoint(Vec2(0.5, 0.5));
 	
-
 	stadiumMap->addChild(leftSection1);
 	stadiumMap->addChild(rightSection1);
 	stadiumMap->addChild(centerSection);
 	
-
 	stadiumMap->setPosition(Vec2(visibleSize.width / 2 + origin.x, (visibleSize.height) * 2 / 3 + origin.y));
 	stadiumMap->setScale(1.2);
 
@@ -240,13 +238,13 @@ bool SectionSelection::init()
 	seatNoBox->setReturnType(ui::EditBox::KeyboardReturnType::DONE);
 	seatNoBox->setScale(1.2);
 //eatNoBox->setDelegate(this);
-	addChild(seatNoBox);
+	this->addChild(seatNoBox);
 
 
 
 
     // add "HelloWorld" splash screen"
-   // auto sprite = Sprite::create("HelloWorld.png");
+    //auto sprite = Sprite::create("HelloWorld.png");
 
     // position the sprite on the center of the screen
     //sprite->setPosition(Vec2(visibleSize.width/2 + origin.x, visibleSize.height/2 + origin.y));
@@ -261,7 +259,7 @@ bool SectionSelection::init()
     };
 
     _eventDispatcher->addEventListenerWithSceneGraphPriority(listener, this);
-    
+
     return true;
 }
 
