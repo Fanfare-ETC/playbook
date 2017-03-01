@@ -13,8 +13,10 @@ before_install:
 - docker pull yjwong/playbook
 
 script:
-- docker run -it -v $(pwd):/playbook -w /playbook yjwong/playbook cocos compile
-  -p android --app-abi x86:armeabi --android-studio --ap android-25
+- echo "sdk.dir=/android-sdk" >> proj.android-studio/local.properties
+- echo "ndk.dir=/android-ndk-r13b" >> proj.android-studio/local.properties
+- docker run -it -v $(pwd):/playbook -w /playbook/proj.android-studio yjwong/playbook
+  ./gradlew --configure-on-demand --parallel assembleDebug
 
 notifications:
   slack:
@@ -24,5 +26,4 @@ addons:
   artifacts:
     s3_region: us-east-1
     paths:
-      - bin/debug/android/playbook-debug.apk
-
+      - proj.android-studio/app/build/outputs/apk/playbook-debug.apk

@@ -20,6 +20,7 @@ cocos2d/cocos/platform/android/java/res/
 proj.android-studio/app/assets/
 proj.android-studio/app/obj/
 proj.android-studio/app/libs/
+proj.android-studio/app/.externalNativeBuild/
 proj.android-studio/app/local.properties
 proj.android-studio/*/build/
 proj.android-studio/.idea/workspace.xml

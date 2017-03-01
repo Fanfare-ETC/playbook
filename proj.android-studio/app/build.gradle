@@ -10,6 +10,16 @@ android {
         targetSdkVersion 25
         versionCode 1
         versionName "1.0"
+
+        externalNativeBuild {
+            ndkBuild {
+                arguments '-j' + Runtime.runtime.availableProcessors()
+            }
+        }
+
+        ndk {
+            abiFilters 'x86', 'armeabi'
+        }
     }
 
     sourceSets.main {
@@ -39,6 +49,12 @@ android {
             if (project.hasProperty("RELEASE_STORE_FILE")) {
                 signingConfig signingConfigs.release
             }
+        }
+    }
+
+    externalNativeBuild {
+        ndkBuild {
+            path 'jni/Android.mk'
         }
     }
 }
