@@ -319,7 +319,7 @@ public abstract class Cocos2dxFragment extends Fragment implements Cocos2dxHelpe
         ViewGroup.LayoutParams edittext_layout_params =
                 new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                         ViewGroup.LayoutParams.WRAP_CONTENT);
-        Cocos2dxEditBox edittext = new Cocos2dxEditBox(getActivity());
+        Cocos2dxEditBox edittext = new Cocos2dxEditBox(getActivity(), this);
         edittext.setLayoutParams(edittext_layout_params);
 
 

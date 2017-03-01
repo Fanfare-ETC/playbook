@@ -99,7 +99,7 @@ public class Cocos2dxEditBoxHelper {
         mActivity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                final Cocos2dxEditBox editBox = new Cocos2dxEditBox(mActivity);
+                final Cocos2dxEditBox editBox = new Cocos2dxEditBox(mActivity, mListener);
                 editBox.setFocusable(true);
                 editBox.setFocusableInTouchMode(true);
                 editBox.setInputFlag(5); //kEditBoxInputFlagLowercaseAllCharacters
