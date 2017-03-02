@@ -2,6 +2,7 @@
 #define __HELLOWORLD_SCENE_H__
 
 #include "cocos2d.h"
+#include "MappedSprite.h"
 
 //using namespace std;
 
@@ -39,14 +40,17 @@ public:
     int prediction[30]={0};
 
     virtual bool init();
-    void addtouchevent();
-    void processpoint(cocos2d::Point p);
+    void processPoint(cocos2d::Point p);
 
     // a selector callback
     void menuCloseCallback(cocos2d::Ref* pSender);
 
     // implement the "static create()" method manually
     CREATE_FUNC(HelloWorld);
+
+private:
+    MappedSprite* _fieldOverlay;
+    cocos2d::PhysicsBody* _physicsBody;
 };
 
 #endif // __HELLOWORLD_SCENE_H__

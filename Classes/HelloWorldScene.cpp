@@ -1,5 +1,6 @@
 #include "HelloWorldScene.h"
 #include "SimpleAudioEngine.h"
+#include "MappedSprite.h"
 
 USING_NS_CC;
 using namespace std;
@@ -9,7 +10,8 @@ using namespace std;
 Scene* HelloWorld::createScene()
 {
     // 'scene' is an autorelease object
-    auto scene = Scene::create();
+    auto scene = Scene::createWithPhysics();
+    scene->getPhysicsWorld()->setDebugDrawMask(PhysicsWorld::DEBUGDRAW_ALL);
 
     // 'layer' is an autorelease object
     auto layer = HelloWorld::create();
@@ -32,54 +34,87 @@ bool HelloWorld::init()
     }
 
     auto visibleSize = Director::getInstance()->getVisibleSize();
+    auto winSize = Director::getInstance()->getWinSize();
     Vec2 origin = Director::getInstance()->getVisibleOrigin();
     auto scale =  Director::getInstance()->getContentScaleFactor();
 
+    // Create Node that represents the visible portion of the screen.
+    auto node = Node::create();
+    node->setContentSize(visibleSize);
+    node->setPosition(origin);
+    this->addChild(node);
 
     // add grass to screen
     auto grass = Sprite::create("Prediction-BG-Grass.png");
-
-    // position the sprite on the center of the screen
-    grass->setPosition(Vec2(visibleSize.width + origin.x, visibleSize.height + origin.y));
-    grass->setAnchorPoint(Vec2(0, 0));
-    grass->setPosition(Vec2(0.5,0.5));
+    grass->setPosition(0.0f, 0.0f);
+    grass->setAnchorPoint(Vec2(0.0f, 0.0f));
     grass->setScaleX(visibleSize.width / grass->getContentSize().width);
-    grass->setScaleY((visibleSize.height) / grass->getContentSize().height);
+    grass->setScaleY(visibleSize.height / grass->getContentSize().height);
+    node->addChild(grass, 0);
 
-    // add the sprite as a child to this layer
-    this->addChild(grass, 0);
-
-    //add overlay to screen
-    auto overlay = Sprite::create("Prediction-Overlay-Field.png");
-
-    // position the sprite on the center of the screen
-    overlay->setAnchorPoint(Vec2(0, 0));
-    overlay->setPosition(Vec2(0.5,0.5));
-    overlay->setScaleX(visibleSize.width / overlay->getContentSize().width);
-    overlay->setScaleY((visibleSize.height-50) / overlay->getContentSize().height);
-
-    // add the sprite as a child to this layer
-    this->addChild(overlay, 0);
-
-    addtouchevent();
-
-    //add banner on top to screen
+    // add banner on top to screen
     auto banner = Sprite::create("Prediction-Banner.png");
+    auto bannerScale = visibleSize.width / banner->getContentSize().width;
+    banner->setPosition(0.0f, visibleSize.height);
+    banner->setAnchorPoint(Vec2(0.0f, 1.0f));
+    banner->setScaleX(bannerScale);
+    banner->setScaleY(bannerScale);
+    auto bannerHeight = bannerScale * banner->getContentSize().height;
+    node->addChild(banner, 1);
 
-    // position the sprite on the center of the screen
-    //banner->setAnchorPoint(Vec2(0,visibleSize.height));
-    banner->setPosition(Vec2(visibleSize.width/2,visibleSize.height-20));
-    banner->setScaleX(visibleSize.width / overlay->getContentSize().width);
-    banner->setScaleY(visibleSize.height / overlay->getContentSize().height);
-    this->addChild(banner, 0);
+    // add overlay to screen
+    std::map<std::string, MappedSprite::Polygon> polygons;
+
+    polygons.insert({"error", {
+            Vec2(12.0f, 1908.0f),
+            Vec2(408.0f, 1908.0f),
+            Vec2(456.0f, 1732.0f),
+            Vec2(12.0f, 1474.0f),
+    }});
+
+    polygons.insert({"grand_slam", {
+            Vec2(424.0f, 1908.0f),
+            Vec2(1016.0f, 1908.0f),
+            Vec2(970.0f, 1736.0f),
+            Vec2(728.0f, 1868.0f),
+            Vec2(470.0f, 1736.0f),
+    }});
+
+    polygons.insert({"shutout_inning", {
+            Vec2(1030.0f, 1908.0f),
+            Vec2(1426.0f, 1908.0f),
+            Vec2(1426.0f, 1472.0f),
+            Vec2(984.0f, 1734.0f)
+    }});
+
+    // TODO: Add the rest of other prediction parts.
+
+    this->_fieldOverlay = MappedSprite::create("Prediction-Overlay-Field.png", polygons);
+    auto fieldOverlayScaleX = visibleSize.width / this->_fieldOverlay->getContentSize().width;
+    auto fieldOverlayScaleY = (visibleSize.height - bannerHeight) / this->_fieldOverlay->getContentSize().height;
+    auto fieldOverlayScale = std::min(fieldOverlayScaleX, fieldOverlayScaleY);
+    this->_fieldOverlay->setPosition(visibleSize.width / 2.0f, visibleSize.height - bannerHeight);
+    this->_fieldOverlay->setAnchorPoint(Vec2(0.5f, 1.0f));
+    this->_fieldOverlay->setScale(fieldOverlayScale);
+    this->_fieldOverlay->onTouchBegan = [this](std::string name) {
+        CCLOG("Contacted: %s", name.c_str());
+    };
+    node->addChild(this->_fieldOverlay, 1);
 
     return true;
 }
-void HelloWorld::processpoint(Point p)
+void HelloWorld::processPoint(Point p)
 {
+    auto scene = Director::getInstance()->getRunningScene();
+    if (scene->getPhysicsWorld()->getShape(p) != nullptr) {
+        CCLOG("Contacted!!");
+    } else {
+        CCLOG("No contact");
+    }
 
+    /*
     //check for error catergory rectangle
-    auto rect= this->getBoundingBox();
+    auto rect = this->getBoundingBox();
     //printf("rect %f %f w=%f h=%f\n",rect.origin.x,rect.origin.y,rect.size.width,rect.size.height);
     auto size_x=rect.size.width;
     auto size_y=rect.size.height;
@@ -327,33 +362,7 @@ void HelloWorld::processpoint(Point p)
         CCLOG("Clicked threeb\n");
         prediction[PredictionEvents::threeb]=1;
     }
-}
-void HelloWorld::addtouchevent()
-{
-    //  Create a "one by one" touch event listener
-    auto listener1 = EventListenerTouchOneByOne::create();
-
-    // trigger when you push down
-    listener1->onTouchBegan = [this](Touch* touch, Event* event){
-        // your code
-        Vec2 p = touch->getLocation();
-        processpoint(p);
-        return true; // if you are consuming it
-    };
-
-    // trigger when moving touch
-    listener1->onTouchMoved = [](Touch* touch, Event* event){
-        // your code
-    };
-
-    // trigger when you let up
-    listener1->onTouchEnded = [=](Touch* touch, Event* event){
-        // your code
-    };
-
-    // Add listener
-    _eventDispatcher->addEventListenerWithSceneGraphPriority(listener1, this);
-
+     */
 }
 
 void HelloWorld::menuCloseCallback(Ref* pSender)
