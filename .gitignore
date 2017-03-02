@@ -52,6 +52,9 @@ proj.win32/*.opensdf
 proj.win32/Debug.*/
 proj.win32/Release.*/
 
+# Linux project files
+linux-build/
+
 # Vim swap files
 [._]*.s[a-w][a-z]
 [._]s[a-w][a-z]

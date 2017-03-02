@@ -76,7 +76,7 @@ bool HelloWorld::init()
             Vec2(424.0f, 1908.0f),
             Vec2(1016.0f, 1908.0f),
             Vec2(970.0f, 1736.0f),
-            Vec2(728.0f, 1868.0f),
+            Vec2(728.0f, 1768.0f),
             Vec2(470.0f, 1736.0f),
     }});
 
@@ -85,6 +85,25 @@ bool HelloWorld::init()
             Vec2(1426.0f, 1908.0f),
             Vec2(1426.0f, 1472.0f),
             Vec2(984.0f, 1734.0f)
+    }});
+
+    polygons.insert({"long_out", {
+            Vec2(12.0f, 1448.0f),
+            Vec2(224.0f, 1618.0f),
+            Vec2(352.0f, 1394.0f),
+            Vec2(144.0f, 1208.0f),
+            Vec2(12.0f, 918.0f)
+    }});
+
+    polygons.insert({"runs_batted_in", {
+            Vec2(238.0f, 1626.0f),
+            Vec2(466.0f, 1720.0f),
+            Vec2(716.0f, 1754.0f),
+            Vec2(976.0f, 1720.0f),
+            Vec2(1202.0f, 1626.0f),
+            Vec2(1074.0f, 1404.0f),
+            Vec2(716.0f, 1494.0f),
+            Vec2(364.0f, 1404.0f)
     }});
 
     // TODO: Add the rest of other prediction parts.

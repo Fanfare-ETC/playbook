@@ -1,5 +1,4 @@
 #include "MappedSprite.h"
-#include "spine/Json.h"
 
 using namespace cocos2d;
 
@@ -44,11 +43,23 @@ void MappedSprite::initPolygons() {
             return point;
         });
 
-        auto physicsShape = PhysicsShapePolygon::create(points.data(), points.size());
-        physicsShape->setTag(this->_polygonNames.size());
-        this->_polygonNames.push_back(name);
+        // Convert polygon to triangles so they can be used in PhysicsShape.
+        // Each PhysicsShape only supports up to 4 vertices, so we have to
+        // break things apart.
+        std::vector<p2t::Triangle*> triangles = this->triangulate(points);
+        for (const auto& triangle : triangles) {
+            Polygon subPolygon;
+            for (int i = 0; i < 3; i++) {
+                p2t::Point* point = triangle->GetPoint(i);
+                subPolygon.push_back(Vec2((float) point->x, (float) point->y));
+            }
 
-        physicsBody->addShape(physicsShape);
+            auto physicsShape = PhysicsShapePolygon::create(subPolygon.data(), subPolygon.size());
+            physicsShape->setTag(this->_polygonNames.size());
+            physicsBody->addShape(physicsShape);
+        }
+
+        this->_polygonNames.push_back(name);
     }
 
     this->addComponent(physicsBody);
@@ -84,4 +95,27 @@ void MappedSprite::addEvents() {
     };
 
     _eventDispatcher->addEventListenerWithSceneGraphPriority(listener, this);
+}
+
+std::vector<p2t::Triangle*> MappedSprite::triangulate(const Polygon &points) {
+    if (points.size() < 3) {
+        CCLOG("AUTOPOLYGON: cannot triangulate polygons with less than 3 points");
+        return std::vector<p2t::Triangle*>();
+    }
+
+    std::vector<p2t::Point*> p2points;
+    for (const auto& pt : points) {
+        p2t::Point* p = new (std::nothrow) p2t::Point(pt.x, pt.y);
+        p2points.push_back(p);
+    }
+
+    p2t::CDT cdt (p2points);
+    cdt.Triangulate();
+    std::vector<p2t::Triangle*> tris = cdt.GetTriangles();
+
+    for (auto j : p2points) {
+        delete j;
+    }
+
+    return tris;
 }
