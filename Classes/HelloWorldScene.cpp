@@ -62,6 +62,16 @@ bool HelloWorld::init()
     auto bannerHeight = bannerScale * banner->getContentSize().height;
     node->addChild(banner, 1);
 
+    // add baseball rack on bottom to screen
+    auto rack = Sprite::create("Prediction-Holder-BallsSlot.png");
+    auto rackScale = visibleSize.width / rack->getContentSize().width;
+    rack->setPosition(0.0f, visibleSize.height);
+    rack->setAnchorPoint(Vec2(0.0f, 1.0f));
+    rack->setScaleX(bannerScale);
+    rack->setScaleY(bannerScale);
+    auto rackHeight = bannerScale * banner->getContentSize().height;
+    node->addChild(banner, 1);
+
     // add overlay to screen
     std::map<std::string, MappedSprite::Polygon> polygons;
 
