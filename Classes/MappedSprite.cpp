@@ -46,15 +46,9 @@ void MappedSprite::initPolygons() {
         // Convert polygon to triangles so they can be used in PhysicsShape.
         // Each PhysicsShape only supports up to 4 vertices, so we have to
         // break things apart.
-        std::vector<p2t::Triangle*> triangles = this->triangulate(points);
+        std::vector<Polygon> triangles = this->triangulate(points);
         for (const auto& triangle : triangles) {
-            Polygon subPolygon;
-            for (int i = 0; i < 3; i++) {
-                p2t::Point* point = triangle->GetPoint(i);
-                subPolygon.push_back(Vec2((float) point->x, (float) point->y));
-            }
-
-            auto physicsShape = PhysicsShapePolygon::create(subPolygon.data(), subPolygon.size());
+            auto physicsShape = PhysicsShapePolygon::create(triangle.data(), triangle.size());
             physicsShape->setTag(this->_polygonNames.size());
             physicsBody->addShape(physicsShape);
         }
@@ -97,10 +91,10 @@ void MappedSprite::addEvents() {
     _eventDispatcher->addEventListenerWithSceneGraphPriority(listener, this);
 }
 
-std::vector<p2t::Triangle*> MappedSprite::triangulate(const Polygon &points) {
+std::vector<MappedSprite::Polygon> MappedSprite::triangulate(const Polygon &points) {
     if (points.size() < 3) {
         CCLOG("AUTOPOLYGON: cannot triangulate polygons with less than 3 points");
-        return std::vector<p2t::Triangle*>();
+        return std::vector<Polygon>();
     }
 
     std::vector<p2t::Point*> p2points;
@@ -113,9 +107,19 @@ std::vector<p2t::Triangle*> MappedSprite::triangulate(const Polygon &points) {
     cdt.Triangulate();
     std::vector<p2t::Triangle*> tris = cdt.GetTriangles();
 
+    std::vector<Polygon> triangles;
+    for (const auto& p2tTriangle : tris) {
+        Polygon triangle;
+        for (int i = 0; i < 3; i++) {
+            auto point = p2tTriangle->GetPoint(i);
+            triangle.push_back(Vec2((float) point->x, (float) point->y));
+        }
+        triangles.push_back(triangle);
+    }
+
     for (auto j : p2points) {
         delete j;
     }
 
-    return tris;
+    return triangles;
 }

@@ -22,7 +22,7 @@ private:
 
     void initPolygons();
     void addEvents();
-    std::vector<p2t::Triangle*> triangulate(const Polygon& points);
+    std::vector<Polygon> triangulate(const Polygon& points);
 };
 
 
