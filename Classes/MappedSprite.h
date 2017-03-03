@@ -2,6 +2,7 @@
 #define PLAYBOOK_MAPPEDSPRITE_H
 
 #include "cocos2d.h"
+#include "poly2tri/poly2tri.h"
 
 class MappedSprite : public cocos2d::Sprite {
 public:
@@ -21,6 +22,7 @@ private:
 
     void initPolygons();
     void addEvents();
+    std::vector<Polygon> triangulate(const Polygon& points);
 };
 
 

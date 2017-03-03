@@ -40,7 +40,6 @@ public:
     int prediction[30]={0};
 
     virtual bool init();
-    void processPoint(cocos2d::Point p);
 
     // a selector callback
     void menuCloseCallback(cocos2d::Ref* pSender);
@@ -49,14 +48,13 @@ public:
     CREATE_FUNC(HelloWorld);
 
 private:
-    MappedSprite* _fieldOverlay;
-    cocos2d::PhysicsBody* _physicsBody;
+    cocos2d::Sprite* _ballSlot;
+    std::vector<bool> _ballDragState;
+    std::vector<int> _ballDragTouchID;
+    std::vector<cocos2d::Vec2> _ballDragOrigPosition;
+
+    cocos2d::Node* initFieldOverlay();
+    void initEvents();
 };
 
 #endif // __HELLOWORLD_SCENE_H__
-
-/**
-
-    vector<Sprite> *rect_list =new vector<Sprite>;
-    cocos2d::Sprite* big;
-**/
