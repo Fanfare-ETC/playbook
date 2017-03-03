@@ -115,9 +115,11 @@ endif()
 include_directories(
   /usr/local/include/GLFW
   /usr/include/GLFW
+  ${COCOS2D_ROOT}
   ${COCOS2D_ROOT}/cocos
   ${COCOS2D_ROOT}/cocos/platform
   ${COCOS2D_ROOT}/cocos/audio/include/
+  ${COCOS2D_ROOT}/external
   Classes
 )
 if ( WIN32 )
@@ -130,12 +132,16 @@ endif( WIN32 )
 set(GAME_SRC
   Classes/AppDelegate.cpp
   Classes/HelloWorldScene.cpp
+  Classes/SectionSelectionScene.cpp
+  Classes/MappedSprite.cpp
   ${PLATFORM_SPECIFIC_SRC}
 )
 
 set(GAME_HEADERS
   Classes/AppDelegate.h
   Classes/HelloWorldScene.h
+  Classes/SectionSelectionScene.h
+  Classes/MappedSprite.h
   ${PLATFORM_SPECIFIC_HEADERS}
 )
 
