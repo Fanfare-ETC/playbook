@@ -59,13 +59,28 @@ bool HelloWorld::init()
     node->addChild(banner, 1);
 
     // add ball slot to screen
-    auto ballSlot = Sprite::create("Prediction-Holder-BallsSlot.png");
-    auto ballSlotScale = visibleSize.width / ballSlot->getContentSize().width;
-    ballSlot->setPosition(0.0f, 0.0f);
-    ballSlot->setAnchorPoint(Vec2(0.0f, 0.0f));
-    ballSlot->setScale(ballSlotScale);
-    auto ballSlotHeight = ballSlotScale * ballSlot->getContentSize().height;
-    node->addChild(ballSlot, 1);
+    this->_ballSlot = Sprite::create("Prediction-Holder-BallsSlot.png");
+    auto ballSlotScale = visibleSize.width / this->_ballSlot->getContentSize().width;
+    this->_ballSlot->setPosition(0.0f, 0.0f);
+    this->_ballSlot->setAnchorPoint(Vec2(0.0f, 0.0f));
+    this->_ballSlot->setScale(ballSlotScale);
+    auto ballSlotHeight = ballSlotScale * this->_ballSlot->getContentSize().height;
+    node->addChild(this->_ballSlot, 2);
+
+    // Add balls to ball slot.
+    for (int i = 0; i < 5; i++) {
+        auto ball = Sprite::create("Item-Ball.png");
+        auto ballScale = this->_ballSlot->getContentSize().height / ball->getContentSize().height / 1.5f;
+        ball->setPosition(110.0f + (ball->getContentSize().width * i * ballScale), this->_ballSlot->getContentSize().height / 2.0f);
+        ball->setScale(ballScale);
+        ball->setName("Ball " + std::to_string(i));
+        this->_ballSlot->addChild(ball);
+
+        // Add tracking information to the ball.
+        this->_ballDragState.push_back(false);
+        this->_ballDragTouchID.push_back(0);
+        this->_ballDragOrigPosition.push_back(ball->getPosition());
+    }
 
     // add overlay to screen
     auto fieldOverlay = this->initFieldOverlay();
@@ -76,6 +91,9 @@ bool HelloWorld::init()
     fieldOverlay->setAnchorPoint(Vec2(0.5f, 1.0f));
     fieldOverlay->setScale(fieldOverlayScale);
     node->addChild(fieldOverlay, 1);
+
+    // Create event listeners.
+    this->initEvents();
 
     return true;
 }
@@ -310,6 +328,71 @@ Node* HelloWorld::initFieldOverlay() {
     };
 
     return fieldOverlay;
+}
+
+void HelloWorld::initEvents() {
+    auto listener = EventListenerTouchAllAtOnce::create();
+
+    listener->onTouchesBegan = [this](const std::vector<Touch*>& touches, Event* event) {
+        for (const auto& touch : touches) {
+            // For each ball, check if the touch point is within the bounding box of the ball.
+            // If the touch point is within the bounding box, then update the drag state.
+            auto balls = this->_ballSlot->getChildren();
+            for (auto it = balls.begin(); it != balls.end(); ++it) {
+                auto localLocation = (*it)->getParent()->convertTouchToNodeSpace(touch);
+                auto box = (*it)->getBoundingBox();
+
+                // Save the tracking information needed for multi-touch to work.
+                if (box.containsPoint(localLocation)) {
+                    auto ballIdx = it - balls.begin();
+                    this->_ballDragState[ballIdx] = true;
+                    this->_ballDragTouchID[ballIdx] = touch->getID();
+                }
+            }
+        }
+    };
+
+    listener->onTouchesEnded = [this](const std::vector<Touch*>& touches, Event* event) {
+        for (const auto& touch : touches) {
+            // For each ball, check if the touch point is within the bounding box of the ball.
+            // If the touch point is within the bounding box, then update the drag state.
+            auto balls = this->_ballSlot->getChildren();
+            for (auto it = balls.begin(); it != balls.end(); ++it) {
+                auto ballIdx = it - balls.begin();
+
+                // If the removed touch ID is matched to a ball, it means that
+                // a finger was lifted off the ball.
+                if (touch->getID() == this->_ballDragTouchID[ballIdx]) {
+                    this->_ballDragState[ballIdx] = false;
+                    (*it)->setPosition(this->_ballDragOrigPosition[ballIdx]);
+                }
+            }
+        }
+    };
+
+    listener->onTouchesMoved = [this](const std::vector<Touch*>& touches, Event* event) {
+        for (const auto& touch : touches) {
+            // For each ball, check if the touch point is within the bounding box of the ball.
+            // If the touch point is within the bounding box, then update the drag state.
+            auto balls = this->_ballSlot->getChildren();
+            for (auto it = balls.begin(); it != balls.end(); ++it) {
+                auto ballIdx = it - balls.begin();
+
+                // If the removed touch ID is matched to a ball, it means that
+                // a finger was lifted off the ball.
+                if (this->_ballDragState[ballIdx] && touch->getID() == this->_ballDragTouchID[ballIdx]) {
+                    auto localLocation = (*it)->getParent()->convertTouchToNodeSpace(touch);
+                    (*it)->setPosition(localLocation);
+                }
+            }
+        }
+    };
+
+    listener->onTouchesCancelled = [this](const std::vector<Touch*>& touches, Event* event) {
+        CCLOG("onTouchesCancelled: touches.size(): %d", touches.size());
+    };
+
+    this->getEventDispatcher()->addEventListenerWithSceneGraphPriority(listener, this);
 }
 
 void HelloWorld::menuCloseCallback(Ref* pSender)

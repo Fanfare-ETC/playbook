@@ -48,7 +48,13 @@ public:
     CREATE_FUNC(HelloWorld);
 
 private:
+    cocos2d::Sprite* _ballSlot;
+    std::vector<bool> _ballDragState;
+    std::vector<int> _ballDragTouchID;
+    std::vector<cocos2d::Vec2> _ballDragOrigPosition;
+
     cocos2d::Node* initFieldOverlay();
+    void initEvents();
 };
 
 #endif // __HELLOWORLD_SCENE_H__
