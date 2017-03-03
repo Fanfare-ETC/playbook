@@ -48,14 +48,7 @@ public:
     CREATE_FUNC(HelloWorld);
 
 private:
-    MappedSprite* _fieldOverlay;
-    cocos2d::PhysicsBody* _physicsBody;
+    cocos2d::Node* initFieldOverlay();
 };
 
 #endif // __HELLOWORLD_SCENE_H__
-
-/**
-
-    vector<Sprite> *rect_list =new vector<Sprite>;
-    cocos2d::Sprite* big;
-**/

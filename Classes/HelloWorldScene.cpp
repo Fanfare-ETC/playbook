@@ -33,9 +33,7 @@ bool HelloWorld::init()
     }
 
     auto visibleSize = Director::getInstance()->getVisibleSize();
-    auto winSize = Director::getInstance()->getWinSize();
     Vec2 origin = Director::getInstance()->getVisibleOrigin();
-    auto scale =  Director::getInstance()->getContentScaleFactor();
 
     // Create Node that represents the visible portion of the screen.
     auto node = Node::create();
@@ -56,10 +54,34 @@ bool HelloWorld::init()
     auto bannerScale = visibleSize.width / banner->getContentSize().width;
     banner->setPosition(0.0f, visibleSize.height);
     banner->setAnchorPoint(Vec2(0.0f, 1.0f));
-    banner->setScaleX(bannerScale);
-    banner->setScaleY(bannerScale);
+    banner->setScale(bannerScale);
     auto bannerHeight = bannerScale * banner->getContentSize().height;
     node->addChild(banner, 1);
+
+    // add ball slot to screen
+    auto ballSlot = Sprite::create("Prediction-Holder-BallsSlot.png");
+    auto ballSlotScale = visibleSize.width / ballSlot->getContentSize().width;
+    ballSlot->setPosition(0.0f, 0.0f);
+    ballSlot->setAnchorPoint(Vec2(0.0f, 0.0f));
+    ballSlot->setScale(ballSlotScale);
+    auto ballSlotHeight = ballSlotScale * ballSlot->getContentSize().height;
+    node->addChild(ballSlot, 1);
+
+    // add overlay to screen
+    auto fieldOverlay = this->initFieldOverlay();
+    auto fieldOverlayScaleX = visibleSize.width / fieldOverlay->getContentSize().width;
+    auto fieldOverlayScaleY = (visibleSize.height - bannerHeight - ballSlotHeight) / fieldOverlay->getContentSize().height;
+    auto fieldOverlayScale = std::min(fieldOverlayScaleX, fieldOverlayScaleY);
+    fieldOverlay->setPosition(visibleSize.width / 2.0f, visibleSize.height - bannerHeight);
+    fieldOverlay->setAnchorPoint(Vec2(0.5f, 1.0f));
+    fieldOverlay->setScale(fieldOverlayScale);
+    node->addChild(fieldOverlay, 1);
+
+    return true;
+}
+
+Node* HelloWorld::initFieldOverlay() {
+    auto visibleSize = Director::getInstance()->getVisibleSize();
 
     // add overlay to screen
     std::map<std::string, MappedSprite::Polygon> polygons;
@@ -282,19 +304,12 @@ bool HelloWorld::init()
             Vec2(974.0f, 12.0f)
     }});
 
-    this->_fieldOverlay = MappedSprite::create("Prediction-Overlay-Field.png", polygons);
-    auto fieldOverlayScaleX = visibleSize.width / this->_fieldOverlay->getContentSize().width;
-    auto fieldOverlayScaleY = (visibleSize.height - bannerHeight) / this->_fieldOverlay->getContentSize().height;
-    auto fieldOverlayScale = std::min(fieldOverlayScaleX, fieldOverlayScaleY);
-    this->_fieldOverlay->setPosition(visibleSize.width / 2.0f, visibleSize.height - bannerHeight);
-    this->_fieldOverlay->setAnchorPoint(Vec2(0.5f, 1.0f));
-    this->_fieldOverlay->setScale(fieldOverlayScale);
-    this->_fieldOverlay->onTouchBegan = [this](std::string name) {
+    auto fieldOverlay = MappedSprite::create("Prediction-Overlay-Field.png", polygons);
+    fieldOverlay->onTouchBegan = [this](std::string name) {
         CCLOG("Contacted: %s", name.c_str());
     };
-    node->addChild(this->_fieldOverlay, 1);
 
-    return true;
+    return fieldOverlay;
 }
 
 void HelloWorld::menuCloseCallback(Ref* pSender)
