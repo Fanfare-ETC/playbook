@@ -11,7 +11,6 @@ Scene* HelloWorld::createScene()
 {
     // 'scene' is an autorelease object
     auto scene = Scene::createWithPhysics();
-    scene->getPhysicsWorld()->setDebugDrawMask(PhysicsWorld::DEBUGDRAW_ALL);
 
     // 'layer' is an autorelease object
     auto layer = HelloWorld::create();
@@ -106,7 +105,182 @@ bool HelloWorld::init()
             Vec2(364.0f, 1404.0f)
     }});
 
-    // TODO: Add the rest of other prediction parts.
+    polygons.insert({"pop_fly", {
+            Vec2(1216.0f, 1618.0f),
+            Vec2(1428.0f, 1448.0f),
+            Vec2(1428.0f, 918.0f),
+            Vec2(1296.0f, 1208.0f),
+            Vec2(1088.0f, 1394.0f)
+    }});
+
+    polygons.insert({"triple_play", {
+            Vec2(216.0f, 1269.0f),
+            Vec2(462.0f, 1018.0f),
+            Vec2(322.0f, 880.0f),
+            Vec2(366.0f, 784.0f),
+            Vec2(332.0f, 784.0f),
+            Vec2(204.0f, 908.0f),
+            Vec2(76.0f, 784.0f),
+            Vec2(12.0f, 784.0f),
+            Vec2(64.0f, 1038.0f)
+    }});
+
+    polygons.insert({"grounder", {
+            Vec2(1224.0f, 1269.0f),
+            Vec2(1376.0f, 1038.0f),
+            Vec2(1428.0f, 784.0f),
+            Vec2(1364.0f, 784.0f),
+            Vec2(1236.0f, 908.0f),
+            Vec2(1108.0f, 784.0f),
+            Vec2(1074.0f, 784.0f),
+            Vec2(1118.0f, 880.0f),
+            Vec2(976.0f, 1018.0f)
+    }});
+
+    polygons.insert({"double_play", {
+            Vec2(224.0f, 1278.0f),
+            Vec2(442.0f, 1426.0f),
+            Vec2(720.0f, 1480.f),
+            Vec2(998.0f, 1426.0f),
+            Vec2(1216.0f, 1278.0f),
+            Vec2(964.0f, 1032.0f),
+            Vec2(832.0f, 1172.0f),
+            Vec2(720.0f, 1128.0f),
+            Vec2(608.0f, 1172.0f),
+            Vec2(476.0f, 1032.0f)
+    }});
+
+    polygons.insert({"second_base", {
+            Vec2(720.0f, 1404.0f),
+            Vec2(834.0f, 1292.0f),
+            Vec2(720.0f, 1180.0f),
+            Vec2(606.0f, 1292.0f)
+    }});
+
+    polygons.insert({"steal", {
+            Vec2(484.0f, 1022.0f),
+            Vec2(616.0f, 1152.0f),
+            Vec2(720.0f, 1112.0f),
+            Vec2(824.0f, 1152.0f),
+            Vec2(956.0f, 1022.0f),
+            Vec2(808.0f, 874.0f),
+            Vec2(720.0f, 906.0f),
+            Vec2(632.0f, 874.0f)
+    }});
+
+    polygons.insert({"pick_off", {
+            Vec2(474.0f, 1010.0f),
+            Vec2(622.0f, 864.0f),
+            Vec2(588.0f, 774.0f),
+            Vec2(622.0f, 688.0f),
+            Vec2(474.0f, 540.0f),
+            Vec2(342.0f, 670.0f),
+            Vec2(382.0f, 774.0f),
+            Vec2(342.0f, 880.0f)
+    }});
+
+    polygons.insert({"strike_out", {
+            Vec2(720.0f, 892.0f),
+            Vec2(804.0f, 860.0f),
+            Vec2(838.0f, 776.0f),
+            Vec2(804.0f, 692.0f),
+            Vec2(720.0f, 658.0f),
+            Vec2(636.0f, 692.0f),
+            Vec2(602.0f, 776.0f),
+            Vec2(636.0f, 860.0f),
+    }});
+
+    polygons.insert({"walk", {
+            Vec2(966.0f, 1010.0f),
+            Vec2(1098.0f, 880.0f),
+            Vec2(1058.0f, 774.0f),
+            Vec2(1098.0f, 670.0f),
+            Vec2(966.0f, 540.0f),
+            Vec2(818.0f, 688.0f),
+            Vec2(852.0f, 774.0f),
+            Vec2(818.0f, 864.0f)
+    }});
+
+    polygons.insert({"third_base", {
+            Vec2(204.0f, 888.0f),
+            Vec2(92.0f, 776.0f),
+            Vec2(204.0f, 660.0f),
+            Vec2(316.0f, 776.0f)
+    }});
+
+    polygons.insert({"first_base", {
+            Vec2(1236.0f, 888.0f),
+            Vec2(1124.0f, 776.0f),
+            Vec2(1236.0f, 660.0f),
+            Vec2(1348.0f, 776.0f)
+    }});
+
+    polygons.insert({"hit", {
+            Vec2(12.0f, 768.0f),
+            Vec2(76.0f, 768.0f),
+            Vec2(204.0f, 644.0f),
+            Vec2(332.0f, 768.0f),
+            Vec2(368.0f, 768.0f),
+            Vec2(322.0f, 672.0f),
+            Vec2(616.0f, 378.0f),
+            Vec2(714.0f, 422.0f),
+            Vec2(714.0f, 334.0f),
+            Vec2(600.0f, 334.0f),
+            Vec2(600.0f, 186.0f),
+            Vec2(714.0f, 74.0f),
+            Vec2(714.0f, 12.0f),
+            Vec2(488.0f, 12.0f),
+            Vec2(12.0f, 488.0f)
+    }});
+
+    polygons.insert({"home_run", {
+            Vec2(612.0f, 322.0f),
+            Vec2(828.0f, 322.0f),
+            Vec2(828.0f, 190.0f),
+            Vec2(720.0f, 90.0f),
+            Vec2(612.0f, 190.0f)
+    }});
+
+    polygons.insert({"pitch_count_16", {
+            Vec2(1428.0f, 768.0f),
+            Vec2(1428.0f, 488.0f),
+            Vec2(952.0f, 12.0f),
+            Vec2(726.0f, 12.0f),
+            Vec2(726.0f, 74.0f),
+            Vec2(840.0f, 186.0f),
+            Vec2(840.0f, 334.0f),
+            Vec2(726.0f, 334.0f),
+            Vec2(726.0f, 422.0f),
+            Vec2(824.0f, 378.0f),
+            Vec2(1118.0f, 672.0f),
+            Vec2(1072.0f, 768.0f),
+            Vec2(1108.0f, 768.0f),
+            Vec2(1236.0f, 644.0f),
+            Vec2(1364.0f, 768.0f)
+    }});
+
+    polygons.insert({"blocked_run", {
+            Vec2(632.0f, 678.0f),
+            Vec2(720.0f, 640.0f),
+            Vec2(808.0f, 678.0f),
+            Vec2(956.0f, 530.0f),
+            Vec2(824.0f, 398.0f),
+            Vec2(720.0f, 436.0f),
+            Vec2(616.0f, 398.0f),
+            Vec2(484.0f, 530.0f)
+    }});
+
+    polygons.insert({"walk_off", {
+            Vec2(12.0f, 466.0f),
+            Vec2(466.0f, 12.0f),
+            Vec2(12.0f, 12.0f)
+    }});
+
+    polygons.insert({"pitch_count_17", {
+            Vec2(1428.0f, 466.0f),
+            Vec2(1428.0f, 12.0f),
+            Vec2(974.0f, 12.0f)
+    }});
 
     this->_fieldOverlay = MappedSprite::create("Prediction-Overlay-Field.png", polygons);
     auto fieldOverlayScaleX = visibleSize.width / this->_fieldOverlay->getContentSize().width;
@@ -121,267 +295,6 @@ bool HelloWorld::init()
     node->addChild(this->_fieldOverlay, 1);
 
     return true;
-}
-void HelloWorld::processPoint(Point p)
-{
-    auto scene = Director::getInstance()->getRunningScene();
-    if (scene->getPhysicsWorld()->getShape(p) != nullptr) {
-        CCLOG("Contacted!!");
-    } else {
-        CCLOG("No contact");
-    }
-
-    /*
-    //check for error catergory rectangle
-    auto rect = this->getBoundingBox();
-    //printf("rect %f %f w=%f h=%f\n",rect.origin.x,rect.origin.y,rect.size.width,rect.size.height);
-    auto size_x=rect.size.width;
-    auto size_y=rect.size.height;
-
-    Point r[4];
-
-    //error
-    r[0]=Point((16.0/1440)*size_x,(1896.0/1920)*size_y);
-    r[1]=Point((16.0/1440)*size_x,(1628.0/1920)*size_y);
-    r[2]=Point((456.0/1440)*size_x,(1628.0/1920)*size_y);
-    r[3]=Point((456.0/1440)*size_x,(1896.0/1920)*size_y);
-
-    //printf("r %f %f %f %f %f %f %f %f\n",r[0].x,r[0].y,r[1].x,r[1].y,r[2].x,r[2].y,r[3].x,r[3].y);
-    //printf("p %f %f \n",p.x,p.y);
-
-    //Rect error_rect = Rect(r[3].x,r[3].y,r[3].x-r[0].x,r[3].y-r[1].y) ;
-    //DrawNode *d= DrawNode::create();
-    //d->drawPolygon(r,4.0,Color4F(1,1,1,1),4.0,Color4F(1,1,1,1));
-    //this->addChild(d);
-    if(p.x>=r[0].x && p.x<=r[2].x && p.y<=r[0].y && p.y>=r[1].y)
-    {
-        printf("Clicked Error\n");
-        prediction[PredictionEvents::error]=1;
-    }
-
-    //grandslam
-    r[0]=Point((432.0/1440)*size_x,(1910.0/1920)*size_y);
-    r[1]=Point((432.0/1440)*size_x,(1700.0/1920)*size_y);
-    r[2]=Point((974.0/1440)*size_x,(1700.0/1920)*size_y);
-    r[3]=Point((974.0/1440)*size_x,(1910.0/1920)*size_y);
-    if(p.x>=r[0].x && p.x<=r[2].x && p.y<=r[0].y && p.y>=r[1].y)
-    {
-        CCLOG("Clicked grandslam\n");
-        prediction[PredictionEvents::grandslam]=1;
-    }
-
-    //shutout_inning
-    r[0]=Point((1042.0/1440)*size_x,(1906.0/1920)*size_y);
-    r[1]=Point((1042.0/1440)*size_x,(1600.0/1920)*size_y);
-    r[2]=Point((1416.0/1440)*size_x,(1600.0/1920)*size_y);
-    r[3]=Point((1416.0/1440)*size_x,(1906.0/1920)*size_y);
-    if(p.x>=r[0].x && p.x<=r[2].x && p.y<=r[0].y && p.y>=r[1].y)
-    {
-        CCLOG("Clicked shutout_inning\n");
-        prediction[PredictionEvents::shutout_inning]=1;
-    }
-    //longout
-    r[0]=Point((30.0/1440)*size_x,(1616.0/1920)*size_y);
-    r[1]=Point((30.0/1440)*size_x,(1138.0/1920)*size_y);
-    r[2]=Point((292.0/1440)*size_x,(1138.0/1920)*size_y);
-    r[3]=Point((292.0/1440)*size_x,(1616.0/1920)*size_y);
-
-    if(p.x>=r[0].x && p.x<=r[2].x && p.y<=r[0].y && p.y>=r[1].y)
-    {
-        CCLOG("Clicked Longout\n");
-        prediction[PredictionEvents::longout]=1;
-    }
-    //runs_batted
-    r[0]=Point((280.0/1440)*size_x,(1684.0/1920)*size_y);
-    r[1]=Point((280.0/1440)*size_x,(1354.0/1920)*size_y);
-    r[2]=Point((1062.0/1440)*size_x,(1354.0/1920)*size_y);
-    r[3]=Point((1062.0/1440)*size_x,(1684.0/1920)*size_y);
-    if(p.x>=r[0].x && p.x<=r[2].x && p.y<=r[0].y && p.y>=r[1].y)
-    {
-        CCLOG("Clicked runs_batted\n");
-        prediction[PredictionEvents::runs_batted]=1;
-    }
-    //pop_fly
-    r[0]=Point((1072.0/1440)*size_x,(1662.0/1920)*size_y);
-    r[1]=Point((1072.0/1440)*size_x,(1096.0/1920)*size_y);
-    r[2]=Point((1412.0/1440)*size_x,(1096.0/1920)*size_y);
-    r[3]=Point((1412.0/1440)*size_x,(1662.0/1920)*size_y);
-    if(p.x>=r[0].x && p.x<=r[2].x && p.y<=r[0].y && p.y>=r[1].y)
-    {
-        CCLOG("Clicked pop_fly\n");
-        prediction[PredictionEvents::pop_fly]=1;
-    }
-
-    //triple_play
-    r[0]=Point((22.0/1440)*size_x,(1216.0/1920)*size_y);
-    r[1]=Point((22.0/1440)*size_x,(876.0/1920)*size_y);
-    r[2]=Point((400.0/1440)*size_x,(876.0/1920)*size_y);
-    r[3]=Point((400.0/1440)*size_x,(1216.0/1920)*size_y);
-    if(p.x>=r[0].x && p.x<=r[2].x && p.y<=r[0].y && p.y>=r[1].y)
-    {
-        CCLOG("Clicked triple_play\n");
-        prediction[PredictionEvents::triple_play]=1;
-    }
-
-    //double_play
-    r[0]=Point((316.0/1440)*size_x,(1404.0/1920)*size_y);
-    r[1]=Point((316.0/1440)*size_x,(1100.0/1920)*size_y);
-    r[2]=Point((1000.0/1440)*size_x,(1100.0/1920)*size_y);
-    r[3]=Point((1000.0/1440)*size_x,(1404.0/1920)*size_y);
-    if(p.x>=r[0].x && p.x<=r[2].x && p.y<=r[0].y && p.y>=r[1].y)
-    {
-        CCLOG("Clicked double_play\n");
-        prediction[PredictionEvents::double_play]=1;
-    }
-
-    //grounder
-    r[0]=Point((1044.0/1440)*size_x,(1206.0/1920)*size_y);
-    r[1]=Point((1044.0/1440)*size_x,(878.0/1920)*size_y);
-    r[2]=Point((1390.0/1440)*size_x,(878.0/1920)*size_y);
-    r[3]=Point((1390.0/1440)*size_x,(1206.0/1920)*size_y);
-    if(p.x>=r[0].x && p.x<=r[2].x && p.y<=r[0].y && p.y>=r[1].y)
-    {
-        CCLOG("Clicked grounder\n");
-        prediction[PredictionEvents::grounder]=1;
-    }
-
-    //steal
-    r[0]=Point((468.0/1440)*size_x,(1176.0/1920)*size_y);
-    r[1]=Point((468.0/1440)*size_x,(846.0/1920)*size_y);
-    r[2]=Point((970.0/1440)*size_x,(846.0/1920)*size_y);
-    r[3]=Point((970.0/1440)*size_x,(1176.0/1920)*size_y);
-    if(p.x>=r[0].x && p.x<=r[2].x && p.y<=r[0].y && p.y>=r[1].y)
-    {
-        CCLOG("Clicked steal\n");
-        prediction[PredictionEvents::steal]=1;
-    }
-
-    //pick_off
-    r[0]=Point((290.0/1440)*size_x,(1014.0/1920)*size_y);
-    r[1]=Point((290.0/1440)*size_x,(514.0/1920)*size_y);
-    r[2]=Point((630.0/1440)*size_x,(514.0/1920)*size_y);
-    r[3]=Point((630.0/1440)*size_x,(1014.0/1920)*size_y);
-    if(p.x>=r[0].x && p.x<=r[2].x && p.y<=r[0].y && p.y>=r[1].y)
-    {
-        CCLOG("Clicked pick_offl\n");
-        prediction[PredictionEvents::pick_off]=1;
-    }
-    //walk
-    r[0]=Point((816.0/1440)*size_x,(1010.0/1920)*size_y);
-    r[1]=Point((816.0/1440)*size_x,(512.0/1920)*size_y);
-    r[2]=Point((1102.0/1440)*size_x,(512.0/1920)*size_y);
-    r[3]=Point((1102.0/1440)*size_x,(1010.0/1920)*size_y);
-    if(p.x>=r[0].x && p.x<=r[2].x && p.y<=r[0].y && p.y>=r[1].y)
-    {
-        CCLOG("Clicked walk\n");
-        prediction[PredictionEvents::walk]=1;
-    }
-    //blocked_run
-    r[0]=Point((486.0/1440)*size_x,(670.0/1920)*size_y);
-    r[1]=Point((486.0/1440)*size_x,(374.0/1920)*size_y);
-    r[2]=Point((936.0/1440)*size_x,(374.0/1920)*size_y);
-    r[3]=Point((936.0/1440)*size_x,(670.0/1920)*size_y);
-    if(p.x>=r[0].x && p.x<=r[2].x && p.y<=r[0].y && p.y>=r[1].y)
-    {
-        CCLOG("Clicked blocked_run\n");
-        prediction[PredictionEvents::blocked_run]=1;
-    }
-    //strike_out
-    r[0]=Point((570.0/1440)*size_x,(902.0/1920)*size_y);
-    r[1]=Point((570.0/1440)*size_x,(634.0/1920)*size_y);
-    r[2]=Point((864.0/1440)*size_x,(634.0/1920)*size_y);
-    r[3]=Point((864.0/1440)*size_x,(902.0/1920)*size_y);
-    if(p.x>=r[0].x && p.x<=r[2].x && p.y<=r[0].y && p.y>=r[1].y)
-    {
-        CCLOG("Clicked strike_out\n");
-        prediction[PredictionEvents::strike_out]=1;
-    }
-    //hit
-    r[0]=Point((26.0/1440)*size_x,(616.0/1920)*size_y);
-    r[1]=Point((26.0/1440)*size_x,(190.0/1920)*size_y);
-    r[2]=Point((588.0/1440)*size_x,(190.0/1920)*size_y);
-    r[3]=Point((588.0/1440)*size_x,(616.0/1920)*size_y);
-    if(p.x>=r[0].x && p.x<=r[2].x && p.y<=r[0].y && p.y>=r[1].y)
-    {
-        CCLOG("Clicked hit\n");
-        prediction[PredictionEvents::hit]=1;
-    }
-    //homerun
-    r[0]=Point((546.0/1440)*size_x,(338.0/1920)*size_y);
-    r[1]=Point((546.0/1440)*size_x,(60.0/1920)*size_y);
-    r[2]=Point((858.0/1440)*size_x,(60.0/1920)*size_y);
-    r[3]=Point((858.0/1440)*size_x,(338.0/1920)*size_y);
-    if(p.x>=r[0].x && p.x<=r[2].x && p.y<=r[0].y && p.y>=r[1].y)
-    {
-        CCLOG("Clicked homerun\n");
-        prediction[PredictionEvents::homerun]=1;
-    }
-    //pitchcount_16
-    r[0]=Point((958.0/1440)*size_x,(474.0/1920)*size_y);
-    r[1]=Point((958.0/1440)*size_x,(114.0/1920)*size_y);
-    r[2]=Point((1298.0/1440)*size_x,(114.0/1920)*size_y);
-    r[3]=Point((1298.0/1440)*size_x,(474.0/1920)*size_y);
-    if(p.x>=r[0].x && p.x<=r[2].x && p.y<=r[0].y && p.y>=r[1].y)
-    {
-        CCLOG("Clicked pitchcount_16\n");
-        prediction[PredictionEvents::pitchcount_16]=1;
-    }
-
-    //walk_off
-    r[0]=Point((18.0/1440)*size_x,(336.0/1920)*size_y);
-    r[1]=Point((18.0/1440)*size_x,(22.0/1920)*size_y);
-    r[2]=Point((414.0/1440)*size_x,(22.0/1920)*size_y);
-    r[3]=Point((414.0/1440)*size_x,(336.0/1920)*size_y);
-    if(p.x>=r[0].x && p.x<=r[2].x && p.y<=r[0].y && p.y>=r[1].y)
-    {
-        CCLOG("Clicked walk_off\n");
-        prediction[PredictionEvents::walk_off]=1;
-    }
-
-    //pitchcount_17
-    r[0]=Point((1114.0/1440)*size_x,(382.0/1920)*size_y);
-    r[1]=Point((1114.0/1440)*size_x,(12.0/1920)*size_y);
-    r[2]=Point((1392.0/1440)*size_x,(12.0/1920)*size_y);
-    r[3]=Point((1392.0/1440)*size_x,(382.0/1920)*size_y);
-    if(p.x>=r[0].x && p.x<=r[2].x && p.y<=r[0].y && p.y>=r[1].y)
-    {
-        CCLOG("Clicked pitchcount_17\n");
-        prediction[PredictionEvents::pitchcount_17]=1;
-    }
-
-    //oneb
-    r[0]=Point((1124.0/1440)*size_x,(914.0/1920)*size_y);
-    r[1]=Point((1124.0/1440)*size_x,(636.0/1920)*size_y);
-    r[2]=Point((1358.0/1440)*size_x,(636.0/1920)*size_y);
-    r[3]=Point((1358.0/1440)*size_x,(914.0/1920)*size_y);
-    if(p.x>=r[0].x && p.x<=r[2].x && p.y<=r[0].y && p.y>=r[1].y)
-    {
-        CCLOG("Clicked oneb\n");
-        prediction[PredictionEvents::oneb]=1;
-    }
-
-    //twob
-    r[0]=Point((586.0/1440)*size_x,(1420.0/1920)*size_y);
-    r[1]=Point((586.0/1440)*size_x,(1172.0/1920)*size_y);
-    r[2]=Point((862.0/1440)*size_x,(1172.0/1920)*size_y);
-    r[3]=Point((862.0/1440)*size_x,(1420.0/1920)*size_y);
-    if(p.x>=r[0].x && p.x<=r[2].x && p.y<=r[0].y && p.y>=r[1].y)
-    {
-        CCLOG("Clicked twob\n");
-        prediction[PredictionEvents::twob]=1;
-    }
-
-    //threeb
-    r[0]=Point((86.0/1440)*size_x,(918.0/1920)*size_y);
-    r[1]=Point((86.0/1440)*size_x,(636.0/1920)*size_y);
-    r[2]=Point((316.0/1440)*size_x,(636.0/1920)*size_y);
-    r[3]=Point((316.0/1440)*size_x,(918.0/1920)*size_y);
-    if(p.x>=r[0].x && p.x<=r[2].x && p.y<=r[0].y && p.y>=r[1].y)
-    {
-        CCLOG("Clicked threeb\n");
-        prediction[PredictionEvents::threeb]=1;
-    }
-     */
 }
 
 void HelloWorld::menuCloseCallback(Ref* pSender)

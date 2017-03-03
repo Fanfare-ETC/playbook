@@ -40,7 +40,6 @@ public:
     int prediction[30]={0};
 
     virtual bool init();
-    void processPoint(cocos2d::Point p);
 
     // a selector callback
     void menuCloseCallback(cocos2d::Ref* pSender);
