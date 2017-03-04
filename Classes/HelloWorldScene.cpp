@@ -84,14 +84,14 @@ bool HelloWorld::init()
     }
 
     // add overlay to screen
-    auto fieldOverlay = this->initFieldOverlay();
-    auto fieldOverlayScaleX = visibleSize.width / fieldOverlay->getContentSize().width;
-    auto fieldOverlayScaleY = (visibleSize.height - bannerHeight - ballSlotHeight) / fieldOverlay->getContentSize().height;
+    this->initFieldOverlay();
+    auto fieldOverlayScaleX = visibleSize.width / this->_fieldOverlay->getContentSize().width;
+    auto fieldOverlayScaleY = (visibleSize.height - bannerHeight - ballSlotHeight) / this->_fieldOverlay->getContentSize().height;
     auto fieldOverlayScale = std::min(fieldOverlayScaleX, fieldOverlayScaleY);
-    fieldOverlay->setPosition(visibleSize.width / 2.0f, visibleSize.height - bannerHeight);
-    fieldOverlay->setAnchorPoint(Vec2(0.5f, 1.0f));
-    fieldOverlay->setScale(fieldOverlayScale);
-    node->addChild(fieldOverlay, 1);
+    this->_fieldOverlay->setPosition(visibleSize.width / 2.0f, visibleSize.height - bannerHeight);
+    this->_fieldOverlay->setAnchorPoint(Vec2(0.5f, 1.0f));
+    this->_fieldOverlay->setScale(fieldOverlayScale);
+    node->addChild(this->_fieldOverlay, 1);
 
     // Create event listeners.
     this->initEvents();
@@ -99,9 +99,7 @@ bool HelloWorld::init()
     return true;
 }
 
-Node* HelloWorld::initFieldOverlay() {
-    auto visibleSize = Director::getInstance()->getVisibleSize();
-
+void HelloWorld::initFieldOverlay() {
     // add overlay to screen
     std::map<std::string, MappedSprite::Polygon> polygons;
 
@@ -323,12 +321,21 @@ Node* HelloWorld::initFieldOverlay() {
             Vec2(974.0f, 12.0f)
     }});
 
-    auto fieldOverlay = MappedSprite::create("Prediction-Overlay-Field.png", polygons);
-    fieldOverlay->onTouchBegan = [this](std::string name) {
-        CCLOG("Contacted: %s", name.c_str());
+    this->_fieldOverlay = MappedSprite::create("Prediction-Overlay-Field.png", polygons);
+
+    this->_fieldOverlay->onTouchMoved = [this](std::string name, MappedSprite::Polygon polygon) {
+        this->_fieldOverlay->highlight(name, Color4F(Color3B::BLACK, 0.2f), 0, Color4F::WHITE);
+        return true;
     };
 
-    return fieldOverlay;
+    this->_fieldOverlay->onTouchBegan = [this](std::string name, MappedSprite::Polygon polygon) {
+        return true;
+    };
+
+    this->_fieldOverlay->onTouchEnded = [this](std::string name, MappedSprite::Polygon polygon) {
+        this->_fieldOverlay->clearHighlight();
+        return true;
+    };
 }
 
 void HelloWorld::initEvents() {
@@ -365,7 +372,8 @@ void HelloWorld::initEvents() {
                 // a finger was lifted off the ball.
                 if (touch->getID() == this->_ballDragTouchID[ballIdx]) {
                     this->_ballDragState[ballIdx] = false;
-                    (*it)->setPosition(this->_ballDragOrigPosition[ballIdx]);
+                    auto moveTo = MoveTo::create(0.25f, this->_ballDragOrigPosition[ballIdx]);
+                    (*it)->runAction(moveTo);
                 }
             }
         }

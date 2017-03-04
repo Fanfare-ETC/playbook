@@ -28,6 +28,29 @@ MappedSprite* MappedSprite::createFromFile(std::string name, std::string fileNam
     return MappedSprite::create(name, polygons);
 }
 
+void MappedSprite::highlight(const std::string& name, const Color4F& fillColor,
+                             float borderWidth, const Color4F& borderColor) {
+    auto polygon = this->_polygons[name];
+    auto triangles = this->triangulate(polygon);
+
+    // Create the DrawNode if it doesn't exist.
+    if (!this->_highlightNode) {
+        this->_highlightNode = DrawNode::create();
+        this->addChild(this->_highlightNode);
+    }
+
+    this->_highlightNode->clear();
+    for (const auto& triangle : triangles) {
+        this->_highlightNode->drawPolygon(triangle.data(), triangle.size(), fillColor, borderWidth, borderColor);
+    }
+}
+
+void MappedSprite::clearHighlight() {
+    if (this->_highlightNode) {
+        this->_highlightNode->clear();
+    }
+}
+
 void MappedSprite::initPolygons() {
     auto physicsBody = PhysicsBody::create();
     physicsBody->setGravityEnable(false);
@@ -63,29 +86,41 @@ void MappedSprite::addEvents() {
     auto listener = EventListenerTouchOneByOne::create();
 
     listener->onTouchBegan = [this](Touch* touch, Event* event) {
+        CCLOG("MappedSprite->onTouchBegan");
         auto scene = Director::getInstance()->getRunningScene();
         auto shape = scene->getPhysicsWorld()->getShape(touch->getLocation());
         if (shape != nullptr) {
             if (this->onTouchBegan) {
-                this->onTouchBegan(this->_polygonNames[shape->getTag()]);
+                auto name = this->_polygonNames[shape->getTag()];
+                return this->onTouchBegan(name, this->_polygons[name]);
             }
-            return true;
-        } else {
-            return false;
         }
+        return true;
+    };
+
+    listener->onTouchMoved = [this](Touch* touch, Event* event) {
+        auto scene = Director::getInstance()->getRunningScene();
+        auto shape = scene->getPhysicsWorld()->getShape(touch->getLocation());
+        if (shape != nullptr) {
+            if (this->onTouchMoved) {
+                auto name = this->_polygonNames[shape->getTag()];
+                return this->onTouchMoved(name, this->_polygons[name]);
+            };
+        }
+        return true;
     };
 
     listener->onTouchEnded = [this](Touch* touch, Event* event) {
+        CCLOG("MappedSprite->onTouchEnded");
         auto scene = Director::getInstance()->getRunningScene();
         auto shape = scene->getPhysicsWorld()->getShape(touch->getLocation());
         if (shape != nullptr) {
             if (this->onTouchEnded) {
-                this->onTouchEnded(this->_polygonNames[shape->getTag()]);
+                auto name = this->_polygonNames[shape->getTag()];
+                return this->onTouchEnded(name, this->_polygons[name]);
             }
-            return true;
-        } else {
-            return false;
         }
+        return true;
     };
 
     _eventDispatcher->addEventListenerWithSceneGraphPriority(listener, this);

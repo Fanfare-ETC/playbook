@@ -13,12 +13,18 @@ public:
     static MappedSprite* create(std::string name, std::map<std::string, Polygon> polygons);
     static MappedSprite* createFromFile(std::string name, std::string fileName);
 
-    std::function<void(std::string)> onTouchBegan;
-    std::function<void(std::string)> onTouchEnded;
+    void highlight(const std::string& name, const cocos2d::Color4F& fillColor, float borderWidth,
+                   const cocos2d::Color4F& borderColor);
+    void clearHighlight();
+
+    std::function<bool(std::string, Polygon polygon)> onTouchBegan;
+    std::function<bool(std::string, Polygon polygon)> onTouchMoved;
+    std::function<bool(std::string, Polygon polygon)> onTouchEnded;
 
 private:
     std::map<std::string, Polygon> _polygons;
     std::vector<std::string> _polygonNames;
+    cocos2d::DrawNode* _highlightNode;
 
     void initPolygons();
     void addEvents();
