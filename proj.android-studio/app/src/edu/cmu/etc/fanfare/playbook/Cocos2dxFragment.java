@@ -22,7 +22,6 @@ import org.cocos2dx.lib.Cocos2dxEditBoxHelper;
 import org.cocos2dx.lib.Cocos2dxGLSurfaceView;
 import org.cocos2dx.lib.Cocos2dxHandler;
 import org.cocos2dx.lib.Cocos2dxHelper;
-import org.cocos2dx.lib.Cocos2dxReflectionHelper;
 import org.cocos2dx.lib.Cocos2dxRenderer;
 import org.cocos2dx.lib.Cocos2dxVideoHelper;
 import org.cocos2dx.lib.Cocos2dxWebViewHelper;
@@ -217,6 +216,7 @@ public abstract class Cocos2dxFragment extends Fragment implements Cocos2dxHelpe
             Bundle bundle = ai.metaData;
             String libName = bundle.getString("android.app.lib_name");
             System.loadLibrary(libName);
+            Cocos2dxBridge.register(this);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -349,6 +349,8 @@ public abstract class Cocos2dxFragment extends Fragment implements Cocos2dxHelpe
 
         return glSurfaceView;
     }
+
+    protected void onApplicationDidFinishLaunching() {};
 
     private final static boolean isAndroidEmulator() {
         String model = Build.MODEL;

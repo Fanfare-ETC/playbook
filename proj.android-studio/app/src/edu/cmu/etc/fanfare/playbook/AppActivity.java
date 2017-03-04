@@ -132,7 +132,6 @@ public class AppActivity extends AppCompatActivity {
             case 4:
                 fragment = new ProfileFragment();
                 break;
-
             default:
                 fragment = new HomeFragment();
         };
