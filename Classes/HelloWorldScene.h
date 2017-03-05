@@ -52,6 +52,10 @@ private:
     std::vector<bool> _ballDragState;
     std::vector<int> _ballDragTouchID;
     std::vector<cocos2d::Vec2> _ballDragOrigPosition;
+
+    std::vector<bool> _ballDragTargetState;
+    std::vector<std::string> _ballDragTarget;
+
     MappedSprite* _fieldOverlay;
 
     void initFieldOverlay();

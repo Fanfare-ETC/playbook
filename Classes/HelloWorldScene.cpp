@@ -81,6 +81,8 @@ bool HelloWorld::init()
         this->_ballDragState.push_back(false);
         this->_ballDragTouchID.push_back(0);
         this->_ballDragOrigPosition.push_back(ball->getPosition());
+        this->_ballDragTargetState.push_back(false);
+        this->_ballDragTarget.push_back("");
     }
 
     // add overlay to screen
@@ -323,18 +325,16 @@ void HelloWorld::initFieldOverlay() {
 
     this->_fieldOverlay = MappedSprite::create("Prediction-Overlay-Field.png", polygons);
 
-    this->_fieldOverlay->onTouchMoved = [this](std::string name, MappedSprite::Polygon polygon) {
+    this->_fieldOverlay->onTouchPolygonBegan = [this](const std::string& name,
+                                                      MappedSprite::Polygon polygon,
+                                                      const Touch*) {
         this->_fieldOverlay->highlight(name, Color4F(Color3B::BLACK, 0.2f), 0, Color4F::WHITE);
-        return true;
     };
 
-    this->_fieldOverlay->onTouchBegan = [this](std::string name, MappedSprite::Polygon polygon) {
-        return true;
-    };
-
-    this->_fieldOverlay->onTouchEnded = [this](std::string name, MappedSprite::Polygon polygon) {
-        this->_fieldOverlay->clearHighlight();
-        return true;
+    this->_fieldOverlay->onTouchPolygonEnded = [this](const std::string& name,
+                                                      MappedSprite::Polygon polygon,
+                                                      const Touch*) {
+        this->_fieldOverlay->clearHighlight(name);
     };
 }
 

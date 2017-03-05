@@ -31,24 +31,28 @@ MappedSprite* MappedSprite::createFromFile(std::string name, std::string fileNam
 void MappedSprite::highlight(const std::string& name, const Color4F& fillColor,
                              float borderWidth, const Color4F& borderColor) {
     auto polygon = this->_polygons[name];
-    auto triangles = this->triangulate(polygon);
 
     // Create the DrawNode if it doesn't exist.
-    if (!this->_highlightNode) {
-        this->_highlightNode = DrawNode::create();
-        this->addChild(this->_highlightNode);
-    }
+    if (this->_highlightNodes.find(name) == this->_highlightNodes.end()) {
+        this->_highlightNodes[name] = DrawNode::create();
+        this->addChild(this->_highlightNodes[name]);
 
-    this->_highlightNode->clear();
-    for (const auto& triangle : triangles) {
-        this->_highlightNode->drawPolygon(triangle.data(), triangle.size(), fillColor, borderWidth, borderColor);
+        auto triangles = this->triangulate(polygon);
+        for (const auto& triangle : triangles) {
+            this->_highlightNodes[name]->drawPolygon(triangle.data(), triangle.size(), fillColor, borderWidth, borderColor);
+        }
     }
 }
 
-void MappedSprite::clearHighlight() {
-    if (this->_highlightNode) {
-        this->_highlightNode->clear();
+void MappedSprite::clearHighlight(const std::string& name) {
+    if (this->_highlightNodes.find(name) == this->_highlightNodes.end()) {
+        CCLOG("MappedSprite->clearHighlight: Attempting to clear non-existent highlight %s", name.c_str());
+        return;
     }
+
+    this->_highlightNodes[name]->clear();
+    this->removeChild(this->_highlightNodes[name], true);
+    this->_highlightNodes.erase(name);
 }
 
 void MappedSprite::initPolygons() {
@@ -83,47 +87,95 @@ void MappedSprite::initPolygons() {
 }
 
 void MappedSprite::addEvents() {
-    auto listener = EventListenerTouchOneByOne::create();
+    auto listener = EventListenerTouchAllAtOnce::create();
 
-    listener->onTouchBegan = [this](Touch* touch, Event* event) {
-        CCLOG("MappedSprite->onTouchBegan");
+    listener->onTouchesBegan = [this](const std::vector<Touch*>& touches, Event*) {
+        if (!this->onTouchPolygonBegan) { return; }
+
         auto scene = Director::getInstance()->getRunningScene();
-        auto shape = scene->getPhysicsWorld()->getShape(touch->getLocation());
-        if (shape != nullptr) {
-            if (this->onTouchBegan) {
-                auto name = this->_polygonNames[shape->getTag()];
-                return this->onTouchBegan(name, this->_polygons[name]);
+        for (const auto& touch : touches) {
+            auto shape = scene->getPhysicsWorld()->getShape(touch->getLocation());
+
+            // There are two cases for the initial touch:
+            // (1) The touch started from outside a polygon
+            //     In this case, we do not need to fire any polygon events.
+            // (2) The touch started from inside a polygon
+            //     In this case, we enter a polygon, therefore we need to fire
+            //     a began event.
+            if (shape != nullptr) {
+                auto curr = this->_polygonNames[shape->getTag()];
+                this->_touchPolygonNames[touch->getID()] = curr;
+                this->onTouchPolygonBegan(curr, this->_polygons[curr], touch);
+            } else {
+                this->_touchPolygonNames[touch->getID()] = "";
             }
         }
-        return true;
     };
 
-    listener->onTouchMoved = [this](Touch* touch, Event* event) {
+    listener->onTouchesMoved = [this](const std::vector<Touch*>& touches, Event*) {
         auto scene = Director::getInstance()->getRunningScene();
-        auto shape = scene->getPhysicsWorld()->getShape(touch->getLocation());
-        if (shape != nullptr) {
-            if (this->onTouchMoved) {
-                auto name = this->_polygonNames[shape->getTag()];
-                return this->onTouchMoved(name, this->_polygons[name]);
-            };
-        }
-        return true;
-    };
+        for (const auto& touch : touches) {
+            auto shape = scene->getPhysicsWorld()->getShape(touch->getLocation());
+            auto prev = this->_touchPolygonNames[touch->getID()];
 
-    listener->onTouchEnded = [this](Touch* touch, Event* event) {
-        CCLOG("MappedSprite->onTouchEnded");
-        auto scene = Director::getInstance()->getRunningScene();
-        auto shape = scene->getPhysicsWorld()->getShape(touch->getLocation());
-        if (shape != nullptr) {
-            if (this->onTouchEnded) {
-                auto name = this->_polygonNames[shape->getTag()];
-                return this->onTouchEnded(name, this->_polygons[name]);
+            // For movements, there are two cases:
+            // (1) The new location is within a polygon
+            //     If the previous polygon is empty (not inside a polygon),
+            //     we fire a began event.
+            //     If the current polygon differs from the previous, we just
+            //     moved between polygons. Therefore, we fire a ended event,
+            //     then a began event.
+            //     If the current polygon is the same as the previous, then we
+            //     just moved within that polygon, so we fire a moved event.
+            // (2) The new location is outside a polygon
+            //     If the previous location is inside a polygon, we fire an
+            //     ended event, because we just exited the polygon.
+            if (shape != nullptr) {
+                auto curr = this->_polygonNames[shape->getTag()];
+                if (prev == "") {
+                    if (this->onTouchPolygonBegan) {
+                        this->onTouchPolygonBegan(curr, this->_polygons[curr], touch);
+                    }
+                } else if (prev != curr) {
+                    if (this->onTouchPolygonEnded) {
+                        this->onTouchPolygonEnded(prev, this->_polygons[prev], touch);
+                    }
+                    if (this->onTouchPolygonBegan) {
+                        this->onTouchPolygonBegan(curr, this->_polygons[curr], touch);
+                    }
+                } else {
+                    if (this->onTouchPolygonMoved) {
+                        this->onTouchPolygonMoved(curr, this->_polygons[curr], touch);
+                    }
+                }
+                this->_touchPolygonNames[touch->getID()] = curr;
+            } else {
+                if (prev != "") {
+                    if (this->onTouchPolygonEnded) {
+                        this->onTouchPolygonEnded(prev, this->_polygons[prev], touch);
+                    }
+                }
+                this->_touchPolygonNames[touch->getID()] = "";
             }
         }
-        return true;
     };
 
-    _eventDispatcher->addEventListenerWithSceneGraphPriority(listener, this);
+    listener->onTouchesEnded = [this](const std::vector<Touch*>& touches, Event*) {
+        if (!this->onTouchPolygonEnded) { return; }
+
+        for (const auto& touch : touches) {
+            auto prev = this->_touchPolygonNames[touch->getID()];
+
+            // If there was a previous polygon, we just ended touching it.
+            // In both cases, we remove the touch tracking data.
+            if (prev != "") {
+                this->onTouchPolygonEnded(prev, this->_polygons[prev], touch);
+            }
+            this->_touchPolygonNames.erase(touch->getID());
+        }
+    };
+
+    this->getEventDispatcher()->addEventListenerWithSceneGraphPriority(listener, this);
 }
 
 std::vector<MappedSprite::Polygon> MappedSprite::triangulate(const Polygon &points) {

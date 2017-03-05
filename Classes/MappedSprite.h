@@ -15,16 +15,18 @@ public:
 
     void highlight(const std::string& name, const cocos2d::Color4F& fillColor, float borderWidth,
                    const cocos2d::Color4F& borderColor);
-    void clearHighlight();
+    void clearHighlight(const std::string& name);
 
-    std::function<bool(std::string, Polygon polygon)> onTouchBegan;
-    std::function<bool(std::string, Polygon polygon)> onTouchMoved;
-    std::function<bool(std::string, Polygon polygon)> onTouchEnded;
+    std::function<void(const std::string&, Polygon, const cocos2d::Touch*)> onTouchPolygonBegan;
+    std::function<void(const std::string&, Polygon, const cocos2d::Touch*)> onTouchPolygonMoved;
+    std::function<void(const std::string&, Polygon, const cocos2d::Touch*)> onTouchPolygonEnded;
 
 private:
     std::map<std::string, Polygon> _polygons;
     std::vector<std::string> _polygonNames;
-    cocos2d::DrawNode* _highlightNode;
+    std::unordered_map<std::string, cocos2d::DrawNode*> _highlightNodes;
+
+    std::unordered_map<int, std::string> _touchPolygonNames;
 
     void initPolygons();
     void addEvents();
