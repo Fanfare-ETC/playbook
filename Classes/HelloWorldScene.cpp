@@ -78,11 +78,14 @@ bool HelloWorld::init()
         this->_ballSlot->addChild(ball);
 
         // Add tracking information to the ball.
-        this->_ballDragState.push_back(false);
-        this->_ballDragTouchID.push_back(0);
-        this->_ballDragOrigPosition.push_back(ball->getPosition());
-        this->_ballDragTargetState.push_back(false);
-        this->_ballDragTarget.push_back("");
+        BallState state {
+            .dragState = false,
+            .dragTouchID = 0,
+            .dragOrigPosition = ball->getPosition(),
+            .dragTargetState = false,
+            .dragTarget = ""
+        };
+        this->_ballStates.push_back(state);
     }
 
     // add overlay to screen
@@ -332,12 +335,13 @@ void HelloWorld::initFieldOverlay() {
         this->_fieldOverlay->highlight(name, Color4F(Color3B::BLACK, 0.2f), 0, Color4F::WHITE);
 
         // Store the currently hovered item.
-        for (auto it = this->_ballDragTouchID.begin(); it != this->_ballDragTouchID.end(); ++it) {
-            auto idx = it - this->_ballDragTouchID.begin();
-            if (*it == touch->getID() && this->_ballDragState[idx]) {
-                this->_ballDragTargetState[idx] = true;
-                this->_ballDragTarget[idx] = name;
-            }
+        auto it = std::find_if(this->_ballStates.begin(), this->_ballStates.end(), [touch](BallState state) {
+            return state.dragTouchID == touch->getID() && state.dragState;
+        });
+
+        if (it != this->_ballStates.end()) {
+            it->dragTargetState = true;
+            it->dragTarget = name;
         }
     };
 
@@ -348,12 +352,13 @@ void HelloWorld::initFieldOverlay() {
         this->_fieldOverlay->clearHighlight(name);
 
         // Remove the currently covered item.
-        for (auto it = this->_ballDragTouchID.begin(); it != this->_ballDragTouchID.end(); ++it) {
-            auto idx = it - this->_ballDragTouchID.begin();
-            if (*it == touch->getID() && this->_ballDragState[idx]) {
-                this->_ballDragTargetState[idx] = false;
-                this->_ballDragTarget[idx] = "";
-            }
+        auto it = std::find_if(this->_ballStates.begin(), this->_ballStates.end(), [touch](BallState state) {
+            return state.dragTouchID == touch->getID() && state.dragState;
+        });
+
+        if (it != this->_ballStates.end()) {
+            it->dragTargetState = false;
+            it->dragTarget = "";
         }
     };
 }
@@ -373,8 +378,8 @@ void HelloWorld::initEvents() {
                 // Save the tracking information needed for multi-touch to work.
                 if (box.containsPoint(localLocation)) {
                     auto ballIdx = it - balls.begin();
-                    this->_ballDragState[ballIdx] = true;
-                    this->_ballDragTouchID[ballIdx] = touch->getID();
+                    this->_ballStates[ballIdx].dragState = true;
+                    this->_ballStates[ballIdx].dragTouchID = touch->getID();
                 }
             }
         }
@@ -390,17 +395,18 @@ void HelloWorld::initEvents() {
 
                 // If the removed touch ID is matched to a ball, it means that
                 // a finger was lifted off the ball.
-                if (this->_ballDragState[ballIdx] && touch->getID() == this->_ballDragTouchID[ballIdx]) {
+                auto& state = this->_ballStates[ballIdx];
+                if (state.dragState && touch->getID() == state.dragTouchID) {
                     // If the ball was being dragged and has a target, we remove
                     // the ball from the scene.
-                    if (this->_ballDragTargetState[ballIdx]) {
+                    if (state.dragTargetState) {
                         (*it)->setVisible(false);
                     } else {
-                        auto moveTo = MoveTo::create(0.25f, this->_ballDragOrigPosition[ballIdx]);
+                        auto moveTo = MoveTo::create(0.25f, state.dragOrigPosition);
                         (*it)->runAction(moveTo);
                     }
 
-                    this->_ballDragState[ballIdx] = false;
+                    state.dragState = false;
                 }
             }
         }
@@ -416,7 +422,8 @@ void HelloWorld::initEvents() {
 
                 // If the removed touch ID is matched to a ball, it means that
                 // a finger was lifted off the ball.
-                if (this->_ballDragState[ballIdx] && touch->getID() == this->_ballDragTouchID[ballIdx]) {
+                auto state = this->_ballStates[ballIdx];
+                if (state.dragState && touch->getID() == state.dragTouchID) {
                     auto localLocation = (*it)->getParent()->convertTouchToNodeSpace(touch);
                     (*it)->setPosition(localLocation);
                 }

@@ -48,13 +48,17 @@ public:
     CREATE_FUNC(HelloWorld);
 
 private:
-    cocos2d::Sprite* _ballSlot;
-    std::vector<bool> _ballDragState;
-    std::vector<int> _ballDragTouchID;
-    std::vector<cocos2d::Vec2> _ballDragOrigPosition;
+    struct BallState {
+        bool dragState;
+        int dragTouchID;
+        cocos2d::Vec2 dragOrigPosition;
 
-    std::vector<bool> _ballDragTargetState;
-    std::vector<std::string> _ballDragTarget;
+        bool dragTargetState;
+        std::string dragTarget;
+    };
+
+    cocos2d::Sprite* _ballSlot;
+    std::vector<BallState> _ballStates;
 
     MappedSprite* _fieldOverlay;
 
