@@ -327,14 +327,34 @@ void HelloWorld::initFieldOverlay() {
 
     this->_fieldOverlay->onTouchPolygonBegan = [this](const std::string& name,
                                                       MappedSprite::Polygon polygon,
-                                                      const Touch*) {
+                                                      const Touch* touch) {
+        // Highlight the section with translucent black.
         this->_fieldOverlay->highlight(name, Color4F(Color3B::BLACK, 0.2f), 0, Color4F::WHITE);
+
+        // Store the currently hovered item.
+        for (auto it = this->_ballDragTouchID.begin(); it != this->_ballDragTouchID.end(); ++it) {
+            auto idx = it - this->_ballDragTouchID.begin();
+            if (*it == touch->getID() && this->_ballDragState[idx]) {
+                this->_ballDragTargetState[idx] = true;
+                this->_ballDragTarget[idx] = name;
+            }
+        }
     };
 
     this->_fieldOverlay->onTouchPolygonEnded = [this](const std::string& name,
                                                       MappedSprite::Polygon polygon,
-                                                      const Touch*) {
+                                                      const Touch* touch) {
+        // Clear the previously created highlight.
         this->_fieldOverlay->clearHighlight(name);
+
+        // Remove the currently covered item.
+        for (auto it = this->_ballDragTouchID.begin(); it != this->_ballDragTouchID.end(); ++it) {
+            auto idx = it - this->_ballDragTouchID.begin();
+            if (*it == touch->getID() && this->_ballDragState[idx]) {
+                this->_ballDragTargetState[idx] = false;
+                this->_ballDragTarget[idx] = "";
+            }
+        }
     };
 }
 
@@ -370,10 +390,17 @@ void HelloWorld::initEvents() {
 
                 // If the removed touch ID is matched to a ball, it means that
                 // a finger was lifted off the ball.
-                if (touch->getID() == this->_ballDragTouchID[ballIdx]) {
+                if (this->_ballDragState[ballIdx] && touch->getID() == this->_ballDragTouchID[ballIdx]) {
+                    // If the ball was being dragged and has a target, we remove
+                    // the ball from the scene.
+                    if (this->_ballDragTargetState[ballIdx]) {
+                        (*it)->setVisible(false);
+                    } else {
+                        auto moveTo = MoveTo::create(0.25f, this->_ballDragOrigPosition[ballIdx]);
+                        (*it)->runAction(moveTo);
+                    }
+
                     this->_ballDragState[ballIdx] = false;
-                    auto moveTo = MoveTo::create(0.25f, this->_ballDragOrigPosition[ballIdx]);
-                    (*it)->runAction(moveTo);
                 }
             }
         }

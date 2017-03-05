@@ -175,7 +175,7 @@ void MappedSprite::addEvents() {
         }
     };
 
-    this->getEventDispatcher()->addEventListenerWithSceneGraphPriority(listener, this);
+    this->getEventDispatcher()->addEventListenerWithFixedPriority(listener, 1);
 }
 
 std::vector<MappedSprite::Polygon> MappedSprite::triangulate(const Polygon &points) {
