@@ -1,6 +1,7 @@
 #include "AppDelegate.h"
 #include "PredictionScene.h"
 #include "SectionSelectionScene.h"
+#include "SectionScoreScene.h"
 #include "CollectionScreen.h"
 
 USING_NS_CC;
@@ -129,6 +130,9 @@ Java_edu_cmu_etc_fanfare_playbook_Cocos2dxBridge_loadScene(JNIEnv* env, jclass c
         } else if (sceneNameStr == "SectionSelection") {
             auto scene = SectionSelection::createScene();
             director->replaceScene(scene);
+        } else if (sceneNameStr == "SectionScore") {
+			auto scene = SectionScore::createScene();
+			director->replaceScene(scene);
         } else if (sceneNameStr == "CollectionScreen") {
             auto scene = CollectionScreen::createScene();
             director->replaceScene(scene);

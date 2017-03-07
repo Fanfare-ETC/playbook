@@ -15,6 +15,7 @@ LOCAL_SRC_FILES := hellocpp/main.cpp \
                    ../../../Classes/AppDelegate.cpp \
                    ../../../Classes/PredictionScene.cpp \
                    ../../../Classes/SectionSelectionScene.cpp \
+				   ../../../Classes/SectionScoreScene.cpp \
                    ../../../Classes/CollectionScreen.cpp \
                    ../../../Classes/MappedSprite.cpp
 
