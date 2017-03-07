@@ -2,7 +2,7 @@
 #define __SECTIONSELECTION_SCENE_H__
 
 #include "cocos2d.h"
-#include "network/HttpClient.h"
+#include "cocos/network/HttpClient.h"
 
 class SectionSelection : public cocos2d::Layer
 {

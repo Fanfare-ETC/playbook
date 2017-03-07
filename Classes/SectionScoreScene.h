@@ -25,7 +25,7 @@ class SectionScoreSprite : public cocos2d::Sprite
 public:
 	//SectionSprite();
 	//~SectionSprite();
-	int selectedId = 4;
+	//int selectedId = 4;
 	int highId = -1;
 	static SectionScoreSprite* create(std::string s);
 	//void initOptions();

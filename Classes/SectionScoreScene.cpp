@@ -207,7 +207,7 @@ void SectionScoreSprite::onHttpRequestCompleted(network::HttpClient *sender, net
 	this->addChild(label, 1);
 
 	log("High Id: %d", highId);
-	if ((this->getTag() != selectedId) && (this->getTag() != highId))
+	if ((this->getTag() != SectionSelection::selectedId) && (this->getTag() != highId))
 		this->setColor(Color3B(52, 147, 255));
 	else if (this->getTag() == highId)
 		this->setColor(Color3B(242, 73, 73));
@@ -293,7 +293,7 @@ bool SectionScore::init()
 		nameSS << "Left Section " << (i + 2);
 		leftSection[i]->setName(nameSS.str());
 		leftSection[i]->setTag(i + 2);
-		if (i + 2 == leftSection[i]->selectedId) {
+		if (i + 2 == SectionSelection::selectedId) {
 			leftSection[i]->setColor(Color3B(250, 198, 26));
 		}
 		leftSection[i]->setAnchorPoint(Vec2(0.5, 0.5));
@@ -307,7 +307,7 @@ bool SectionScore::init()
 		nameSS1 << "Right Section " << (i + 9);
 		rightSection[i]->setName(nameSS1.str());
 		rightSection[i]->setTag(i + 9);
-		if (i + 9 == rightSection[i]->selectedId) {
+		if (i + 9 == SectionSelection::selectedId) {
 			rightSection[i]->setColor(Color3B(250, 198, 26));
 		}
 		rightSection[i]->setAnchorPoint(Vec2(0.5, 0.5));
