@@ -1,9 +1,9 @@
+#include <json/document.h>
 #include "PredictionScene.h"
+#include "PredictionWebSocket.h"
+#include "rapidjson/rapidjson.h"
 
 USING_NS_CC;
-using namespace std;
-//struct type_rect { float  array[4][2]; };
-//typedef struct type_rect type_rect;
 
 Scene* Prediction::createScene()
 {
@@ -109,6 +109,30 @@ bool Prediction::init()
     // Create event listeners.
     this->initEvents();
     this->scheduleUpdate();
+
+    // Create websocket client.
+    auto websocket = PredictionWebSocket::create("ws://128.237.140.116:8080");
+    websocket->connect();
+    websocket->onConnectionOpened = []() {
+        CCLOG("Connection to server established");
+    };
+    websocket->onMessageReceived = [this](std::string message) {
+        CCLOG("Message received from server: %s", message.c_str());
+
+        rapidjson::Document document;
+        document.Parse(message.c_str());
+        if (document.IsArray()) {
+            for (auto it = document.Begin(); it != document.End(); ++it) {
+                PredictionEvent event = this->intToEvent(it->GetInt());
+                CCLOG("Events: %s", this->eventToString(event).c_str());
+            }
+        } else {
+            CCLOG("Received message is not an array!");
+        }
+    };
+    websocket->onErrorOccurred = [](const cocos2d::network::WebSocket::ErrorCode& errorCode) {
+        CCLOG("Error connecting to server: %d", errorCode);
+    };
 
     return true;
 }
@@ -524,6 +548,64 @@ std::string Prediction::eventToString(PredictionEvent event) {
         {PredictionEvent::blocked_run, "blocked_run"},
         {PredictionEvent::walk_off, "walk_off"},
         {PredictionEvent::pitchcount_17, "pitch_count_17"}
+    };
+
+    return map[event];
+}
+
+Prediction::PredictionEvent Prediction::intToEvent(int event) {
+    std::vector<PredictionEvent> map {
+        PredictionEvent::error,
+        PredictionEvent::grandslam,
+        PredictionEvent::shutout_inning,
+        PredictionEvent::longout,
+        PredictionEvent::runs_batted,
+        PredictionEvent::pop_fly,
+        PredictionEvent::triple_play,
+        PredictionEvent::double_play,
+        PredictionEvent::grounder,
+        PredictionEvent::steal,
+        PredictionEvent::pick_off,
+        PredictionEvent::walk,
+        PredictionEvent::blocked_run,
+        PredictionEvent::strike_out,
+        PredictionEvent::hit,
+        PredictionEvent::homerun,
+        PredictionEvent::pitchcount_16,
+        PredictionEvent::walk_off,
+        PredictionEvent::pitchcount_17,
+        PredictionEvent::oneb,
+        PredictionEvent::twob,
+        PredictionEvent::threeb
+    };
+
+    return map[event];
+}
+
+int Prediction::getScoreForEvent(PredictionEvent event) {
+    std::unordered_map<PredictionEvent, int> map = {
+        {PredictionEvent::error, 15},
+        {PredictionEvent::grandslam, 400},
+        {PredictionEvent::shutout_inning, 4},
+        {PredictionEvent::longout, 5},
+        {PredictionEvent::runs_batted, 4},
+        {PredictionEvent::pop_fly, 2},
+        {PredictionEvent::triple_play, 1400},
+        {PredictionEvent::grounder, 2},
+        {PredictionEvent::double_play, 20},
+        {PredictionEvent::twob, 5},
+        {PredictionEvent::steal, 5},
+        {PredictionEvent::pick_off, 7},
+        {PredictionEvent::strike_out, 2},
+        {PredictionEvent::walk, 3},
+        {PredictionEvent::threeb, 20},
+        {PredictionEvent::oneb, 3},
+        {PredictionEvent::hit, 2},
+        {PredictionEvent::homerun, 10},
+        {PredictionEvent::pitchcount_16, 2},
+        {PredictionEvent::blocked_run, 10},
+        {PredictionEvent::walk_off, 50},
+        {PredictionEvent::pitchcount_17, 2}
     };
 
     return map[event];

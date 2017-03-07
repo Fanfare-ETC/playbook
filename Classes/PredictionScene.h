@@ -4,8 +4,6 @@
 #include "cocos2d.h"
 #include "MappedSprite.h"
 
-//using namespace std;
-
 class Prediction : public cocos2d::Layer
 {
 public:
@@ -49,7 +47,8 @@ private:
         pitchcount_17,
         oneb,
         twob,
-        threeb
+        threeb,
+        unknown
     };
 
     struct PredictionEventHash {
@@ -78,8 +77,12 @@ private:
 
     void initFieldOverlay();
     void initEvents();
+
     PredictionEvent stringToEvent(const std::string &);
     std::string eventToString(PredictionEvent event);
+    PredictionEvent intToEvent(int event);
+
+    int getScoreForEvent(PredictionEvent event);
     void increasePredictionCount(PredictionEvent);
 };
 
