@@ -410,6 +410,7 @@ void Prediction::initEvents() {
                     // the ball from the scene.
                     if (state.dragTargetState) {
                         (*it)->setVisible(false);
+                        this->increasePredictionCount(this->stringToEvent(state.dragTarget));
                     } else {
                         auto moveTo = MoveTo::create(0.25f, state.dragOrigPosition);
                         (*it)->runAction(moveTo);
@@ -468,6 +469,77 @@ void Prediction::update(float delta) {
 
 
 
+}
+
+Prediction::PredictionEvent Prediction::stringToEvent(const std::string &event) {
+    std::unordered_map<std::string, PredictionEvent> map = {
+        {"error", PredictionEvent::error},
+        {"grand_slam", PredictionEvent::grandslam},
+        {"shutout_inning", PredictionEvent::shutout_inning},
+        {"long_out", PredictionEvent::longout},
+        {"runs_batted_in", PredictionEvent::runs_batted},
+        {"pop_fly", PredictionEvent::pop_fly},
+        {"triple_play", PredictionEvent::triple_play},
+        {"grounder", PredictionEvent::grounder},
+        {"double_play", PredictionEvent::double_play},
+        {"second_base", PredictionEvent::twob},
+        {"steal", PredictionEvent::steal},
+        {"pick_off", PredictionEvent::pick_off},
+        {"strike_out", PredictionEvent::strike_out},
+        {"walk", PredictionEvent::walk},
+        {"third_base", PredictionEvent::threeb},
+        {"first_base", PredictionEvent::oneb},
+        {"hit", PredictionEvent::hit},
+        {"home_run", PredictionEvent::homerun},
+        {"pitch_count_16", PredictionEvent::pitchcount_16},
+        {"blocked_run", PredictionEvent::blocked_run},
+        {"walk_off", PredictionEvent::walk_off},
+        {"pitch_count_17", PredictionEvent::pitchcount_17}
+    };
+
+    return map[event];
+}
+
+std::string Prediction::eventToString(PredictionEvent event) {
+    std::unordered_map<PredictionEvent, std::string, PredictionEventHash> map = {
+        {PredictionEvent::error, "error"},
+        {PredictionEvent::grandslam, "grand_slam"},
+        {PredictionEvent::shutout_inning, "shutout_inning"},
+        {PredictionEvent::longout, "long_out"},
+        {PredictionEvent::runs_batted, "runs_batted_in"},
+        {PredictionEvent::pop_fly, "pop_fly"},
+        {PredictionEvent::triple_play, "triple_play"},
+        {PredictionEvent::grounder, "grounder"},
+        {PredictionEvent::double_play, "double_play"},
+        {PredictionEvent::twob, "second_base"},
+        {PredictionEvent::steal, "steal"},
+        {PredictionEvent::pick_off, "pick_off"},
+        {PredictionEvent::strike_out, "strike_out"},
+        {PredictionEvent::walk, "walk"},
+        {PredictionEvent::threeb, "third_base"},
+        {PredictionEvent::oneb, "first_base"},
+        {PredictionEvent::hit, "hit"},
+        {PredictionEvent::homerun, "home_run"},
+        {PredictionEvent::pitchcount_16, "pitch_count_16"},
+        {PredictionEvent::blocked_run, "blocked_run"},
+        {PredictionEvent::walk_off, "walk_off"},
+        {PredictionEvent::pitchcount_17, "pitch_count_17"}
+    };
+
+    return map[event];
+}
+
+void Prediction::increasePredictionCount(PredictionEvent event) {
+    if (this->_predictionCounts.find(event) != this->_predictionCounts.end()) {
+        this->_predictionCounts[event]++;
+    } else {
+        this->_predictionCounts[event] = 1;
+    }
+
+    // Redraw the relevant section.
+    auto ball = Sprite::create("Item-Ball.png");
+    ball->setScale(0.20f);
+    this->_fieldOverlay->addChildToPolygon(this->eventToString(event), ball);
 }
 
 void Prediction::menuCloseCallback(Ref* pSender)

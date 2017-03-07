@@ -6,38 +6,11 @@
 
 //using namespace std;
 
-enum PredictionEvents
-{
-    error,
-    grandslam,
-    shutout_inning,
-    longout,
-    runs_batted,
-    pop_fly,
-    triple_play,
-    double_play,
-    grounder,
-    steal,
-    pick_off,
-    walk,
-    blocked_run,
-    strike_out,
-    hit,
-    homerun,
-    pitchcount_16,
-    walk_off,
-    pitchcount_17,
-    oneb,
-    twob,
-    threeb
-};
-
 class Prediction : public cocos2d::Layer
 {
 public:
 
     static cocos2d::Scene* createScene();
-    int prediction[30]={0};
 
     virtual bool init();
     virtual void update(float delta);
@@ -52,6 +25,38 @@ private:
     enum SceneState {
         INITIAL,
         CONTINUE
+    };
+
+    enum PredictionEvent {
+        error,
+        grandslam,
+        shutout_inning,
+        longout,
+        runs_batted,
+        pop_fly,
+        triple_play,
+        double_play,
+        grounder,
+        steal,
+        pick_off,
+        walk,
+        blocked_run,
+        strike_out,
+        hit,
+        homerun,
+        pitchcount_16,
+        walk_off,
+        pitchcount_17,
+        oneb,
+        twob,
+        threeb
+    };
+
+    struct PredictionEventHash {
+        template <typename T>
+        std::size_t operator()(T t) const {
+            return static_cast<std::size_t>(t);
+        }
     };
 
     struct BallState {
@@ -69,9 +74,13 @@ private:
     cocos2d::Sprite* _continueBanner;
 
     MappedSprite* _fieldOverlay;
+    std::unordered_map<PredictionEvent, int, PredictionEventHash> _predictionCounts;
 
     void initFieldOverlay();
     void initEvents();
+    PredictionEvent stringToEvent(const std::string &);
+    std::string eventToString(PredictionEvent event);
+    void increasePredictionCount(PredictionEvent);
 };
 
 #endif // PLAYBOOK_PREDICTION_H
