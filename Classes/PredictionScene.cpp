@@ -36,6 +36,7 @@ bool Prediction::init()
 
     // Create Node that represents the visible portion of the screen.
     auto node = Node::create();
+    this->_visibleNode = node;
     node->setContentSize(visibleSize);
     node->setPosition(origin);
     this->addChild(node);
@@ -124,6 +125,7 @@ bool Prediction::init()
             for (auto it = document.Begin(); it != document.End(); ++it) {
                 PredictionEvent event = this->intToEvent(it->GetInt());
                 CCLOG("Events: %s", this->eventToString(event).c_str());
+                this->processPredictionEvent(event);
             }
         } else {
             CCLOG("Received message is not an array!");
@@ -395,6 +397,41 @@ void Prediction::initFieldOverlay() {
     };
 }
 
+void Prediction::createNotificationOverlay(const std::string& text) {
+    auto visibleSize = Director::getInstance()->getVisibleSize();
+
+    // Draw background on overlay.
+    auto overlay = DrawNode::create();
+    overlay->drawSolidRect(Vec2(0.0f, 0.0f), Vec2(visibleSize.width, visibleSize.height), Color4F(Color3B::BLACK, 0.75f));
+    overlay->setAnchorPoint(Vec2(0.0f, 0.0f));
+
+    // Use ball as text placeholder.
+    auto ball = Sprite::create("Item-Ball-Rotated.png");
+    auto ballScale = visibleSize.width / ball->getContentSize().width;
+    ball->setScale(ballScale);
+    ball->setPosition(visibleSize.width / 2, visibleSize.height / 2);
+    overlay->addChild(ball, 0);
+
+    auto label = Label::createWithTTF(text, "fonts/nova1.ttf", 72.0f);
+    label->setColor(Color3B::BLACK);
+    label->setPosition(visibleSize.width / 2, visibleSize.height / 2);
+    label->setAlignment(TextHAlignment::CENTER);
+    overlay->addChild(label, 1);
+
+    // Remove notification overlay on tap.
+    auto listener = EventListenerTouchOneByOne::create();
+    overlay->retain();
+    listener->onTouchBegan = [this, overlay](Touch* touch, Event*) {
+        this->_visibleNode->removeChild(overlay, true);
+        overlay->release();
+        return true;
+    };
+    overlay->getEventDispatcher()->addEventListenerWithSceneGraphPriority(listener, overlay);
+
+    // Add this overlay to the root node.
+    this->_visibleNode->addChild(overlay, 3);
+}
+
 void Prediction::initEvents() {
     auto listener = EventListenerTouchAllAtOnce::create();
 
@@ -481,7 +518,7 @@ void Prediction::update(float delta) {
 
             if (shouldContinue) {
                 this->_state = SceneState::CONTINUE;
-                this->_continueBanner->setVisible(true);
+                //this->_continueBanner->setVisible(true);
             }
             break;
         }
@@ -621,6 +658,25 @@ void Prediction::increasePredictionCount(PredictionEvent event) {
     auto ball = Sprite::create("Item-Ball.png");
     ball->setScale(0.20f);
     this->_fieldOverlay->addChildToPolygon(this->eventToString(event), ball);
+}
+
+void Prediction::processPredictionEvent(PredictionEvent event) {
+    if (this->_predictionCounts.find(event) != this->_predictionCounts.end()) {
+        auto count = this->_predictionCounts[event];
+        CCLOG("Prediction correct: %s", this->eventToString(event).c_str());
+
+        // Multiply the count with the score.
+        auto score = this->getScoreForEvent(event) * count;
+        this->_score += score;
+
+        // Show overlay.
+        std::stringstream ss;
+        ss << "Prediction correct: " << this->eventToString(event) << std::endl;
+        ss << "Your score is: " << this->_score << std::endl;
+        this->createNotificationOverlay(ss.str());
+    } else {
+        CCLOG("Prediction not found: %s", this->eventToString(event).c_str());
+    }
 }
 
 void Prediction::menuCloseCallback(Ref* pSender)

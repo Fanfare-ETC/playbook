@@ -67,6 +67,8 @@ private:
         std::string dragTarget;
     };
 
+    cocos2d::Node* _visibleNode;
+
     SceneState _state;
     cocos2d::Sprite* _ballSlot;
     std::vector<BallState> _ballStates;
@@ -75,6 +77,9 @@ private:
     MappedSprite* _fieldOverlay;
     std::unordered_map<PredictionEvent, int, PredictionEventHash> _predictionCounts;
 
+    cocos2d::DrawNode* _notificationOverlay;
+    int _score = 0;
+
     void initFieldOverlay();
     void initEvents();
 
@@ -82,8 +87,10 @@ private:
     std::string eventToString(PredictionEvent event);
     PredictionEvent intToEvent(int event);
 
+    void createNotificationOverlay(const std::string&);
     int getScoreForEvent(PredictionEvent event);
     void increasePredictionCount(PredictionEvent);
+    void processPredictionEvent(PredictionEvent event);
 };
 
 #endif // PLAYBOOK_PREDICTION_H
