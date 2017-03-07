@@ -13,7 +13,7 @@ LOCAL_MODULE_FILENAME := libMyGame
 
 LOCAL_SRC_FILES := hellocpp/main.cpp \
                    ../../../Classes/AppDelegate.cpp \
-                   ../../../Classes/HelloWorldScene.cpp \
+                   ../../../Classes/PredictionScene.cpp \
                    ../../../Classes/SectionSelectionScene.cpp \
                    ../../../Classes/CollectionScreen.cpp \
                    ../../../Classes/MappedSprite.cpp

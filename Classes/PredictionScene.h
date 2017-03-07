@@ -1,5 +1,5 @@
-#ifndef __HELLOWORLD_SCENE_H__
-#define __HELLOWORLD_SCENE_H__
+#ifndef PLAYBOOK_PREDICTION_H
+#define PLAYBOOK_PREDICTION_H
 
 #include "cocos2d.h"
 #include "MappedSprite.h"
@@ -32,7 +32,7 @@ enum PredictionEvents
     threeb
 };
 
-class HelloWorld : public cocos2d::Layer
+class Prediction : public cocos2d::Layer
 {
 public:
 
@@ -46,7 +46,7 @@ public:
     void menuCloseCallback(cocos2d::Ref* pSender);
 
     // implement the "static create()" method manually
-    CREATE_FUNC(HelloWorld);
+    CREATE_FUNC(Prediction);
 
 private:
     enum SceneState {
@@ -74,4 +74,4 @@ private:
     void initEvents();
 };
 
-#endif // __HELLOWORLD_SCENE_H__
+#endif // PLAYBOOK_PREDICTION_H

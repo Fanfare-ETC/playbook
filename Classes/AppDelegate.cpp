@@ -1,5 +1,5 @@
 #include "AppDelegate.h"
-#include "HelloWorldScene.h"
+#include "PredictionScene.h"
 #include "SectionSelectionScene.h"
 #include "CollectionScreen.h"
 
@@ -76,7 +76,7 @@ bool AppDelegate::applicationDidFinishLaunching() {
     register_all_packages();
 
     // create a scene. it's an autorelease object
-    auto scene = HelloWorld::createScene();
+    auto scene = Prediction::createScene();
 
     // run
     director->runWithScene(scene);
@@ -115,9 +115,16 @@ Java_edu_cmu_etc_fanfare_playbook_Cocos2dxBridge_loadScene(JNIEnv* env, jclass c
     std::string sceneNameStr (sceneNameCharPtr);
 
     auto director = Director::getInstance();
+
     director->getScheduler()->performFunctionInCocosThread([sceneNameStr, director](){
-        if (sceneNameStr == "HelloWorld") {
-            auto scene = HelloWorld::createScene();
+        // If the current scene is already running, ignore request to change scene.
+        auto runningScene = director->getRunningScene();
+        if (runningScene && runningScene->getName() == sceneNameStr) {
+            return;
+        }
+
+        if (sceneNameStr == "Prediction") {
+            auto scene = Prediction::createScene();
             director->replaceScene(scene);
         } else if (sceneNameStr == "SectionSelection") {
             auto scene = SectionSelection::createScene();

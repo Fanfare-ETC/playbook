@@ -244,8 +244,8 @@ bool SectionSelection::init()
 
 
 
-    // add "HelloWorld" splash screen"
-    //auto sprite = Sprite::create("HelloWorld.png");
+    // add "Prediction" splash screen"
+    //auto sprite = Sprite::create("Prediction.png");
 
     // position the sprite on the center of the screen
     //sprite->setPosition(Vec2(visibleSize.width/2 + origin.x, visibleSize.height/2 + origin.y));

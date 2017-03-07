@@ -1,20 +1,18 @@
-#include "HelloWorldScene.h"
-#include "SimpleAudioEngine.h"
-#include "MappedSprite.h"
+#include "PredictionScene.h"
 
 USING_NS_CC;
 using namespace std;
 //struct type_rect { float  array[4][2]; };
 //typedef struct type_rect type_rect;
 
-Scene* HelloWorld::createScene()
+Scene* Prediction::createScene()
 {
     // 'scene' is an autorelease object
     auto scene = Scene::createWithPhysics();
-    scene->setName("HelloWorld");
+    scene->setName("Prediction");
 
     // 'layer' is an autorelease object
-    auto layer = HelloWorld::create();
+    auto layer = Prediction::create();
 
     // add layer as a child to scene
     scene->addChild(layer);
@@ -24,7 +22,7 @@ Scene* HelloWorld::createScene()
 }
 
 // on "init" you need to initialize your instance
-bool HelloWorld::init()
+bool Prediction::init()
 {
     //////////////////////////////
     // 1. super init first
@@ -115,7 +113,7 @@ bool HelloWorld::init()
     return true;
 }
 
-void HelloWorld::initFieldOverlay() {
+void Prediction::initFieldOverlay() {
     // add overlay to screen
     std::map<std::string, MappedSprite::Polygon> polygons;
 
@@ -374,7 +372,7 @@ void HelloWorld::initFieldOverlay() {
     };
 }
 
-void HelloWorld::initEvents() {
+void Prediction::initEvents() {
     auto listener = EventListenerTouchAllAtOnce::create();
 
     listener->onTouchesBegan = [this](const std::vector<Touch*>& touches, Event* event) {
@@ -449,7 +447,7 @@ void HelloWorld::initEvents() {
     this->getEventDispatcher()->addEventListenerWithSceneGraphPriority(listener, this);
 }
 
-void HelloWorld::update(float delta) {
+void Prediction::update(float delta) {
     switch (this->_state) {
         case SceneState::INITIAL: {
             auto balls = this->_ballSlot->getChildren();
@@ -472,7 +470,7 @@ void HelloWorld::update(float delta) {
 
 }
 
-void HelloWorld::menuCloseCallback(Ref* pSender)
+void Prediction::menuCloseCallback(Ref* pSender)
 {
     //Close the cocos2d-x game scene and quit the application
     Director::getInstance()->end();

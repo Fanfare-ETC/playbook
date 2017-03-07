@@ -3,7 +3,7 @@
 //
 
 #include "CollectionScreen.h"
-#include "HelloWorldScene.h"
+#include "PredictionScene.h"
 //#include "SimpleAudioEngine.h"
 #include "MappedSprite.h"
 
