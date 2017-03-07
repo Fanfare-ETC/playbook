@@ -91,7 +91,7 @@ void SectionScoreSprite::touchEvent(Touch* touch, Event* event)
 	Vec2 currentPosition = this->getPosition();
 
 	if (this->getScaleY() == 1.5) {
-		if(this->getTag() != selectedId)
+		if(this->getTag() != SectionSelection::selectedId)
 			this->setColor(Color3B(255, 255, 255));
 		this->setScaleY(1);
 		this->removeChildByTag(1);

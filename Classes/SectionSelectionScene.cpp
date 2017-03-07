@@ -12,6 +12,8 @@ using namespace cocos2d;
 
 //SectionSprite::~SectionSprite() {}
 
+int SectionSelection::selectedId = -1;
+
 
 SectionSprite* SectionSprite::create(std::string s)
 {
@@ -310,7 +312,7 @@ bool SectionSelection::init()
 	this->addChild(seatNoBox);
 
 
-	selectedId = -1;
+	//selectedId = -1;
 
 	if (centerSection->isSelected())
 		selectedId = 1;
@@ -334,7 +336,7 @@ bool SectionSelection::init()
 
 	auto enterListener = EventListenerKeyboard::create();
 
-	enterListener->onKeyPressed = [=](EventKeyboard::KeyCode KeyCode, Event* event) {
+	enterListener->onKeyPressed = [&](EventKeyboard::KeyCode KeyCode, Event* event) {
 		log("Some key pressed");
 		if (KeyCode == EventKeyboard::KeyCode::KEY_KP_ENTER) {
 
