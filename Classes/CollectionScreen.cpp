@@ -3,7 +3,7 @@
 //
 
 #include "CollectionScreen.h"
-#include "HelloWorldScene.h"
+#include "PredictionScene.h"
 //#include "SimpleAudioEngine.h"
 #include "MappedSprite.h"
 
@@ -16,6 +16,7 @@ Scene* CollectionScreen::createScene()
 {
     // 'scene' is an autorelease object
     auto scene = Scene::createWithPhysics();
+    scene->setName("CollectionScreen");
     //scene->getPhysicsWorld()->setDebugDrawMask(PhysicsWorld::DEBUGDRAW_ALL);
 
     // 'layer' is an autorelease object

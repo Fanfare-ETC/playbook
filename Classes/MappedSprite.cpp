@@ -63,6 +63,14 @@ void MappedSprite::initPolygons() {
         auto name = polygon.first;
         auto points = polygon.second;
 
+        // Create child nodes for these polygons.
+        // Compute the center.
+        Vec2 center = std::accumulate(points.begin(), points.end(), Vec2()) / points.size();
+        auto centerNode = Node::create();
+        centerNode->setPosition(center);
+        this->addChild(centerNode);
+        this->_polygonNode[name] = centerNode;
+
         // Modify the polygon data to account for the content offset.
         std::transform(points.begin(), points.end(), points.begin(), [this](Vec2 point) {
             point.x -= this->getContentSize().width / 2.0f;
@@ -175,7 +183,15 @@ void MappedSprite::addEvents() {
         }
     };
 
-    this->getEventDispatcher()->addEventListenerWithSceneGraphPriority(listener, this);
+    this->getEventDispatcher()->addEventListenerWithFixedPriority(listener, 1);
+}
+
+void MappedSprite::addChildToPolygon(const std::string& name, Node* node) {
+    this->_polygonNode[name]->addChild(node);
+}
+
+void MappedSprite::getPolygonChildren(const std::string& name) {
+    this->_polygonNode[name]->getChildren();
 }
 
 std::vector<MappedSprite::Polygon> MappedSprite::triangulate(const Polygon &points) {
