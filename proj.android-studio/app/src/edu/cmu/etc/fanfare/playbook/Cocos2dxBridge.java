@@ -11,6 +11,7 @@ public class Cocos2dxBridge {
     private static List<Cocos2dxFragment> mRegisteredFragments = new ArrayList<>();
 
     public static native void loadScene(String sceneName);
+    public static native int getSection();
 
     /**
      * Called by Cocos2dxFragment when the native library completes loading.

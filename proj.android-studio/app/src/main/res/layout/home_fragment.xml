@@ -8,7 +8,7 @@
 
     <TextView
         android:text="You have not selected your seat. Tap here to select one."
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:id="@+id/stadium_select_notification"
         app:layout_constraintBottom_toTopOf="@+id/home_team_logo"
@@ -26,14 +26,14 @@
         android:layout_height="64dp"
         app:layout_constraintLeft_toLeftOf="parent"
         android:layout_marginTop="16dp"
-        app:layout_constraintTop_toBottomOf="@id/stadium_select_notification" />
+        app:layout_constraintTop_toBottomOf="@+id/stadium_select_notification" />
     <ImageView
         android:id="@+id/away_team_logo"
         android:layout_width="64dp"
         android:layout_height="64dp"
         app:layout_constraintRight_toRightOf="parent"
         android:layout_marginTop="16dp"
-        app:layout_constraintTop_toBottomOf="@id/stadium_select_notification" />
+        app:layout_constraintTop_toBottomOf="@+id/stadium_select_notification" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -42,7 +42,7 @@
         android:id="@+id/home_team_name"
         android:textAppearance="@style/TextAppearance.AppCompat.Headline"
         android:layout_marginTop="16dp"
-        app:layout_constraintTop_toBottomOf="@id/stadium_select_notification"
+        app:layout_constraintTop_toBottomOf="@+id/stadium_select_notification"
         android:layout_marginStart="8dp"
         app:layout_constraintLeft_toRightOf="@+id/home_team_logo" />
 
@@ -53,7 +53,7 @@
         android:id="@+id/away_team_name"
         app:layout_constraintRight_toLeftOf="@+id/away_team_logo"
         android:layout_marginTop="16dp"
-        app:layout_constraintTop_toBottomOf="@id/stadium_select_notification"
+        app:layout_constraintTop_toBottomOf="@+id/stadium_select_notification"
         android:layout_marginEnd="8dp"
         android:textAppearance="@style/TextAppearance.AppCompat.Headline"
         android:textAlignment="viewEnd" />
