@@ -20,12 +20,12 @@
         android:paddingStart="32dp"
         android:scaleType="fitXY"
         app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintHorizontal_bias="0.25"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.0"
-        app:srcCompat="@drawable/section1"
-        app:layout_constraintHorizontal_bias="0.25"
+        app:srcCompat="@drawable/rpismap"
         tools:layout_editor_absoluteY="3dp" />
 
     <Button
@@ -37,7 +37,7 @@
         android:background="@color/tertiary"
         android:text="Warmer"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/field"
+        app:layout_constraintTop_toBottomOf="@+id/map"
         app:layout_constraintBottom_toBottomOf="parent"
         android:layout_marginBottom="97dp"
         app:layout_constraintVertical_bias="0.136" />
@@ -51,7 +51,7 @@
         android:background="@color/accent"
         android:text="Colder"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/field"
+        app:layout_constraintTop_toBottomOf="@+id/map"
         app:layout_constraintBottom_toBottomOf="parent"
         android:layout_marginBottom="96dp"
         app:layout_constraintLeft_toRightOf="@+id/warmer"
@@ -73,7 +73,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/button2"
+        app:layout_constraintTop_toBottomOf="@+id/colder"
         app:layout_constraintVertical_bias="0.49" />
 
 

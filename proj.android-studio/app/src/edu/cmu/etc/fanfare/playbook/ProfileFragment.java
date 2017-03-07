@@ -22,10 +22,10 @@ public class ProfileFragment extends Fragment implements View.OnClickListener{
 
     public static int section;
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
                              Bundle savedInstanceState) {
         super.onCreateView(inflater, container, savedInstanceState);
-        View view=inflater.inflate(R.layout.profile_fragment, container, false);
+        final View view=inflater.inflate(R.layout.profile_fragment, container, false);
 
         //create a list box to enter section
 
@@ -43,31 +43,35 @@ public class ProfileFragment extends Fragment implements View.OnClickListener{
             public void onClick(DialogInterface dialog, int which) {
                 section = which+1;
 
+                ImageView image= (ImageView)view.findViewById(R.id.map);
+                switch(section)
+                {
+                    case 1:
+                        Log.v("sec",Integer.toString(section));
+                        image.setImageResource(R.drawable.section1);
+                        break;
+                    case 2:
+                        image.setImageResource(R.drawable.section2);
+                        Log.v("sec",Integer.toString(section));
+                        break;
+                    case 3:
+                        image.setImageResource(R.drawable.section3);
+                        Log.v("sec",Integer.toString(section));
+                        break;
+                }
+
+
             }
         });
         AlertDialog dialog = builder.create();
         dialog.show();
 
-        ImageView image= (ImageView)view.findViewById(R.id.map);
-        switch(section)
-        {
-            case 1:
-                image.setImageResource(R.drawable.section1);
-                break;
-            case 2:
-                image.setImageResource(R.drawable.section2);
-                break;
-            case 3:
-                image.setImageResource(R.drawable.section3);
-                break;
-        }
         Button button_w = (Button) view.findViewById(R.id.warmer);
         button_w.setOnClickListener(this);
         Button button_c = (Button) view.findViewById(R.id.colder);
         button_c.setOnClickListener(this);
         Button button_f = (Button) view.findViewById(R.id.flagdown);
         button_f.setOnClickListener(this);
-
 
         return view;
     }

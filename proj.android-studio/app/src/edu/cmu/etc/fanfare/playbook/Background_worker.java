@@ -36,7 +36,6 @@ Background_worker(int section)
             try {
                 String sec=Integer.toString(section);
                 String move = "1";
-                Log.v("sec",Integer.toString(section));
                 URL url = new URL("http://128.2.238.6/Web%20Application/treasureInsert.php");
                 HttpURLConnection httpURLConnection = (HttpURLConnection)url.openConnection();
                 httpURLConnection.setRequestMethod("POST");
