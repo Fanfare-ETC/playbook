@@ -11,6 +11,7 @@ Scene* HelloWorld::createScene()
 {
     // 'scene' is an autorelease object
     auto scene = Scene::createWithPhysics();
+    scene->setName("HelloWorld");
 
     // 'layer' is an autorelease object
     auto layer = HelloWorld::create();
@@ -88,6 +89,15 @@ bool HelloWorld::init()
         this->_ballStates.push_back(state);
     }
 
+    // Add continue banner.
+    this->_continueBanner = Sprite::create("Prediction-Button-Continue.png");
+    auto continueBannerScale = visibleSize.width / this->_continueBanner->getContentSize().width;
+    this->_continueBanner->setPosition(0.0f, 0.0f);
+    this->_continueBanner->setAnchorPoint(Vec2(0.0f, 0.0f));
+    this->_continueBanner->setScale(continueBannerScale);
+    this->_continueBanner->setVisible(false);
+    node->addChild(this->_continueBanner, 2);
+
     // add overlay to screen
     this->initFieldOverlay();
     auto fieldOverlayScaleX = visibleSize.width / this->_fieldOverlay->getContentSize().width;
@@ -100,6 +110,7 @@ bool HelloWorld::init()
 
     // Create event listeners.
     this->initEvents();
+    this->scheduleUpdate();
 
     return true;
 }
@@ -436,6 +447,29 @@ void HelloWorld::initEvents() {
     };
 
     this->getEventDispatcher()->addEventListenerWithSceneGraphPriority(listener, this);
+}
+
+void HelloWorld::update(float delta) {
+    switch (this->_state) {
+        case SceneState::INITIAL: {
+            auto balls = this->_ballSlot->getChildren();
+            auto shouldContinue = std::all_of(balls.begin(), balls.end(), [](Node *ball) {
+                return !ball->isVisible();
+            });
+
+            if (shouldContinue) {
+                this->_state = SceneState::CONTINUE;
+                this->_continueBanner->setVisible(true);
+            }
+            break;
+        }
+
+        case SceneState::CONTINUE:
+            break;
+    }
+
+
+
 }
 
 void HelloWorld::menuCloseCallback(Ref* pSender)

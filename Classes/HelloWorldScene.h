@@ -40,6 +40,7 @@ public:
     int prediction[30]={0};
 
     virtual bool init();
+    virtual void update(float delta);
 
     // a selector callback
     void menuCloseCallback(cocos2d::Ref* pSender);
@@ -48,6 +49,11 @@ public:
     CREATE_FUNC(HelloWorld);
 
 private:
+    enum SceneState {
+        INITIAL,
+        CONTINUE
+    };
+
     struct BallState {
         bool dragState;
         int dragTouchID;
@@ -57,8 +63,10 @@ private:
         std::string dragTarget;
     };
 
+    SceneState _state;
     cocos2d::Sprite* _ballSlot;
     std::vector<BallState> _ballStates;
+    cocos2d::Sprite* _continueBanner;
 
     MappedSprite* _fieldOverlay;
 

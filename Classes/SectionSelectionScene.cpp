@@ -103,6 +103,7 @@ Scene* SectionSelection::createScene()
 {
     // 'scene' is an autorelease object
     auto scene = Scene::create();
+	scene->setName("SectionSelection");
     
     // 'layer' is an autorelease object
     auto layer = SectionSelection::create();
