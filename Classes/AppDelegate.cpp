@@ -2,10 +2,11 @@
 #include "HelloWorldScene.h"
 #include "SectionSelectionScene.h"
 #include "SectionScoreScene.h"
+#include "CollectionScreen.h"
 
 USING_NS_CC;
 
-static cocos2d::Size designResolutionSize = cocos2d::Size(360, 640);
+static cocos2d::Size designResolutionSize = cocos2d::Size(1080, 1920);
 static cocos2d::Size smallResolutionSize = cocos2d::Size(360, 640);
 static cocos2d::Size mediumResolutionSize = cocos2d::Size(720, 1280);
 static cocos2d::Size largeResolutionSize = cocos2d::Size(1080, 1920);
@@ -81,6 +82,9 @@ bool AppDelegate::applicationDidFinishLaunching() {
     // run
     director->runWithScene(scene);
 
+    // Notify activity that Cocos2dx has arrived
+    JniHelper::callStaticVoidMethod("edu/cmu/etc/fanfare/playbook/Cocos2dxBridge", "onApplicationDidFinishLaunching");
+
     return true;
 }
 
@@ -122,12 +126,10 @@ Java_edu_cmu_etc_fanfare_playbook_Cocos2dxBridge_loadScene(JNIEnv* env, jclass c
         } else if (sceneNameStr == "SectionScore") {
 			auto scene = SectionScore::createScene();
 			director->replaceScene(scene);
-		}
-		else if (sceneNameStr == "TreasureReceive") {
-			auto scene = SectionScore::createScene();
-			director->replaceScene(scene);
-		}
-		else {
+        } else if (sceneNameStr == "CollectionScreen") {
+            auto scene = CollectionScreen::createScene();
+            director->replaceScene(scene);
+        } else {
             CCLOG("Attempting to load unknown scene!");
         }
     });

@@ -1,5 +1,6 @@
 #include "HelloWorldScene.h"
 #include "SimpleAudioEngine.h"
+#include "MappedSprite.h"
 
 USING_NS_CC;
 using namespace std;
@@ -9,7 +10,7 @@ using namespace std;
 Scene* HelloWorld::createScene()
 {
     // 'scene' is an autorelease object
-    auto scene = Scene::create();
+    auto scene = Scene::createWithPhysics();
 
     // 'layer' is an autorelease object
     auto layer = HelloWorld::create();
@@ -33,327 +34,374 @@ bool HelloWorld::init()
 
     auto visibleSize = Director::getInstance()->getVisibleSize();
     Vec2 origin = Director::getInstance()->getVisibleOrigin();
-    auto scale =  Director::getInstance()->getContentScaleFactor();
 
+    // Create Node that represents the visible portion of the screen.
+    auto node = Node::create();
+    node->setContentSize(visibleSize);
+    node->setPosition(origin);
+    this->addChild(node);
 
     // add grass to screen
     auto grass = Sprite::create("Prediction-BG-Grass.png");
-
-    // position the sprite on the center of the screen
-    grass->setPosition(Vec2(visibleSize.width + origin.x, visibleSize.height + origin.y));
-    grass->setAnchorPoint(Vec2(0, 0));
-    grass->setPosition(Vec2(0.5,0.5));
+    grass->setPosition(0.0f, 0.0f);
+    grass->setAnchorPoint(Vec2(0.0f, 0.0f));
     grass->setScaleX(visibleSize.width / grass->getContentSize().width);
-    grass->setScaleY((visibleSize.height) / grass->getContentSize().height);
+    grass->setScaleY(visibleSize.height / grass->getContentSize().height);
+    node->addChild(grass, 0);
 
-    // add the sprite as a child to this layer
-    this->addChild(grass, 0);
-
-    //add overlay to screen
-    auto overlay = Sprite::create("Prediction-Overlay-Field.png");
-
-    // position the sprite on the center of the screen
-    overlay->setAnchorPoint(Vec2(0, 0));
-    overlay->setPosition(Vec2(0.5,0.5));
-    overlay->setScaleX(visibleSize.width / overlay->getContentSize().width);
-    overlay->setScaleY((visibleSize.height-50) / overlay->getContentSize().height);
-
-    // add the sprite as a child to this layer
-    this->addChild(overlay, 0);
-
-    addtouchevent();
-
-    //add banner on top to screen
+    // add banner on top to screen
     auto banner = Sprite::create("Prediction-Banner.png");
+    auto bannerScale = visibleSize.width / banner->getContentSize().width;
+    banner->setPosition(0.0f, visibleSize.height);
+    banner->setAnchorPoint(Vec2(0.0f, 1.0f));
+    banner->setScale(bannerScale);
+    auto bannerHeight = bannerScale * banner->getContentSize().height;
+    node->addChild(banner, 1);
 
-    // position the sprite on the center of the screen
-    //banner->setAnchorPoint(Vec2(0,visibleSize.height));
-    banner->setPosition(Vec2(visibleSize.width/2,visibleSize.height-20));
-    banner->setScaleX(visibleSize.width / overlay->getContentSize().width);
-    banner->setScaleY(visibleSize.height / overlay->getContentSize().height);
-    this->addChild(banner, 0);
+
+    // add ball slot to screen
+    this->_ballSlot = Sprite::create("Prediction-Holder-BallsSlot.png");
+    auto ballSlotScale = visibleSize.width / this->_ballSlot->getContentSize().width;
+    this->_ballSlot->setPosition(0.0f, 0.0f);
+    this->_ballSlot->setAnchorPoint(Vec2(0.0f, 0.0f));
+    this->_ballSlot->setScale(ballSlotScale);
+    auto ballSlotHeight = ballSlotScale * this->_ballSlot->getContentSize().height;
+    node->addChild(this->_ballSlot, 2);
+
+    // Add balls to ball slot.
+    for (int i = 0; i < 5; i++) {
+        auto ball = Sprite::create("Item-Ball.png");
+        auto ballScale = this->_ballSlot->getContentSize().height / ball->getContentSize().height / 1.5f;
+        ball->setPosition(110.0f + (ball->getContentSize().width * i * ballScale), this->_ballSlot->getContentSize().height / 2.0f);
+        ball->setScale(ballScale);
+        ball->setName("Ball " + std::to_string(i));
+        this->_ballSlot->addChild(ball);
+
+        // Add tracking information to the ball.
+        this->_ballDragState.push_back(false);
+        this->_ballDragTouchID.push_back(0);
+        this->_ballDragOrigPosition.push_back(ball->getPosition());
+        this->_ballDragTargetState.push_back(false);
+        this->_ballDragTarget.push_back("");
+    }
+
+    // add overlay to screen
+    this->initFieldOverlay();
+    auto fieldOverlayScaleX = visibleSize.width / this->_fieldOverlay->getContentSize().width;
+    auto fieldOverlayScaleY = (visibleSize.height - bannerHeight - ballSlotHeight) / this->_fieldOverlay->getContentSize().height;
+    auto fieldOverlayScale = std::min(fieldOverlayScaleX, fieldOverlayScaleY);
+    this->_fieldOverlay->setPosition(visibleSize.width / 2.0f, visibleSize.height - bannerHeight);
+    this->_fieldOverlay->setAnchorPoint(Vec2(0.5f, 1.0f));
+    this->_fieldOverlay->setScale(fieldOverlayScale);
+    node->addChild(this->_fieldOverlay, 1);
+
+    // Create event listeners.
+    this->initEvents();
 
     return true;
 }
-void HelloWorld::processpoint(Point p)
-{
 
-    //check for error catergory rectangle
-    auto rect= this->getBoundingBox();
-    //printf("rect %f %f w=%f h=%f\n",rect.origin.x,rect.origin.y,rect.size.width,rect.size.height);
-    auto size_x=rect.size.width;
-    auto size_y=rect.size.height;
+void HelloWorld::initFieldOverlay() {
+    // add overlay to screen
+    std::map<std::string, MappedSprite::Polygon> polygons;
 
-    Point r[4];
+    polygons.insert({"error", {
+            Vec2(12.0f, 1908.0f),
+            Vec2(408.0f, 1908.0f),
+            Vec2(456.0f, 1732.0f),
+            Vec2(12.0f, 1474.0f),
+    }});
 
-    //error
-    r[0]=Point((16.0/1440)*size_x,(1896.0/1920)*size_y);
-    r[1]=Point((16.0/1440)*size_x,(1628.0/1920)*size_y);
-    r[2]=Point((456.0/1440)*size_x,(1628.0/1920)*size_y);
-    r[3]=Point((456.0/1440)*size_x,(1896.0/1920)*size_y);
+    polygons.insert({"grand_slam", {
+            Vec2(424.0f, 1908.0f),
+            Vec2(1016.0f, 1908.0f),
+            Vec2(970.0f, 1736.0f),
+            Vec2(728.0f, 1768.0f),
+            Vec2(470.0f, 1736.0f),
+    }});
 
-    //printf("r %f %f %f %f %f %f %f %f\n",r[0].x,r[0].y,r[1].x,r[1].y,r[2].x,r[2].y,r[3].x,r[3].y);
-    //printf("p %f %f \n",p.x,p.y);
+    polygons.insert({"shutout_inning", {
+            Vec2(1030.0f, 1908.0f),
+            Vec2(1426.0f, 1908.0f),
+            Vec2(1426.0f, 1472.0f),
+            Vec2(984.0f, 1734.0f)
+    }});
 
-    //Rect error_rect = Rect(r[3].x,r[3].y,r[3].x-r[0].x,r[3].y-r[1].y) ;
-    //DrawNode *d= DrawNode::create();
-    //d->drawPolygon(r,4.0,Color4F(1,1,1,1),4.0,Color4F(1,1,1,1));
-    //this->addChild(d);
-    if(p.x>=r[0].x && p.x<=r[2].x && p.y<=r[0].y && p.y>=r[1].y)
-    {
-        printf("Clicked Error\n");
-        prediction[PredictionEvents::error]=1;
-    }
+    polygons.insert({"long_out", {
+            Vec2(12.0f, 1448.0f),
+            Vec2(224.0f, 1618.0f),
+            Vec2(352.0f, 1394.0f),
+            Vec2(144.0f, 1208.0f),
+            Vec2(12.0f, 918.0f)
+    }});
 
-    //grandslam
-    r[0]=Point((432.0/1440)*size_x,(1910.0/1920)*size_y);
-    r[1]=Point((432.0/1440)*size_x,(1700.0/1920)*size_y);
-    r[2]=Point((974.0/1440)*size_x,(1700.0/1920)*size_y);
-    r[3]=Point((974.0/1440)*size_x,(1910.0/1920)*size_y);
-    if(p.x>=r[0].x && p.x<=r[2].x && p.y<=r[0].y && p.y>=r[1].y)
-    {
-        CCLOG("Clicked grandslam\n");
-        prediction[PredictionEvents::grandslam]=1;
-    }
+    polygons.insert({"runs_batted_in", {
+            Vec2(238.0f, 1626.0f),
+            Vec2(466.0f, 1720.0f),
+            Vec2(716.0f, 1754.0f),
+            Vec2(976.0f, 1720.0f),
+            Vec2(1202.0f, 1626.0f),
+            Vec2(1074.0f, 1404.0f),
+            Vec2(716.0f, 1494.0f),
+            Vec2(364.0f, 1404.0f)
+    }});
 
-    //shutout_inning
-    r[0]=Point((1042.0/1440)*size_x,(1906.0/1920)*size_y);
-    r[1]=Point((1042.0/1440)*size_x,(1600.0/1920)*size_y);
-    r[2]=Point((1416.0/1440)*size_x,(1600.0/1920)*size_y);
-    r[3]=Point((1416.0/1440)*size_x,(1906.0/1920)*size_y);
-    if(p.x>=r[0].x && p.x<=r[2].x && p.y<=r[0].y && p.y>=r[1].y)
-    {
-        CCLOG("Clicked shutout_inning\n");
-        prediction[PredictionEvents::shutout_inning]=1;
-    }
-    //longout
-    r[0]=Point((30.0/1440)*size_x,(1616.0/1920)*size_y);
-    r[1]=Point((30.0/1440)*size_x,(1138.0/1920)*size_y);
-    r[2]=Point((292.0/1440)*size_x,(1138.0/1920)*size_y);
-    r[3]=Point((292.0/1440)*size_x,(1616.0/1920)*size_y);
+    polygons.insert({"pop_fly", {
+            Vec2(1216.0f, 1618.0f),
+            Vec2(1428.0f, 1448.0f),
+            Vec2(1428.0f, 918.0f),
+            Vec2(1296.0f, 1208.0f),
+            Vec2(1088.0f, 1394.0f)
+    }});
 
-    if(p.x>=r[0].x && p.x<=r[2].x && p.y<=r[0].y && p.y>=r[1].y)
-    {
-        CCLOG("Clicked Longout\n");
-        prediction[PredictionEvents::longout]=1;
-    }
-    //runs_batted
-    r[0]=Point((280.0/1440)*size_x,(1684.0/1920)*size_y);
-    r[1]=Point((280.0/1440)*size_x,(1354.0/1920)*size_y);
-    r[2]=Point((1062.0/1440)*size_x,(1354.0/1920)*size_y);
-    r[3]=Point((1062.0/1440)*size_x,(1684.0/1920)*size_y);
-    if(p.x>=r[0].x && p.x<=r[2].x && p.y<=r[0].y && p.y>=r[1].y)
-    {
-        CCLOG("Clicked runs_batted\n");
-        prediction[PredictionEvents::runs_batted]=1;
-    }
-    //pop_fly
-    r[0]=Point((1072.0/1440)*size_x,(1662.0/1920)*size_y);
-    r[1]=Point((1072.0/1440)*size_x,(1096.0/1920)*size_y);
-    r[2]=Point((1412.0/1440)*size_x,(1096.0/1920)*size_y);
-    r[3]=Point((1412.0/1440)*size_x,(1662.0/1920)*size_y);
-    if(p.x>=r[0].x && p.x<=r[2].x && p.y<=r[0].y && p.y>=r[1].y)
-    {
-        CCLOG("Clicked pop_fly\n");
-        prediction[PredictionEvents::pop_fly]=1;
-    }
+    polygons.insert({"triple_play", {
+            Vec2(216.0f, 1269.0f),
+            Vec2(462.0f, 1018.0f),
+            Vec2(322.0f, 880.0f),
+            Vec2(366.0f, 784.0f),
+            Vec2(332.0f, 784.0f),
+            Vec2(204.0f, 908.0f),
+            Vec2(76.0f, 784.0f),
+            Vec2(12.0f, 784.0f),
+            Vec2(64.0f, 1038.0f)
+    }});
 
-    //triple_play
-    r[0]=Point((22.0/1440)*size_x,(1216.0/1920)*size_y);
-    r[1]=Point((22.0/1440)*size_x,(876.0/1920)*size_y);
-    r[2]=Point((400.0/1440)*size_x,(876.0/1920)*size_y);
-    r[3]=Point((400.0/1440)*size_x,(1216.0/1920)*size_y);
-    if(p.x>=r[0].x && p.x<=r[2].x && p.y<=r[0].y && p.y>=r[1].y)
-    {
-        CCLOG("Clicked triple_play\n");
-        prediction[PredictionEvents::triple_play]=1;
-    }
+    polygons.insert({"grounder", {
+            Vec2(1224.0f, 1269.0f),
+            Vec2(1376.0f, 1038.0f),
+            Vec2(1428.0f, 784.0f),
+            Vec2(1364.0f, 784.0f),
+            Vec2(1236.0f, 908.0f),
+            Vec2(1108.0f, 784.0f),
+            Vec2(1074.0f, 784.0f),
+            Vec2(1118.0f, 880.0f),
+            Vec2(976.0f, 1018.0f)
+    }});
 
-    //double_play
-    r[0]=Point((316.0/1440)*size_x,(1404.0/1920)*size_y);
-    r[1]=Point((316.0/1440)*size_x,(1100.0/1920)*size_y);
-    r[2]=Point((1000.0/1440)*size_x,(1100.0/1920)*size_y);
-    r[3]=Point((1000.0/1440)*size_x,(1404.0/1920)*size_y);
-    if(p.x>=r[0].x && p.x<=r[2].x && p.y<=r[0].y && p.y>=r[1].y)
-    {
-        CCLOG("Clicked double_play\n");
-        prediction[PredictionEvents::double_play]=1;
-    }
+    polygons.insert({"double_play", {
+            Vec2(224.0f, 1278.0f),
+            Vec2(442.0f, 1426.0f),
+            Vec2(720.0f, 1480.f),
+            Vec2(998.0f, 1426.0f),
+            Vec2(1216.0f, 1278.0f),
+            Vec2(964.0f, 1032.0f),
+            Vec2(832.0f, 1172.0f),
+            Vec2(720.0f, 1128.0f),
+            Vec2(608.0f, 1172.0f),
+            Vec2(476.0f, 1032.0f)
+    }});
 
-    //grounder
-    r[0]=Point((1044.0/1440)*size_x,(1206.0/1920)*size_y);
-    r[1]=Point((1044.0/1440)*size_x,(878.0/1920)*size_y);
-    r[2]=Point((1390.0/1440)*size_x,(878.0/1920)*size_y);
-    r[3]=Point((1390.0/1440)*size_x,(1206.0/1920)*size_y);
-    if(p.x>=r[0].x && p.x<=r[2].x && p.y<=r[0].y && p.y>=r[1].y)
-    {
-        CCLOG("Clicked grounder\n");
-        prediction[PredictionEvents::grounder]=1;
-    }
+    polygons.insert({"second_base", {
+            Vec2(720.0f, 1404.0f),
+            Vec2(834.0f, 1292.0f),
+            Vec2(720.0f, 1180.0f),
+            Vec2(606.0f, 1292.0f)
+    }});
 
-    //steal
-    r[0]=Point((468.0/1440)*size_x,(1176.0/1920)*size_y);
-    r[1]=Point((468.0/1440)*size_x,(846.0/1920)*size_y);
-    r[2]=Point((970.0/1440)*size_x,(846.0/1920)*size_y);
-    r[3]=Point((970.0/1440)*size_x,(1176.0/1920)*size_y);
-    if(p.x>=r[0].x && p.x<=r[2].x && p.y<=r[0].y && p.y>=r[1].y)
-    {
-        CCLOG("Clicked steal\n");
-        prediction[PredictionEvents::steal]=1;
-    }
+    polygons.insert({"steal", {
+            Vec2(484.0f, 1022.0f),
+            Vec2(616.0f, 1152.0f),
+            Vec2(720.0f, 1112.0f),
+            Vec2(824.0f, 1152.0f),
+            Vec2(956.0f, 1022.0f),
+            Vec2(808.0f, 874.0f),
+            Vec2(720.0f, 906.0f),
+            Vec2(632.0f, 874.0f)
+    }});
 
-    //pick_off
-    r[0]=Point((290.0/1440)*size_x,(1014.0/1920)*size_y);
-    r[1]=Point((290.0/1440)*size_x,(514.0/1920)*size_y);
-    r[2]=Point((630.0/1440)*size_x,(514.0/1920)*size_y);
-    r[3]=Point((630.0/1440)*size_x,(1014.0/1920)*size_y);
-    if(p.x>=r[0].x && p.x<=r[2].x && p.y<=r[0].y && p.y>=r[1].y)
-    {
-        CCLOG("Clicked pick_offl\n");
-        prediction[PredictionEvents::pick_off]=1;
-    }
-    //walk
-    r[0]=Point((816.0/1440)*size_x,(1010.0/1920)*size_y);
-    r[1]=Point((816.0/1440)*size_x,(512.0/1920)*size_y);
-    r[2]=Point((1102.0/1440)*size_x,(512.0/1920)*size_y);
-    r[3]=Point((1102.0/1440)*size_x,(1010.0/1920)*size_y);
-    if(p.x>=r[0].x && p.x<=r[2].x && p.y<=r[0].y && p.y>=r[1].y)
-    {
-        CCLOG("Clicked walk\n");
-        prediction[PredictionEvents::walk]=1;
-    }
-    //blocked_run
-    r[0]=Point((486.0/1440)*size_x,(670.0/1920)*size_y);
-    r[1]=Point((486.0/1440)*size_x,(374.0/1920)*size_y);
-    r[2]=Point((936.0/1440)*size_x,(374.0/1920)*size_y);
-    r[3]=Point((936.0/1440)*size_x,(670.0/1920)*size_y);
-    if(p.x>=r[0].x && p.x<=r[2].x && p.y<=r[0].y && p.y>=r[1].y)
-    {
-        CCLOG("Clicked blocked_run\n");
-        prediction[PredictionEvents::blocked_run]=1;
-    }
-    //strike_out
-    r[0]=Point((570.0/1440)*size_x,(902.0/1920)*size_y);
-    r[1]=Point((570.0/1440)*size_x,(634.0/1920)*size_y);
-    r[2]=Point((864.0/1440)*size_x,(634.0/1920)*size_y);
-    r[3]=Point((864.0/1440)*size_x,(902.0/1920)*size_y);
-    if(p.x>=r[0].x && p.x<=r[2].x && p.y<=r[0].y && p.y>=r[1].y)
-    {
-        CCLOG("Clicked strike_out\n");
-        prediction[PredictionEvents::strike_out]=1;
-    }
-    //hit
-    r[0]=Point((26.0/1440)*size_x,(616.0/1920)*size_y);
-    r[1]=Point((26.0/1440)*size_x,(190.0/1920)*size_y);
-    r[2]=Point((588.0/1440)*size_x,(190.0/1920)*size_y);
-    r[3]=Point((588.0/1440)*size_x,(616.0/1920)*size_y);
-    if(p.x>=r[0].x && p.x<=r[2].x && p.y<=r[0].y && p.y>=r[1].y)
-    {
-        CCLOG("Clicked hit\n");
-        prediction[PredictionEvents::hit]=1;
-    }
-    //homerun
-    r[0]=Point((546.0/1440)*size_x,(338.0/1920)*size_y);
-    r[1]=Point((546.0/1440)*size_x,(60.0/1920)*size_y);
-    r[2]=Point((858.0/1440)*size_x,(60.0/1920)*size_y);
-    r[3]=Point((858.0/1440)*size_x,(338.0/1920)*size_y);
-    if(p.x>=r[0].x && p.x<=r[2].x && p.y<=r[0].y && p.y>=r[1].y)
-    {
-        CCLOG("Clicked homerun\n");
-        prediction[PredictionEvents::homerun]=1;
-    }
-    //pitchcount_16
-    r[0]=Point((958.0/1440)*size_x,(474.0/1920)*size_y);
-    r[1]=Point((958.0/1440)*size_x,(114.0/1920)*size_y);
-    r[2]=Point((1298.0/1440)*size_x,(114.0/1920)*size_y);
-    r[3]=Point((1298.0/1440)*size_x,(474.0/1920)*size_y);
-    if(p.x>=r[0].x && p.x<=r[2].x && p.y<=r[0].y && p.y>=r[1].y)
-    {
-        CCLOG("Clicked pitchcount_16\n");
-        prediction[PredictionEvents::pitchcount_16]=1;
-    }
+    polygons.insert({"pick_off", {
+            Vec2(474.0f, 1010.0f),
+            Vec2(622.0f, 864.0f),
+            Vec2(588.0f, 774.0f),
+            Vec2(622.0f, 688.0f),
+            Vec2(474.0f, 540.0f),
+            Vec2(342.0f, 670.0f),
+            Vec2(382.0f, 774.0f),
+            Vec2(342.0f, 880.0f)
+    }});
 
-    //walk_off
-    r[0]=Point((18.0/1440)*size_x,(336.0/1920)*size_y);
-    r[1]=Point((18.0/1440)*size_x,(22.0/1920)*size_y);
-    r[2]=Point((414.0/1440)*size_x,(22.0/1920)*size_y);
-    r[3]=Point((414.0/1440)*size_x,(336.0/1920)*size_y);
-    if(p.x>=r[0].x && p.x<=r[2].x && p.y<=r[0].y && p.y>=r[1].y)
-    {
-        CCLOG("Clicked walk_off\n");
-        prediction[PredictionEvents::walk_off]=1;
-    }
+    polygons.insert({"strike_out", {
+            Vec2(720.0f, 892.0f),
+            Vec2(804.0f, 860.0f),
+            Vec2(838.0f, 776.0f),
+            Vec2(804.0f, 692.0f),
+            Vec2(720.0f, 658.0f),
+            Vec2(636.0f, 692.0f),
+            Vec2(602.0f, 776.0f),
+            Vec2(636.0f, 860.0f),
+    }});
 
-    //pitchcount_17
-    r[0]=Point((1114.0/1440)*size_x,(382.0/1920)*size_y);
-    r[1]=Point((1114.0/1440)*size_x,(12.0/1920)*size_y);
-    r[2]=Point((1392.0/1440)*size_x,(12.0/1920)*size_y);
-    r[3]=Point((1392.0/1440)*size_x,(382.0/1920)*size_y);
-    if(p.x>=r[0].x && p.x<=r[2].x && p.y<=r[0].y && p.y>=r[1].y)
-    {
-        CCLOG("Clicked pitchcount_17\n");
-        prediction[PredictionEvents::pitchcount_17]=1;
-    }
+    polygons.insert({"walk", {
+            Vec2(966.0f, 1010.0f),
+            Vec2(1098.0f, 880.0f),
+            Vec2(1058.0f, 774.0f),
+            Vec2(1098.0f, 670.0f),
+            Vec2(966.0f, 540.0f),
+            Vec2(818.0f, 688.0f),
+            Vec2(852.0f, 774.0f),
+            Vec2(818.0f, 864.0f)
+    }});
 
-    //oneb
-    r[0]=Point((1124.0/1440)*size_x,(914.0/1920)*size_y);
-    r[1]=Point((1124.0/1440)*size_x,(636.0/1920)*size_y);
-    r[2]=Point((1358.0/1440)*size_x,(636.0/1920)*size_y);
-    r[3]=Point((1358.0/1440)*size_x,(914.0/1920)*size_y);
-    if(p.x>=r[0].x && p.x<=r[2].x && p.y<=r[0].y && p.y>=r[1].y)
-    {
-        CCLOG("Clicked oneb\n");
-        prediction[PredictionEvents::oneb]=1;
-    }
+    polygons.insert({"third_base", {
+            Vec2(204.0f, 888.0f),
+            Vec2(92.0f, 776.0f),
+            Vec2(204.0f, 660.0f),
+            Vec2(316.0f, 776.0f)
+    }});
 
-    //twob
-    r[0]=Point((586.0/1440)*size_x,(1420.0/1920)*size_y);
-    r[1]=Point((586.0/1440)*size_x,(1172.0/1920)*size_y);
-    r[2]=Point((862.0/1440)*size_x,(1172.0/1920)*size_y);
-    r[3]=Point((862.0/1440)*size_x,(1420.0/1920)*size_y);
-    if(p.x>=r[0].x && p.x<=r[2].x && p.y<=r[0].y && p.y>=r[1].y)
-    {
-        CCLOG("Clicked twob\n");
-        prediction[PredictionEvents::twob]=1;
-    }
+    polygons.insert({"first_base", {
+            Vec2(1236.0f, 888.0f),
+            Vec2(1124.0f, 776.0f),
+            Vec2(1236.0f, 660.0f),
+            Vec2(1348.0f, 776.0f)
+    }});
 
-    //threeb
-    r[0]=Point((86.0/1440)*size_x,(918.0/1920)*size_y);
-    r[1]=Point((86.0/1440)*size_x,(636.0/1920)*size_y);
-    r[2]=Point((316.0/1440)*size_x,(636.0/1920)*size_y);
-    r[3]=Point((316.0/1440)*size_x,(918.0/1920)*size_y);
-    if(p.x>=r[0].x && p.x<=r[2].x && p.y<=r[0].y && p.y>=r[1].y)
-    {
-        CCLOG("Clicked threeb\n");
-        prediction[PredictionEvents::threeb]=1;
-    }
+    polygons.insert({"hit", {
+            Vec2(12.0f, 768.0f),
+            Vec2(76.0f, 768.0f),
+            Vec2(204.0f, 644.0f),
+            Vec2(332.0f, 768.0f),
+            Vec2(368.0f, 768.0f),
+            Vec2(322.0f, 672.0f),
+            Vec2(616.0f, 378.0f),
+            Vec2(714.0f, 422.0f),
+            Vec2(714.0f, 334.0f),
+            Vec2(600.0f, 334.0f),
+            Vec2(600.0f, 186.0f),
+            Vec2(714.0f, 74.0f),
+            Vec2(714.0f, 12.0f),
+            Vec2(488.0f, 12.0f),
+            Vec2(12.0f, 488.0f)
+    }});
+
+    polygons.insert({"home_run", {
+            Vec2(612.0f, 322.0f),
+            Vec2(828.0f, 322.0f),
+            Vec2(828.0f, 190.0f),
+            Vec2(720.0f, 90.0f),
+            Vec2(612.0f, 190.0f)
+    }});
+
+    polygons.insert({"pitch_count_16", {
+            Vec2(1428.0f, 768.0f),
+            Vec2(1428.0f, 488.0f),
+            Vec2(952.0f, 12.0f),
+            Vec2(726.0f, 12.0f),
+            Vec2(726.0f, 74.0f),
+            Vec2(840.0f, 186.0f),
+            Vec2(840.0f, 334.0f),
+            Vec2(726.0f, 334.0f),
+            Vec2(726.0f, 422.0f),
+            Vec2(824.0f, 378.0f),
+            Vec2(1118.0f, 672.0f),
+            Vec2(1072.0f, 768.0f),
+            Vec2(1108.0f, 768.0f),
+            Vec2(1236.0f, 644.0f),
+            Vec2(1364.0f, 768.0f)
+    }});
+
+    polygons.insert({"blocked_run", {
+            Vec2(632.0f, 678.0f),
+            Vec2(720.0f, 640.0f),
+            Vec2(808.0f, 678.0f),
+            Vec2(956.0f, 530.0f),
+            Vec2(824.0f, 398.0f),
+            Vec2(720.0f, 436.0f),
+            Vec2(616.0f, 398.0f),
+            Vec2(484.0f, 530.0f)
+    }});
+
+    polygons.insert({"walk_off", {
+            Vec2(12.0f, 466.0f),
+            Vec2(466.0f, 12.0f),
+            Vec2(12.0f, 12.0f)
+    }});
+
+    polygons.insert({"pitch_count_17", {
+            Vec2(1428.0f, 466.0f),
+            Vec2(1428.0f, 12.0f),
+            Vec2(974.0f, 12.0f)
+    }});
+
+    this->_fieldOverlay = MappedSprite::create("Prediction-Overlay-Field.png", polygons);
+
+    this->_fieldOverlay->onTouchPolygonBegan = [this](const std::string& name,
+                                                      MappedSprite::Polygon polygon,
+                                                      const Touch*) {
+        this->_fieldOverlay->highlight(name, Color4F(Color3B::BLACK, 0.2f), 0, Color4F::WHITE);
+    };
+
+    this->_fieldOverlay->onTouchPolygonEnded = [this](const std::string& name,
+                                                      MappedSprite::Polygon polygon,
+                                                      const Touch*) {
+        this->_fieldOverlay->clearHighlight(name);
+    };
 }
-void HelloWorld::addtouchevent()
-{
-    //  Create a "one by one" touch event listener
-    auto listener1 = EventListenerTouchOneByOne::create();
 
-    // trigger when you push down
-    listener1->onTouchBegan = [this](Touch* touch, Event* event){
-        // your code
-        Vec2 p = touch->getLocation();
-        processpoint(p);
-        return true; // if you are consuming it
+void HelloWorld::initEvents() {
+    auto listener = EventListenerTouchAllAtOnce::create();
+
+    listener->onTouchesBegan = [this](const std::vector<Touch*>& touches, Event* event) {
+        for (const auto& touch : touches) {
+            // For each ball, check if the touch point is within the bounding box of the ball.
+            // If the touch point is within the bounding box, then update the drag state.
+            auto balls = this->_ballSlot->getChildren();
+            for (auto it = balls.begin(); it != balls.end(); ++it) {
+                auto localLocation = (*it)->getParent()->convertTouchToNodeSpace(touch);
+                auto box = (*it)->getBoundingBox();
+
+                // Save the tracking information needed for multi-touch to work.
+                if (box.containsPoint(localLocation)) {
+                    auto ballIdx = it - balls.begin();
+                    this->_ballDragState[ballIdx] = true;
+                    this->_ballDragTouchID[ballIdx] = touch->getID();
+                }
+            }
+        }
     };
 
-    // trigger when moving touch
-    listener1->onTouchMoved = [](Touch* touch, Event* event){
-        // your code
+    listener->onTouchesEnded = [this](const std::vector<Touch*>& touches, Event* event) {
+        for (const auto& touch : touches) {
+            // For each ball, check if the touch point is within the bounding box of the ball.
+            // If the touch point is within the bounding box, then update the drag state.
+            auto balls = this->_ballSlot->getChildren();
+            for (auto it = balls.begin(); it != balls.end(); ++it) {
+                auto ballIdx = it - balls.begin();
+
+                // If the removed touch ID is matched to a ball, it means that
+                // a finger was lifted off the ball.
+                if (touch->getID() == this->_ballDragTouchID[ballIdx]) {
+                    this->_ballDragState[ballIdx] = false;
+                    auto moveTo = MoveTo::create(0.25f, this->_ballDragOrigPosition[ballIdx]);
+                    (*it)->runAction(moveTo);
+                }
+            }
+        }
     };
 
-    // trigger when you let up
-    listener1->onTouchEnded = [=](Touch* touch, Event* event){
-        // your code
+    listener->onTouchesMoved = [this](const std::vector<Touch*>& touches, Event* event) {
+        for (const auto& touch : touches) {
+            // For each ball, check if the touch point is within the bounding box of the ball.
+            // If the touch point is within the bounding box, then update the drag state.
+            auto balls = this->_ballSlot->getChildren();
+            for (auto it = balls.begin(); it != balls.end(); ++it) {
+                auto ballIdx = it - balls.begin();
+
+                // If the removed touch ID is matched to a ball, it means that
+                // a finger was lifted off the ball.
+                if (this->_ballDragState[ballIdx] && touch->getID() == this->_ballDragTouchID[ballIdx]) {
+                    auto localLocation = (*it)->getParent()->convertTouchToNodeSpace(touch);
+                    (*it)->setPosition(localLocation);
+                }
+            }
+        }
     };
 
-    // Add listener
-    _eventDispatcher->addEventListenerWithSceneGraphPriority(listener1, this);
+    listener->onTouchesCancelled = [this](const std::vector<Touch*>& touches, Event* event) {
+        CCLOG("onTouchesCancelled: touches.size(): %d", touches.size());
+    };
 
+    this->getEventDispatcher()->addEventListenerWithSceneGraphPriority(listener, this);
 }
 
 void HelloWorld::menuCloseCallback(Ref* pSender)

@@ -129,13 +129,19 @@ public class Cocos2dxEditBox extends EditText {
 
     //OpenGL view scaleX
     private  float mScaleX;
+    private Cocos2dxHelper.Cocos2dxHelperListener mListener;
 
     // package private
     int endAction = kEndActionUnknown;
 
-
-    public  Cocos2dxEditBox(Context context){
+    public Cocos2dxEditBox(Context context, Cocos2dxHelper.Cocos2dxHelperListener listener) {
         super(context);
+        mListener = listener;
+    }
+
+    public Cocos2dxEditBox(Context context){
+        super(context);
+        mListener = (Cocos2dxHelper.Cocos2dxHelperListener) context;
     }
 
     public void setEditBoxViewRect(int left, int top, int maxWidth, int maxHeight) {
@@ -272,9 +278,8 @@ public class Cocos2dxEditBox extends EditText {
     public boolean onKeyDown(final int pKeyCode, final KeyEvent pKeyEvent) {
         switch (pKeyCode) {
             case KeyEvent.KEYCODE_BACK:
-                Cocos2dxActivity activity = (Cocos2dxActivity)this.getContext();
                 //To prevent program from going to background
-                activity.getGLSurfaceView().requestFocus();
+                mListener.getGLSurfaceView().requestFocus();
                 return true;
             default:
                 return super.onKeyDown(pKeyCode, pKeyEvent);

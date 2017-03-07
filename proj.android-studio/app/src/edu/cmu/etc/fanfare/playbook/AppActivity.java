@@ -127,6 +127,9 @@ public class AppActivity extends AppCompatActivity {
                 fragment = new SectionScoreFragment();
                 break;
             case 3:
+                fragment = new CollectionFragment();
+                break;
+            case 4:
                 fragment = new ProfileFragment();
                 break;
             default:

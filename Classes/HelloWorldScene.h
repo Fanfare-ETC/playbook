@@ -2,6 +2,7 @@
 #define __HELLOWORLD_SCENE_H__
 
 #include "cocos2d.h"
+#include "MappedSprite.h"
 
 //using namespace std;
 
@@ -39,20 +40,26 @@ public:
     int prediction[30]={0};
 
     virtual bool init();
-    void addtouchevent();
-    void processpoint(cocos2d::Point p);
 
     // a selector callback
     void menuCloseCallback(cocos2d::Ref* pSender);
 
     // implement the "static create()" method manually
     CREATE_FUNC(HelloWorld);
+
+private:
+    cocos2d::Sprite* _ballSlot;
+    std::vector<bool> _ballDragState;
+    std::vector<int> _ballDragTouchID;
+    std::vector<cocos2d::Vec2> _ballDragOrigPosition;
+
+    std::vector<bool> _ballDragTargetState;
+    std::vector<std::string> _ballDragTarget;
+
+    MappedSprite* _fieldOverlay;
+
+    void initFieldOverlay();
+    void initEvents();
 };
 
 #endif // __HELLOWORLD_SCENE_H__
-
-/**
-
-    vector<Sprite> *rect_list =new vector<Sprite>;
-    cocos2d::Sprite* big;
-**/

@@ -20,6 +20,7 @@ cocos2d/cocos/platform/android/java/res/
 proj.android-studio/app/assets/
 proj.android-studio/app/obj/
 proj.android-studio/app/libs/
+proj.android-studio/app/.externalNativeBuild/
 proj.android-studio/app/local.properties
 proj.android-studio/*/build/
 proj.android-studio/.idea/workspace.xml
@@ -50,6 +51,9 @@ proj.win32/*.sdf
 proj.win32/*.opensdf
 proj.win32/Debug.*/
 proj.win32/Release.*/
+
+# Linux project files
+linux-build/
 
 # Vim swap files
 [._]*.s[a-w][a-z]
