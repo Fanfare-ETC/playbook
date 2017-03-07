@@ -1,6 +1,7 @@
 #include "AppDelegate.h"
 #include "HelloWorldScene.h"
 #include "SectionSelectionScene.h"
+#include "SectionScoreScene.h"
 
 USING_NS_CC;
 
@@ -118,7 +119,15 @@ Java_edu_cmu_etc_fanfare_playbook_Cocos2dxBridge_loadScene(JNIEnv* env, jclass c
         } else if (sceneNameStr == "SectionSelection") {
             auto scene = SectionSelection::createScene();
             director->replaceScene(scene);
-        } else {
+        } else if (sceneNameStr == "SectionScore") {
+			auto scene = SectionScore::createScene();
+			director->replaceScene(scene);
+		}
+		else if (sceneNameStr == "TreasureReceive") {
+			auto scene = SectionScore::createScene();
+			director->replaceScene(scene);
+		}
+		else {
             CCLOG("Attempting to load unknown scene!");
         }
     });
