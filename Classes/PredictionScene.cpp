@@ -57,7 +57,6 @@ bool Prediction::init()
     auto bannerHeight = bannerScale * banner->getContentSize().height;
     node->addChild(banner, 1);
 
-
     // add ball slot to screen
     this->_ballSlot = Sprite::create("Prediction-Holder-BallsSlot.png");
     auto ballSlotScale = visibleSize.width / this->_ballSlot->getContentSize().width;
@@ -583,7 +582,7 @@ Prediction::PredictionEvent Prediction::intToEvent(int event) {
 }
 
 int Prediction::getScoreForEvent(PredictionEvent event) {
-    std::unordered_map<PredictionEvent, int> map = {
+    std::unordered_map<PredictionEvent, int, PredictionEventHash> map = {
         {PredictionEvent::error, 15},
         {PredictionEvent::grandslam, 400},
         {PredictionEvent::shutout_inning, 4},
