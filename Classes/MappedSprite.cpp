@@ -59,7 +59,16 @@ void MappedSprite::initPolygons() {
     auto physicsBody = PhysicsBody::create();
     physicsBody->setGravityEnable(false);
 
-    for (auto polygon : this->_polygons) {
+    // Pre-process the polygons to account for content scale factor.
+    for (auto& polygon : this->_polygons) {
+        auto& points = polygon.second;
+        std::transform(points.begin(), points.end(), points.begin(), [this](Vec2 point) {
+            auto contentScaleFactor = Director::getInstance()->getContentScaleFactor();
+            return point / contentScaleFactor;
+        });
+    }
+
+    for (const auto& polygon : this->_polygons) {
         auto name = polygon.first;
         auto points = polygon.second;
 
