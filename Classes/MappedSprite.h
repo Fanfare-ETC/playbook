@@ -20,11 +20,15 @@ public:
     void addChildToPolygon(const std::string&, cocos2d::Node*);
     void getPolygonChildren(const std::string&);
 
+    void onExit();
+
     std::function<void(const std::string&, Polygon, const cocos2d::Touch*)> onTouchPolygonBegan;
     std::function<void(const std::string&, Polygon, const cocos2d::Touch*)> onTouchPolygonMoved;
     std::function<void(const std::string&, Polygon, const cocos2d::Touch*)> onTouchPolygonEnded;
 
 private:
+    cocos2d::EventListenerTouchAllAtOnce* _listener;
+
     std::map<std::string, Polygon> _polygons;
     std::vector<std::string> _polygonNames;
     std::map<std::string, cocos2d::Node*> _polygonNode;

@@ -1,4 +1,5 @@
 #include "AppDelegate.h"
+#include "RootScene.h"
 #include "PredictionScene.h"
 #include "SectionSelectionScene.h"
 #include "SectionScoreScene.h"
@@ -77,7 +78,7 @@ bool AppDelegate::applicationDidFinishLaunching() {
     register_all_packages();
 
     // create a scene. it's an autorelease object
-    auto scene = Prediction::createScene();
+    auto scene = RootScene::createScene();
 
     // run
     director->runWithScene(scene);

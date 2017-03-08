@@ -104,9 +104,9 @@ void MappedSprite::initPolygons() {
 }
 
 void MappedSprite::addEvents() {
-    auto listener = EventListenerTouchAllAtOnce::create();
+    this->_listener = EventListenerTouchAllAtOnce::create();
 
-    listener->onTouchesBegan = [this](const std::vector<Touch*>& touches, Event*) {
+    this->_listener->onTouchesBegan = [this](const std::vector<Touch*>& touches, Event*) {
         if (!this->onTouchPolygonBegan) { return; }
 
         auto scene = Director::getInstance()->getRunningScene();
@@ -129,7 +129,7 @@ void MappedSprite::addEvents() {
         }
     };
 
-    listener->onTouchesMoved = [this](const std::vector<Touch*>& touches, Event*) {
+    this->_listener->onTouchesMoved = [this](const std::vector<Touch*>& touches, Event*) {
         auto scene = Director::getInstance()->getRunningScene();
         for (const auto& touch : touches) {
             auto shape = scene->getPhysicsWorld()->getShape(touch->getLocation());
@@ -177,7 +177,7 @@ void MappedSprite::addEvents() {
         }
     };
 
-    listener->onTouchesEnded = [this](const std::vector<Touch*>& touches, Event*) {
+    this->_listener->onTouchesEnded = [this](const std::vector<Touch*>& touches, Event*) {
         if (!this->onTouchPolygonEnded) { return; }
 
         for (const auto& touch : touches) {
@@ -192,7 +192,7 @@ void MappedSprite::addEvents() {
         }
     };
 
-    this->getEventDispatcher()->addEventListenerWithFixedPriority(listener, 1);
+    this->getEventDispatcher()->addEventListenerWithFixedPriority(this->_listener, 1);
 }
 
 void MappedSprite::addChildToPolygon(const std::string& name, Node* node) {
@@ -201,6 +201,11 @@ void MappedSprite::addChildToPolygon(const std::string& name, Node* node) {
 
 void MappedSprite::getPolygonChildren(const std::string& name) {
     this->_polygonNode[name]->getChildren();
+}
+
+void MappedSprite::onExit() {
+    this->getEventDispatcher()->removeEventListener(this->_listener);
+    Sprite::onExit();
 }
 
 std::vector<MappedSprite::Polygon> MappedSprite::triangulate(const Polygon &points) {
