@@ -8,8 +8,8 @@ android {
         applicationId "edu.cmu.etc.fanfare.playbook"
         minSdkVersion 19
         targetSdkVersion 25
-        versionCode 1
-        versionName "1.0"
+        versionCode 3
+        versionName "1.0.2"
 
         externalNativeBuild {
             ndkBuild {
@@ -48,6 +48,10 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             if (project.hasProperty("RELEASE_STORE_FILE")) {
                 signingConfig signingConfigs.release
+            }
+
+            ndk {
+                abiFilters 'x86', 'armeabi'
             }
         }
     }
