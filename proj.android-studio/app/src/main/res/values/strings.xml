@@ -3,4 +3,10 @@
     <string name="drawer_open">Open</string>
     <string name="drawer_close">Close</string>
     <string name="select_your_seat">Select Your Seat</string>
+    <string-array name="sections_array">
+        <item>Right to home base</item>
+        <item>Further right to home base</item>
+        <item>Left to home base</item>
+        <item>Further left to home base</item>
+    </string-array>
 </resources>
