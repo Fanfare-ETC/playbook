@@ -1,24 +1,80 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="@drawable/wood"
     android:orientation="vertical">
 
-    <android.support.v7.widget.Toolbar
-        android:id="@+id/my_toolbar"
-        android:layout_width="match_parent"
-        android:layout_height="?attr/actionBarSize"
-        android:background="?attr/colorPrimary"
-        android:elevation="4dp"
-        android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
-        app:popupTheme="@style/ThemeOverlay.AppCompat.Light"/>
+    <ImageView
+        android:id="@+id/map"
+        android:layout_width="357dp"
+        android:layout_height="389dp"
+        android:layout_marginBottom="8dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="8dp"
+        android:contentDescription="@string/app_name"
+        android:paddingEnd="32dp"
+        android:paddingStart="32dp"
+        android:scaleType="fitXY"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintHorizontal_bias="0.25"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.0"
+        app:srcCompat="@drawable/rpismap"
+        tools:layout_editor_absoluteY="3dp" />
 
-    <fragment
-        android:id="@+id/stadium_select_fragment"
-        android:name="edu.cmu.etc.fanfare.playbook.SeatSelectFragment"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
-    </fragment>
+    <Button
+        android:id="@+id/warmer"
+        android:layout_width="156dp"
+        android:layout_height="56dp"
+        android:layout_marginLeft="16dp"
+        android:layout_marginTop="0dp"
+        android:background="@color/tertiary"
+        android:text="Warmer"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/map"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_marginBottom="97dp"
+        app:layout_constraintVertical_bias="0.136" />
 
-</LinearLayout>
+    <Button
+        android:id="@+id/colder"
+        android:layout_width="155dp"
+        android:layout_height="57dp"
+        android:layout_marginRight="8dp"
+        android:layout_marginTop="0dp"
+        android:background="@color/accent"
+        android:text="Colder"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/map"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_marginBottom="96dp"
+        app:layout_constraintLeft_toRightOf="@+id/warmer"
+        android:layout_marginLeft="8dp"
+        app:layout_constraintHorizontal_bias="0.833"
+        app:layout_constraintVertical_bias="0.132"
+        tools:layout_editor_absoluteX="213dp" />
+
+    <Button
+        android:id="@+id/flagdown"
+        android:layout_width="114dp"
+        android:layout_height="64dp"
+        android:layout_marginBottom="6dp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginRight="8dp"
+        android:layout_marginTop="8dp"
+        android:backgroundTint="@android:color/holo_green_dark"
+        android:text="Flag down!"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/colder"
+        app:layout_constraintVertical_bias="0.49" />
+
+
+</android.support.constraint.ConstraintLayout>

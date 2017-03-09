@@ -127,6 +127,9 @@ public class AppActivity extends AppCompatActivity {
             case 4:
                 fragment = new TreasureHuntFragment();
                 break;
+            case 5:
+                fragment = new SeatSelectFragment();
+                break;
             default:
                 fragment = new CollectionFragment();
         };
