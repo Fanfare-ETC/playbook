@@ -59,9 +59,26 @@ void MappedSprite::initPolygons() {
     auto physicsBody = PhysicsBody::create();
     physicsBody->setGravityEnable(false);
 
-    for (auto polygon : this->_polygons) {
+    // Pre-process the polygons to account for content scale factor.
+    for (auto& polygon : this->_polygons) {
+        auto& points = polygon.second;
+        std::transform(points.begin(), points.end(), points.begin(), [this](Vec2 point) {
+            auto contentScaleFactor = Director::getInstance()->getContentScaleFactor();
+            return point / contentScaleFactor;
+        });
+    }
+
+    for (const auto& polygon : this->_polygons) {
         auto name = polygon.first;
         auto points = polygon.second;
+
+        // Create child nodes for these polygons.
+        // Compute the center.
+        Vec2 center = std::accumulate(points.begin(), points.end(), Vec2()) / points.size();
+        auto centerNode = Node::create();
+        centerNode->setPosition(center);
+        this->addChild(centerNode);
+        this->_polygonNode[name] = centerNode;
 
         // Modify the polygon data to account for the content offset.
         std::transform(points.begin(), points.end(), points.begin(), [this](Vec2 point) {
@@ -87,9 +104,9 @@ void MappedSprite::initPolygons() {
 }
 
 void MappedSprite::addEvents() {
-    auto listener = EventListenerTouchAllAtOnce::create();
+    this->_listener = EventListenerTouchAllAtOnce::create();
 
-    listener->onTouchesBegan = [this](const std::vector<Touch*>& touches, Event*) {
+    this->_listener->onTouchesBegan = [this](const std::vector<Touch*>& touches, Event*) {
         if (!this->onTouchPolygonBegan) { return; }
 
         auto scene = Director::getInstance()->getRunningScene();
@@ -112,7 +129,7 @@ void MappedSprite::addEvents() {
         }
     };
 
-    listener->onTouchesMoved = [this](const std::vector<Touch*>& touches, Event*) {
+    this->_listener->onTouchesMoved = [this](const std::vector<Touch*>& touches, Event*) {
         auto scene = Director::getInstance()->getRunningScene();
         for (const auto& touch : touches) {
             auto shape = scene->getPhysicsWorld()->getShape(touch->getLocation());
@@ -160,7 +177,7 @@ void MappedSprite::addEvents() {
         }
     };
 
-    listener->onTouchesEnded = [this](const std::vector<Touch*>& touches, Event*) {
+    this->_listener->onTouchesEnded = [this](const std::vector<Touch*>& touches, Event*) {
         if (!this->onTouchPolygonEnded) { return; }
 
         for (const auto& touch : touches) {
@@ -175,7 +192,20 @@ void MappedSprite::addEvents() {
         }
     };
 
-    this->getEventDispatcher()->addEventListenerWithSceneGraphPriority(listener, this);
+    this->getEventDispatcher()->addEventListenerWithFixedPriority(this->_listener, 1);
+}
+
+void MappedSprite::addChildToPolygon(const std::string& name, Node* node) {
+    this->_polygonNode[name]->addChild(node);
+}
+
+void MappedSprite::getPolygonChildren(const std::string& name) {
+    this->_polygonNode[name]->getChildren();
+}
+
+void MappedSprite::onExit() {
+    this->getEventDispatcher()->removeEventListener(this->_listener);
+    Sprite::onExit();
 }
 
 std::vector<MappedSprite::Polygon> MappedSprite::triangulate(const Polygon &points) {

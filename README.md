@@ -26,7 +26,7 @@ Requirements:
 
 - [Android Studio and SDK](https://developer.android.com/studio/index.html)
 - [Android NDK](https://developer.android.com/ndk/index.html)
-- [cocos2d-x](http://www.cocos2d-x.org/)
+- [cocos2d-x](http://www.cocos2d-x.org/) (included in repository)
 
 The exact requirements may vary across different platforms.
 
@@ -34,25 +34,20 @@ Building
 --------
 
 Once the dependencies are installed, you can build the project just like any
-other Cocos2d project:
+other Android project using Android Studio or `gradlew`.
 
-    cocos compile -p android --app-abi x86:armeabi --android-studio --ap android-25
+To build from the command line, use:
 
-Once done, the built files can be found in `bin/`.
+    ./gradlew assembleDebug
 
-To test with a connected Android device:
-
-    cocos run -p android --app-abi x86:armeabi --android-studio --ap android-25
+Once done, the built files can be found in `app/build/outputs/apk/`.
 
 Release
 -------
 
 To release, an Android signing key is required. For more information on how to
-create a keystore, check this [link](https://developer.android.com/studio/publish/app-signing.html#release-mode).
-
-You'll be prompted for your keystore when building the app in release mode:
-
-    cocos compile -p android --app-abi x86:armeabi --android-studio --ap android-25 -m release
+create a keystore and sign the APK in release mode, check this
+[link](https://developer.android.com/studio/publish/app-signing.html#release-mode).
 
 Copyright
 ---------

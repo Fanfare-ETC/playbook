@@ -1,16 +1,22 @@
 package edu.cmu.etc.fanfare.playbook;
 
-import android.os.Bundle;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
+import android.util.Log;
 
 public class SeatSelectFragment extends Cocos2dxFragment {
+    private static final String TAG = "SeatSelectFragment";
+
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        View view = super.onCreateView(inflater, container, savedInstanceState);
+    public void onResume() {
+        super.onResume();
+        if (Cocos2dxBridge.didFinishLaunching()) {
+            Log.v(TAG, "Loading SectionSelection scene");
+            Cocos2dxBridge.loadScene("SectionSelection");
+        }
+    }
+
+    @Override
+    public void onApplicationDidFinishLaunching() {
+        super.onApplicationDidFinishLaunching();
         Cocos2dxBridge.loadScene("SectionSelection");
-        return view;
     }
 }

@@ -1,19 +1,18 @@
-#include "HelloWorldScene.h"
-#include "SimpleAudioEngine.h"
-#include "MappedSprite.h"
+#include <json/document.h>
+#include "PredictionScene.h"
+#include "PredictionWebSocket.h"
+#include "rapidjson/rapidjson.h"
 
 USING_NS_CC;
-using namespace std;
-//struct type_rect { float  array[4][2]; };
-//typedef struct type_rect type_rect;
 
-Scene* HelloWorld::createScene()
+Scene* Prediction::createScene()
 {
     // 'scene' is an autorelease object
     auto scene = Scene::createWithPhysics();
+    scene->setName("Prediction");
 
     // 'layer' is an autorelease object
-    auto layer = HelloWorld::create();
+    auto layer = Prediction::create();
 
     // add layer as a child to scene
     scene->addChild(layer);
@@ -23,7 +22,7 @@ Scene* HelloWorld::createScene()
 }
 
 // on "init" you need to initialize your instance
-bool HelloWorld::init()
+bool Prediction::init()
 {
     //////////////////////////////
     // 1. super init first
@@ -37,6 +36,7 @@ bool HelloWorld::init()
 
     // Create Node that represents the visible portion of the screen.
     auto node = Node::create();
+    this->_visibleNode = node;
     node->setContentSize(visibleSize);
     node->setPosition(origin);
     this->addChild(node);
@@ -58,7 +58,6 @@ bool HelloWorld::init()
     auto bannerHeight = bannerScale * banner->getContentSize().height;
     node->addChild(banner, 1);
 
-
     // add ball slot to screen
     this->_ballSlot = Sprite::create("Prediction-Holder-BallsSlot.png");
     auto ballSlotScale = visibleSize.width / this->_ballSlot->getContentSize().width;
@@ -78,12 +77,24 @@ bool HelloWorld::init()
         this->_ballSlot->addChild(ball);
 
         // Add tracking information to the ball.
-        this->_ballDragState.push_back(false);
-        this->_ballDragTouchID.push_back(0);
-        this->_ballDragOrigPosition.push_back(ball->getPosition());
-        this->_ballDragTargetState.push_back(false);
-        this->_ballDragTarget.push_back("");
+        BallState state {
+            .dragState = false,
+            .dragTouchID = 0,
+            .dragOrigPosition = ball->getPosition(),
+            .dragTargetState = false,
+            .dragTarget = ""
+        };
+        this->_ballStates.push_back(state);
     }
+
+    // Add continue banner.
+    this->_continueBanner = Sprite::create("Prediction-Button-Continue.png");
+    auto continueBannerScale = visibleSize.width / this->_continueBanner->getContentSize().width;
+    this->_continueBanner->setPosition(0.0f, 0.0f);
+    this->_continueBanner->setAnchorPoint(Vec2(0.0f, 0.0f));
+    this->_continueBanner->setScale(continueBannerScale);
+    this->_continueBanner->setVisible(false);
+    node->addChild(this->_continueBanner, 2);
 
     // add overlay to screen
     this->initFieldOverlay();
@@ -97,11 +108,37 @@ bool HelloWorld::init()
 
     // Create event listeners.
     this->initEvents();
+    this->scheduleUpdate();
+
+    // Create websocket client.
+    auto websocket = PredictionWebSocket::create("ws://128.237.140.116:8080");
+    websocket->connect();
+    websocket->onConnectionOpened = []() {
+        CCLOG("Connection to server established");
+    };
+    websocket->onMessageReceived = [this](std::string message) {
+        CCLOG("Message received from server: %s", message.c_str());
+
+        rapidjson::Document document;
+        document.Parse(message.c_str());
+        if (document.IsArray()) {
+            for (auto it = document.Begin(); it != document.End(); ++it) {
+                PredictionEvent event = this->intToEvent(it->GetInt());
+                CCLOG("Events: %s", this->eventToString(event).c_str());
+                this->processPredictionEvent(event);
+            }
+        } else {
+            CCLOG("Received message is not an array!");
+        }
+    };
+    websocket->onErrorOccurred = [](const cocos2d::network::WebSocket::ErrorCode& errorCode) {
+        CCLOG("Error connecting to server: %d", errorCode);
+    };
 
     return true;
 }
 
-void HelloWorld::initFieldOverlay() {
+void Prediction::initFieldOverlay() {
     // add overlay to screen
     std::map<std::string, MappedSprite::Polygon> polygons;
 
@@ -327,18 +364,75 @@ void HelloWorld::initFieldOverlay() {
 
     this->_fieldOverlay->onTouchPolygonBegan = [this](const std::string& name,
                                                       MappedSprite::Polygon polygon,
-                                                      const Touch*) {
+                                                      const Touch* touch) {
+        // Highlight the section with translucent black.
         this->_fieldOverlay->highlight(name, Color4F(Color3B::BLACK, 0.2f), 0, Color4F::WHITE);
+
+        // Store the currently hovered item.
+        auto it = std::find_if(this->_ballStates.begin(), this->_ballStates.end(), [touch](BallState state) {
+            return state.dragTouchID == touch->getID() && state.dragState;
+        });
+
+        if (it != this->_ballStates.end()) {
+            it->dragTargetState = true;
+            it->dragTarget = name;
+        }
     };
 
     this->_fieldOverlay->onTouchPolygonEnded = [this](const std::string& name,
                                                       MappedSprite::Polygon polygon,
-                                                      const Touch*) {
+                                                      const Touch* touch) {
+        // Clear the previously created highlight.
         this->_fieldOverlay->clearHighlight(name);
+
+        // Remove the currently covered item.
+        auto it = std::find_if(this->_ballStates.begin(), this->_ballStates.end(), [touch](BallState state) {
+            return state.dragTouchID == touch->getID() && state.dragState;
+        });
+
+        if (it != this->_ballStates.end()) {
+            it->dragTargetState = false;
+            it->dragTarget = "";
+        }
     };
 }
 
-void HelloWorld::initEvents() {
+void Prediction::createNotificationOverlay(const std::string& text) {
+    auto visibleSize = Director::getInstance()->getVisibleSize();
+
+    // Draw background on overlay.
+    auto overlay = DrawNode::create();
+    overlay->drawSolidRect(Vec2(0.0f, 0.0f), Vec2(visibleSize.width, visibleSize.height), Color4F(Color3B::BLACK, 0.75f));
+    overlay->setAnchorPoint(Vec2(0.0f, 0.0f));
+
+    // Use ball as text placeholder.
+    auto ball = Sprite::create("Item-Ball-Rotated.png");
+    auto ballScale = visibleSize.width / ball->getContentSize().width;
+    ball->setScale(ballScale);
+    ball->setPosition(visibleSize.width / 2, visibleSize.height / 2);
+    overlay->addChild(ball, 0);
+
+    auto label = Label::createWithTTF(text, "fonts/nova1.ttf", 72.0f);
+    label->setColor(Color3B::BLACK);
+    label->setPosition(visibleSize.width / 2, visibleSize.height / 2);
+    label->setAlignment(TextHAlignment::CENTER);
+    overlay->addChild(label, 1);
+
+    // Remove notification overlay on tap.
+    auto listener = EventListenerTouchOneByOne::create();
+    overlay->retain();
+    listener->onTouchBegan = [this, overlay](Touch* touch, Event*) {
+        this->_visibleNode->removeChild(overlay, true);
+        overlay->release();
+        return true;
+    };
+    overlay->getEventDispatcher()->addEventListenerWithSceneGraphPriority(listener, overlay);
+
+    // Add this overlay to the root node.
+    this->_visibleNode->addChild(overlay, 3);
+}
+
+void Prediction::initEvents() {
     auto listener = EventListenerTouchAllAtOnce::create();
 
     listener->onTouchesBegan = [this](const std::vector<Touch*>& touches, Event* event) {
@@ -353,8 +447,8 @@ void HelloWorld::initEvents() {
                 // Save the tracking information needed for multi-touch to work.
                 if (box.containsPoint(localLocation)) {
                     auto ballIdx = it - balls.begin();
-                    this->_ballDragState[ballIdx] = true;
-                    this->_ballDragTouchID[ballIdx] = touch->getID();
+                    this->_ballStates[ballIdx].dragState = true;
+                    this->_ballStates[ballIdx].dragTouchID = touch->getID();
                 }
             }
         }
@@ -370,10 +464,19 @@ void HelloWorld::initEvents() {
 
                 // If the removed touch ID is matched to a ball, it means that
                 // a finger was lifted off the ball.
-                if (touch->getID() == this->_ballDragTouchID[ballIdx]) {
-                    this->_ballDragState[ballIdx] = false;
-                    auto moveTo = MoveTo::create(0.25f, this->_ballDragOrigPosition[ballIdx]);
-                    (*it)->runAction(moveTo);
+                auto& state = this->_ballStates[ballIdx];
+                if (state.dragState && touch->getID() == state.dragTouchID) {
+                    // If the ball was being dragged and has a target, we remove
+                    // the ball from the scene.
+                    if (state.dragTargetState) {
+                        (*it)->setVisible(false);
+                        this->increasePredictionCount(this->stringToEvent(state.dragTarget));
+                    } else {
+                        auto moveTo = MoveTo::create(0.25f, state.dragOrigPosition);
+                        (*it)->runAction(moveTo);
+                    }
+
+                    state.dragState = false;
                 }
             }
         }
@@ -389,7 +492,8 @@ void HelloWorld::initEvents() {
 
                 // If the removed touch ID is matched to a ball, it means that
                 // a finger was lifted off the ball.
-                if (this->_ballDragState[ballIdx] && touch->getID() == this->_ballDragTouchID[ballIdx]) {
+                auto state = this->_ballStates[ballIdx];
+                if (state.dragState && touch->getID() == state.dragTouchID) {
                     auto localLocation = (*it)->getParent()->convertTouchToNodeSpace(touch);
                     (*it)->setPosition(localLocation);
                 }
@@ -404,7 +508,178 @@ void HelloWorld::initEvents() {
     this->getEventDispatcher()->addEventListenerWithSceneGraphPriority(listener, this);
 }
 
-void HelloWorld::menuCloseCallback(Ref* pSender)
+void Prediction::update(float delta) {
+    switch (this->_state) {
+        case SceneState::INITIAL: {
+            auto balls = this->_ballSlot->getChildren();
+            auto shouldContinue = std::all_of(balls.begin(), balls.end(), [](Node *ball) {
+                return !ball->isVisible();
+            });
+
+            if (shouldContinue) {
+                this->_state = SceneState::CONTINUE;
+                //this->_continueBanner->setVisible(true);
+            }
+            break;
+        }
+
+        case SceneState::CONTINUE:
+            break;
+    }
+
+
+
+}
+
+Prediction::PredictionEvent Prediction::stringToEvent(const std::string &event) {
+    std::unordered_map<std::string, PredictionEvent> map = {
+        {"error", PredictionEvent::error},
+        {"grand_slam", PredictionEvent::grandslam},
+        {"shutout_inning", PredictionEvent::shutout_inning},
+        {"long_out", PredictionEvent::longout},
+        {"runs_batted_in", PredictionEvent::runs_batted},
+        {"pop_fly", PredictionEvent::pop_fly},
+        {"triple_play", PredictionEvent::triple_play},
+        {"grounder", PredictionEvent::grounder},
+        {"double_play", PredictionEvent::double_play},
+        {"second_base", PredictionEvent::twob},
+        {"steal", PredictionEvent::steal},
+        {"pick_off", PredictionEvent::pick_off},
+        {"strike_out", PredictionEvent::strike_out},
+        {"walk", PredictionEvent::walk},
+        {"third_base", PredictionEvent::threeb},
+        {"first_base", PredictionEvent::oneb},
+        {"hit", PredictionEvent::hit},
+        {"home_run", PredictionEvent::homerun},
+        {"pitch_count_16", PredictionEvent::pitchcount_16},
+        {"blocked_run", PredictionEvent::blocked_run},
+        {"walk_off", PredictionEvent::walk_off},
+        {"pitch_count_17", PredictionEvent::pitchcount_17}
+    };
+
+    return map[event];
+}
+
+std::string Prediction::eventToString(PredictionEvent event) {
+    std::unordered_map<PredictionEvent, std::string, PredictionEventHash> map = {
+        {PredictionEvent::error, "error"},
+        {PredictionEvent::grandslam, "grand_slam"},
+        {PredictionEvent::shutout_inning, "shutout_inning"},
+        {PredictionEvent::longout, "long_out"},
+        {PredictionEvent::runs_batted, "runs_batted_in"},
+        {PredictionEvent::pop_fly, "pop_fly"},
+        {PredictionEvent::triple_play, "triple_play"},
+        {PredictionEvent::grounder, "grounder"},
+        {PredictionEvent::double_play, "double_play"},
+        {PredictionEvent::twob, "second_base"},
+        {PredictionEvent::steal, "steal"},
+        {PredictionEvent::pick_off, "pick_off"},
+        {PredictionEvent::strike_out, "strike_out"},
+        {PredictionEvent::walk, "walk"},
+        {PredictionEvent::threeb, "third_base"},
+        {PredictionEvent::oneb, "first_base"},
+        {PredictionEvent::hit, "hit"},
+        {PredictionEvent::homerun, "home_run"},
+        {PredictionEvent::pitchcount_16, "pitch_count_16"},
+        {PredictionEvent::blocked_run, "blocked_run"},
+        {PredictionEvent::walk_off, "walk_off"},
+        {PredictionEvent::pitchcount_17, "pitch_count_17"}
+    };
+
+    return map[event];
+}
+
+Prediction::PredictionEvent Prediction::intToEvent(int event) {
+    std::vector<PredictionEvent> map {
+        PredictionEvent::error,
+        PredictionEvent::grandslam,
+        PredictionEvent::shutout_inning,
+        PredictionEvent::longout,
+        PredictionEvent::runs_batted,
+        PredictionEvent::pop_fly,
+        PredictionEvent::triple_play,
+        PredictionEvent::double_play,
+        PredictionEvent::grounder,
+        PredictionEvent::steal,
+        PredictionEvent::pick_off,
+        PredictionEvent::walk,
+        PredictionEvent::blocked_run,
+        PredictionEvent::strike_out,
+        PredictionEvent::hit,
+        PredictionEvent::homerun,
+        PredictionEvent::pitchcount_16,
+        PredictionEvent::walk_off,
+        PredictionEvent::pitchcount_17,
+        PredictionEvent::oneb,
+        PredictionEvent::twob,
+        PredictionEvent::threeb
+    };
+
+    return map[event];
+}
+
+int Prediction::getScoreForEvent(PredictionEvent event) {
+    std::unordered_map<PredictionEvent, int, PredictionEventHash> map = {
+        {PredictionEvent::error, 15},
+        {PredictionEvent::grandslam, 400},
+        {PredictionEvent::shutout_inning, 4},
+        {PredictionEvent::longout, 5},
+        {PredictionEvent::runs_batted, 4},
+        {PredictionEvent::pop_fly, 2},
+        {PredictionEvent::triple_play, 1400},
+        {PredictionEvent::grounder, 2},
+        {PredictionEvent::double_play, 20},
+        {PredictionEvent::twob, 5},
+        {PredictionEvent::steal, 5},
+        {PredictionEvent::pick_off, 7},
+        {PredictionEvent::strike_out, 2},
+        {PredictionEvent::walk, 3},
+        {PredictionEvent::threeb, 20},
+        {PredictionEvent::oneb, 3},
+        {PredictionEvent::hit, 2},
+        {PredictionEvent::homerun, 10},
+        {PredictionEvent::pitchcount_16, 2},
+        {PredictionEvent::blocked_run, 10},
+        {PredictionEvent::walk_off, 50},
+        {PredictionEvent::pitchcount_17, 2}
+    };
+
+    return map[event];
+}
+
+void Prediction::increasePredictionCount(PredictionEvent event) {
+    if (this->_predictionCounts.find(event) != this->_predictionCounts.end()) {
+        this->_predictionCounts[event]++;
+    } else {
+        this->_predictionCounts[event] = 1;
+    }
+
+    // Redraw the relevant section.
+    auto ball = Sprite::create("Item-Ball.png");
+    ball->setScale(0.20f);
+    this->_fieldOverlay->addChildToPolygon(this->eventToString(event), ball);
+}
+
+void Prediction::processPredictionEvent(PredictionEvent event) {
+    if (this->_predictionCounts.find(event) != this->_predictionCounts.end()) {
+        auto count = this->_predictionCounts[event];
+        CCLOG("Prediction correct: %s", this->eventToString(event).c_str());
+
+        // Multiply the count with the score.
+        auto score = this->getScoreForEvent(event) * count;
+        this->_score += score;
+
+        // Show overlay.
+        std::stringstream ss;
+        ss << "Prediction correct: " << this->eventToString(event) << std::endl;
+        ss << "Your score is: " << this->_score << std::endl;
+        this->createNotificationOverlay(ss.str());
+    } else {
+        CCLOG("Prediction not found: %s", this->eventToString(event).c_str());
+    }
+}
+
+void Prediction::menuCloseCallback(Ref* pSender)
 {
     //Close the cocos2d-x game scene and quit the application
     Director::getInstance()->end();
