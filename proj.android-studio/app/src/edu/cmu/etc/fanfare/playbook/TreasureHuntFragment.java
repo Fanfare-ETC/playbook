@@ -1,6 +1,8 @@
 package edu.cmu.etc.fanfare.playbook;
 
+import android.content.Context;
 import android.content.DialogInterface;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AlertDialog;
@@ -18,7 +20,7 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
-public class ProfileFragment extends Fragment implements View.OnClickListener{
+public class TreasureHuntFragment extends Fragment implements View.OnClickListener{
 
     public static int section;
     @Override
@@ -34,6 +36,7 @@ public class ProfileFragment extends Fragment implements View.OnClickListener{
         arrayAdapter.add("1");
         arrayAdapter.add("2");
         arrayAdapter.add("3");
+        arrayAdapter.add("4");
 
         // 2. Chain together various setter methods to set the dialog characteristics
         //builder.setMessage(R.string.dialog_message1)
@@ -47,51 +50,53 @@ public class ProfileFragment extends Fragment implements View.OnClickListener{
                 switch(section)
                 {
                     case 1:
-                        Log.v("sec",Integer.toString(section));
                         image.setImageResource(R.drawable.section1);
                         break;
                     case 2:
                         image.setImageResource(R.drawable.section2);
-                        Log.v("sec",Integer.toString(section));
                         break;
                     case 3:
                         image.setImageResource(R.drawable.section3);
-                        Log.v("sec",Integer.toString(section));
+                        break;
+                    case 4:
+                        image.setImageResource(R.drawable.section3);
                         break;
                 }
-
 
             }
         });
         AlertDialog dialog = builder.create();
         dialog.show();
 
+        Context myContext= getContext();
+        Typeface typeface = Typeface.createFromAsset(myContext.getAssets(), "fonts/nova1.ttf");
         Button button_w = (Button) view.findViewById(R.id.warmer);
+        button_w.setTypeface(typeface);
         button_w.setOnClickListener(this);
         Button button_c = (Button) view.findViewById(R.id.colder);
+        button_c.setTypeface(typeface);
         button_c.setOnClickListener(this);
         Button button_f = (Button) view.findViewById(R.id.flagdown);
+        button_f.setTypeface(typeface);
         button_f.setOnClickListener(this);
 
         return view;
     }
 
     public void onClick(View v) {
-        //do what you want to do when button is clicked
-
         //int x= Cocos2dxBridge.getSection();
         //Log.v("int",Integer.toString(x));
         switch (v.getId()) {
             case R.id.warmer:
-                Background_worker backgroundWorker = new Background_worker(section);
+                BackgroundWorker backgroundWorker = new  BackgroundWorker(section);
                 backgroundWorker.execute("warmer");
                 break;
             case R.id.colder:
-                Background_worker backgroundWorker1 = new Background_worker(section);
+                BackgroundWorker backgroundWorker1 = new  BackgroundWorker(section);
                 backgroundWorker1.execute("colder");
                 break;
             case R.id.flagdown:
-                Background_worker backgroundWorker2 = new Background_worker(section);
+                BackgroundWorker backgroundWorker2 = new  BackgroundWorker(section);
                 backgroundWorker2.execute("flag");
                 break;
         }

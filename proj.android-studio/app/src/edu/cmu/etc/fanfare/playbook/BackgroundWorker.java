@@ -23,10 +23,10 @@ import java.nio.charset.StandardCharsets;
  * Created by ramya on 3/7/17.
  */
 
-public class Background_worker extends AsyncTask<String,Void,String> {
+public class  BackgroundWorker extends AsyncTask<String,Void,String> {
 
     private int section;
-Background_worker(int section)
+    BackgroundWorker(int section)
 {
     this.section=section;
 }
@@ -58,7 +58,6 @@ Background_worker(int section)
                 }
                 bufferedReader.close();
                 inputStream.close();
-                Log.v("debug",result);
                 httpURLConnection.disconnect();
             } catch (MalformedURLException e) {
                 e.printStackTrace();
@@ -93,7 +92,6 @@ Background_worker(int section)
                 }
                 bufferedReader.close();
                 inputStream.close();
-                Log.v("debug",result);
                 httpURLConnection.disconnect();
             } catch (MalformedURLException e) {
                 e.printStackTrace();
@@ -128,7 +126,6 @@ Background_worker(int section)
                 }
                 bufferedReader.close();
                 inputStream.close();
-                Log.v("debug",result);
                 httpURLConnection.disconnect();
             } catch (MalformedURLException e) {
                 e.printStackTrace();

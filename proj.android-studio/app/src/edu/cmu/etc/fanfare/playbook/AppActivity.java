@@ -125,10 +125,10 @@ public class AppActivity extends AppCompatActivity {
                 fragment = new CollectionFragment();
                 break;
             case 4:
-                fragment = new ProfileFragment();
+                fragment = new TreasureHuntFragment();
                 break;
             default:
-                fragment = new HomeFragment();
+                fragment = new CollectionFragment();
         };
 
         // Insert the fragment by replacing any existing fragment
