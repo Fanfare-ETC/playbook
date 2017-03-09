@@ -353,11 +353,11 @@ bool SectionSelection::init()
 			request->setResponseCallback(CC_CALLBACK_2(SectionSelection::onHttpRequestCompleted, this));
 
 			std::stringstream postTestSS;
-			postTestSS << "{"
+			/*postTestSS << "{"
 				<< "\"id\": " << selectedId << ","
 				<< "\"SeatNo\": " << seatNoBox->getText()
 				<< "}";
-
+*/
 			std::string postTest = postTestSS.str();
 
 			log("%s", postTest.c_str());
