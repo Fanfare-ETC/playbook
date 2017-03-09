@@ -264,7 +264,7 @@ bool SectionSelection::init()
 	stadiumMap->addChild(centerSection,7);
 	
 
-	stadiumMap->setPosition(Vec2(visibleSize.width / 2 + origin.x, (visibleSize.height) * 4.2 / 7 + origin.y));
+	stadiumMap->setPosition(Vec2(visibleSize.width / 2 + origin.x, (visibleSize.height) * 6 / 10 + origin.y));
 	stadiumMap->setScale(1.2);
 
 	//leftSection1->setPosition(stadiumMap->getContentSize().width * 220 / 565, stadiumMap->getContentSize().height * 80/ 475);
@@ -285,7 +285,7 @@ bool SectionSelection::init()
     // add the label as a child to this layer
     this->addChild(label, 1);
 
-
+/*
 	auto label1 = Label::createWithTTF("Seat #", "fonts/nova1.ttf", 30);
 	label1->setColor(Color3B::BLACK);
 	label1->setPosition(Vec2(origin.x + visibleSize.width / 3,
@@ -311,7 +311,7 @@ bool SectionSelection::init()
 //eatNoBox->setDelegate(this);
 	this->addChild(seatNoBox);
 
-
+*/
 	//selectedId = -1;
 
 	if (centerSection->isSelected())
