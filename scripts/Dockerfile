@@ -23,8 +23,8 @@ RUN mkdir -p licenses && \
     echo "\n8933bad161af4178b1185d1a37fbf41ea5269c55" > licenses/android-sdk-license && \
     ./tools/bin/sdkmanager --update && \
     ./tools/bin/sdkmanager "platforms;android-25" && \
-    ./tools/bin/sdkmanager "extras;m2repository;com;android;support;constraint;constraint-layout-solver;1.0.1" && \
-    ./tools/bin/sdkmanager "extras;m2repository;com;android;support;constraint;constraint-layout;1.0.1"
+    ./tools/bin/sdkmanager "extras;m2repository;com;android;support;constraint;constraint-layout-solver;1.0.2" && \
+    ./tools/bin/sdkmanager "extras;m2repository;com;android;support;constraint;constraint-layout;1.0.2"
 
 # Setup Cocos2d-x
 ENV COCOS_CONSOLE_ROOT=/cocos2d-x-3.14.1/tools/cocos2d-console/bin \
