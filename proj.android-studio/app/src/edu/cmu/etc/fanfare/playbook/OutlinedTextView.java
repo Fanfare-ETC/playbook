@@ -5,6 +5,7 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.os.Build;
 import android.support.v7.widget.AppCompatTextView;
 import android.util.AttributeSet;
 
@@ -67,9 +68,13 @@ public class OutlinedTextView extends AppCompatTextView {
         final int bottom = (h + textBounds.height()) / 2;
 
         mPaint.setAntiAlias(true);
-        mPaint.setStyle(Paint.Style.FILL_AND_STROKE);
+        mPaint.setStyle(Paint.Style.STROKE);
         mPaint.setTextSize(getTextSize());
         mPaint.setTypeface(getTypeface());
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            mPaint.setLetterSpacing(getLetterSpacing());
+        }
+
         mPaint.setStrokeWidth(mOuterStrokeWidth);
         mPaint.setColor(mOuterStrokeColor);
         canvas.drawText(transformedText, left, bottom, mPaint);

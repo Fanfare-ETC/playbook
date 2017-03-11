@@ -262,6 +262,9 @@ public class AppActivity extends AppCompatActivity {
             mToolbarTextView.setSingleLine();
             mToolbarTextView.setEllipsize(TextUtils.TruncateAt.END);
             mToolbarTextView.setTextAppearance(this, appearanceField.getInt(mToolbar));
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                mToolbarTextView.setLetterSpacing(0.12f);
+            }
 
             Typeface typeface = Typeface.createFromAsset(getAssets(), "rockb.ttf");
             mToolbarTextView.setTypeface(typeface);
