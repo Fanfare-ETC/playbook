@@ -39,7 +39,6 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatTextView;
-import android.support.v7.widget.TintTypedArray;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.util.Log;
@@ -56,8 +55,6 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import org.w3c.dom.Text;
-
 import java.lang.reflect.Field;
 
 public class AppActivity extends AppCompatActivity {
@@ -68,7 +65,7 @@ public class AppActivity extends AppCompatActivity {
     private ListView mDrawerList;
     private ActionBarDrawerToggle mDrawerToggle;
     private Toolbar mToolbar;
-    private AppCompatTextView mToolbarTextView;
+    private OutlinedTextView mToolbarTextView;
 
     private class DrawerItemClickListener implements ListView.OnItemClickListener {
         @Override
@@ -170,6 +167,8 @@ public class AppActivity extends AppCompatActivity {
         // Change color.
         mToolbar.setBackgroundColor(drawerItems[position].fragmentColor);
         mToolbar.setTitleTextColor(drawerItems[position].titleTextColor);
+        mToolbarTextView.setInnerStrokeColor(drawerItems[position].fragmentColor);
+        mToolbarTextView.setOuterStrokeColor(drawerItems[position].titleTextColor);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             Window window = getWindow();
             window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
