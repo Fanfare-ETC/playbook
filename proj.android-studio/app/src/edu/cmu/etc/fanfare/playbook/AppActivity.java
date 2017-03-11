@@ -26,7 +26,6 @@ package edu.cmu.etc.fanfare.playbook;
 import android.content.Context;
 import android.content.res.ColorStateList;
 import android.content.res.TypedArray;
-import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
@@ -56,16 +55,21 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import java.lang.reflect.Field;
+import java.util.Stack;
 
 public class AppActivity extends AppCompatActivity {
     private static final String TAG = "AppActivity";
+    private final int DEFAULT_ITEM = 0;
 
     private DrawerItem[] mMenuItems;
     private DrawerLayout mDrawerLayout;
     private ListView mDrawerList;
     private ActionBarDrawerToggle mDrawerToggle;
+
     private Toolbar mToolbar;
     private OutlinedTextView mToolbarTextView;
+    private Stack<Integer> mBackStack = new Stack<>();
+    private int mLastSelectedItem = DEFAULT_ITEM;
 
     private class DrawerItemClickListener implements ListView.OnItemClickListener {
         @Override
@@ -125,8 +129,12 @@ public class AppActivity extends AppCompatActivity {
         }
     }
 
-    /** Swaps fragments in the main content view */
     private void selectItem(int position) {
+        selectItem(position, true);
+    }
+
+    /** Swaps fragments in the main content view */
+    private void selectItem(int position, boolean addToBackStack) {
         // Create a new fragment based on selected position
         Fragment fragment;
         switch (position) {
@@ -155,9 +163,20 @@ public class AppActivity extends AppCompatActivity {
                 .replace(R.id.content_frame, fragment)
                 .commit();
 
-        // Highlight the selected item and close the drawer
-        mDrawerList.setItemChecked(position, true);
+        // Add the previous selection to the stack.
+        if (addToBackStack) {
+            mBackStack.push(mLastSelectedItem);
+            mLastSelectedItem = position;
+        }
+
+        // Close the drawer
         mDrawerLayout.closeDrawer(mDrawerList);
+        updateUIForItem(position);
+    }
+
+    private void updateUIForItem(int position) {
+        // Highlight the selected item in the drawer.
+        mDrawerList.setItemChecked(position, true);
 
         // Set the name in the action bar.
         // We can't use mToolbar here: https://code.google.com/p/android/issues/detail?id=77763
@@ -200,7 +219,6 @@ public class AppActivity extends AppCompatActivity {
             drawerItem.titleTextColor = arr.getColor(0, -1);
             arr.recycle();
 
-            Log.d(TAG, "" + Color.alpha(drawerItem.titleTextColor));
             drawerItems[i] = drawerItem;
         }
 
@@ -277,7 +295,7 @@ public class AppActivity extends AppCompatActivity {
         }
 
         // Set the home screen
-        selectItem(0);
+        selectItem(DEFAULT_ITEM);
     }
 
     @Override
@@ -309,5 +327,15 @@ public class AppActivity extends AppCompatActivity {
         super.onPostCreate(savedInstanceState);
         // Sync the toggle state after onRestoreInstanceState has occurred.
         mDrawerToggle.syncState();
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (mBackStack.size() > 1) {
+            int lastItem = mBackStack.pop();
+            selectItem(lastItem, false);
+        } else {
+            super.onBackPressed();
+        }
     }
 }
