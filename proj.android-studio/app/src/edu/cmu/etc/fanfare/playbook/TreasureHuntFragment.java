@@ -4,9 +4,10 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.Typeface;
 import android.os.Bundle;
+import android.os.Handler;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AlertDialog;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,20 +15,30 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
 
-import java.io.BufferedOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
+import java.util.Date;
 
 public class TreasureHuntFragment extends Fragment implements View.OnClickListener{
 
     public static int section;
+    long time = 0;
+    FloatingActionButton fb;
+    final Handler timerHandler = new Handler();
+    Runnable timerRunnable = new Runnable() {
+
+        @Override
+        public void run() {
+            int sign= 0;
+            Date dt = new Date();
+            int seconds = dt.getSeconds();
+            fb.setAlpha((float)seconds/60);
+            timerHandler.postDelayed(this, 50);
+        }
+    };
     @Override
     public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
                              Bundle savedInstanceState) {
         super.onCreateView(inflater, container, savedInstanceState);
-        final View view=inflater.inflate(R.layout.profile_fragment, container, false);
+        final View view=inflater.inflate(R.layout.treasurehunt_fragment, container, false);
 
         //create a list box to enter section
 
@@ -79,6 +90,9 @@ public class TreasureHuntFragment extends Fragment implements View.OnClickListen
         Button button_f = (Button) view.findViewById(R.id.flagdown);
         button_f.setTypeface(typeface);
         button_f.setOnClickListener(this);
+
+        fb= (FloatingActionButton) view.findViewById(R.id.helmet);
+        timerHandler.postDelayed(timerRunnable,0);
 
         return view;
     }
