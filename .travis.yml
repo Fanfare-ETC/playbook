@@ -10,12 +10,18 @@ before_install:
   -in proj.android-studio/app/src/debug/google-services.json.enc
   -out proj.android-studio/app/src/debug/google-services.json
   -d
+- openssl aes-256-cbc -K $encrypted_bd1ec886c030_key -iv $encrypted_bd1ec886c030_iv
+  -in scripts/debug.keystore.enc -out scripts/debug.keystore
+  -d
 - docker pull yjwong/playbook
 
 script:
 - echo "sdk.dir=/android-sdk" >> proj.android-studio/local.properties
 - echo "ndk.dir=/android-ndk-r13b" >> proj.android-studio/local.properties
-- docker run -it -v $(pwd):/playbook -w /playbook/proj.android-studio yjwong/playbook
+- docker run -it
+  -v $(pwd):/playbook
+  -v $(pwd)/scripts/debug.keystore:/root/.android/debug.keystore
+  -w /playbook/proj.android-studio yjwong/playbook
   ./gradlew --configure-on-demand --parallel assembleDebug
 
 notifications:
