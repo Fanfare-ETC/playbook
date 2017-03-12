@@ -4,7 +4,7 @@ MAINTAINER Wong Yong Jie <yjwong92@gmail.com>
 # Download system pre-requisites
 RUN apt update && \
     apt install -y --no-install-recommends \
-    git ca-certificates curl unzip default-jdk build-essential
+    git ca-certificates curl unzip default-jdk build-essential file
 
 # Download Android dependencies
 RUN curl -sL -o android-ndk.zip https://dl.google.com/android/repository/android-ndk-r13b-linux-x86_64.zip && \
