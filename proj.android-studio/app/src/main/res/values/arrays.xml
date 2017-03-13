@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string-array name="menu_items">
-        <item>Home</item>
+        <item>Collect Sets</item>
         <item>Catch the Play</item>
         <item>Section Score</item>
         <item>Collect Play</item>
@@ -15,5 +15,37 @@
         <item>@drawable/ic_catch_the_play_game</item>
         <item>@drawable/ic_golf_course_black_24dp</item>
         <item>@drawable/ic_golf_course_black_24dp</item>
+    </array>
+    <array name="menu_item_fragment_title">
+        <item>Collect Sets</item>
+        <item>Place Your Bets</item>
+        <item>Section Score</item>
+        <item>Collect Sets</item>
+        <item>TreasureHunt</item>
+        <item>SectionSelection</item>
+    </array>
+    <array name="menu_item_fragment_color">
+        <item>@color/tertiary</item>
+        <item>@color/tertiary</item>
+        <item>@color/primary</item>
+        <item>@color/primary</item>
+        <item>@color/primary</item>
+        <item>@color/primary</item>
+    </array>
+    <array name="menu_item_fragment_color_dark">
+        <item>@color/tertiary_dark</item>
+        <item>@color/tertiary_dark</item>
+        <item>@color/primary_dark</item>
+        <item>@color/primary_dark</item>
+        <item>@color/primary_dark</item>
+        <item>@color/primary_dark</item>
+    </array>
+    <array name="menu_item_title_text_color">
+        <item>?android:attr/textColorPrimaryInverse</item>
+        <item>?android:attr/textColorPrimaryInverse</item>
+        <item>?android:attr/textColorPrimary</item>
+        <item>?android:attr/textColorPrimary</item>
+        <item>?android:attr/textColorPrimary</item>
+        <item>?android:attr/textColorPrimary</item>
     </array>
 </resources>

@@ -2,6 +2,8 @@
 #include "PredictionScene.h"
 #include "PredictionWebSocket.h"
 #include "rapidjson/rapidjson.h"
+#include "rapidjson/writer.h"
+#include "rapidjson/stringbuffer.h"
 
 USING_NS_CC;
 
@@ -526,9 +528,35 @@ void Prediction::update(float delta) {
         case SceneState::CONTINUE:
             break;
     }
+}
 
+void Prediction::onEnter() {
+    CCLOG("Prediction->onEnter: Restoring state...");
+    this->restoreState();
+    Layer::onEnter();
+}
 
+void Prediction::onExit() {
+    CCLOG("Prediction->onExit: Saving state...");
+    Layer::onExit();
+    this->saveState();
+}
 
+void Prediction::restoreState() {
+    auto preferences = UserDefault::getInstance();
+    auto state = preferences->getStringForKey("Prediction");
+    if (!state.empty()) {
+        CCLOG("Prediction->restoreState: Restoring: %s", state.c_str());
+        this->unserialize(state);
+    } else {
+        CCLOG("Prediction->restoreState: No state to restore");
+    }
+}
+
+void Prediction::saveState() {
+    auto preferences = UserDefault::getInstance();
+    preferences->setStringForKey("Prediction", this->serialize());
+    preferences->flush();
 }
 
 Prediction::PredictionEvent Prediction::stringToEvent(const std::string &event) {
@@ -676,6 +704,56 @@ void Prediction::processPredictionEvent(PredictionEvent event) {
         this->createNotificationOverlay(ss.str());
     } else {
         CCLOG("Prediction not found: %s", this->eventToString(event).c_str());
+    }
+}
+
+std::string Prediction::serialize() {
+    using namespace rapidjson;
+
+    Document document;
+    document.SetObject();
+    Document::AllocatorType& allocator = document.GetAllocator();
+
+    // Serialize the prediction game state.
+    rapidjson::Value predictionCounts (kObjectType);
+    for (const auto& item : this->_predictionCounts) {
+        auto event = this->eventToString(item.first);
+        auto count = item.second;
+        predictionCounts.AddMember(
+            rapidjson::Value(event.c_str(), allocator).Move(),
+            rapidjson::Value(count).Move(),
+            allocator
+        );
+    }
+    document.AddMember(rapidjson::Value("predictionCounts", allocator).Move(), predictionCounts, allocator);
+
+    // Create the state.
+    StringBuffer buffer;
+    Writer<StringBuffer> writer(buffer);
+    document.Accept(writer);
+
+    return std::string(buffer.GetString());
+}
+
+void Prediction::unserialize(const std::string& data) {
+    using namespace rapidjson;
+
+    Document document;
+    document.Parse(data.c_str());
+
+    // Restore the prediction game state.
+    auto predictionCountsIterator = document.FindMember("predictionCounts");
+    if (predictionCountsIterator != document.MemberEnd()) {
+        rapidjson::Value& predictionCounts = predictionCountsIterator->value;
+        if (!predictionCounts.IsObject()) {
+            CCLOGWARN("Prediction->unserialize: predictionCounts is not an object!");
+        } else {
+            for (const auto& item : predictionCounts.GetObject()) {
+                auto event = this->stringToEvent(item.name.GetString());
+                auto count = item.value.GetInt();
+                this->_predictionCounts[event] = count;
+            }
+        }
     }
 }
 

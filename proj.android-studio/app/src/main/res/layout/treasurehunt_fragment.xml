@@ -78,5 +78,22 @@
         android:layout_marginStart="8dp"
         android:layout_marginEnd="8dp" />
 
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/helmet"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginRight="8dp"
+        android:layout_marginTop="392dp"
+        android:clickable="true"
+        app:fabSize="mini"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintHorizontal_bias="0.495"
+        app:layout_constraintLeft_toLeftOf="@+id/map"
+        app:layout_constraintRight_toRightOf="@+id/map"
+        app:layout_constraintTop_toTopOf="@+id/map"
+        app:layout_constraintVertical_bias="0.134"
+        app:srcCompat="?android:attr/listChoiceIndicatorSingle" />
 
 </android.support.constraint.ConstraintLayout>

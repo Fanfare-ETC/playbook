@@ -26,35 +26,50 @@ package edu.cmu.etc.fanfare.playbook;
 import android.content.Context;
 import android.content.res.ColorStateList;
 import android.content.res.TypedArray;
+import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.AppCompatTextView;
 import android.support.v7.widget.Toolbar;
+import android.text.TextUtils;
+import android.util.Log;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import java.lang.reflect.Field;
+import java.util.Stack;
+
 public class AppActivity extends AppCompatActivity {
     private static final String TAG = "AppActivity";
+    private final int DEFAULT_ITEM = 0;
 
     private DrawerItem[] mMenuItems;
     private DrawerLayout mDrawerLayout;
     private ListView mDrawerList;
     private ActionBarDrawerToggle mDrawerToggle;
-    private CharSequence mDrawerTitle;
-    private CharSequence mTitle;
+
+    private Toolbar mToolbar;
+    private OutlinedTextView mToolbarTextView;
+    private Stack<Integer> mBackStack = new Stack<>();
+    private int mLastSelectedItem = DEFAULT_ITEM;
 
     private class DrawerItemClickListener implements ListView.OnItemClickListener {
         @Override
@@ -66,6 +81,10 @@ public class AppActivity extends AppCompatActivity {
     private class DrawerItem {
         String text;
         Drawable icon;
+        String fragmentTitle;
+        int fragmentColor;
+        int fragmentColorDark;
+        int titleTextColor;
     }
 
     private class DrawerItemAdapter extends ArrayAdapter<DrawerItem> {
@@ -110,8 +129,12 @@ public class AppActivity extends AppCompatActivity {
         }
     }
 
-    /** Swaps fragments in the main content view */
     private void selectItem(int position) {
+        selectItem(position, true);
+    }
+
+    /** Swaps fragments in the main content view */
+    private void selectItem(int position, boolean addToBackStack) {
         // Create a new fragment based on selected position
         Fragment fragment;
         switch (position) {
@@ -140,20 +163,62 @@ public class AppActivity extends AppCompatActivity {
                 .replace(R.id.content_frame, fragment)
                 .commit();
 
-        // Highlight the selected item and close the drawer
-        mDrawerList.setItemChecked(position, true);
+        // Add the previous selection to the stack.
+        if (addToBackStack) {
+            mBackStack.push(mLastSelectedItem);
+            mLastSelectedItem = position;
+        }
+
+        // Close the drawer
         mDrawerLayout.closeDrawer(mDrawerList);
+        updateUIForItem(position);
+    }
+
+    private void updateUIForItem(int position) {
+        // Highlight the selected item in the drawer.
+        mDrawerList.setItemChecked(position, true);
+
+        // Set the name in the action bar.
+        // We can't use mToolbar here: https://code.google.com/p/android/issues/detail?id=77763
+        DrawerItem[] drawerItems = getDrawerItems();
+        getSupportActionBar().setTitle(drawerItems[position].fragmentTitle);
+
+        // Change color.
+        mToolbar.setBackgroundColor(drawerItems[position].fragmentColor);
+        mToolbar.setTitleTextColor(drawerItems[position].titleTextColor);
+        mToolbarTextView.setInnerStrokeColor(drawerItems[position].fragmentColor);
+        mToolbarTextView.setOuterStrokeColor(drawerItems[position].titleTextColor);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            Window window = getWindow();
+            window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+            window.setStatusBarColor(drawerItems[position].fragmentColorDark);
+        }
     }
 
     private DrawerItem[] getDrawerItems() {
         String[] menuItems = getResources().getStringArray(R.array.menu_items);
         TypedArray menuItemIcons = getResources().obtainTypedArray(R.array.menu_item_icons);
+        String[] menuItemFragmentTitle = getResources().getStringArray(R.array.menu_item_fragment_title);
+        TypedArray menuItemFragmentColor = getResources().obtainTypedArray(R.array.menu_item_fragment_color);
+        TypedArray menuItemFragmentColorDark = getResources().obtainTypedArray(R.array.menu_item_fragment_color_dark);
+        TypedArray menuItemTitleTextColor = getResources().obtainTypedArray(R.array.menu_item_title_text_color);
         DrawerItem[] drawerItems = new DrawerItem[menuItems.length];
 
         for (int i = 0; i < menuItems.length; i++) {
             DrawerItem drawerItem = new DrawerItem();
             drawerItem.text = menuItems[i];
             drawerItem.icon = menuItemIcons.getDrawable(i);
+            drawerItem.fragmentTitle = menuItemFragmentTitle[i];
+            drawerItem.fragmentColor = menuItemFragmentColor.getColor(i, ContextCompat.getColor(this, R.color.primary));
+            drawerItem.fragmentColorDark = menuItemFragmentColorDark.getColor(i, ContextCompat.getColor(this, R.color.primary_dark));
+
+            // Resolve attr values through the theme.
+            TypedValue typedValue = new TypedValue();
+            getTheme().resolveAttribute(menuItemTitleTextColor.peekValue(i).data, typedValue, true);
+            TypedArray arr = obtainStyledAttributes(typedValue.data, new int[]{ menuItemTitleTextColor.peekValue(i).data });
+            drawerItem.titleTextColor = arr.getColor(0, -1);
+            arr.recycle();
+
             drawerItems[i] = drawerItem;
         }
 
@@ -166,27 +231,24 @@ public class AppActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.app_activity);
 
-        Toolbar myToolbar = (Toolbar) findViewById(R.id.my_toolbar);
-        setSupportActionBar(myToolbar);
+        mToolbar = (Toolbar) findViewById(R.id.my_toolbar);
+        setSupportActionBar(mToolbar);
 
-        mTitle = mDrawerTitle = getTitle();
         mMenuItems = getDrawerItems();
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         mDrawerList = (ListView) findViewById(R.id.left_drawer);
-        mDrawerToggle = new ActionBarDrawerToggle(this, mDrawerLayout, myToolbar,
+        mDrawerToggle = new ActionBarDrawerToggle(this, mDrawerLayout, mToolbar,
                 R.string.drawer_open, R.string.drawer_close) {
 
             /** Called when a drawer has settled in a completely closed state. */
             public void onDrawerClosed(View view) {
                 super.onDrawerClosed(view);
-                getSupportActionBar().setTitle(mTitle);
                 invalidateOptionsMenu(); // creates call to onPrepareOptionsMenu()
             }
 
             /** Called when a drawer has settled in a completely open state. */
             public void onDrawerOpened(View drawerView) {
                 super.onDrawerOpened(drawerView);
-                getSupportActionBar().setTitle(mDrawerTitle);
                 invalidateOptionsMenu(); // creates call to onPrepareOptionsMenu()
             }
         };
@@ -203,8 +265,37 @@ public class AppActivity extends AppCompatActivity {
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setHomeButtonEnabled(true);
 
+        // Replace title with our own custom one.
+        // We need to set a title, because the title TextView is lazily created.
+        mToolbar.setTitle(getString(R.string.app_name));
+        try {
+            Field field = mToolbar.getClass().getDeclaredField("mTitleTextView");
+            field.setAccessible(true);
+
+            Field appearanceField = mToolbar.getClass().getDeclaredField("mTitleTextAppearance");
+            appearanceField.setAccessible(true);
+
+            AppCompatTextView titleView = (AppCompatTextView) field.get(mToolbar);
+            mToolbarTextView = new OutlinedTextView(this);
+            mToolbarTextView.setSingleLine();
+            mToolbarTextView.setEllipsize(TextUtils.TruncateAt.END);
+            mToolbarTextView.setTextAppearance(this, appearanceField.getInt(mToolbar));
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                mToolbarTextView.setLetterSpacing(0.12f);
+            }
+
+            Typeface typeface = Typeface.createFromAsset(getAssets(), "rockb.ttf");
+            mToolbarTextView.setTypeface(typeface);
+            mToolbarTextView.setAllCaps(true);
+
+            field.set(mToolbar, mToolbarTextView);
+            mToolbar.removeView(titleView);
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            Log.e(TAG, e.toString());
+        }
+
         // Set the home screen
-        selectItem(0);
+        selectItem(DEFAULT_ITEM);
     }
 
     @Override
@@ -236,5 +327,15 @@ public class AppActivity extends AppCompatActivity {
         super.onPostCreate(savedInstanceState);
         // Sync the toggle state after onRestoreInstanceState has occurred.
         mDrawerToggle.syncState();
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (mBackStack.size() > 1) {
+            int lastItem = mBackStack.pop();
+            selectItem(lastItem, false);
+        } else {
+            super.onBackPressed();
+        }
     }
 }

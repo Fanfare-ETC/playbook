@@ -355,7 +355,7 @@ bool SectionSelection::init()
 			std::stringstream postTestSS;
 			/*postTestSS << "{"
 				<< "\"id\": " << selectedId << ","
-				<< "\"SeatNo\": " << seatNoBox->getText()
+			//	<< "\"SeatNo\": " << seatNoBox->getText()
 				<< "}";
 */
 			std::string postTest = postTestSS.str();

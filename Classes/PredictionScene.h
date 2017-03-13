@@ -12,6 +12,8 @@ public:
 
     virtual bool init();
     virtual void update(float delta);
+    void onEnter();
+    void onExit();
 
     // a selector callback
     void menuCloseCallback(cocos2d::Ref* pSender);
@@ -91,6 +93,11 @@ private:
     int getScoreForEvent(PredictionEvent event);
     void increasePredictionCount(PredictionEvent);
     void processPredictionEvent(PredictionEvent event);
+
+    void restoreState();
+    void saveState();
+    std::string serialize();
+    void unserialize(const std::string& data);
 };
 
 #endif // PLAYBOOK_PREDICTION_H

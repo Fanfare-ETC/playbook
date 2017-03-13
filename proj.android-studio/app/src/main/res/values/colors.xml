@@ -2,6 +2,7 @@
 <resources>
     <item name="primary" type="color">#ffc300</item>
     <item name="primary_dark" type="color">#806200</item>
-    <item name="tertiary" type="color">#bf3626</item>
+    <item name="tertiary" type="color">#c53626</item>
+    <item name="tertiary_dark" type="color">#bf3626</item>
     <item name="accent" type="color">#8ebaf4</item>
 </resources>

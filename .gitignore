@@ -61,3 +61,4 @@ linux-build/
 
 # Files that can contain credentials
 proj.android-studio/app/src/debug/google-services.json
+scripts/debug.keystore
