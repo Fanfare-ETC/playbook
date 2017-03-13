@@ -24,6 +24,7 @@ THE SOFTWARE.
 package edu.cmu.etc.fanfare.playbook;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.content.res.TypedArray;
 import android.graphics.Typeface;
@@ -230,6 +231,11 @@ public class AppActivity extends AppCompatActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.app_activity);
+//get the section ID
+        Intent intent = getIntent();
+        Bundle extras = intent.getExtras();
+
+        int section = Integer.parseInt(extras.getString("EXTRA_MESSAGE"));
 
         mToolbar = (Toolbar) findViewById(R.id.my_toolbar);
         setSupportActionBar(mToolbar);
