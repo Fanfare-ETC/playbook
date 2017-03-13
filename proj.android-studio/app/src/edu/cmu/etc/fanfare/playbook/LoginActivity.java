@@ -77,7 +77,7 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
         if (result.isSuccess()) {
             // Signed in successfully, show authenticated UI.
             GoogleSignInAccount acct = result.getSignInAccount();
-            startActivity(new Intent(this, AppActivity.class));
+            startActivity(new Intent(this, SeatSelectActivity.class));
             finish();
         } else {
             // Signed out, show unauthenticated UI.
