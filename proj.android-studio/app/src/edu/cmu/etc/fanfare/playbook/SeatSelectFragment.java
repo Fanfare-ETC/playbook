@@ -74,48 +74,48 @@ public class SeatSelectFragment extends Fragment implements AdapterView.OnItemSe
         });
 
         Button button1 = (Button) view.findViewById(R.id.section1);
-        button.setOnClickListener(new View.OnClickListener() {
+        button1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
-                Spinner spinner = (Spinner) v.findViewById(R.id.sections_spinner);
-                spinner.setSelection(0);
-
-
-
-            }
-        });
-        Button button2 = (Button) view.findViewById(R.id.section2);
-        button.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-                Spinner spinner = (Spinner) v.findViewById(R.id.sections_spinner);
+                //Spinner spinner = (Spinner) v.findViewById(R.id.sections_spinner);
                 spinner.setSelection(1);
 
 
 
             }
         });
-        Button button3 = (Button) view.findViewById(R.id.section3);
-        button.setOnClickListener(new View.OnClickListener() {
+        Button button2 = (Button) view.findViewById(R.id.section2);
+        button2.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
-                Spinner spinner = (Spinner) v.findViewById(R.id.sections_spinner);
+                //Spinner spinner = (Spinner) v.findViewById(R.id.sections_spinner);
                 spinner.setSelection(2);
 
 
 
             }
         });
-        Button button4 = (Button) view.findViewById(R.id.section4);
-        button.setOnClickListener(new View.OnClickListener() {
+        Button button3 = (Button) view.findViewById(R.id.section3);
+        button3.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
-                Spinner spinner = (Spinner) v.findViewById(R.id.sections_spinner);
+                //Spinner spinner = (Spinner) v.findViewById(R.id.sections_spinner);
                 spinner.setSelection(3);
+
+
+
+            }
+        });
+        Button button4 = (Button) view.findViewById(R.id.section4);
+        button4.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                //Spinner spinner = (Spinner) v.findViewById(R.id.sections_spinner);
+                spinner.setSelection(4);
 
 
 
