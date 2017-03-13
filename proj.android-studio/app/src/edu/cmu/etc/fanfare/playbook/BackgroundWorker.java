@@ -1,8 +1,18 @@
 package edu.cmu.etc.fanfare.playbook;
 
 import android.content.Context;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.util.Log;
+
+
+import com.koushikdutta.async.ByteBufferList;
+import com.koushikdutta.async.DataEmitter;
+import com.koushikdutta.async.callback.DataCallback;
+import com.koushikdutta.async.http.AsyncHttpClient;
+import com.koushikdutta.async.http.AsyncHttpRequest;
+import com.koushikdutta.async.http.WebSocket;
+
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -34,106 +44,103 @@ public class  BackgroundWorker extends AsyncTask<String,Void,String> {
     this.section=section;
 }
     @Override
+
     protected String doInBackground(String... params) {
+        Log.d("here","section "+section);
         if (params[0].equals("warmer")) {
-            try {
-                String sec=Integer.toString(section);
-                String move = "1";
-                URL url = new URL("http://128.2.238.6/Web%20Application/treasureInsert.php");
-                HttpURLConnection httpURLConnection = (HttpURLConnection)url.openConnection();
-                httpURLConnection.setRequestMethod("POST");
-                httpURLConnection.setDoOutput(true);
-                httpURLConnection.setDoInput(true);
-                OutputStream outputStream = httpURLConnection.getOutputStream();
-                BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(outputStream, "UTF-8"));
-                String post_data = URLEncoder.encode("sectionNo","UTF-8")+"="+URLEncoder.encode(sec,"UTF-8")+"&"
-                        + URLEncoder.encode("Move","UTF-8")+"="+URLEncoder.encode(move,"UTF-8");
-                bufferedWriter.write(post_data);
-                bufferedWriter.flush();
-                bufferedWriter.close();
-                outputStream.close();
-                InputStream inputStream = httpURLConnection.getInputStream();
-                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream,"iso-8859-1"));
-                String result="";
-                String line="";
-                while((line = bufferedReader.readLine())!= null) {
-                    result += line;
-                }
-                bufferedReader.close();
-                inputStream.close();
-                httpURLConnection.disconnect();
-            } catch (MalformedURLException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
+            try
+            {
+                Log.d("hereeee","section "+section);
+                final JSONObject obj= new JSONObject();
+                obj.put("section",section);
+                obj.put("selection",0);
+                AsyncHttpClient.getDefaultInstance().websocket("ws://128.2.238.137:8080", "my-protocol", new AsyncHttpClient.WebSocketConnectCallback() {
+                    @Override
+                    public void onCompleted(Exception ex, WebSocket webSocket) {
+                        if (ex != null) {
+                            ex.printStackTrace();
+                            return;
+                        }
+                        webSocket.send(obj.toString());
+                        webSocket.setStringCallback(new WebSocket.StringCallback() {
+                            public void onStringAvailable(String s) {
+                                Log.d("hello","I got a string: " + s);
+                            }
+                        });
+                        webSocket.setDataCallback(new DataCallback() {
+                            public void onDataAvailable(DataEmitter emitter, ByteBufferList byteBufferList) {
+                                Log.d("hello","I got some bytes!");
+                                // note that this data has been read
+                                byteBufferList.recycle();
+                            }
+                        });
+                    }
+                });
+            } catch (JSONException e) {
                 e.printStackTrace();
             }
         }
         if (params[0].equals("colder")) {
-            try {
-                String sec=Integer.toString(section);
-                String move = "0";
-                Log.v("sec",Integer.toString(section));
-                URL url = new URL("http://128.2.238.6/Web%20Application/treasureInsert.php");
-                HttpURLConnection httpURLConnection = (HttpURLConnection)url.openConnection();
-                httpURLConnection.setRequestMethod("POST");
-                httpURLConnection.setDoOutput(true);
-                httpURLConnection.setDoInput(true);
-                OutputStream outputStream = httpURLConnection.getOutputStream();
-                BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(outputStream, "UTF-8"));
-                String post_data = URLEncoder.encode("sectionNo","UTF-8")+"="+URLEncoder.encode(sec,"UTF-8")+"&"
-                        + URLEncoder.encode("Move","UTF-8")+"="+URLEncoder.encode(move,"UTF-8");
-                bufferedWriter.write(post_data);
-                bufferedWriter.flush();
-                bufferedWriter.close();
-                outputStream.close();
-
-                InputStream inputStream = httpURLConnection.getInputStream();
-                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream,"iso-8859-1"));
-                String result="";
-                String line="";
-                while((line = bufferedReader.readLine())!= null) {
-                    result += line;
-                }
-                bufferedReader.close();
-                inputStream.close();
-                httpURLConnection.disconnect();
-            } catch (MalformedURLException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
+            try
+            {
+                final JSONObject obj= new JSONObject();
+                obj.put("section",section);
+                obj.put("selection",1);
+                AsyncHttpClient.getDefaultInstance().websocket("ws://128.2.238.137:8080", "my-protocol", new AsyncHttpClient.WebSocketConnectCallback() {
+                    @Override
+                    public void onCompleted(Exception ex, WebSocket webSocket) {
+                        if (ex != null) {
+                            ex.printStackTrace();
+                            return;
+                        }
+                        webSocket.send(obj.toString());
+                        webSocket.setStringCallback(new WebSocket.StringCallback() {
+                            public void onStringAvailable(String s) {
+                                Log.d("hello","I got a string: " + s);
+                            }
+                        });
+                        webSocket.setDataCallback(new DataCallback() {
+                            public void onDataAvailable(DataEmitter emitter, ByteBufferList byteBufferList) {
+                                Log.d("hello","I got some bytes!");
+                                // note that this data has been read
+                                byteBufferList.recycle();
+                            }
+                        });
+                    }
+                });
+            } catch (JSONException e) {
                 e.printStackTrace();
             }
         }
-        if (params[0].equals("flag")) {
-            try {
-                String sec=Integer.toString(section);
-                Log.v("sec",Integer.toString(section));
-                String move = "2";
-                URL url = new URL("http://128.2.238.6/Web%20Application/treasureInsert.php");
-                HttpURLConnection httpURLConnection = (HttpURLConnection)url.openConnection();
-                httpURLConnection.setRequestMethod("POST");
-                httpURLConnection.setDoOutput(true);
-                httpURLConnection.setDoInput(true);
-                OutputStream outputStream = httpURLConnection.getOutputStream();
-                BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(outputStream, "UTF-8"));
-                String post_data = URLEncoder.encode("sectionNo","UTF-8")+"="+URLEncoder.encode(sec,"UTF-8")+"&"
-                        + URLEncoder.encode("Move","UTF-8")+"="+URLEncoder.encode(move,"UTF-8");
-                bufferedWriter.write(post_data);
-                bufferedWriter.flush();
-                bufferedWriter.close();
-                outputStream.close();
-                InputStream inputStream = httpURLConnection.getInputStream();
-                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream,"iso-8859-1"));
-                String result="";
-                String line="";
-                while((line = bufferedReader.readLine())!= null) {
-                    result += line;
-                }
-                bufferedReader.close();
-                inputStream.close();
-                httpURLConnection.disconnect();
-            } catch (MalformedURLException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
+        if (params[0].equals("plant")) {
+            try
+            {
+                final JSONObject obj= new JSONObject();
+                obj.put("section",section);
+                obj.put("selection",2);
+                AsyncHttpClient.getDefaultInstance().websocket("ws://128.2.238.137:8080", "my-protocol", new AsyncHttpClient.WebSocketConnectCallback() {
+                    @Override
+                    public void onCompleted(Exception ex, WebSocket webSocket) {
+                        if (ex != null) {
+                            ex.printStackTrace();
+                            return;
+                        }
+                        webSocket.send(obj.toString());
+                        webSocket.setStringCallback(new WebSocket.StringCallback() {
+                            public void onStringAvailable(String s) {
+                                Log.d("hello","I got a string: " + s);
+                            }
+                        });
+                        webSocket.setDataCallback(new DataCallback() {
+                            public void onDataAvailable(DataEmitter emitter, ByteBufferList byteBufferList) {
+                                Log.d("hello","I got some bytes!");
+                                // note that this data has been read
+                                byteBufferList.recycle();
+                            }
+                        });
+                    }
+                });
+            } catch (JSONException e) {
                 e.printStackTrace();
             }
         }
@@ -182,6 +189,7 @@ public class  BackgroundWorker extends AsyncTask<String,Void,String> {
         return null;
     }
 
+
     @Override
     protected void onPreExecute() {
 
@@ -197,5 +205,6 @@ public class  BackgroundWorker extends AsyncTask<String,Void,String> {
     protected void onProgressUpdate(Void... values) {
         super.onProgressUpdate(values);
     }
+
 }
 

@@ -1,18 +1,16 @@
 package edu.cmu.etc.fanfare.playbook;
 
-import android.content.Context;
 import android.content.DialogInterface;
-import android.graphics.Typeface;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AlertDialog;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.ImageView;
 
 import java.util.Date;
@@ -55,22 +53,22 @@ public class TreasureHuntFragment extends Fragment implements View.OnClickListen
         builder.setAdapter(arrayAdapter, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                section = which+1;
+                section = which;
 
                 ImageView image= (ImageView)view.findViewById(R.id.map);
                 switch(section)
                 {
                     case 1:
-                        image.setImageResource(R.drawable.section1);
+                        image.setImageResource(R.drawable.map2);
                         break;
                     case 2:
-                        image.setImageResource(R.drawable.section2);
+                        image.setImageResource(R.drawable.map2);
                         break;
                     case 3:
-                        image.setImageResource(R.drawable.section3);
+                        image.setImageResource(R.drawable.map2);
                         break;
                     case 4:
-                        image.setImageResource(R.drawable.section3);
+                        image.setImageResource(R.drawable.map2);
                         break;
                 }
 
@@ -79,39 +77,33 @@ public class TreasureHuntFragment extends Fragment implements View.OnClickListen
         AlertDialog dialog = builder.create();
         dialog.show();
 
-        Context myContext= getContext();
-        Typeface typeface = Typeface.createFromAsset(myContext.getAssets(), "fonts/nova1.ttf");
-        Button button_w = (Button) view.findViewById(R.id.warmer);
-        button_w.setTypeface(typeface);
+
+        ImageView button_w= (ImageView)view.findViewById(R.id.warmer);
         button_w.setOnClickListener(this);
-        Button button_c = (Button) view.findViewById(R.id.colder);
-        button_c.setTypeface(typeface);
+        ImageView button_c= (ImageView)view.findViewById(R.id.colder);
         button_c.setOnClickListener(this);
-        Button button_f = (Button) view.findViewById(R.id.flagdown);
-        button_f.setTypeface(typeface);
-        button_f.setOnClickListener(this);
+        //ImageView button_p= (ImageView)view.findViewById(R.id.plant);
+        //button_p.setOnClickListener(this);
 
-        fb= (FloatingActionButton) view.findViewById(R.id.helmet);
-        timerHandler.postDelayed(timerRunnable,0);
-
+        //fb= (FloatingActionButton) view.findViewById(R.id.helmet);
+        //timerHandler.postDelayed(timerRunnable,0);
         return view;
+
     }
 
     public void onClick(View v) {
-        //int x= Cocos2dxBridge.getSection();
-        //Log.v("int",Integer.toString(x));
         switch (v.getId()) {
             case R.id.warmer:
-                BackgroundWorker backgroundWorker = new  BackgroundWorker(section);
-                backgroundWorker.execute("warmer");
+                    BackgroundWorker backgroundWorker = new BackgroundWorker(section);
+                    backgroundWorker.execute("warmer");
                 break;
             case R.id.colder:
                 BackgroundWorker backgroundWorker1 = new  BackgroundWorker(section);
                 backgroundWorker1.execute("colder");
                 break;
-            case R.id.flagdown:
+            case R.id.plant:
                 BackgroundWorker backgroundWorker2 = new  BackgroundWorker(section);
-                backgroundWorker2.execute("flag");
+                backgroundWorker2.execute("plant");
                 break;
         }
     }
