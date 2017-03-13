@@ -25,8 +25,7 @@
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.0"
-        app:srcCompat="@drawable/rpismap"
-        tools:layout_editor_absoluteY="3dp" />
+        app:srcCompat="@drawable/rpismap" />
 
     <Button
         android:id="@+id/warmer"
@@ -34,14 +33,14 @@
         android:layout_height="56dp"
         android:layout_marginBottom="97dp"
         android:layout_marginLeft="14dp"
-        android:layout_marginTop="0dp"
         android:background="@color/tertiary"
         android:fadingEdge="horizontal"
         android:text="Getting Warmer"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/map"
-        app:layout_constraintVertical_bias="0.176" />
+        app:layout_constraintVertical_bias="0.17000002"
+        android:layout_marginStart="14dp" />
 
     <Button
         android:id="@+id/colder"
@@ -50,16 +49,16 @@
         android:layout_marginBottom="96dp"
         android:layout_marginLeft="8dp"
         android:layout_marginRight="8dp"
-        android:layout_marginTop="0dp"
         android:background="@color/accent"
         android:text="Getting Colder"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintHorizontal_bias="0.833"
+        app:layout_constraintHorizontal_bias="0.83"
         app:layout_constraintLeft_toRightOf="@+id/warmer"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/map"
-        app:layout_constraintVertical_bias="0.132"
-        tools:layout_editor_absoluteX="213dp" />
+        app:layout_constraintVertical_bias="0.13"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp" />
 
     <Button
         android:id="@+id/flagdown"
@@ -75,7 +74,9 @@
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/colder"
-        app:layout_constraintVertical_bias="0.49" />
+        app:layout_constraintVertical_bias="0.49"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp" />
 
 
 </android.support.constraint.ConstraintLayout>
