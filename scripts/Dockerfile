@@ -7,7 +7,7 @@ RUN apt update && \
     git ca-certificates curl unzip default-jdk build-essential
 
 # Download Android dependencies
-RUN curl -sL -o android-ndk.zip https://dl.google.com/android/repository/android-ndk-r13b-linux-x86_64.zip && \
+RUN curl -sL -o android-ndk.zip https://dl.google.com/android/repository/android-ndk-r14-linux-x86_64.zip && \
     unzip android-ndk.zip && \
     rm android-ndk.zip
 RUN curl -sL -o android-sdk.zip https://dl.google.com/android/repository/tools_r25.2.3-linux.zip && \
