@@ -237,6 +237,8 @@ public class AppActivity extends AppCompatActivity {
 
         int section = Integer.parseInt(extras.getString("EXTRA_MESSAGE"));
 
+        Log.d("testSection", "Section in AppActivity: " + section);
+
         mToolbar = (Toolbar) findViewById(R.id.my_toolbar);
         setSupportActionBar(mToolbar);
 
