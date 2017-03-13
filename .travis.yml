@@ -17,7 +17,7 @@ before_install:
 
 script:
 - echo "sdk.dir=/android-sdk" >> proj.android-studio/local.properties
-- echo "ndk.dir=/android-ndk-r13b" >> proj.android-studio/local.properties
+- echo "ndk.dir=/android-ndk-r14" >> proj.android-studio/local.properties
 - docker run -it
   -v $(pwd):/playbook
   -v $(pwd)/scripts/debug.keystore:/root/.android/debug.keystore
