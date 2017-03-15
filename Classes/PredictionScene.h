@@ -67,12 +67,18 @@ private:
 
         bool dragTargetState;
         std::string dragTarget;
+
+        bool selectedTargetState;
+        std::string selectedTarget;
+
+        cocos2d::Sprite* sprite;
     };
 
     cocos2d::Node* _visibleNode;
 
     SceneState _state;
     cocos2d::Sprite* _ballSlot;
+    std::vector<cocos2d::Sprite*> _balls;
     std::vector<BallState> _ballStates;
     cocos2d::Sprite* _continueBanner;
 
@@ -91,7 +97,8 @@ private:
 
     void createNotificationOverlay(const std::string&);
     int getScoreForEvent(PredictionEvent event);
-    void increasePredictionCount(PredictionEvent);
+    void moveBallToField(PredictionEvent event, cocos2d::Sprite* ball, bool withAnimation = true);
+    void makePrediction(PredictionEvent event, BallState&);
     void processPredictionEvent(PredictionEvent event);
 
     void restoreState();

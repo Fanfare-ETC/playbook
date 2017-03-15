@@ -195,6 +195,11 @@ void MappedSprite::addEvents() {
     this->getEventDispatcher()->addEventListenerWithFixedPriority(this->_listener, 1);
 }
 
+Vec2 MappedSprite::getPolygonCenter(const std::string& name) {
+    auto polygon = this->_polygons[name];
+    return std::accumulate(polygon.begin(), polygon.end(), Vec2()) / polygon.size();
+}
+
 void MappedSprite::addChildToPolygon(const std::string& name, Node* node) {
     this->_polygonNode[name]->addChild(node);
 }

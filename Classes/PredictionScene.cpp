@@ -69,14 +69,20 @@ bool Prediction::init()
     auto ballSlotHeight = ballSlotScale * this->_ballSlot->getContentSize().height;
     node->addChild(this->_ballSlot, 2);
 
-    // Add balls to ball slot.
+    // Add balls to scene.
     for (int i = 0; i < 5; i++) {
         auto ball = Sprite::create("Item-Ball.png");
         auto ballScale = this->_ballSlot->getContentSize().height / ball->getContentSize().height / 1.5f;
-        ball->setPosition(110.0f + (ball->getContentSize().width * i * ballScale), this->_ballSlot->getContentSize().height / 2.0f);
-        ball->setScale(ballScale);
+        auto ballWorldSpace = this->_ballSlot->convertToWorldSpace(Vec2(
+            110.0f + ball->getContentSize().width * i * ballScale,
+            this->_ballSlot->getContentSize().height / 2.0f
+        ));
+        auto ballNodeSpace = node->convertToNodeSpace(ballWorldSpace);
+        ball->setPosition(ballNodeSpace);
+        ball->setScale(ballScale * ballSlotScale);
         ball->setName("Ball " + std::to_string(i));
-        this->_ballSlot->addChild(ball);
+        this->_balls.push_back(ball);
+        node->addChild(ball, 3);
 
         // Add tracking information to the ball.
         BallState state {
@@ -84,7 +90,10 @@ bool Prediction::init()
             .dragTouchID = 0,
             .dragOrigPosition = ball->getPosition(),
             .dragTargetState = false,
-            .dragTarget = ""
+            .dragTarget = "",
+            .selectedTargetState = false,
+            .selectedTarget = "",
+            .sprite = ball
         };
         this->_ballStates.push_back(state);
     }
@@ -441,7 +450,7 @@ void Prediction::initEvents() {
         for (const auto& touch : touches) {
             // For each ball, check if the touch point is within the bounding box of the ball.
             // If the touch point is within the bounding box, then update the drag state.
-            auto balls = this->_ballSlot->getChildren();
+            auto balls = this->_balls;
             for (auto it = balls.begin(); it != balls.end(); ++it) {
                 auto localLocation = (*it)->getParent()->convertTouchToNodeSpace(touch);
                 auto box = (*it)->getBoundingBox();
@@ -460,7 +469,7 @@ void Prediction::initEvents() {
         for (const auto& touch : touches) {
             // For each ball, check if the touch point is within the bounding box of the ball.
             // If the touch point is within the bounding box, then update the drag state.
-            auto balls = this->_ballSlot->getChildren();
+            auto balls = this->_balls;
             for (auto it = balls.begin(); it != balls.end(); ++it) {
                 auto ballIdx = it - balls.begin();
 
@@ -471,8 +480,8 @@ void Prediction::initEvents() {
                     // If the ball was being dragged and has a target, we remove
                     // the ball from the scene.
                     if (state.dragTargetState) {
-                        (*it)->setVisible(false);
-                        this->increasePredictionCount(this->stringToEvent(state.dragTarget));
+                        this->moveBallToField(this->stringToEvent(state.dragTarget), *it);
+                        this->makePrediction(this->stringToEvent(state.dragTarget), state);
                     } else {
                         auto moveTo = MoveTo::create(0.25f, state.dragOrigPosition);
                         (*it)->runAction(moveTo);
@@ -488,7 +497,7 @@ void Prediction::initEvents() {
         for (const auto& touch : touches) {
             // For each ball, check if the touch point is within the bounding box of the ball.
             // If the touch point is within the bounding box, then update the drag state.
-            auto balls = this->_ballSlot->getChildren();
+            auto balls = this->_balls;
             for (auto it = balls.begin(); it != balls.end(); ++it) {
                 auto ballIdx = it - balls.begin();
 
@@ -513,14 +522,14 @@ void Prediction::initEvents() {
 void Prediction::update(float delta) {
     switch (this->_state) {
         case SceneState::INITIAL: {
-            auto balls = this->_ballSlot->getChildren();
+            auto balls = this->_balls;
             auto shouldContinue = std::all_of(balls.begin(), balls.end(), [](Node *ball) {
                 return !ball->isVisible();
             });
 
             if (shouldContinue) {
                 this->_state = SceneState::CONTINUE;
-                //this->_continueBanner->setVisible(true);
+                this->_continueBanner->setVisible(true);
             }
             break;
         }
@@ -550,6 +559,17 @@ void Prediction::restoreState() {
         this->unserialize(state);
     } else {
         CCLOG("Prediction->restoreState: No state to restore");
+    }
+
+    // Move the balls based on ballState.
+    for (const auto& state : this->_ballStates) {
+        if (state.selectedTargetState) {
+            this->moveBallToField(
+                this->stringToEvent(state.selectedTarget),
+                state.sprite,
+                false
+            );
+        }
     }
 }
 
@@ -675,17 +695,35 @@ int Prediction::getScoreForEvent(PredictionEvent event) {
     return map[event];
 }
 
-void Prediction::increasePredictionCount(PredictionEvent event) {
+void Prediction::moveBallToField(PredictionEvent event, Sprite* ball, bool withAnimation) {
+    // Position the ball in the correct place.
+    auto eventStr = this->eventToString(event);
+    auto position = this->_fieldOverlay->convertToWorldSpace(this->_fieldOverlay->getPolygonCenter(eventStr));
+    position = this->_visibleNode->convertToNodeSpace(position);
+
+    // Determine we need to run an animation.
+    if (withAnimation) {
+        auto moveTo = MoveTo::create(0.25f, position);
+        ball->runAction(moveTo);
+    } else {
+        ball->setPosition(position);
+    }
+}
+
+void Prediction::makePrediction(PredictionEvent event, BallState& state) {
+    // If a previous prediction has been made, update the prediction count.
+    if (state.selectedTargetState) {
+        this->_predictionCounts[event]--;
+    }
+
+    state.selectedTarget = this->eventToString(event);
+    state.selectedTargetState = true;
+
     if (this->_predictionCounts.find(event) != this->_predictionCounts.end()) {
         this->_predictionCounts[event]++;
     } else {
         this->_predictionCounts[event] = 1;
     }
-
-    // Redraw the relevant section.
-    auto ball = Sprite::create("Item-Ball.png");
-    ball->setScale(0.20f);
-    this->_fieldOverlay->addChildToPolygon(this->eventToString(event), ball);
 }
 
 void Prediction::processPredictionEvent(PredictionEvent event) {
@@ -727,6 +765,24 @@ std::string Prediction::serialize() {
     }
     document.AddMember(rapidjson::Value("predictionCounts", allocator).Move(), predictionCounts, allocator);
 
+    // Serialize the ball state.
+    rapidjson::Value ballStates (kArrayType);
+    for (const auto& item : this->_ballStates) {
+        rapidjson::Value ballState (kObjectType);
+        ballState.AddMember(
+            rapidjson::Value("selectedTarget", allocator).Move(),
+            rapidjson::Value(item.selectedTarget.c_str(), allocator).Move(),
+            allocator
+        );
+        ballState.AddMember(
+            rapidjson::Value("selectedTargetState", allocator).Move(),
+            rapidjson::Value(item.selectedTargetState).Move(),
+            allocator
+        );
+        ballStates.PushBack(ballState, allocator);
+    }
+    document.AddMember(rapidjson::Value("ballStates", allocator).Move(), ballStates, allocator);
+
     // Create the state.
     StringBuffer buffer;
     Writer<StringBuffer> writer(buffer);
@@ -752,6 +808,54 @@ void Prediction::unserialize(const std::string& data) {
                 auto event = this->stringToEvent(item.name.GetString());
                 auto count = item.value.GetInt();
                 this->_predictionCounts[event] = count;
+            }
+        }
+    }
+
+    // Restore the ball state.
+    auto ballStatesIterator = document.FindMember("ballStates");
+    if (ballStatesIterator != document.MemberEnd()) {
+        rapidjson::Value& ballStates = ballStatesIterator->value;
+        if (!ballStates.IsArray()) {
+            CCLOGWARN("Prediction->unserialize: ballStates is not an array!");
+        } else {
+            auto ballStatesArray = ballStates.GetArray();
+            for (auto it = ballStatesArray.Begin(); it != ballStatesArray.End(); ++it) {
+                auto idx = it - ballStatesArray.Begin();
+
+                if (!it->IsObject()) {
+                    CCLOGWARN("Prediction->unserialize: ballStates[item] is not an object!");
+                    continue;
+                }
+
+                auto ballState = it->GetObject();
+                auto selectedTargetStateIterator = ballState.FindMember("selectedTargetState");
+                auto selectedTargetIterator = ballState.FindMember("selectedTarget");
+
+                // Check if serialized ball state is valid.
+                if (selectedTargetStateIterator == ballState.MemberEnd()) {
+                    CCLOGWARN("Prediction->unserialize: ballStates[item].selectedTargetState doesn't exist!");
+                    continue;
+                }
+
+                if (selectedTargetIterator == ballState.MemberEnd()) {
+                    CCLOGWARN("Prediction->unserialize: ballStates[item].selectedTarget doesn't exist!");
+                    continue;
+                }
+
+                if (!selectedTargetStateIterator->value.IsBool()) {
+                    CCLOGWARN("Prediction->unserialize: ballStates[item].selectedTargetState is not a bool!");
+                    continue;
+                }
+
+                if (!selectedTargetIterator->value.IsString()) {
+                    CCLOGWARN("Prediction->unserialize: ballStates[item].selectedTarget is not a string!");
+                    continue;
+                }
+
+                // Sanity checks passed.
+                this->_ballStates[idx].selectedTargetState = selectedTargetStateIterator->value.GetBool();
+                this->_ballStates[idx].selectedTarget = selectedTargetIterator->value.GetString();
             }
         }
     }
