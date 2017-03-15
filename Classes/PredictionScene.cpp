@@ -405,6 +405,24 @@ void Prediction::initFieldOverlay() {
             it->dragTarget = "";
         }
     };
+
+    this->_fieldOverlay->onTouchPolygon = [this](const std::string& name,
+                                                 MappedSprite::Polygon polygon,
+                                                 const Touch* touch) {
+        // Handle clicks.
+        auto nextBall = std::find_if(this->_balls.begin(), this->_balls.end(), [](Ball ball) {
+            return !ball.selectedTargetState;
+        });
+
+        auto isDraggingBall = std::any_of(this->_balls.begin(), this->_balls.end(), [](Ball ball) {
+            return ball.dragState;
+        });
+
+        if (!isDraggingBall && nextBall != this->_balls.end()) {
+            this->moveBallToField(this->stringToEvent(name), nextBall->sprite);
+            this->makePrediction(this->stringToEvent(name), *nextBall);
+        }
+    };
 }
 
 void Prediction::createNotificationOverlay(const std::string& text) {

@@ -26,6 +26,7 @@ public:
     std::function<void(const std::string&, Polygon, const cocos2d::Touch*)> onTouchPolygonBegan;
     std::function<void(const std::string&, Polygon, const cocos2d::Touch*)> onTouchPolygonMoved;
     std::function<void(const std::string&, Polygon, const cocos2d::Touch*)> onTouchPolygonEnded;
+    std::function<void(const std::string&, Polygon, const cocos2d::Touch*)> onTouchPolygon;
 
 private:
     cocos2d::EventListenerTouchAllAtOnce* _listener;
