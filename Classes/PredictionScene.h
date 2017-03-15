@@ -15,9 +15,6 @@ public:
     void onEnter();
     void onExit();
 
-    // a selector callback
-    void menuCloseCallback(cocos2d::Ref* pSender);
-
     // implement the "static create()" method manually
     CREATE_FUNC(Prediction);
 
@@ -60,7 +57,7 @@ private:
         }
     };
 
-    struct BallState {
+    struct Ball {
         bool dragState;
         int dragTouchID;
         cocos2d::Vec2 dragOrigPosition;
@@ -78,8 +75,7 @@ private:
 
     SceneState _state;
     cocos2d::Sprite* _ballSlot;
-    std::vector<cocos2d::Sprite*> _balls;
-    std::vector<BallState> _ballStates;
+    std::vector<Ball> _balls;
     cocos2d::Sprite* _continueBanner;
 
     MappedSprite* _fieldOverlay;
@@ -98,7 +94,7 @@ private:
     void createNotificationOverlay(const std::string&);
     int getScoreForEvent(PredictionEvent event);
     void moveBallToField(PredictionEvent event, cocos2d::Sprite* ball, bool withAnimation = true);
-    void makePrediction(PredictionEvent event, BallState&);
+    void makePrediction(PredictionEvent event, Ball&);
     void processPredictionEvent(PredictionEvent event);
 
     void restoreState();

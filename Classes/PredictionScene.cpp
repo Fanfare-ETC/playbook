@@ -81,11 +81,10 @@ bool Prediction::init()
         ball->setPosition(ballNodeSpace);
         ball->setScale(ballScale * ballSlotScale);
         ball->setName("Ball " + std::to_string(i));
-        this->_balls.push_back(ball);
         node->addChild(ball, 3);
 
         // Add tracking information to the ball.
-        BallState state {
+        Ball state {
             .dragState = false,
             .dragTouchID = 0,
             .dragOrigPosition = ball->getPosition(),
@@ -95,7 +94,7 @@ bool Prediction::init()
             .selectedTarget = "",
             .sprite = ball
         };
-        this->_ballStates.push_back(state);
+        this->_balls.push_back(state);
     }
 
     // Add continue banner.
@@ -380,11 +379,11 @@ void Prediction::initFieldOverlay() {
         this->_fieldOverlay->highlight(name, Color4F(Color3B::BLACK, 0.2f), 0, Color4F::WHITE);
 
         // Store the currently hovered item.
-        auto it = std::find_if(this->_ballStates.begin(), this->_ballStates.end(), [touch](BallState state) {
-            return state.dragTouchID == touch->getID() && state.dragState;
+        auto it = std::find_if(this->_balls.begin(), this->_balls.end(), [touch](Ball ball) {
+            return ball.dragTouchID == touch->getID() && ball.dragState;
         });
 
-        if (it != this->_ballStates.end()) {
+        if (it != this->_balls.end()) {
             it->dragTargetState = true;
             it->dragTarget = name;
         }
@@ -397,11 +396,11 @@ void Prediction::initFieldOverlay() {
         this->_fieldOverlay->clearHighlight(name);
 
         // Remove the currently covered item.
-        auto it = std::find_if(this->_ballStates.begin(), this->_ballStates.end(), [touch](BallState state) {
-            return state.dragTouchID == touch->getID() && state.dragState;
+        auto it = std::find_if(this->_balls.begin(), this->_balls.end(), [touch](Ball ball) {
+            return ball.dragTouchID == touch->getID() && ball.dragState;
         });
 
-        if (it != this->_ballStates.end()) {
+        if (it != this->_balls.end()) {
             it->dragTargetState = false;
             it->dragTarget = "";
         }
@@ -450,16 +449,14 @@ void Prediction::initEvents() {
         for (const auto& touch : touches) {
             // For each ball, check if the touch point is within the bounding box of the ball.
             // If the touch point is within the bounding box, then update the drag state.
-            auto balls = this->_balls;
-            for (auto it = balls.begin(); it != balls.end(); ++it) {
-                auto localLocation = (*it)->getParent()->convertTouchToNodeSpace(touch);
-                auto box = (*it)->getBoundingBox();
+            for (auto& ball : this->_balls) {
+                auto localLocation = ball.sprite->getParent()->convertTouchToNodeSpace(touch);
+                auto box = ball.sprite->getBoundingBox();
 
                 // Save the tracking information needed for multi-touch to work.
                 if (box.containsPoint(localLocation)) {
-                    auto ballIdx = it - balls.begin();
-                    this->_ballStates[ballIdx].dragState = true;
-                    this->_ballStates[ballIdx].dragTouchID = touch->getID();
+                    ball.dragState = true;
+                    ball.dragTouchID = touch->getID();
                 }
             }
         }
@@ -469,25 +466,21 @@ void Prediction::initEvents() {
         for (const auto& touch : touches) {
             // For each ball, check if the touch point is within the bounding box of the ball.
             // If the touch point is within the bounding box, then update the drag state.
-            auto balls = this->_balls;
-            for (auto it = balls.begin(); it != balls.end(); ++it) {
-                auto ballIdx = it - balls.begin();
-
+            for (auto& ball : this->_balls) {
                 // If the removed touch ID is matched to a ball, it means that
                 // a finger was lifted off the ball.
-                auto& state = this->_ballStates[ballIdx];
-                if (state.dragState && touch->getID() == state.dragTouchID) {
+                if (ball.dragState && touch->getID() == ball.dragTouchID) {
                     // If the ball was being dragged and has a target, we remove
                     // the ball from the scene.
-                    if (state.dragTargetState) {
-                        this->moveBallToField(this->stringToEvent(state.dragTarget), *it);
-                        this->makePrediction(this->stringToEvent(state.dragTarget), state);
+                    if (ball.dragTargetState) {
+                        this->moveBallToField(this->stringToEvent(ball.dragTarget), ball.sprite);
+                        this->makePrediction(this->stringToEvent(ball.dragTarget), ball);
                     } else {
-                        auto moveTo = MoveTo::create(0.25f, state.dragOrigPosition);
-                        (*it)->runAction(moveTo);
+                        auto moveTo = MoveTo::create(0.25f, ball.dragOrigPosition);
+                        ball.sprite->runAction(moveTo);
                     }
 
-                    state.dragState = false;
+                    ball.dragState = false;
                 }
             }
         }
@@ -497,16 +490,12 @@ void Prediction::initEvents() {
         for (const auto& touch : touches) {
             // For each ball, check if the touch point is within the bounding box of the ball.
             // If the touch point is within the bounding box, then update the drag state.
-            auto balls = this->_balls;
-            for (auto it = balls.begin(); it != balls.end(); ++it) {
-                auto ballIdx = it - balls.begin();
-
+            for (auto& ball : this->_balls) {
                 // If the removed touch ID is matched to a ball, it means that
                 // a finger was lifted off the ball.
-                auto state = this->_ballStates[ballIdx];
-                if (state.dragState && touch->getID() == state.dragTouchID) {
-                    auto localLocation = (*it)->getParent()->convertTouchToNodeSpace(touch);
-                    (*it)->setPosition(localLocation);
+                if (ball.dragState && touch->getID() == ball.dragTouchID) {
+                    auto localLocation = ball.sprite->getParent()->convertTouchToNodeSpace(touch);
+                    ball.sprite->setPosition(localLocation);
                 }
             }
         }
@@ -523,8 +512,8 @@ void Prediction::update(float delta) {
     switch (this->_state) {
         case SceneState::INITIAL: {
             auto balls = this->_balls;
-            auto shouldContinue = std::all_of(balls.begin(), balls.end(), [](Node *ball) {
-                return !ball->isVisible();
+            auto shouldContinue = std::all_of(balls.begin(), balls.end(), [](Ball ball) {
+                return !ball.sprite->isVisible();
             });
 
             if (shouldContinue) {
@@ -562,11 +551,11 @@ void Prediction::restoreState() {
     }
 
     // Move the balls based on ballState.
-    for (const auto& state : this->_ballStates) {
-        if (state.selectedTargetState) {
+    for (const auto& ball : this->_balls) {
+        if (ball.selectedTargetState) {
             this->moveBallToField(
-                this->stringToEvent(state.selectedTarget),
-                state.sprite,
+                this->stringToEvent(ball.selectedTarget),
+                ball.sprite,
                 false
             );
         }
@@ -710,7 +699,7 @@ void Prediction::moveBallToField(PredictionEvent event, Sprite* ball, bool withA
     }
 }
 
-void Prediction::makePrediction(PredictionEvent event, BallState& state) {
+void Prediction::makePrediction(PredictionEvent event, Ball& state) {
     // If a previous prediction has been made, update the prediction count.
     if (state.selectedTargetState) {
         this->_predictionCounts[event]--;
@@ -767,7 +756,7 @@ std::string Prediction::serialize() {
 
     // Serialize the ball state.
     rapidjson::Value ballStates (kArrayType);
-    for (const auto& item : this->_ballStates) {
+    for (const auto& item : this->_balls) {
         rapidjson::Value ballState (kObjectType);
         ballState.AddMember(
             rapidjson::Value("selectedTarget", allocator).Move(),
@@ -854,26 +843,9 @@ void Prediction::unserialize(const std::string& data) {
                 }
 
                 // Sanity checks passed.
-                this->_ballStates[idx].selectedTargetState = selectedTargetStateIterator->value.GetBool();
-                this->_ballStates[idx].selectedTarget = selectedTargetIterator->value.GetString();
+                this->_balls[idx].selectedTargetState = selectedTargetStateIterator->value.GetBool();
+                this->_balls[idx].selectedTarget = selectedTargetIterator->value.GetString();
             }
         }
     }
 }
-
-void Prediction::menuCloseCallback(Ref* pSender)
-{
-    //Close the cocos2d-x game scene and quit the application
-    Director::getInstance()->end();
-
-    #if (CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
-    exit(0);
-#endif
-
-    /*To navigate back to native iOS screen(if present) without quitting the application  ,do not use Director::getInstance()->end() and exit(0) as given above,instead trigger a custom event created in RootViewController.mm as below*/
-
-    //EventCustom customEndEvent("game_scene_close_event");
-    //_eventDispatcher->dispatchEvent(&customEndEvent);
-}
-
-
