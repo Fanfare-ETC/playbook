@@ -1,6 +1,7 @@
 package edu.cmu.etc.fanfare.playbook;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
@@ -13,6 +14,8 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Spinner;
+
+import static android.content.Context.MODE_PRIVATE;
 
 
 public class SeatSelectFragment extends Fragment implements AdapterView.OnItemSelectedListener {
@@ -44,6 +47,14 @@ public class SeatSelectFragment extends Fragment implements AdapterView.OnItemSe
             }
         });
 
+//get the section selected last time from sharedpreference
+        SharedPreferences settings = this.getContext().getSharedPreferences("FANFARE_SHARED", 0);
+        section = settings.getInt("section", 0);
+
+        Log.d("SharedPreference", "Section chosen last time: " + section);
+
+        spinner.setSelection(section);
+
         Button button = (Button) view.findViewById(R.id.proceed);
         button.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -62,9 +73,12 @@ public class SeatSelectFragment extends Fragment implements AdapterView.OnItemSe
                 */
                 Intent intent = new Intent(v.getContext(), AppActivity.class);
                 Bundle extras = new Bundle();
+//save the section selected to shared preference
+                SharedPreferences.Editor editor = v.getContext().getSharedPreferences("FANFARE_SHARED", MODE_PRIVATE).edit();
+                editor.putInt("section", section);
+                editor.apply();
 
                 extras.putString("EXTRA_MESSAGE", Integer.toString(section));
-
                 intent.putExtras(extras);
                 //intent.putExtra(EXTRA_MESSAGE, seatNo);
                 //intent.putExtra(EXTRA_COLOR, colorController);
