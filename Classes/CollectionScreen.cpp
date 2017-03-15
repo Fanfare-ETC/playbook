@@ -98,35 +98,28 @@ bool CollectionScreen::init()
     auto dragtoscoreHeight =dragtoscoreScale * dragtoscore->getContentSize().height;
     node->addChild(dragtoscore, 0);
 
+    //generate a random goal each time
+
+    /* initialize random seed: */
+    srand (time(NULL));
+
+    /* generate secret number between 1 and 10: */
+    int goal_number = rand() % 15 + 1;
+    string file_1= "goal/goal";
+    string file_2= std::to_string(goal_number);
+    string file_3= ".png";
+    string filename = file_1+file_2+file_3;
+    CCLOG("filename:%s",filename.c_str());
     //add goals
-    auto goal = Sprite::create("Collection-Button-ScoreSet.png");
+    auto goal = Sprite::create(filename);
     auto goalScale = visibleSize.width /goal->getContentSize().width;
-    goal->setPosition(visibleSize.width/2.0, visibleSize.height/3.0);
+    goal->setPosition(visibleSize.width/1.75, visibleSize.height/1.4);
     goal->setAnchorPoint(Vec2(0.0f, 0.0f));
-    goal->setScaleX(dragtoscoreScale/2);
-    goal->setScaleY(dragtoscoreScale/2);
+    goal->setScaleX(goalScale/3);
+    goal->setScaleY(goalScale/3);
     auto goalHeight =goalScale * goal->getContentSize().height;
     node->addChild(goal, 0);
-  /*
 
-    // add overlay to screen
-    std::map<std::string, MappedSprite::Polygon> polygons;
-
-
-    // TODO: Add the rest of other prediction parts.
-
-    this->_fieldOverlay = MappedSprite::create("Prediction-Overlay-Field.png", polygons);
-    auto fieldOverlayScaleX = visibleSize.width / this->_fieldOverlay->getContentSize().width;
-    auto fieldOverlayScaleY = (visibleSize.height - bannerHeight) / this->_fieldOverlay->getContentSize().height;
-    auto fieldOverlayScale = std::min(fieldOverlayScaleX, fieldOverlayScaleY);
-    this->_fieldOverlay->setPosition(visibleSize.width / 2.0f, visibleSize.height - bannerHeight);
-    this->_fieldOverlay->setAnchorPoint(Vec2(0.5f, 1.0f));
-    this->_fieldOverlay->setScale(fieldOverlayScale);
-    this->_fieldOverlay->onTouchBegan = [this](std::string name) {
-        CCLOG("Contacted: %s", name.c_str());
-    };
-    node->addChild(this->_fieldOverlay, 1);
-    */
 
     return true;
 }
