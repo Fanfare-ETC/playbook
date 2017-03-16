@@ -2,13 +2,18 @@
 // Created by ramya on 3/2/17.
 //
 
+#include <rapidjson/document.h>
 #include "CollectionScreen.h"
 #include "PredictionScene.h"
-//#include "SimpleAudioEngine.h"
+#include "PredictionWebSocket.h"
 #include "MappedSprite.h"
+#include "rapidjson/rapidjson.h"
+#include "rapidjson/writer.h"
+#include "rapidjson/stringbuffer.h"
 
 USING_NS_CC;
 using namespace std;
+
 //struct type_rect { float  array[4][2]; };
 //typedef struct type_rect type_rect;
 
@@ -119,9 +124,40 @@ bool CollectionScreen::init()
     goal->setScaleY(goalScale/3);
     auto goalHeight =goalScale * goal->getContentSize().height;
     node->addChild(goal, 0);
-
-
+    receiveCard();
     return true;
+}
+
+void CollectionScreen::receiveCard()
+{
+    using namespace rapidjson;
+    //get notified of a play on field
+    //reusing preditcion_notifier
+    // Create websocket client.
+    auto websocket = PredictionWebSocket::create("ws://128.237.140.116:8080");
+    websocket->connect();
+    websocket->onConnectionOpened = []() {
+        CCLOG("Connection to server established");
+    };
+    websocket->onMessageReceived = [this](std::string message) {
+        CCLOG("Message received from server: %s", message.c_str());
+
+        rapidjson::Document document;
+        document.Parse(message.c_str());
+        if (document.IsArray()) {
+            for (auto it = document.Begin(); it != document.End(); ++it) {
+                Prediction::PredictionEvent event = Prediction::intToEvent(it->GetInt());
+                CCLOG("Events: %s", Prediction::eventToString(event).c_str());
+
+            }
+        } else {
+            CCLOG("Received message is not an array!");
+        }
+    };
+    websocket->onErrorOccurred = [](const cocos2d::network::WebSocket::ErrorCode& errorCode) {
+        CCLOG("Error connecting to server: %d", errorCode);
+    };
+
 }
 
 void CollectionScreen::menuCloseCallback(Ref* pSender)

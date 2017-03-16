@@ -18,7 +18,7 @@ public:
     // implement the "static create()" method manually
     CREATE_FUNC(Prediction);
 
-private:
+public:
     enum SceneState {
         INITIAL,
         CONTINUE
@@ -87,9 +87,9 @@ private:
     void initFieldOverlay();
     void initEvents();
 
-    PredictionEvent stringToEvent(const std::string &);
-    std::string eventToString(PredictionEvent event);
-    PredictionEvent intToEvent(int event);
+    static PredictionEvent stringToEvent(const std::string &);
+    static std::string eventToString(PredictionEvent event);
+    static PredictionEvent intToEvent(int event);
 
     void createNotificationOverlay(const std::string&);
     int getScoreForEvent(PredictionEvent event);
