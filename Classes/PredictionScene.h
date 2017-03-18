@@ -49,7 +49,8 @@ public:
 private:
     enum SceneState {
         INITIAL,
-        CONTINUE
+        CONTINUE,
+        CONFIRMED
     };
 
     struct PredictionEventHash {

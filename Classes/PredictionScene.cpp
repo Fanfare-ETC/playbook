@@ -453,6 +453,8 @@ void Prediction::initEvents() {
     auto listener = EventListenerTouchAllAtOnce::create();
 
     listener->onTouchesBegan = [this](const std::vector<Touch*>& touches, Event* event) {
+        if (this->_state == SceneState::CONFIRMED) { return; }
+
         for (const auto& touch : touches) {
             // For each ball, check if the touch point is within the bounding box of the ball.
             // If the touch point is within the bounding box, then update the drag state.
@@ -471,6 +473,8 @@ void Prediction::initEvents() {
     };
 
     listener->onTouchesEnded = [this](const std::vector<Touch*>& touches, Event* event) {
+        if (this->_state == SceneState::CONFIRMED) { return; }
+
         for (const auto& touch : touches) {
             // For each ball, check if the touch point is within the bounding box of the ball.
             // If the touch point is within the bounding box, then update the drag state.
@@ -491,10 +495,19 @@ void Prediction::initEvents() {
                     ball.dragState = false;
                 }
             }
+
+            // Check if the continue overlay was tapped.
+            auto localLocation = this->_continueBanner->getParent()->convertTouchToNodeSpace(touch);
+            auto box = this->_continueBanner->getBoundingBox();
+            if (box.containsPoint(localLocation)) {
+                this->_state = SceneState::CONFIRMED;
+            }
         }
     };
 
     listener->onTouchesMoved = [this](const std::vector<Touch*>& touches, Event* event) {
+        if (this->_state == SceneState::CONFIRMED) { return; }
+
         for (const auto& touch : touches) {
             // For each ball, check if the touch point is within the bounding box of the ball.
             // If the touch point is within the bounding box, then update the drag state.
@@ -570,6 +583,10 @@ void Prediction::update(float delta) {
         }
 
         case SceneState::CONTINUE:
+            break;
+
+        case SceneState::CONFIRMED:
+            this->_continueBanner->setVisible(false);
             break;
     }
 }
@@ -820,6 +837,13 @@ std::string Prediction::serialize() {
     }
     document.AddMember(rapidjson::Value("ballStates", allocator).Move(), ballStates, allocator);
 
+    // Serialize the scene state.
+    document.AddMember(
+        rapidjson::Value("sceneState", allocator).Move(),
+        rapidjson::Value(this->_state).Move(),
+        allocator
+    );
+
     // Create the state.
     StringBuffer buffer;
     Writer<StringBuffer> writer(buffer);
@@ -894,6 +918,16 @@ void Prediction::unserialize(const std::string& data) {
                 this->_balls[idx].selectedTargetState = selectedTargetStateIterator->value.GetBool();
                 this->_balls[idx].selectedTarget = selectedTargetIterator->value.GetString();
             }
+        }
+    }
+
+    // Restore the scene state.
+    auto sceneStateIterator = document.FindMember("sceneState");
+    if (sceneStateIterator != document.MemberEnd()) {
+        if (!sceneStateIterator->value.IsInt()) {
+            CCLOGWARN("Prediction->unserialize: sceneState is not an integer!");
+        } else {
+            this->_state = (SceneState) sceneStateIterator->value.GetInt();
         }
     }
 }
