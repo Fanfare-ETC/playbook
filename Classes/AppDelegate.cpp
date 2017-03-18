@@ -91,7 +91,18 @@ bool AppDelegate::applicationDidFinishLaunching() {
 
 // This function will be called when the app is inactive. Note, when receiving a phone call it is invoked.
 void AppDelegate::applicationDidEnterBackground() {
-    Director::getInstance()->stopAnimation();
+    auto director = Director::getInstance();
+    director->stopAnimation();
+
+    // Propagate additional lifecycle events.
+    auto scene = director->getRunningScene();
+    if (scene->getChildrenCount() > 0) {
+        auto children = scene->getChildren();
+        auto layer = dynamic_cast<PlaybookLayer*>(children.back());
+        if (layer) {
+            layer->onPause();
+        }
+    }
 
     // if you use SimpleAudioEngine, it must be paused
     // SimpleAudioEngine::getInstance()->pauseBackgroundMusic();
@@ -99,7 +110,18 @@ void AppDelegate::applicationDidEnterBackground() {
 
 // this function will be called when the app is active again
 void AppDelegate::applicationWillEnterForeground() {
-    Director::getInstance()->startAnimation();
+    auto director = Director::getInstance();
+    director->startAnimation();
+
+    // Propagate additional lifecycle events.
+    auto scene = director->getRunningScene();
+    if (scene->getChildrenCount() > 0) {
+        auto children = scene->getChildren();
+        auto layer = dynamic_cast<PlaybookLayer*>(children.back());
+        if (layer) {
+            layer->onResume();
+        }
+    }
 
     // if you use SimpleAudioEngine, it must resume here
     // SimpleAudioEngine::getInstance()->resumeBackgroundMusic();

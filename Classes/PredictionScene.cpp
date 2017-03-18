@@ -419,7 +419,7 @@ void Prediction::initFieldOverlay() {
         });
 
         if (!isDraggingBall && nextBall != this->_balls.end()) {
-            this->moveBallToField(this->stringToEvent(name), nextBall->sprite);
+            this->moveBallToField(this->stringToEvent(name), *nextBall);
             this->makePrediction(this->stringToEvent(name), *nextBall);
         }
     };
@@ -473,6 +473,7 @@ void Prediction::initEvents() {
 
                 // Save the tracking information needed for multi-touch to work.
                 if (box.containsPoint(localLocation)) {
+                    ball.dragOrigPosition = ball.sprite->getPosition();
                     ball.dragState = true;
                     ball.dragTouchID = touch->getID();
                 }
@@ -488,10 +489,10 @@ void Prediction::initEvents() {
                 // If the removed touch ID is matched to a ball, it means that
                 // a finger was lifted off the ball.
                 if (ball.dragState && touch->getID() == ball.dragTouchID) {
-                    // If the ball was being dragged and has a target, we remove
-                    // the ball from the scene.
+                    // If the ball was being dragged and has a target, we move the ball to the
+                    // target location.
                     if (ball.dragTargetState) {
-                        this->moveBallToField(this->stringToEvent(ball.dragTarget), ball.sprite);
+                        this->moveBallToField(this->stringToEvent(ball.dragTarget), ball);
                         this->makePrediction(this->stringToEvent(ball.dragTarget), ball);
                     } else {
                         auto moveTo = MoveTo::create(0.25f, ball.dragOrigPosition);
@@ -531,7 +532,7 @@ void Prediction::update(float delta) {
         case SceneState::INITIAL: {
             auto balls = this->_balls;
             auto shouldContinue = std::all_of(balls.begin(), balls.end(), [](Ball ball) {
-                return !ball.sprite->isVisible();
+                return ball.selectedTargetState;
             });
 
             if (shouldContinue) {
@@ -558,6 +559,18 @@ void Prediction::onExit() {
     this->saveState();
 }
 
+void Prediction::onResume() {
+    CCLOG("Prediction->onResume: Restoring state...");
+    PlaybookLayer::onResume();
+    this->restoreState();
+}
+
+void Prediction::onPause() {
+    CCLOG("Prediction->onPause: Saving state...");
+    this->saveState();
+    PlaybookLayer::onPause();
+}
+
 void Prediction::restoreState() {
     auto preferences = UserDefault::getInstance();
     auto state = preferences->getStringForKey("Prediction");
@@ -569,11 +582,11 @@ void Prediction::restoreState() {
     }
 
     // Move the balls based on ballState.
-    for (const auto& ball : this->_balls) {
+    for (auto& ball : this->_balls) {
         if (ball.selectedTargetState) {
             this->moveBallToField(
                 this->stringToEvent(ball.selectedTarget),
-                ball.sprite,
+                ball,
                 false
             );
         }
@@ -702,7 +715,7 @@ int Prediction::getScoreForEvent(PredictionEvent event) {
     return map[event];
 }
 
-void Prediction::moveBallToField(PredictionEvent event, Sprite* ball, bool withAnimation) {
+void Prediction::moveBallToField(PredictionEvent event, Prediction::Ball& ball, bool withAnimation) {
     // Position the ball in the correct place.
     auto eventStr = this->eventToString(event);
     auto position = this->_fieldOverlay->convertToWorldSpace(this->_fieldOverlay->getPolygonCenter(eventStr));
@@ -711,9 +724,9 @@ void Prediction::moveBallToField(PredictionEvent event, Sprite* ball, bool withA
     // Determine we need to run an animation.
     if (withAnimation) {
         auto moveTo = MoveTo::create(0.25f, position);
-        ball->runAction(moveTo);
+        ball.sprite->runAction(moveTo);
     } else {
-        ball->setPosition(position);
+        ball.sprite->setPosition(position);
     }
 }
 

@@ -2,9 +2,10 @@
 #define PLAYBOOK_PREDICTION_H
 
 #include "cocos2d.h"
+#include "PlaybookLayer.h"
 #include "MappedSprite.h"
 
-class Prediction : public cocos2d::Layer
+class Prediction : public PlaybookLayer
 {
 public:
 
@@ -12,8 +13,11 @@ public:
 
     virtual bool init();
     virtual void update(float delta);
+
     void onEnter();
     void onExit();
+    void onResume();
+    void onPause();
 
     // implement the "static create()" method manually
     CREATE_FUNC(Prediction);
@@ -93,7 +97,7 @@ public:
 
     void createNotificationOverlay(const std::string&);
     int getScoreForEvent(PredictionEvent event);
-    void moveBallToField(PredictionEvent event, cocos2d::Sprite* ball, bool withAnimation = true);
+    void moveBallToField(PredictionEvent event, Ball& ball, bool withAnimation = true);
     void makePrediction(PredictionEvent event, Ball&);
     void processPredictionEvent(PredictionEvent event);
 
