@@ -7,6 +7,20 @@
 
 USING_NS_CC;
 
+#ifndef PLAYBOOK_API_HOST
+#define PLAYBOOK_API_HOST 10.0.2.2
+#endif // PLAYBOOK_API_HOST
+
+#ifndef PLAYBOOK_API_PORT
+#define PLAYBOOK_API_PORT 8080
+#endif // PLAYBOOK_API_PORT
+
+#define STR_VALUE(arg) #arg
+#define STR_VALUE_VAR(arg) STR_VALUE(arg)
+#define PLAYBOOK_WEBSOCKET_URL "ws://" \
+    STR_VALUE_VAR(PLAYBOOK_API_HOST) \
+    ":" STR_VALUE_VAR(PLAYBOOK_API_PORT)
+
 Scene* Prediction::createScene()
 {
     // 'scene' is an autorelease object
@@ -119,31 +133,6 @@ bool Prediction::init()
     // Create event listeners.
     this->initEvents();
     this->scheduleUpdate();
-
-    // Create websocket client.
-    auto websocket = PredictionWebSocket::create("ws://128.237.140.116:8080");
-    websocket->connect();
-    websocket->onConnectionOpened = []() {
-        CCLOG("Connection to server established");
-    };
-    websocket->onMessageReceived = [this](std::string message) {
-        CCLOG("Message received from server: %s", message.c_str());
-
-        rapidjson::Document document;
-        document.Parse(message.c_str());
-        if (document.IsArray()) {
-            for (auto it = document.Begin(); it != document.End(); ++it) {
-                PredictionEvent event = this->intToEvent(it->GetInt());
-                CCLOG("Events: %s", this->eventToString(event).c_str());
-                this->processPredictionEvent(event);
-            }
-        } else {
-            CCLOG("Received message is not an array!");
-        }
-    };
-    websocket->onErrorOccurred = [](const cocos2d::network::WebSocket::ErrorCode& errorCode) {
-        CCLOG("Error connecting to server: %d", errorCode);
-    };
 
     return true;
 }
@@ -527,6 +516,44 @@ void Prediction::initEvents() {
     this->getEventDispatcher()->addEventListenerWithSceneGraphPriority(listener, this);
 }
 
+void Prediction::connectToServer() {
+    // Create websocket client.
+    auto websocket = PredictionWebSocket::create(PLAYBOOK_WEBSOCKET_URL);
+
+    CCLOG("Connecting to %s", PLAYBOOK_WEBSOCKET_URL);
+    websocket->connect();
+
+    websocket->onConnectionOpened = []() {
+        CCLOG("Connection to server established");
+    };
+
+    websocket->onMessageReceived = [this](std::string message) {
+        CCLOG("Message received from server: %s", message.c_str());
+
+        rapidjson::Document document;
+        document.Parse(message.c_str());
+        if (document.IsArray()) {
+            for (auto it = document.Begin(); it != document.End(); ++it) {
+                PredictionEvent event = this->intToEvent(it->GetInt());
+                CCLOG("Events: %s", this->eventToString(event).c_str());
+                this->processPredictionEvent(event);
+            }
+        } else {
+            CCLOG("Received message is not an array!");
+        }
+    };
+
+    websocket->onErrorOccurred = [](const cocos2d::network::WebSocket::ErrorCode& errorCode) {
+        CCLOG("Error connecting to server: %d", errorCode);
+    };
+
+    this->_websocket = websocket;
+}
+
+void Prediction::disconnectFromServer() {
+    this->_websocket->close();
+}
+
 void Prediction::update(float delta) {
     switch (this->_state) {
         case SceneState::INITIAL: {
@@ -547,28 +574,18 @@ void Prediction::update(float delta) {
     }
 }
 
-void Prediction::onEnter() {
-    CCLOG("Prediction->onEnter: Restoring state...");
-    this->restoreState();
-    Layer::onEnter();
-}
-
-void Prediction::onExit() {
-    CCLOG("Prediction->onExit: Saving state...");
-    Layer::onExit();
-    this->saveState();
-}
-
 void Prediction::onResume() {
     CCLOG("Prediction->onResume: Restoring state...");
     PlaybookLayer::onResume();
     this->restoreState();
+    this->connectToServer();
 }
 
 void Prediction::onPause() {
     CCLOG("Prediction->onPause: Saving state...");
     this->saveState();
     PlaybookLayer::onPause();
+    this->disconnectFromServer();
 }
 
 void Prediction::restoreState() {

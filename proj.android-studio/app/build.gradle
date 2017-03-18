@@ -2,18 +2,22 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 25
-    buildToolsVersion "25.0.2"
+    buildToolsVersion '25.0.2'
 
     defaultConfig {
-        applicationId "edu.cmu.etc.fanfare.playbook"
+        applicationId 'edu.cmu.etc.fanfare.playbook'
         minSdkVersion 19
         targetSdkVersion 25
         versionCode 3
-        versionName "1.0.2"
+        versionName '1.0.2'
 
         externalNativeBuild {
             ndkBuild {
                 arguments '-j' + Runtime.runtime.availableProcessors()
+                cppFlags '-frtti',
+                        '-DCC_ENABLE_CHIPMUNK_INTEGRATION=1',
+                        '-std=c++11',
+                        '-fsigned-char'
             }
         }
 
@@ -23,17 +27,16 @@ android {
     }
 
     sourceSets.main {
-        java.srcDir "src"
-        res.srcDir "res"
-        jniLibs.srcDir "libs"
-        manifest.srcFile "AndroidManifest.xml"
-        assets.srcDir "assets"
+        java.srcDir 'src'
+        res.srcDir 'res'
+        jniLibs.srcDir 'libs'
+        manifest.srcFile 'AndroidManifest.xml'
+        assets.srcDir 'assets'
     }
 
     signingConfigs {
-
        release {
-            if (project.hasProperty("RELEASE_STORE_FILE")) {
+            if (project.hasProperty('RELEASE_STORE_FILE')) {
                 storeFile file(RELEASE_STORE_FILE)
                 storePassword RELEASE_STORE_PASSWORD
                 keyAlias RELEASE_KEY_ALIAS
@@ -43,11 +46,29 @@ android {
     }
 
     buildTypes {
+        debug {
+            externalNativeBuild {
+                ndkBuild {
+                    cppFlags '-DCOCOS2D_DEBUG=1',
+                        '-DPLAYBOOK_API_HOST=10.0.2.2',
+                        '-DPLAYBOOK_API_PORT=8080'
+                }
+            }
+        }
+
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-            if (project.hasProperty("RELEASE_STORE_FILE")) {
+            if (project.hasProperty('RELEASE_STORE_FILE')) {
                 signingConfig signingConfigs.release
+            }
+
+            externalNativeBuild {
+                ndkBuild {
+                    cppFlags '-DNDEBUG',
+                        '-DPLAYBOOK_API_HOST=128.2.236.85',
+                        '-DPLAYBOOK_API_PORT=80'
+                }
             }
 
             ndk {

@@ -4,30 +4,11 @@
 #include "cocos2d.h"
 #include "PlaybookLayer.h"
 #include "MappedSprite.h"
+#include "PredictionWebSocket.h"
 
 class Prediction : public PlaybookLayer
 {
 public:
-
-    static cocos2d::Scene* createScene();
-
-    virtual bool init();
-    virtual void update(float delta);
-
-    void onEnter();
-    void onExit();
-    void onResume();
-    void onPause();
-
-    // implement the "static create()" method manually
-    CREATE_FUNC(Prediction);
-
-public:
-    enum SceneState {
-        INITIAL,
-        CONTINUE
-    };
-
     enum PredictionEvent {
         error,
         grandslam,
@@ -52,6 +33,23 @@ public:
         twob,
         threeb,
         unknown
+    };
+
+    static cocos2d::Scene* createScene();
+
+    virtual bool init();
+    virtual void update(float delta);
+
+    void onResume();
+    void onPause();
+
+    // implement the "static create()" method manually
+    CREATE_FUNC(Prediction);
+
+private:
+    enum SceneState {
+        INITIAL,
+        CONTINUE
     };
 
     struct PredictionEventHash {
@@ -84,12 +82,17 @@ public:
 
     MappedSprite* _fieldOverlay;
     std::unordered_map<PredictionEvent, int, PredictionEventHash> _predictionCounts;
-
     cocos2d::DrawNode* _notificationOverlay;
+
+    PredictionWebSocket* _websocket;
+
     int _score = 0;
 
     void initFieldOverlay();
     void initEvents();
+
+    void connectToServer();
+    void disconnectFromServer();
 
     static PredictionEvent stringToEvent(const std::string &);
     static std::string eventToString(PredictionEvent event);
