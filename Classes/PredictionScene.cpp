@@ -87,12 +87,8 @@ bool Prediction::init()
     for (int i = 0; i < 5; i++) {
         auto ball = Sprite::create("Item-Ball.png");
         auto ballScale = this->_ballSlot->getContentSize().height / ball->getContentSize().height / 1.5f;
-        auto ballWorldSpace = this->_ballSlot->convertToWorldSpace(Vec2(
-            110.0f + ball->getContentSize().width * i * ballScale,
-            this->_ballSlot->getContentSize().height / 2.0f
-        ));
-        auto ballNodeSpace = node->convertToNodeSpace(ballWorldSpace);
-        ball->setPosition(ballNodeSpace);
+        auto ballPosition = this->getBallPositionForSlot(ball, i);
+        ball->setPosition(ballPosition);
         ball->setScale(ballScale * ballSlotScale);
         ball->setName("Ball " + std::to_string(i));
         node->addChild(ball, 3);
@@ -470,12 +466,45 @@ void Prediction::initEvents() {
                 }
             }
         }
+
+        // If a ball is being dragged, we should hide the continue banner.
+        if (this->_state == SceneState::CONTINUE) {
+            auto ballIsDragged = std::any_of(this->_balls.begin(), this->_balls.end(), [](Ball ball) {
+                return ball.dragState;
+            });
+
+            if (ballIsDragged) {
+                auto box = this->_continueBanner->getBoundingBox();
+                auto moveBy = MoveBy::create(0.25f, Vec2(0.0f, -box.size.height));
+                this->_continueBanner->runAction(moveBy);
+            }
+        }
     };
 
     listener->onTouchesEnded = [this](const std::vector<Touch*>& touches, Event* event) {
         if (this->_state == SceneState::CONFIRMED) { return; }
 
         for (const auto& touch : touches) {
+            // Check if the continue overlay was tapped.
+            if (this->_state == SceneState::CONTINUE) {
+                auto localLocation = this->_continueBanner->getParent()->convertTouchToNodeSpace(touch);
+                auto box = this->_continueBanner->getBoundingBox();
+                auto ballIsDragged = std::any_of(this->_balls.begin(), this->_balls.end(), [](Ball ball) {
+                    return ball.dragState;
+                });
+
+                if (box.containsPoint(localLocation) && !ballIsDragged) {
+                    this->_state = SceneState::CONFIRMED;
+                }
+
+                // When a ball is not dragged, we should re-show the continue banner.
+                if (ballIsDragged) {
+                    auto box = this->_continueBanner->getBoundingBox();
+                    auto moveBy = MoveBy::create(0.25f, Vec2(0.0f, box.size.height));
+                    this->_continueBanner->runAction(moveBy);
+                }
+            }
+
             // For each ball, check if the touch point is within the bounding box of the ball.
             // If the touch point is within the bounding box, then update the drag state.
             for (auto& ball : this->_balls) {
@@ -488,19 +517,22 @@ void Prediction::initEvents() {
                         this->moveBallToField(this->stringToEvent(ball.dragTarget), ball);
                         this->makePrediction(this->stringToEvent(ball.dragTarget), ball);
                     } else {
-                        auto moveTo = MoveTo::create(0.25f, ball.dragOrigPosition);
-                        ball.sprite->runAction(moveTo);
+                        // Check if the ball is over the slot.
+                        auto localLocation = this->_ballSlot->getParent()->convertTouchToNodeSpace(touch);
+                        auto box = this->_ballSlot->getBoundingBox();
+                        if (box.containsPoint(localLocation)) {
+                            this->moveBallToSlot(ball);
+                            if (ball.selectedTargetState) {
+                                this->undoPrediction(this->stringToEvent(ball.selectedTarget), ball);
+                            }
+                        } else {
+                            auto moveTo = MoveTo::create(0.25f, ball.dragOrigPosition);
+                            ball.sprite->runAction(moveTo);
+                        }
                     }
 
                     ball.dragState = false;
                 }
-            }
-
-            // Check if the continue overlay was tapped.
-            auto localLocation = this->_continueBanner->getParent()->convertTouchToNodeSpace(touch);
-            auto box = this->_continueBanner->getBoundingBox();
-            if (box.containsPoint(localLocation)) {
-                this->_state = SceneState::CONFIRMED;
             }
         }
     };
@@ -569,7 +601,8 @@ void Prediction::disconnectFromServer() {
 
 void Prediction::update(float delta) {
     switch (this->_state) {
-        case SceneState::INITIAL: {
+        case SceneState::INITIAL:
+        case SceneState::CONTINUE: {
             auto balls = this->_balls;
             auto shouldContinue = std::all_of(balls.begin(), balls.end(), [](Ball ball) {
                 return ball.selectedTargetState;
@@ -578,12 +611,12 @@ void Prediction::update(float delta) {
             if (shouldContinue) {
                 this->_state = SceneState::CONTINUE;
                 this->_continueBanner->setVisible(true);
+            } else {
+                this->_state = SceneState::INITIAL;
+                this->_continueBanner->setVisible(false);
             }
             break;
         }
-
-        case SceneState::CONTINUE:
-            break;
 
         case SceneState::CONFIRMED:
             this->_continueBanner->setVisible(false);
@@ -749,7 +782,7 @@ int Prediction::getScoreForEvent(PredictionEvent event) {
     return map[event];
 }
 
-void Prediction::moveBallToField(PredictionEvent event, Prediction::Ball& ball, bool withAnimation) {
+void Prediction::moveBallToField(PredictionEvent event, Ball& ball, bool withAnimation) {
     // Position the ball in the correct place.
     auto eventStr = this->eventToString(event);
     auto position = this->_fieldOverlay->convertToWorldSpace(this->_fieldOverlay->getPolygonCenter(eventStr));
@@ -762,6 +795,30 @@ void Prediction::moveBallToField(PredictionEvent event, Prediction::Ball& ball, 
     } else {
         ball.sprite->setPosition(position);
     }
+}
+
+void Prediction::moveBallToSlot(Ball &ball) {
+    // Find the empty slot for this ball.
+    auto ballIterator = std::find_if(this->_balls.begin(), this->_balls.end(), [ball](Ball item) {
+       return item.sprite == ball.sprite;
+    });
+
+    if (ballIterator != this->_balls.end()) {
+        auto position = this->getBallPositionForSlot(ball.sprite, ballIterator - this->_balls.begin());
+        auto moveTo = MoveTo::create(0.25f, position);
+        ball.sprite->runAction(moveTo);
+    } else {
+        CCLOGWARN("Prediction->moveBallToSlot: There should have been an empty slot!");
+    }
+}
+
+Vec2 Prediction::getBallPositionForSlot(Sprite* ballSprite, int i) {
+    auto ballScale = this->_ballSlot->getContentSize().height / ballSprite->getContentSize().height / 1.5f;
+    auto ballWorldSpace = this->_ballSlot->convertToWorldSpace(Vec2(
+        110.0f + ballSprite->getContentSize().width * i * ballScale,
+        this->_ballSlot->getContentSize().height / 2.0f
+    ));
+    return this->_visibleNode->convertToNodeSpace(ballWorldSpace);
 }
 
 void Prediction::makePrediction(PredictionEvent event, Ball& state) {
@@ -778,6 +835,12 @@ void Prediction::makePrediction(PredictionEvent event, Ball& state) {
     } else {
         this->_predictionCounts[event] = 1;
     }
+}
+
+void Prediction::undoPrediction(PredictionEvent event, Ball& state) {
+    this->_predictionCounts[event]--;
+    state.selectedTarget = "";
+    state.selectedTargetState = false;
 }
 
 void Prediction::processPredictionEvent(PredictionEvent event) {

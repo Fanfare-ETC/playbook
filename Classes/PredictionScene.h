@@ -102,7 +102,10 @@ private:
     void createNotificationOverlay(const std::string&);
     int getScoreForEvent(PredictionEvent event);
     void moveBallToField(PredictionEvent event, Ball& ball, bool withAnimation = true);
+    void moveBallToSlot(Ball& ball);
+    cocos2d::Vec2 getBallPositionForSlot(cocos2d::Sprite* ballSprite, int slot);
     void makePrediction(PredictionEvent event, Ball&);
+    void undoPrediction(PredictionEvent event, Ball&);
     void processPredictionEvent(PredictionEvent event);
 
     void restoreState();
