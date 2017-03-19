@@ -1,10 +1,12 @@
 package edu.cmu.etc.fanfare.playbook;
 
 import android.content.DialogInterface;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.ShareCompat;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -13,30 +15,82 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 
+import com.koushikdutta.async.http.AsyncHttpClient;
+import com.koushikdutta.async.http.WebSocket;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.Date;
+import java.util.StringTokenizer;
+import java.util.concurrent.ExecutionException;
 
 public class TreasureHuntFragment extends Fragment implements View.OnClickListener{
 
     public static int section;
-    long time = 0;
-    FloatingActionButton fb;
+    View view;
     final Handler timerHandler = new Handler();
     Runnable timerRunnable = new Runnable() {
 
         @Override
         public void run() {
-            int sign= 0;
-            Date dt = new Date();
-            int seconds = dt.getSeconds();
-            fb.setAlpha((float)seconds/60);
-            timerHandler.postDelayed(this, 50);
+            final ImageView runner= (ImageView)view.findViewById(R.id.runner);
+            AsyncHttpClient.getDefaultInstance().websocket("ws://128.2.238.137:8080", "my-protocol", new AsyncHttpClient.WebSocketConnectCallback() {
+                @Override
+                public void onCompleted(Exception ex, WebSocket webSocket) {
+                    if (ex != null) {
+                        ex.printStackTrace();
+                        return;
+                    }
+                    final JSONObject obj= new JSONObject();
+                    try {
+                        obj.put("section",section);
+                        obj.put("selection",3);
+                        obj.put("method","get");
+                    } catch (JSONException e1) {
+                        e1.printStackTrace();
+                    }
+
+                    webSocket.send(obj.toString());
+                    webSocket.setStringCallback(new WebSocket.StringCallback() {
+                        public void onStringAvailable(String s) {
+                           if(s!=null)
+                           {
+                               int x=0,y=0;
+                               StringTokenizer st = new StringTokenizer(s);
+                               while (st.hasMoreTokens()) {
+                                    x = Integer.valueOf(st.nextToken());
+                                    y = Integer.valueOf(st.nextToken());
+                               }
+                               Log.d("max",Integer.toString(x)+ " "+Integer.toString(y));
+                               if(x>y)
+                               {
+                                   Log.d("max","warm");
+                                   runner.setImageResource(R.drawable.runnerwarm);
+                                   view.refreshDrawableState();
+
+                               }
+                               else
+                               {
+                                   Log.d("max","cold");
+                                   runner.setImageResource(R.drawable.runnercold);
+                                   view.refreshDrawableState();
+                               }
+                           }
+                        }
+                    });
+
+                }
+            });
+
+            timerHandler.postDelayed(this, 1000);
         }
     };
     @Override
     public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
                              Bundle savedInstanceState) {
         super.onCreateView(inflater, container, savedInstanceState);
-        final View view=inflater.inflate(R.layout.treasurehunt_fragment, container, false);
+        view=inflater.inflate(R.layout.treasurehunt_fragment, container, false);
 
         //create a list box to enter section
 
@@ -60,6 +114,7 @@ public class TreasureHuntFragment extends Fragment implements View.OnClickListen
                 {
                     case 1:
                         image.setImageResource(R.drawable.map2);
+
                         break;
                     case 2:
                         image.setImageResource(R.drawable.map2);
@@ -82,30 +137,89 @@ public class TreasureHuntFragment extends Fragment implements View.OnClickListen
         button_w.setOnClickListener(this);
         ImageView button_c= (ImageView)view.findViewById(R.id.colder);
         button_c.setOnClickListener(this);
-        //ImageView button_p= (ImageView)view.findViewById(R.id.plant);
-        //button_p.setOnClickListener(this);
+        ImageView button_p= (ImageView)view.findViewById(R.id.plant);
+        button_p.setOnClickListener(this);
 
-        //fb= (FloatingActionButton) view.findViewById(R.id.helmet);
-        //timerHandler.postDelayed(timerRunnable,0);
+        timerHandler.postDelayed(timerRunnable,0);
         return view;
 
     }
-
+    public View onResumeView(final LayoutInflater inflater, final ViewGroup container,
+                             Bundle savedInstanceState) {
+        timerHandler.postDelayed(timerRunnable,0);
+        return view;
+    }
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.warmer:
-                    BackgroundWorker backgroundWorker = new BackgroundWorker(section);
-                    backgroundWorker.execute("warmer");
+                try
+                {
+                    final JSONObject obj= new JSONObject();
+                    obj.put("section",section);
+                    obj.put("selection",0);
+                    obj.put("method","post");
+                    AsyncHttpClient.getDefaultInstance().websocket("ws://128.2.238.137:8080", "my-protocol", new AsyncHttpClient.WebSocketConnectCallback() {
+                        @Override
+                        public void onCompleted(Exception ex, WebSocket webSocket) {
+                            if (ex != null) {
+                                ex.printStackTrace();
+                                return;
+                            }
+                            webSocket.send(obj.toString());
+
+                        }
+                    });
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
                 break;
             case R.id.colder:
-                BackgroundWorker backgroundWorker1 = new  BackgroundWorker(section);
-                backgroundWorker1.execute("colder");
+                try
+                {
+                    final JSONObject obj= new JSONObject();
+                    obj.put("section",section);
+                    obj.put("selection",1);
+                    obj.put("method","post");
+                    AsyncHttpClient.getDefaultInstance().websocket("ws://128.2.238.137:8080", "my-protocol", new AsyncHttpClient.WebSocketConnectCallback() {
+                        @Override
+                        public void onCompleted(Exception ex, WebSocket webSocket) {
+                            if (ex != null) {
+                                ex.printStackTrace();
+                                return;
+                            }
+                            webSocket.send(obj.toString());
+
+                        }
+                    });
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
                 break;
             case R.id.plant:
-                BackgroundWorker backgroundWorker2 = new  BackgroundWorker(section);
-                backgroundWorker2.execute("plant");
+                try
+                {
+                    final JSONObject obj= new JSONObject();
+                    obj.put("section",section);
+                    obj.put("selection",2);
+                    obj.put("method","post");
+                    AsyncHttpClient.getDefaultInstance().websocket("ws://128.2.238.137:8080", "my-protocol", new AsyncHttpClient.WebSocketConnectCallback() {
+                        @Override
+                        public void onCompleted(Exception ex, WebSocket webSocket) {
+                            if (ex != null) {
+                                ex.printStackTrace();
+                                return;
+                            }
+                            webSocket.send(obj.toString());
+
+                        }
+                    });
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
                 break;
         }
+
     }
 
 }
