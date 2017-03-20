@@ -28,7 +28,8 @@ import java.util.concurrent.ExecutionException;
 public class TreasureHuntFragment extends Fragment implements View.OnClickListener{
 
     public static int section;
-    View view;
+    private View view;
+    private boolean iswarm=false,iscold=false;
     final Handler timerHandler = new Handler();
     Runnable timerRunnable = new Runnable() {
 
@@ -66,15 +67,15 @@ public class TreasureHuntFragment extends Fragment implements View.OnClickListen
                                if(x>y)
                                {
                                    Log.d("max","warm");
-                                   runner.setImageResource(R.drawable.runnerwarm);
-                                   view.refreshDrawableState();
+                                   iswarm=true;
+
 
                                }
                                else
                                {
                                    Log.d("max","cold");
-                                   runner.setImageResource(R.drawable.runnercold);
-                                   view.refreshDrawableState();
+                                   iscold=true;
+
                                }
                            }
                         }
@@ -82,7 +83,18 @@ public class TreasureHuntFragment extends Fragment implements View.OnClickListen
 
                 }
             });
-
+            if(iswarm)
+            {
+                runner.setImageResource(R.drawable.runnerwarm);
+                view.invalidate();
+                iswarm=false;
+            }
+            if(iscold)
+            {
+                runner.setImageResource(R.drawable.runnercold);
+                view.invalidate();
+                iscold=false;
+            }
             timerHandler.postDelayed(this, 1000);
         }
     };
