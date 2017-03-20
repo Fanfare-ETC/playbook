@@ -130,7 +130,7 @@ bool CollectionScreen::init()
 
 void CollectionScreen::receiveCard()
 {
-    using namespace rapidjson;
+   /** using namespace rapidjson;
     //get notified of a play on field
     //reusing preditcion_notifier
     // Create websocket client.
@@ -156,7 +156,7 @@ void CollectionScreen::receiveCard()
     };
     websocket->onErrorOccurred = [](const cocos2d::network::WebSocket::ErrorCode& errorCode) {
         CCLOG("Error connecting to server: %d", errorCode);
-    };
+    }; **/
 
 }
 
