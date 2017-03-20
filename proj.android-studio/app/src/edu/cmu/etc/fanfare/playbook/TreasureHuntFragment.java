@@ -29,7 +29,7 @@ public class TreasureHuntFragment extends Fragment implements View.OnClickListen
 
     public static int section;
     private View view;
-    private boolean iswarm=false,iscold=false;
+    private boolean iswarm=false,iscold=false,isplant=false;
     final Handler timerHandler = new Handler();
     Runnable timerRunnable = new Runnable() {
 
@@ -57,26 +57,32 @@ public class TreasureHuntFragment extends Fragment implements View.OnClickListen
                         public void onStringAvailable(String s) {
                            if(s!=null)
                            {
-                               int x=0,y=0;
+                               int x=0,y=0,z=0;
                                StringTokenizer st = new StringTokenizer(s);
                                while (st.hasMoreTokens()) {
                                     x = Integer.valueOf(st.nextToken());
                                     y = Integer.valueOf(st.nextToken());
+                                    z = Integer.valueOf(st.nextToken());
                                }
-                               Log.d("max",Integer.toString(x)+ " "+Integer.toString(y));
-                               if(x>y)
+                               Log.d("aggregate",Integer.toString(x)+ " "+Integer.toString(y)+" "+Integer.toString(z));
+                               int max=Math.max(x,y);
+                               max=Math.max(max,z);
+                               if(max==x)
                                {
                                    Log.d("max","warm");
                                    iswarm=true;
-
-
                                }
-                               else
+                               else if(max==y)
                                {
                                    Log.d("max","cold");
                                    iscold=true;
-
                                }
+                               else
+                               {
+                                   Log.d("max","plant");
+                                   isplant=true;
+                               }
+
                            }
                         }
                     });
@@ -89,11 +95,17 @@ public class TreasureHuntFragment extends Fragment implements View.OnClickListen
                 view.invalidate();
                 iswarm=false;
             }
-            if(iscold)
+            else if(iscold)
             {
                 runner.setImageResource(R.drawable.runnercold);
                 view.invalidate();
                 iscold=false;
+            }
+            else
+            {
+                runner.setImageResource(R.drawable.runnerplant);
+                view.invalidate();
+                isplant=false;
             }
             timerHandler.postDelayed(this, 1000);
         }
