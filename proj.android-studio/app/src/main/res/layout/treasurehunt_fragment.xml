@@ -8,28 +8,16 @@
     android:orientation="vertical">
 
     <ImageView
-        android:id="@+id/banner"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:adjustViewBounds="true"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/banner" />
-
-    <ImageView
         android:id="@+id/holder"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="150dp"
-        android:adjustViewBounds="false"
+        android:layout_marginBottom="0dp"
+        android:adjustViewBounds="true"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/runner"
-        app:srcCompat="@drawable/holder" />
+        app:srcCompat="@drawable/holder"/>
 
     <ImageView
         android:id="@+id/lineplant"
@@ -49,16 +37,17 @@
 
     <ImageView
         android:id="@+id/map"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="220dp"
+        android:adjustViewBounds="true"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintVertical_bias="0.292"
+        app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/map2"
-        app:layout_constraintTop_toTopOf="@+id/banner"
-        app:layout_constraintBottom_toBottomOf="@+id/lineplant" />
+        android:layout_marginTop="0dp"
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="16dp"/>
 
     <ImageView
         android:id="@+id/linecold"
@@ -109,11 +98,11 @@
         android:layout_marginBottom="8dp"
         android:layout_marginEnd="8dp"
         android:layout_marginRight="-1dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="16dp"
         android:visibility="visible"
         app:layout_constraintBottom_toBottomOf="@+id/holder"
         app:layout_constraintRight_toRightOf="@+id/holder"
-        app:layout_constraintVertical_bias="0.206"
+        app:layout_constraintVertical_bias="0.2"
         app:srcCompat="@drawable/cold"
         app:layout_constraintTop_toBottomOf="@+id/runner" />
 
