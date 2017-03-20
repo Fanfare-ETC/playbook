@@ -4,6 +4,7 @@
 #include "rapidjson/rapidjson.h"
 #include "rapidjson/writer.h"
 #include "rapidjson/stringbuffer.h"
+#include "PlaybookEvent.h"
 
 USING_NS_CC;
 
@@ -404,8 +405,8 @@ void Prediction::initFieldOverlay() {
         });
 
         if (!isDraggingBall && nextBall != this->_balls.end()) {
-            this->moveBallToField(this->stringToEvent(name), *nextBall);
-            this->makePrediction(this->stringToEvent(name), *nextBall);
+            this->moveBallToField(PlaybookEvent::stringToEvent(name), *nextBall);
+            this->makePrediction(PlaybookEvent::stringToEvent(name), *nextBall);
         }
     };
 }
@@ -514,8 +515,8 @@ void Prediction::initEvents() {
                     // If the ball was being dragged and has a target, we move the ball to the
                     // target location.
                     if (ball.dragTargetState) {
-                        this->moveBallToField(this->stringToEvent(ball.dragTarget), ball);
-                        this->makePrediction(this->stringToEvent(ball.dragTarget), ball);
+                        this->moveBallToField(PlaybookEvent::stringToEvent(ball.dragTarget), ball);
+                        this->makePrediction(PlaybookEvent::stringToEvent(ball.dragTarget), ball);
                     } else {
                         // Check if the ball is over the slot.
                         auto localLocation = this->_ballSlot->getParent()->convertTouchToNodeSpace(touch);
@@ -523,7 +524,7 @@ void Prediction::initEvents() {
                         if (box.containsPoint(localLocation)) {
                             this->moveBallToSlot(ball);
                             if (ball.selectedTargetState) {
-                                this->undoPrediction(this->stringToEvent(ball.selectedTarget), ball);
+                                this->undoPrediction(PlaybookEvent::stringToEvent(ball.selectedTarget), ball);
                             }
                         } else {
                             auto moveTo = MoveTo::create(0.25f, ball.dragOrigPosition);
@@ -579,8 +580,8 @@ void Prediction::connectToServer() {
         document.Parse(message.c_str());
         if (document.IsArray()) {
             for (auto it = document.Begin(); it != document.End(); ++it) {
-                PredictionEvent event = this->intToEvent(it->GetInt());
-                CCLOG("Events: %s", this->eventToString(event).c_str());
+                PlaybookEvent::EventType event = PlaybookEvent::intToEvent(it->GetInt());
+                CCLOG("Events: %s", PlaybookEvent::eventToString(event).c_str());
                 this->processPredictionEvent(event);
             }
         } else {
@@ -652,7 +653,7 @@ void Prediction::restoreState() {
     for (auto& ball : this->_balls) {
         if (ball.selectedTargetState) {
             this->moveBallToField(
-                this->stringToEvent(ball.selectedTarget),
+                PlaybookEvent::stringToEvent(ball.selectedTarget),
                 ball,
                 false
             );
@@ -666,125 +667,38 @@ void Prediction::saveState() {
     preferences->flush();
 }
 
-Prediction::PredictionEvent Prediction::stringToEvent(const std::string &event) {
-    std::unordered_map<std::string, PredictionEvent> map = {
-        {"error", PredictionEvent::error},
-        {"grand_slam", PredictionEvent::grandslam},
-        {"shutout_inning", PredictionEvent::shutout_inning},
-        {"long_out", PredictionEvent::longout},
-        {"runs_batted_in", PredictionEvent::runs_batted},
-        {"pop_fly", PredictionEvent::pop_fly},
-        {"triple_play", PredictionEvent::triple_play},
-        {"grounder", PredictionEvent::grounder},
-        {"double_play", PredictionEvent::double_play},
-        {"second_base", PredictionEvent::twob},
-        {"steal", PredictionEvent::steal},
-        {"pick_off", PredictionEvent::pick_off},
-        {"strike_out", PredictionEvent::strike_out},
-        {"walk", PredictionEvent::walk},
-        {"third_base", PredictionEvent::threeb},
-        {"first_base", PredictionEvent::oneb},
-        {"hit", PredictionEvent::hit},
-        {"home_run", PredictionEvent::homerun},
-        {"pitch_count_16", PredictionEvent::pitchcount_16},
-        {"blocked_run", PredictionEvent::blocked_run},
-        {"walk_off", PredictionEvent::walk_off},
-        {"pitch_count_17", PredictionEvent::pitchcount_17}
+int Prediction::getScoreForEvent(PlaybookEvent::EventType event) {
+    std::unordered_map<PlaybookEvent::EventType, int, PlaybookEvent::EventTypeHash> map = {
+        {PlaybookEvent::EventType::error, 15},
+        {PlaybookEvent::EventType::grandslam, 400},
+        {PlaybookEvent::EventType::shutout_inning, 4},
+        {PlaybookEvent::EventType::longout, 5},
+        {PlaybookEvent::EventType::runs_batted, 4},
+        {PlaybookEvent::EventType::pop_fly, 2},
+        {PlaybookEvent::EventType::triple_play, 1400},
+        {PlaybookEvent::EventType::grounder, 2},
+        {PlaybookEvent::EventType::double_play, 20},
+        {PlaybookEvent::EventType::twob, 5},
+        {PlaybookEvent::EventType::steal, 5},
+        {PlaybookEvent::EventType::pick_off, 7},
+        {PlaybookEvent::EventType::strike_out, 2},
+        {PlaybookEvent::EventType::walk, 3},
+        {PlaybookEvent::EventType::threeb, 20},
+        {PlaybookEvent::EventType::oneb, 3},
+        {PlaybookEvent::EventType::hit, 2},
+        {PlaybookEvent::EventType::homerun, 10},
+        {PlaybookEvent::EventType::pitchcount_16, 2},
+        {PlaybookEvent::EventType::blocked_run, 10},
+        {PlaybookEvent::EventType::walk_off, 50},
+        {PlaybookEvent::EventType::pitchcount_17, 2}
     };
 
     return map[event];
 }
 
-std::string Prediction::eventToString(PredictionEvent event) {
-    std::unordered_map<PredictionEvent, std::string, PredictionEventHash> map = {
-        {PredictionEvent::error, "error"},
-        {PredictionEvent::grandslam, "grand_slam"},
-        {PredictionEvent::shutout_inning, "shutout_inning"},
-        {PredictionEvent::longout, "long_out"},
-        {PredictionEvent::runs_batted, "runs_batted_in"},
-        {PredictionEvent::pop_fly, "pop_fly"},
-        {PredictionEvent::triple_play, "triple_play"},
-        {PredictionEvent::grounder, "grounder"},
-        {PredictionEvent::double_play, "double_play"},
-        {PredictionEvent::twob, "second_base"},
-        {PredictionEvent::steal, "steal"},
-        {PredictionEvent::pick_off, "pick_off"},
-        {PredictionEvent::strike_out, "strike_out"},
-        {PredictionEvent::walk, "walk"},
-        {PredictionEvent::threeb, "third_base"},
-        {PredictionEvent::oneb, "first_base"},
-        {PredictionEvent::hit, "hit"},
-        {PredictionEvent::homerun, "home_run"},
-        {PredictionEvent::pitchcount_16, "pitch_count_16"},
-        {PredictionEvent::blocked_run, "blocked_run"},
-        {PredictionEvent::walk_off, "walk_off"},
-        {PredictionEvent::pitchcount_17, "pitch_count_17"}
-    };
-
-    return map[event];
-}
-
-Prediction::PredictionEvent Prediction::intToEvent(int event) {
-    std::vector<PredictionEvent> map {
-        PredictionEvent::error,
-        PredictionEvent::grandslam,
-        PredictionEvent::shutout_inning,
-        PredictionEvent::longout,
-        PredictionEvent::runs_batted,
-        PredictionEvent::pop_fly,
-        PredictionEvent::triple_play,
-        PredictionEvent::double_play,
-        PredictionEvent::grounder,
-        PredictionEvent::steal,
-        PredictionEvent::pick_off,
-        PredictionEvent::walk,
-        PredictionEvent::blocked_run,
-        PredictionEvent::strike_out,
-        PredictionEvent::hit,
-        PredictionEvent::homerun,
-        PredictionEvent::pitchcount_16,
-        PredictionEvent::walk_off,
-        PredictionEvent::pitchcount_17,
-        PredictionEvent::oneb,
-        PredictionEvent::twob,
-        PredictionEvent::threeb
-    };
-
-    return map[event];
-}
-
-int Prediction::getScoreForEvent(PredictionEvent event) {
-    std::unordered_map<PredictionEvent, int, PredictionEventHash> map = {
-        {PredictionEvent::error, 15},
-        {PredictionEvent::grandslam, 400},
-        {PredictionEvent::shutout_inning, 4},
-        {PredictionEvent::longout, 5},
-        {PredictionEvent::runs_batted, 4},
-        {PredictionEvent::pop_fly, 2},
-        {PredictionEvent::triple_play, 1400},
-        {PredictionEvent::grounder, 2},
-        {PredictionEvent::double_play, 20},
-        {PredictionEvent::twob, 5},
-        {PredictionEvent::steal, 5},
-        {PredictionEvent::pick_off, 7},
-        {PredictionEvent::strike_out, 2},
-        {PredictionEvent::walk, 3},
-        {PredictionEvent::threeb, 20},
-        {PredictionEvent::oneb, 3},
-        {PredictionEvent::hit, 2},
-        {PredictionEvent::homerun, 10},
-        {PredictionEvent::pitchcount_16, 2},
-        {PredictionEvent::blocked_run, 10},
-        {PredictionEvent::walk_off, 50},
-        {PredictionEvent::pitchcount_17, 2}
-    };
-
-    return map[event];
-}
-
-void Prediction::moveBallToField(PredictionEvent event, Ball& ball, bool withAnimation) {
+void Prediction::moveBallToField(PlaybookEvent::EventType event, Ball& ball, bool withAnimation) {
     // Position the ball in the correct place.
-    auto eventStr = this->eventToString(event);
+    auto eventStr = PlaybookEvent::eventToString(event);
     auto position = this->_fieldOverlay->convertToWorldSpace(this->_fieldOverlay->getPolygonCenter(eventStr));
     position = this->_visibleNode->convertToNodeSpace(position);
 
@@ -821,13 +735,13 @@ Vec2 Prediction::getBallPositionForSlot(Sprite* ballSprite, int i) {
     return this->_visibleNode->convertToNodeSpace(ballWorldSpace);
 }
 
-void Prediction::makePrediction(PredictionEvent event, Ball& state) {
+void Prediction::makePrediction(PlaybookEvent::EventType event, Ball& state) {
     // If a previous prediction has been made, update the prediction count.
     if (state.selectedTargetState) {
         this->_predictionCounts[event]--;
     }
 
-    state.selectedTarget = this->eventToString(event);
+    state.selectedTarget = PlaybookEvent::eventToString(event);
     state.selectedTargetState = true;
 
     if (this->_predictionCounts.find(event) != this->_predictionCounts.end()) {
@@ -837,16 +751,16 @@ void Prediction::makePrediction(PredictionEvent event, Ball& state) {
     }
 }
 
-void Prediction::undoPrediction(PredictionEvent event, Ball& state) {
+void Prediction::undoPrediction(PlaybookEvent::EventType event, Ball& state) {
     this->_predictionCounts[event]--;
     state.selectedTarget = "";
     state.selectedTargetState = false;
 }
 
-void Prediction::processPredictionEvent(PredictionEvent event) {
+void Prediction::processPredictionEvent(PlaybookEvent::EventType event) {
     if (this->_predictionCounts.find(event) != this->_predictionCounts.end()) {
         auto count = this->_predictionCounts[event];
-        CCLOG("Prediction correct: %s", this->eventToString(event).c_str());
+        CCLOG("Prediction correct: %s", PlaybookEvent::eventToString(event).c_str());
 
         // Multiply the count with the score.
         auto score = this->getScoreForEvent(event) * count;
@@ -854,11 +768,11 @@ void Prediction::processPredictionEvent(PredictionEvent event) {
 
         // Show overlay.
         std::stringstream ss;
-        ss << "Prediction correct: " << this->eventToString(event) << std::endl;
+        ss << "Prediction correct: " << PlaybookEvent::eventToString(event) << std::endl;
         ss << "Your score is: " << this->_score << std::endl;
         this->createNotificationOverlay(ss.str());
     } else {
-        CCLOG("Prediction not found: %s", this->eventToString(event).c_str());
+        CCLOG("Prediction not found: %s", PlaybookEvent::eventToString(event).c_str());
     }
 }
 
@@ -872,7 +786,7 @@ std::string Prediction::serialize() {
     // Serialize the prediction game state.
     rapidjson::Value predictionCounts (kObjectType);
     for (const auto& item : this->_predictionCounts) {
-        auto event = this->eventToString(item.first);
+        auto event = PlaybookEvent::eventToString(item.first);
         auto count = item.second;
         predictionCounts.AddMember(
             rapidjson::Value(event.c_str(), allocator).Move(),
@@ -929,7 +843,7 @@ void Prediction::unserialize(const std::string& data) {
             CCLOGWARN("Prediction->unserialize: predictionCounts is not an object!");
         } else {
             for (const auto& item : predictionCounts.GetObject()) {
-                auto event = this->stringToEvent(item.name.GetString());
+                auto event = PlaybookEvent::stringToEvent(item.name.GetString());
                 auto count = item.value.GetInt();
                 this->_predictionCounts[event] = count;
             }
