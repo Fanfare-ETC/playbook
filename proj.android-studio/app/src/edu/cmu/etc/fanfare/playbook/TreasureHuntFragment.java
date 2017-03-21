@@ -1,12 +1,9 @@
 package edu.cmu.etc.fanfare.playbook;
 
 import android.content.DialogInterface;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.ShareCompat;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -21,22 +18,24 @@ import com.koushikdutta.async.http.WebSocket;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.Date;
 import java.util.StringTokenizer;
-import java.util.concurrent.ExecutionException;
 
 public class TreasureHuntFragment extends Fragment implements View.OnClickListener{
 
     public static int section;
     private View view;
     private boolean iswarm=false,iscold=false,isplant=false;
+    private final String mEndpoint = "ws://" +
+            BuildConfig.PLAYBOOK_TREASUREHUNT_API_HOST + ":" +
+            BuildConfig.PLAYBOOK_TREASUREHUNT_API_PORT;
     final Handler timerHandler = new Handler();
+
     Runnable timerRunnable = new Runnable() {
 
         @Override
         public void run() {
-            final ImageView runner= (ImageView)view.findViewById(R.id.runner);
-            AsyncHttpClient.getDefaultInstance().websocket("ws://128.2.238.137:8080", "my-protocol", new AsyncHttpClient.WebSocketConnectCallback() {
+            final ImageView runner = (ImageView)view.findViewById(R.id.runner);
+            AsyncHttpClient.getDefaultInstance().websocket(mEndpoint, "my-protocol", new AsyncHttpClient.WebSocketConnectCallback() {
                 @Override
                 public void onCompleted(Exception ex, WebSocket webSocket) {
                     if (ex != null) {
@@ -182,7 +181,7 @@ public class TreasureHuntFragment extends Fragment implements View.OnClickListen
                     obj.put("section",section);
                     obj.put("selection",0);
                     obj.put("method","post");
-                    AsyncHttpClient.getDefaultInstance().websocket("ws://128.2.238.137:8080", "my-protocol", new AsyncHttpClient.WebSocketConnectCallback() {
+                    AsyncHttpClient.getDefaultInstance().websocket(mEndpoint, "my-protocol", new AsyncHttpClient.WebSocketConnectCallback() {
                         @Override
                         public void onCompleted(Exception ex, WebSocket webSocket) {
                             if (ex != null) {
@@ -204,7 +203,7 @@ public class TreasureHuntFragment extends Fragment implements View.OnClickListen
                     obj.put("section",section);
                     obj.put("selection",1);
                     obj.put("method","post");
-                    AsyncHttpClient.getDefaultInstance().websocket("ws://128.2.238.137:8080", "my-protocol", new AsyncHttpClient.WebSocketConnectCallback() {
+                    AsyncHttpClient.getDefaultInstance().websocket(mEndpoint, "my-protocol", new AsyncHttpClient.WebSocketConnectCallback() {
                         @Override
                         public void onCompleted(Exception ex, WebSocket webSocket) {
                             if (ex != null) {
@@ -226,7 +225,7 @@ public class TreasureHuntFragment extends Fragment implements View.OnClickListen
                     obj.put("section",section);
                     obj.put("selection",2);
                     obj.put("method","post");
-                    AsyncHttpClient.getDefaultInstance().websocket("ws://128.2.238.137:8080", "my-protocol", new AsyncHttpClient.WebSocketConnectCallback() {
+                    AsyncHttpClient.getDefaultInstance().websocket(mEndpoint, "my-protocol", new AsyncHttpClient.WebSocketConnectCallback() {
                         @Override
                         public void onCompleted(Exception ex, WebSocket webSocket) {
                             if (ex != null) {

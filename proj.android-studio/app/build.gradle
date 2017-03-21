@@ -11,13 +11,18 @@ android {
         versionCode 3
         versionName '1.0.2'
 
+        buildConfigField 'String', 'PLAYBOOK_TREASUREHUNT_API_HOST', '"10.0.2.2"'
+        buildConfigField 'Integer', 'PLAYBOOK_TREASUREHUNT_API_PORT', '9000'
+
         externalNativeBuild {
             ndkBuild {
                 arguments '-j' + Runtime.runtime.availableProcessors()
                 cppFlags '-frtti',
                         '-DCC_ENABLE_CHIPMUNK_INTEGRATION=1',
                         '-std=c++11',
-                        '-fsigned-char'
+                        '-fsigned-char',
+                        '-DPLAYBOOK_API_HOST=10.0.2.2',
+                        '-DPLAYBOOK_API_PORT=9001'
             }
         }
 
@@ -49,14 +54,29 @@ android {
         debug {
             externalNativeBuild {
                 ndkBuild {
-                    cppFlags '-DCOCOS2D_DEBUG=1',
-                        '-DPLAYBOOK_API_HOST=10.0.2.2',
-                        '-DPLAYBOOK_API_PORT=8080'
+                    cppFlags '-DCOCOS2D_DEBUG=1'
+                }
+            }
+        }
+
+        staging.initWith(buildTypes.debug)
+        staging {
+            buildConfigField 'String', 'PLAYBOOK_TREASUREHUNT_API_HOST', '"staging.fanfare.wong.place"'
+            buildConfigField 'Integer', 'PLAYBOOK_TREASUREHUNT_API_PORT', '9000'
+
+            externalNativeBuild {
+                ndkBuild {
+                    cppFlags '-DNDEBUG',
+                            '-DPLAYBOOK_API_HOST=staging.fanfare.wong.place',
+                            '-DPLAYBOOK_API_PORT=9001'
                 }
             }
         }
 
         release {
+            buildConfigField 'String', 'PLAYBOOK_TREASUREHUNT_API_HOST', '"fanfare.wong.place"'
+            buildConfigField 'Integer', 'PLAYBOOK_TREASUREHUNT_API_PORT', '9000'
+
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             if (project.hasProperty('RELEASE_STORE_FILE')) {
@@ -66,8 +86,8 @@ android {
             externalNativeBuild {
                 ndkBuild {
                     cppFlags '-DNDEBUG',
-                        '-DPLAYBOOK_API_HOST=128.2.236.85',
-                        '-DPLAYBOOK_API_PORT=80'
+                            '-DPLAYBOOK_API_HOST=fanfare.wong.place',
+                            '-DPLAYBOOK_API_PORT=9001'
                 }
             }
 
@@ -85,7 +105,7 @@ android {
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile fileTree(include: ['*.jar'], dir: 'libs')
     compile project(':libcocos2dx')
     compile 'com.android.support:support-v4:25.2.0'
     compile 'com.android.support:appcompat-v7:25.2.0'
