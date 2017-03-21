@@ -64,14 +64,12 @@ public class TreasureHuntFragment extends Fragment implements View.OnClickListen
                                     z = Integer.valueOf(st.nextToken());
                                }
                                Log.d("aggregate",Integer.toString(x)+ " "+Integer.toString(y)+" "+Integer.toString(z));
-                               int max=Math.max(x,y);
-                               max=Math.max(max,z);
-                               if(max==x)
+                               if(x >=y && x>=z)
                                {
                                    Log.d("max","warm");
                                    iswarm=true;
                                }
-                               else if(max==y)
+                               else if(y >z && y>z)
                                {
                                    Log.d("max","cold");
                                    iscold=true;

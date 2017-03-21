@@ -33,7 +33,9 @@
         app:layout_constraintLeft_toLeftOf="@+id/warmer"
         app:layout_constraintRight_toRightOf="@+id/colder"
         app:layout_constraintTop_toBottomOf="@+id/map"
-        app:srcCompat="@drawable/lineplant" />
+        app:srcCompat="@drawable/lineplant"
+        app:layout_constraintHorizontal_bias="0.497"
+        app:layout_constraintVertical_bias="0.953" />
 
     <ImageView
         android:id="@+id/map"
@@ -55,26 +57,27 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="16dp"
         android:layout_marginEnd="32dp"
-        android:layout_marginRight="32dp"
+        android:layout_marginRight="52dp"
         android:visibility="visible"
         app:layout_constraintBottom_toBottomOf="@+id/plant"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="@+id/runner"
         app:srcCompat="@drawable/linecold"
-        android:layout_marginTop="0dp" />
+        android:layout_marginTop="0dp"
+        app:layout_constraintVertical_bias="0.451" />
 
     <ImageView
         android:id="@+id/linehot"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="16dp"
-        android:layout_marginLeft="32dp"
+        android:layout_marginLeft="35dp"
         android:layout_marginStart="24dp"
         android:visibility="visible"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintTop_toTopOf="@+id/runner"
-        app:layout_constraintVertical_bias="0.496"
+        app:layout_constraintVertical_bias="0.412"
         app:srcCompat="@drawable/linehot" />
 
     <ImageView
