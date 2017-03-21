@@ -4,96 +4,85 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/wood"
+    android:background="@drawable/bg"
     android:orientation="vertical">
 
     <ImageView
-        android:id="@+id/map"
-        android:layout_width="357dp"
-        android:layout_height="389dp"
-        android:layout_marginBottom="8dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="8dp"
-        android:contentDescription="@string/app_name"
-        android:paddingEnd="32dp"
-        android:paddingStart="32dp"
-        android:scaleType="fitXY"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintHorizontal_bias="0.25"
+        android:id="@+id/banner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="0dp"
+        android:layout_marginRight="0dp"
+        android:layout_marginTop="-8dp"
+        android:adjustViewBounds="true"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.0"
-        app:srcCompat="@drawable/rpismap" />
+        app:srcCompat="@drawable/banner" />
 
-    <Button
-        android:id="@+id/warmer"
-        android:layout_width="156dp"
-        android:layout_height="56dp"
-        android:layout_marginBottom="97dp"
-        android:layout_marginLeft="14dp"
-        android:background="@color/tertiary"
-        android:fadingEdge="horizontal"
-        android:text="Getting Warmer"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/map"
-        app:layout_constraintVertical_bias="0.17000002"
-        android:layout_marginStart="14dp" />
-
-    <Button
-        android:id="@+id/colder"
-        android:layout_width="155dp"
-        android:layout_height="57dp"
-        android:layout_marginBottom="96dp"
-        android:layout_marginLeft="8dp"
-        android:layout_marginRight="8dp"
-        android:background="@color/accent"
-        android:text="Getting Colder"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintHorizontal_bias="0.83"
-        app:layout_constraintLeft_toRightOf="@+id/warmer"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/map"
-        app:layout_constraintVertical_bias="0.13"
-        android:layout_marginStart="8dp"
-        android:layout_marginEnd="8dp" />
-
-    <Button
-        android:id="@+id/flagdown"
-        android:layout_width="114dp"
-        android:layout_height="64dp"
-        android:layout_marginBottom="6dp"
-        android:layout_marginLeft="8dp"
-        android:layout_marginRight="8dp"
-        android:layout_marginTop="8dp"
-        android:backgroundTint="@android:color/holo_green_dark"
-        android:text="Flag down!"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/colder"
-        app:layout_constraintVertical_bias="0.49"
-        android:layout_marginStart="8dp"
-        android:layout_marginEnd="8dp" />
-
-    <android.support.design.widget.FloatingActionButton
-        android:id="@+id/helmet"
+    <ImageView
+        android:id="@+id/map"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
-        android:layout_marginLeft="8dp"
-        android:layout_marginRight="8dp"
-        android:layout_marginTop="392dp"
-        android:clickable="true"
-        app:fabSize="mini"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintHorizontal_bias="0.495"
-        app:layout_constraintLeft_toLeftOf="@+id/map"
-        app:layout_constraintRight_toRightOf="@+id/map"
-        app:layout_constraintTop_toTopOf="@+id/map"
-        app:layout_constraintVertical_bias="0.134"
-        app:srcCompat="?android:attr/listChoiceIndicatorSingle" />
+        app:srcCompat="@drawable/map2"
+        android:layout_marginTop="0dp"
+        app:layout_constraintTop_toBottomOf="@+id/banner"
+        android:layout_marginLeft="0dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        android:layout_marginRight="0dp"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintHorizontal_bias="1.0"
+        android:layout_marginBottom="32dp"
+        app:layout_constraintBottom_toTopOf="@+id/holder"
+        app:layout_constraintVertical_bias="0.0" />
 
+    <ImageView
+        android:id="@+id/holder"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="0dp"
+        android:layout_marginLeft="0dp"
+        android:layout_marginRight="0dp"
+        android:adjustViewBounds="true"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:srcCompat="@drawable/holder" />
+
+    <ImageView
+        android:id="@+id/warmer"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:srcCompat="@drawable/warm"
+        android:layout_marginLeft="8dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_marginBottom="8dp"
+        app:layout_constraintTop_toTopOf="@+id/holder"
+        android:layout_marginTop="8dp" />
+
+    <ImageView
+        android:id="@+id/colder"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:srcCompat="@drawable/cold"
+        app:layout_constraintTop_toTopOf="@+id/holder"
+        android:layout_marginTop="8dp"
+        app:layout_constraintBottom_toBottomOf="@+id/holder"
+        android:layout_marginBottom="8dp"
+        android:layout_marginRight="8dp"
+        app:layout_constraintRight_toRightOf="@+id/holder" />
+
+    <ImageView
+        android:id="@+id/plant"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:srcCompat="@drawable/plant"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_marginBottom="0dp"
+        android:layout_marginLeft="8dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        android:layout_marginRight="8dp"
+        app:layout_constraintRight_toRightOf="parent" />
 </android.support.constraint.ConstraintLayout>

@@ -2,9 +2,10 @@
 #define PLAYBOOK_PREDICTION_H
 
 #include "cocos2d.h"
+#include "PlaybookLayer.h"
 #include "MappedSprite.h"
 
-class Prediction : public cocos2d::Layer
+class Prediction : public PlaybookLayer
 {
 public:
 
@@ -12,16 +13,16 @@ public:
 
     virtual bool init();
     virtual void update(float delta);
+
     void onEnter();
     void onExit();
-
-    // a selector callback
-    void menuCloseCallback(cocos2d::Ref* pSender);
+    void onResume();
+    void onPause();
 
     // implement the "static create()" method manually
     CREATE_FUNC(Prediction);
 
-private:
+public:
     enum SceneState {
         INITIAL,
         CONTINUE
@@ -60,20 +61,25 @@ private:
         }
     };
 
-    struct BallState {
+    struct Ball {
         bool dragState;
         int dragTouchID;
         cocos2d::Vec2 dragOrigPosition;
 
         bool dragTargetState;
         std::string dragTarget;
+
+        bool selectedTargetState;
+        std::string selectedTarget;
+
+        cocos2d::Sprite* sprite;
     };
 
     cocos2d::Node* _visibleNode;
 
     SceneState _state;
     cocos2d::Sprite* _ballSlot;
-    std::vector<BallState> _ballStates;
+    std::vector<Ball> _balls;
     cocos2d::Sprite* _continueBanner;
 
     MappedSprite* _fieldOverlay;
@@ -85,13 +91,14 @@ private:
     void initFieldOverlay();
     void initEvents();
 
-    PredictionEvent stringToEvent(const std::string &);
-    std::string eventToString(PredictionEvent event);
-    PredictionEvent intToEvent(int event);
+    static PredictionEvent stringToEvent(const std::string &);
+    static std::string eventToString(PredictionEvent event);
+    static PredictionEvent intToEvent(int event);
 
     void createNotificationOverlay(const std::string&);
     int getScoreForEvent(PredictionEvent event);
-    void increasePredictionCount(PredictionEvent);
+    void moveBallToField(PredictionEvent event, Ball& ball, bool withAnimation = true);
+    void makePrediction(PredictionEvent event, Ball&);
     void processPredictionEvent(PredictionEvent event);
 
     void restoreState();

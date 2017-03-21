@@ -193,6 +193,28 @@ void MappedSprite::addEvents() {
     };
 
     this->getEventDispatcher()->addEventListenerWithFixedPriority(this->_listener, 1);
+
+    auto sceneGraphListener = EventListenerTouchAllAtOnce::create();
+
+    sceneGraphListener->onTouchesEnded = [this](const std::vector<Touch*>& touches, Event*) {
+        if (!this->onTouchPolygon) { return; }
+
+        for (const auto& touch : touches) {
+            auto scene = Director::getInstance()->getRunningScene();
+            auto shape = scene->getPhysicsWorld()->getShape(touch->getLocation());
+            if (shape != nullptr) {
+                auto name = this->_polygonNames[shape->getTag()];
+                this->onTouchPolygon(name, this->_polygons[name], touch);
+            }
+        }
+    };
+
+    this->getEventDispatcher()->addEventListenerWithSceneGraphPriority(sceneGraphListener, this);
+}
+
+Vec2 MappedSprite::getPolygonCenter(const std::string& name) {
+    auto polygon = this->_polygons[name];
+    return std::accumulate(polygon.begin(), polygon.end(), Vec2()) / polygon.size();
 }
 
 void MappedSprite::addChildToPolygon(const std::string& name, Node* node) {

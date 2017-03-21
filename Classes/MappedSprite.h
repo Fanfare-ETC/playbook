@@ -17,6 +17,7 @@ public:
                    const cocos2d::Color4F& borderColor);
     void clearHighlight(const std::string& name);
 
+    cocos2d::Vec2 getPolygonCenter(const std::string&);
     void addChildToPolygon(const std::string&, cocos2d::Node*);
     void getPolygonChildren(const std::string&);
 
@@ -25,6 +26,7 @@ public:
     std::function<void(const std::string&, Polygon, const cocos2d::Touch*)> onTouchPolygonBegan;
     std::function<void(const std::string&, Polygon, const cocos2d::Touch*)> onTouchPolygonMoved;
     std::function<void(const std::string&, Polygon, const cocos2d::Touch*)> onTouchPolygonEnded;
+    std::function<void(const std::string&, Polygon, const cocos2d::Touch*)> onTouchPolygon;
 
 private:
     cocos2d::EventListenerTouchAllAtOnce* _listener;
