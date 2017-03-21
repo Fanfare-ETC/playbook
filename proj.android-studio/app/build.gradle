@@ -20,9 +20,7 @@ android {
                 cppFlags '-frtti',
                         '-DCC_ENABLE_CHIPMUNK_INTEGRATION=1',
                         '-std=c++11',
-                        '-fsigned-char',
-                        '-DPLAYBOOK_API_HOST=10.0.2.2',
-                        '-DPLAYBOOK_API_PORT=9001'
+                        '-fsigned-char'
             }
         }
 
@@ -54,12 +52,13 @@ android {
         debug {
             externalNativeBuild {
                 ndkBuild {
-                    cppFlags '-DCOCOS2D_DEBUG=1'
+                    cppFlags '-DCOCOS2D_DEBUG=1',
+                            '-DPLAYBOOK_API_HOST=10.0.2.2',
+                            '-DPLAYBOOK_API_PORT=9001'
                 }
             }
         }
 
-        staging.initWith(buildTypes.debug)
         staging {
             buildConfigField 'String', 'PLAYBOOK_TREASUREHUNT_API_HOST', '"staging.fanfare.wong.place"'
             buildConfigField 'Integer', 'PLAYBOOK_TREASUREHUNT_API_PORT', '9000'
