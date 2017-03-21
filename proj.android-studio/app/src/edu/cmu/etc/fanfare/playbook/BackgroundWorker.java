@@ -46,105 +46,8 @@ public class  BackgroundWorker extends AsyncTask<String,Void,String> {
     @Override
 
     protected String doInBackground(String... params) {
-        Log.d("here","section "+section);
-        if (params[0].equals("warmer")) {
-            try
-            {
-                Log.d("hereeee","section "+section);
-                final JSONObject obj= new JSONObject();
-                obj.put("section",section);
-                obj.put("selection",0);
-                AsyncHttpClient.getDefaultInstance().websocket("ws://128.2.238.137:8080", "my-protocol", new AsyncHttpClient.WebSocketConnectCallback() {
-                    @Override
-                    public void onCompleted(Exception ex, WebSocket webSocket) {
-                        if (ex != null) {
-                            ex.printStackTrace();
-                            return;
-                        }
-                        webSocket.send(obj.toString());
-                        webSocket.setStringCallback(new WebSocket.StringCallback() {
-                            public void onStringAvailable(String s) {
-                                Log.d("hello","I got a string: " + s);
-                            }
-                        });
-                        webSocket.setDataCallback(new DataCallback() {
-                            public void onDataAvailable(DataEmitter emitter, ByteBufferList byteBufferList) {
-                                Log.d("hello","I got some bytes!");
-                                // note that this data has been read
-                                byteBufferList.recycle();
-                            }
-                        });
-                    }
-                });
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-        }
-        if (params[0].equals("colder")) {
-            try
-            {
-                final JSONObject obj= new JSONObject();
-                obj.put("section",section);
-                obj.put("selection",1);
-                AsyncHttpClient.getDefaultInstance().websocket("ws://128.2.238.137:8080", "my-protocol", new AsyncHttpClient.WebSocketConnectCallback() {
-                    @Override
-                    public void onCompleted(Exception ex, WebSocket webSocket) {
-                        if (ex != null) {
-                            ex.printStackTrace();
-                            return;
-                        }
-                        webSocket.send(obj.toString());
-                        webSocket.setStringCallback(new WebSocket.StringCallback() {
-                            public void onStringAvailable(String s) {
-                                Log.d("hello","I got a string: " + s);
-                            }
-                        });
-                        webSocket.setDataCallback(new DataCallback() {
-                            public void onDataAvailable(DataEmitter emitter, ByteBufferList byteBufferList) {
-                                Log.d("hello","I got some bytes!");
-                                // note that this data has been read
-                                byteBufferList.recycle();
-                            }
-                        });
-                    }
-                });
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-        }
-        if (params[0].equals("plant")) {
-            try
-            {
-                final JSONObject obj= new JSONObject();
-                obj.put("section",section);
-                obj.put("selection",2);
-                AsyncHttpClient.getDefaultInstance().websocket("ws://128.2.238.137:8080", "my-protocol", new AsyncHttpClient.WebSocketConnectCallback() {
-                    @Override
-                    public void onCompleted(Exception ex, WebSocket webSocket) {
-                        if (ex != null) {
-                            ex.printStackTrace();
-                            return;
-                        }
-                        webSocket.send(obj.toString());
-                        webSocket.setStringCallback(new WebSocket.StringCallback() {
-                            public void onStringAvailable(String s) {
-                                Log.d("hello","I got a string: " + s);
-                            }
-                        });
-                        webSocket.setDataCallback(new DataCallback() {
-                            public void onDataAvailable(DataEmitter emitter, ByteBufferList byteBufferList) {
-                                Log.d("hello","I got some bytes!");
-                                // note that this data has been read
-                                byteBufferList.recycle();
-                            }
-                        });
-                    }
-                });
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-        }
-        if (params[0].equals("section")) {
+
+       /*if (params[0].equals("section")) {
             try {
                 String sec=Integer.toString(section);
                 Log.v("sec",Integer.toString(section));
@@ -161,8 +64,8 @@ public class  BackgroundWorker extends AsyncTask<String,Void,String> {
                 JSONObject object = new JSONObject();
                 object.put("id", section);
                 Log.d("test", object.toString());
-               /* String post_data = URLEncoder.encode("sectionNo","UTF-8")+"="+URLEncoder.encode(sec,"UTF-8")+"&"
-                        + URLEncoder.encode("Move","UTF-8")+"="+URLEncoder.encode(move,"UTF-8");*/
+               // String post_data = URLEncoder.encode("sectionNo","UTF-8")+"="+URLEncoder.encode(sec,"UTF-8")+"&"
+                        + URLEncoder.encode("Move","UTF-8")+"="+URLEncoder.encode(move,"UTF-8");
                 bufferedWriter.write(object.toString());
                 bufferedWriter.flush();
                 bufferedWriter.close();
@@ -185,10 +88,9 @@ public class  BackgroundWorker extends AsyncTask<String,Void,String> {
             } catch (JSONException e) {
                 e.printStackTrace();
             }
-        }
+        } */
         return null;
     }
-
 
     @Override
     protected void onPreExecute() {
@@ -197,7 +99,6 @@ public class  BackgroundWorker extends AsyncTask<String,Void,String> {
 
     @Override
     protected void onPostExecute(String result) {
-
 
     }
 

@@ -2,18 +2,25 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 25
-    buildToolsVersion "25.0.2"
+    buildToolsVersion '25.0.2'
 
     defaultConfig {
-        applicationId "edu.cmu.etc.fanfare.playbook"
+        applicationId 'edu.cmu.etc.fanfare.playbook'
         minSdkVersion 19
         targetSdkVersion 25
-        versionCode 3
-        versionName "1.0.2"
+        versionCode 4
+        versionName '1.0.3'
+
+        buildConfigField 'String', 'PLAYBOOK_TREASUREHUNT_API_HOST', '"10.0.2.2"'
+        buildConfigField 'Integer', 'PLAYBOOK_TREASUREHUNT_API_PORT', '9000'
 
         externalNativeBuild {
             ndkBuild {
                 arguments '-j' + Runtime.runtime.availableProcessors()
+                cppFlags '-frtti',
+                        '-DCC_ENABLE_CHIPMUNK_INTEGRATION=1',
+                        '-std=c++11',
+                        '-fsigned-char'
             }
         }
 
@@ -23,17 +30,25 @@ android {
     }
 
     sourceSets.main {
-        java.srcDir "src"
-        res.srcDir "res"
-        jniLibs.srcDir "libs"
-        manifest.srcFile "AndroidManifest.xml"
-        assets.srcDir "assets"
+        java.srcDir 'src'
+        res.srcDir 'res'
+        jniLibs.srcDir 'libs'
+        manifest.srcFile 'AndroidManifest.xml'
+        assets.srcDir 'assets'
     }
 
     signingConfigs {
+        staging {
+            if (project.hasProperty('RELEASE_STORE_FILE')) {
+                storeFile file(RELEASE_STORE_FILE)
+                storePassword RELEASE_STORE_PASSWORD
+                keyAlias RELEASE_KEY_ALIAS
+                keyPassword RELEASE_KEY_PASSWORD
+            }
+        }
 
-       release {
-            if (project.hasProperty("RELEASE_STORE_FILE")) {
+        release {
+            if (project.hasProperty('RELEASE_STORE_FILE')) {
                 storeFile file(RELEASE_STORE_FILE)
                 storePassword RELEASE_STORE_PASSWORD
                 keyAlias RELEASE_KEY_ALIAS
@@ -43,11 +58,51 @@ android {
     }
 
     buildTypes {
-        release {
+        debug {
+            externalNativeBuild {
+                ndkBuild {
+                    cppFlags '-DCOCOS2D_DEBUG=1',
+                            '-DPLAYBOOK_API_HOST=10.0.2.2',
+                            '-DPLAYBOOK_API_PORT=9001'
+                }
+            }
+        }
+
+        staging {
+            buildConfigField 'String', 'PLAYBOOK_TREASUREHUNT_API_HOST', '"staging.fanfare.wong.place"'
+            buildConfigField 'Integer', 'PLAYBOOK_TREASUREHUNT_API_PORT', '9000'
+
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-            if (project.hasProperty("RELEASE_STORE_FILE")) {
+            if (project.hasProperty('RELEASE_STORE_FILE')) {
+                signingConfig signingConfigs.staging
+            }
+
+            externalNativeBuild {
+                ndkBuild {
+                    cppFlags '-DNDEBUG',
+                            '-DPLAYBOOK_API_HOST=staging.fanfare.wong.place',
+                            '-DPLAYBOOK_API_PORT=9001'
+                }
+            }
+        }
+
+        release {
+            buildConfigField 'String', 'PLAYBOOK_TREASUREHUNT_API_HOST', '"fanfare.wong.place"'
+            buildConfigField 'Integer', 'PLAYBOOK_TREASUREHUNT_API_PORT', '9000'
+
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            if (project.hasProperty('RELEASE_STORE_FILE')) {
                 signingConfig signingConfigs.release
+            }
+
+            externalNativeBuild {
+                ndkBuild {
+                    cppFlags '-DNDEBUG',
+                            '-DPLAYBOOK_API_HOST=fanfare.wong.place',
+                            '-DPLAYBOOK_API_PORT=9001'
+                }
             }
 
             ndk {
@@ -64,13 +119,13 @@ android {
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile fileTree(include: ['*.jar'], dir: 'libs')
     compile project(':libcocos2dx')
-    compile 'com.android.support:support-v4:25.2.0'
-    compile 'com.android.support:appcompat-v7:25.2.0'
+    compile 'com.android.support:support-v4:25.3.0'
+    compile 'com.android.support:appcompat-v7:25.3.0'
     compile 'com.google.android.gms:play-services-auth:9.6.0'
     compile 'com.android.support.constraint:constraint-layout:1.0.2'
-    compile 'com.android.support:design:25.2.0'
+    compile 'com.android.support:design:25.3.0'
     compile 'com.google.android.gms:play-services-gcm:9.6.0'
     compile 'com.koushikdutta.async:androidasync:2.+'
 

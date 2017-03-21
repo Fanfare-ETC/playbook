@@ -4,8 +4,23 @@
 #include "rapidjson/rapidjson.h"
 #include "rapidjson/writer.h"
 #include "rapidjson/stringbuffer.h"
+#include "PlaybookEvent.h"
 
 USING_NS_CC;
+
+#ifndef PLAYBOOK_API_HOST
+#define PLAYBOOK_API_HOST 10.0.2.2
+#endif // PLAYBOOK_API_HOST
+
+#ifndef PLAYBOOK_API_PORT
+#define PLAYBOOK_API_PORT 8080
+#endif // PLAYBOOK_API_PORT
+
+#define STR_VALUE(arg) #arg
+#define STR_VALUE_VAR(arg) STR_VALUE(arg)
+#define PLAYBOOK_WEBSOCKET_URL "ws://" \
+    STR_VALUE_VAR(PLAYBOOK_API_HOST) \
+    ":" STR_VALUE_VAR(PLAYBOOK_API_PORT)
 
 Scene* Prediction::createScene()
 {
@@ -44,7 +59,7 @@ bool Prediction::init()
     this->addChild(node);
 
     // add grass to screen
-    auto grass = Sprite::create("Prediction-BG-Grass.png");
+    auto grass = Sprite::create("Prediction-BG-Grass.jpg");
     grass->setPosition(0.0f, 0.0f);
     grass->setAnchorPoint(Vec2(0.0f, 0.0f));
     grass->setScaleX(visibleSize.width / grass->getContentSize().width);
@@ -73,12 +88,8 @@ bool Prediction::init()
     for (int i = 0; i < 5; i++) {
         auto ball = Sprite::create("Item-Ball.png");
         auto ballScale = this->_ballSlot->getContentSize().height / ball->getContentSize().height / 1.5f;
-        auto ballWorldSpace = this->_ballSlot->convertToWorldSpace(Vec2(
-            110.0f + ball->getContentSize().width * i * ballScale,
-            this->_ballSlot->getContentSize().height / 2.0f
-        ));
-        auto ballNodeSpace = node->convertToNodeSpace(ballWorldSpace);
-        ball->setPosition(ballNodeSpace);
+        auto ballPosition = this->getBallPositionForSlot(ball, i);
+        ball->setPosition(ballPosition);
         ball->setScale(ballScale * ballSlotScale);
         ball->setName("Ball " + std::to_string(i));
         node->addChild(ball, 3);
@@ -119,31 +130,6 @@ bool Prediction::init()
     // Create event listeners.
     this->initEvents();
     this->scheduleUpdate();
-
-    // Create websocket client.
-    auto websocket = PredictionWebSocket::create("ws://128.237.140.116:8080");
-    websocket->connect();
-    websocket->onConnectionOpened = []() {
-        CCLOG("Connection to server established");
-    };
-    websocket->onMessageReceived = [this](std::string message) {
-        CCLOG("Message received from server: %s", message.c_str());
-
-        rapidjson::Document document;
-        document.Parse(message.c_str());
-        if (document.IsArray()) {
-            for (auto it = document.Begin(); it != document.End(); ++it) {
-                PredictionEvent event = this->intToEvent(it->GetInt());
-                CCLOG("Events: %s", this->eventToString(event).c_str());
-                this->processPredictionEvent(event);
-            }
-        } else {
-            CCLOG("Received message is not an array!");
-        }
-    };
-    websocket->onErrorOccurred = [](const cocos2d::network::WebSocket::ErrorCode& errorCode) {
-        CCLOG("Error connecting to server: %d", errorCode);
-    };
 
     return true;
 }
@@ -419,8 +405,8 @@ void Prediction::initFieldOverlay() {
         });
 
         if (!isDraggingBall && nextBall != this->_balls.end()) {
-            this->moveBallToField(this->stringToEvent(name), *nextBall);
-            this->makePrediction(this->stringToEvent(name), *nextBall);
+            this->moveBallToField(PlaybookEvent::stringToEvent(name), *nextBall);
+            this->makePrediction(PlaybookEvent::stringToEvent(name), *nextBall);
         }
     };
 }
@@ -464,6 +450,8 @@ void Prediction::initEvents() {
     auto listener = EventListenerTouchAllAtOnce::create();
 
     listener->onTouchesBegan = [this](const std::vector<Touch*>& touches, Event* event) {
+        if (this->_state == SceneState::CONFIRMED) { return; }
+
         for (const auto& touch : touches) {
             // For each ball, check if the touch point is within the bounding box of the ball.
             // If the touch point is within the bounding box, then update the drag state.
@@ -479,10 +467,45 @@ void Prediction::initEvents() {
                 }
             }
         }
+
+        // If a ball is being dragged, we should hide the continue banner.
+        if (this->_state == SceneState::CONTINUE) {
+            auto ballIsDragged = std::any_of(this->_balls.begin(), this->_balls.end(), [](Ball ball) {
+                return ball.dragState;
+            });
+
+            if (ballIsDragged) {
+                auto box = this->_continueBanner->getBoundingBox();
+                auto moveBy = MoveBy::create(0.25f, Vec2(0.0f, -box.size.height));
+                this->_continueBanner->runAction(moveBy);
+            }
+        }
     };
 
     listener->onTouchesEnded = [this](const std::vector<Touch*>& touches, Event* event) {
+        if (this->_state == SceneState::CONFIRMED) { return; }
+
         for (const auto& touch : touches) {
+            // Check if the continue overlay was tapped.
+            if (this->_state == SceneState::CONTINUE) {
+                auto localLocation = this->_continueBanner->getParent()->convertTouchToNodeSpace(touch);
+                auto box = this->_continueBanner->getBoundingBox();
+                auto ballIsDragged = std::any_of(this->_balls.begin(), this->_balls.end(), [](Ball ball) {
+                    return ball.dragState;
+                });
+
+                if (box.containsPoint(localLocation) && !ballIsDragged) {
+                    this->_state = SceneState::CONFIRMED;
+                }
+
+                // When a ball is not dragged, we should re-show the continue banner.
+                if (ballIsDragged) {
+                    auto box = this->_continueBanner->getBoundingBox();
+                    auto moveBy = MoveBy::create(0.25f, Vec2(0.0f, box.size.height));
+                    this->_continueBanner->runAction(moveBy);
+                }
+            }
+
             // For each ball, check if the touch point is within the bounding box of the ball.
             // If the touch point is within the bounding box, then update the drag state.
             for (auto& ball : this->_balls) {
@@ -492,11 +515,21 @@ void Prediction::initEvents() {
                     // If the ball was being dragged and has a target, we move the ball to the
                     // target location.
                     if (ball.dragTargetState) {
-                        this->moveBallToField(this->stringToEvent(ball.dragTarget), ball);
-                        this->makePrediction(this->stringToEvent(ball.dragTarget), ball);
+                        this->moveBallToField(PlaybookEvent::stringToEvent(ball.dragTarget), ball);
+                        this->makePrediction(PlaybookEvent::stringToEvent(ball.dragTarget), ball);
                     } else {
-                        auto moveTo = MoveTo::create(0.25f, ball.dragOrigPosition);
-                        ball.sprite->runAction(moveTo);
+                        // Check if the ball is over the slot.
+                        auto localLocation = this->_ballSlot->getParent()->convertTouchToNodeSpace(touch);
+                        auto box = this->_ballSlot->getBoundingBox();
+                        if (box.containsPoint(localLocation)) {
+                            this->moveBallToSlot(ball);
+                            if (ball.selectedTargetState) {
+                                this->undoPrediction(PlaybookEvent::stringToEvent(ball.selectedTarget), ball);
+                            }
+                        } else {
+                            auto moveTo = MoveTo::create(0.25f, ball.dragOrigPosition);
+                            ball.sprite->runAction(moveTo);
+                        }
                     }
 
                     ball.dragState = false;
@@ -506,6 +539,8 @@ void Prediction::initEvents() {
     };
 
     listener->onTouchesMoved = [this](const std::vector<Touch*>& touches, Event* event) {
+        if (this->_state == SceneState::CONFIRMED) { return; }
+
         for (const auto& touch : touches) {
             // For each ball, check if the touch point is within the bounding box of the ball.
             // If the touch point is within the bounding box, then update the drag state.
@@ -527,9 +562,48 @@ void Prediction::initEvents() {
     this->getEventDispatcher()->addEventListenerWithSceneGraphPriority(listener, this);
 }
 
+void Prediction::connectToServer() {
+    // Create websocket client.
+    auto websocket = PredictionWebSocket::create(PLAYBOOK_WEBSOCKET_URL);
+
+    CCLOG("Connecting to %s", PLAYBOOK_WEBSOCKET_URL);
+    websocket->connect();
+
+    websocket->onConnectionOpened = []() {
+        CCLOG("Connection to server established");
+    };
+
+    websocket->onMessageReceived = [this](std::string message) {
+        CCLOG("Message received from server: %s", message.c_str());
+
+        rapidjson::Document document;
+        document.Parse(message.c_str());
+        if (document.IsArray()) {
+            for (auto it = document.Begin(); it != document.End(); ++it) {
+                PlaybookEvent::EventType event = PlaybookEvent::intToEvent(it->GetInt());
+                CCLOG("Events: %s", PlaybookEvent::eventToString(event).c_str());
+                this->processPredictionEvent(event);
+            }
+        } else {
+            CCLOG("Received message is not an array!");
+        }
+    };
+
+    websocket->onErrorOccurred = [](const cocos2d::network::WebSocket::ErrorCode& errorCode) {
+        CCLOG("Error connecting to server: %d", errorCode);
+    };
+
+    this->_websocket = websocket;
+}
+
+void Prediction::disconnectFromServer() {
+    this->_websocket->close();
+}
+
 void Prediction::update(float delta) {
     switch (this->_state) {
-        case SceneState::INITIAL: {
+        case SceneState::INITIAL:
+        case SceneState::CONTINUE: {
             auto balls = this->_balls;
             auto shouldContinue = std::all_of(balls.begin(), balls.end(), [](Ball ball) {
                 return ball.selectedTargetState;
@@ -538,37 +612,31 @@ void Prediction::update(float delta) {
             if (shouldContinue) {
                 this->_state = SceneState::CONTINUE;
                 this->_continueBanner->setVisible(true);
+            } else {
+                this->_state = SceneState::INITIAL;
+                this->_continueBanner->setVisible(false);
             }
             break;
         }
 
-        case SceneState::CONTINUE:
+        case SceneState::CONFIRMED:
+            this->_continueBanner->setVisible(false);
             break;
     }
-}
-
-void Prediction::onEnter() {
-    CCLOG("Prediction->onEnter: Restoring state...");
-    this->restoreState();
-    Layer::onEnter();
-}
-
-void Prediction::onExit() {
-    CCLOG("Prediction->onExit: Saving state...");
-    Layer::onExit();
-    this->saveState();
 }
 
 void Prediction::onResume() {
     CCLOG("Prediction->onResume: Restoring state...");
     PlaybookLayer::onResume();
     this->restoreState();
+    this->connectToServer();
 }
 
 void Prediction::onPause() {
     CCLOG("Prediction->onPause: Saving state...");
     this->saveState();
     PlaybookLayer::onPause();
+    this->disconnectFromServer();
 }
 
 void Prediction::restoreState() {
@@ -585,7 +653,7 @@ void Prediction::restoreState() {
     for (auto& ball : this->_balls) {
         if (ball.selectedTargetState) {
             this->moveBallToField(
-                this->stringToEvent(ball.selectedTarget),
+                PlaybookEvent::stringToEvent(ball.selectedTarget),
                 ball,
                 false
             );
@@ -599,125 +667,38 @@ void Prediction::saveState() {
     preferences->flush();
 }
 
-Prediction::PredictionEvent Prediction::stringToEvent(const std::string &event) {
-    std::unordered_map<std::string, PredictionEvent> map = {
-        {"error", PredictionEvent::error},
-        {"grand_slam", PredictionEvent::grandslam},
-        {"shutout_inning", PredictionEvent::shutout_inning},
-        {"long_out", PredictionEvent::longout},
-        {"runs_batted_in", PredictionEvent::runs_batted},
-        {"pop_fly", PredictionEvent::pop_fly},
-        {"triple_play", PredictionEvent::triple_play},
-        {"grounder", PredictionEvent::grounder},
-        {"double_play", PredictionEvent::double_play},
-        {"second_base", PredictionEvent::twob},
-        {"steal", PredictionEvent::steal},
-        {"pick_off", PredictionEvent::pick_off},
-        {"strike_out", PredictionEvent::strike_out},
-        {"walk", PredictionEvent::walk},
-        {"third_base", PredictionEvent::threeb},
-        {"first_base", PredictionEvent::oneb},
-        {"hit", PredictionEvent::hit},
-        {"home_run", PredictionEvent::homerun},
-        {"pitch_count_16", PredictionEvent::pitchcount_16},
-        {"blocked_run", PredictionEvent::blocked_run},
-        {"walk_off", PredictionEvent::walk_off},
-        {"pitch_count_17", PredictionEvent::pitchcount_17}
+int Prediction::getScoreForEvent(PlaybookEvent::EventType event) {
+    std::unordered_map<PlaybookEvent::EventType, int, PlaybookEvent::EventTypeHash> map = {
+        {PlaybookEvent::EventType::error, 15},
+        {PlaybookEvent::EventType::grandslam, 400},
+        {PlaybookEvent::EventType::shutout_inning, 4},
+        {PlaybookEvent::EventType::longout, 5},
+        {PlaybookEvent::EventType::runs_batted, 4},
+        {PlaybookEvent::EventType::pop_fly, 2},
+        {PlaybookEvent::EventType::triple_play, 1400},
+        {PlaybookEvent::EventType::grounder, 2},
+        {PlaybookEvent::EventType::double_play, 20},
+        {PlaybookEvent::EventType::twob, 5},
+        {PlaybookEvent::EventType::steal, 5},
+        {PlaybookEvent::EventType::pick_off, 7},
+        {PlaybookEvent::EventType::strike_out, 2},
+        {PlaybookEvent::EventType::walk, 3},
+        {PlaybookEvent::EventType::threeb, 20},
+        {PlaybookEvent::EventType::oneb, 3},
+        {PlaybookEvent::EventType::hit, 2},
+        {PlaybookEvent::EventType::homerun, 10},
+        {PlaybookEvent::EventType::pitchcount_16, 2},
+        {PlaybookEvent::EventType::blocked_run, 10},
+        {PlaybookEvent::EventType::walk_off, 50},
+        {PlaybookEvent::EventType::pitchcount_17, 2}
     };
 
     return map[event];
 }
 
-std::string Prediction::eventToString(PredictionEvent event) {
-    std::unordered_map<PredictionEvent, std::string, PredictionEventHash> map = {
-        {PredictionEvent::error, "error"},
-        {PredictionEvent::grandslam, "grand_slam"},
-        {PredictionEvent::shutout_inning, "shutout_inning"},
-        {PredictionEvent::longout, "long_out"},
-        {PredictionEvent::runs_batted, "runs_batted_in"},
-        {PredictionEvent::pop_fly, "pop_fly"},
-        {PredictionEvent::triple_play, "triple_play"},
-        {PredictionEvent::grounder, "grounder"},
-        {PredictionEvent::double_play, "double_play"},
-        {PredictionEvent::twob, "second_base"},
-        {PredictionEvent::steal, "steal"},
-        {PredictionEvent::pick_off, "pick_off"},
-        {PredictionEvent::strike_out, "strike_out"},
-        {PredictionEvent::walk, "walk"},
-        {PredictionEvent::threeb, "third_base"},
-        {PredictionEvent::oneb, "first_base"},
-        {PredictionEvent::hit, "hit"},
-        {PredictionEvent::homerun, "home_run"},
-        {PredictionEvent::pitchcount_16, "pitch_count_16"},
-        {PredictionEvent::blocked_run, "blocked_run"},
-        {PredictionEvent::walk_off, "walk_off"},
-        {PredictionEvent::pitchcount_17, "pitch_count_17"}
-    };
-
-    return map[event];
-}
-
-Prediction::PredictionEvent Prediction::intToEvent(int event) {
-    std::vector<PredictionEvent> map {
-        PredictionEvent::error,
-        PredictionEvent::grandslam,
-        PredictionEvent::shutout_inning,
-        PredictionEvent::longout,
-        PredictionEvent::runs_batted,
-        PredictionEvent::pop_fly,
-        PredictionEvent::triple_play,
-        PredictionEvent::double_play,
-        PredictionEvent::grounder,
-        PredictionEvent::steal,
-        PredictionEvent::pick_off,
-        PredictionEvent::walk,
-        PredictionEvent::blocked_run,
-        PredictionEvent::strike_out,
-        PredictionEvent::hit,
-        PredictionEvent::homerun,
-        PredictionEvent::pitchcount_16,
-        PredictionEvent::walk_off,
-        PredictionEvent::pitchcount_17,
-        PredictionEvent::oneb,
-        PredictionEvent::twob,
-        PredictionEvent::threeb
-    };
-
-    return map[event];
-}
-
-int Prediction::getScoreForEvent(PredictionEvent event) {
-    std::unordered_map<PredictionEvent, int, PredictionEventHash> map = {
-        {PredictionEvent::error, 15},
-        {PredictionEvent::grandslam, 400},
-        {PredictionEvent::shutout_inning, 4},
-        {PredictionEvent::longout, 5},
-        {PredictionEvent::runs_batted, 4},
-        {PredictionEvent::pop_fly, 2},
-        {PredictionEvent::triple_play, 1400},
-        {PredictionEvent::grounder, 2},
-        {PredictionEvent::double_play, 20},
-        {PredictionEvent::twob, 5},
-        {PredictionEvent::steal, 5},
-        {PredictionEvent::pick_off, 7},
-        {PredictionEvent::strike_out, 2},
-        {PredictionEvent::walk, 3},
-        {PredictionEvent::threeb, 20},
-        {PredictionEvent::oneb, 3},
-        {PredictionEvent::hit, 2},
-        {PredictionEvent::homerun, 10},
-        {PredictionEvent::pitchcount_16, 2},
-        {PredictionEvent::blocked_run, 10},
-        {PredictionEvent::walk_off, 50},
-        {PredictionEvent::pitchcount_17, 2}
-    };
-
-    return map[event];
-}
-
-void Prediction::moveBallToField(PredictionEvent event, Prediction::Ball& ball, bool withAnimation) {
+void Prediction::moveBallToField(PlaybookEvent::EventType event, Ball& ball, bool withAnimation) {
     // Position the ball in the correct place.
-    auto eventStr = this->eventToString(event);
+    auto eventStr = PlaybookEvent::eventToString(event);
     auto position = this->_fieldOverlay->convertToWorldSpace(this->_fieldOverlay->getPolygonCenter(eventStr));
     position = this->_visibleNode->convertToNodeSpace(position);
 
@@ -730,13 +711,37 @@ void Prediction::moveBallToField(PredictionEvent event, Prediction::Ball& ball, 
     }
 }
 
-void Prediction::makePrediction(PredictionEvent event, Ball& state) {
+void Prediction::moveBallToSlot(Ball &ball) {
+    // Find the empty slot for this ball.
+    auto ballIterator = std::find_if(this->_balls.begin(), this->_balls.end(), [ball](Ball item) {
+       return item.sprite == ball.sprite;
+    });
+
+    if (ballIterator != this->_balls.end()) {
+        auto position = this->getBallPositionForSlot(ball.sprite, ballIterator - this->_balls.begin());
+        auto moveTo = MoveTo::create(0.25f, position);
+        ball.sprite->runAction(moveTo);
+    } else {
+        CCLOGWARN("Prediction->moveBallToSlot: There should have been an empty slot!");
+    }
+}
+
+Vec2 Prediction::getBallPositionForSlot(Sprite* ballSprite, int i) {
+    auto ballScale = this->_ballSlot->getContentSize().height / ballSprite->getContentSize().height / 1.5f;
+    auto ballWorldSpace = this->_ballSlot->convertToWorldSpace(Vec2(
+        110.0f + ballSprite->getContentSize().width * i * ballScale,
+        this->_ballSlot->getContentSize().height / 2.0f
+    ));
+    return this->_visibleNode->convertToNodeSpace(ballWorldSpace);
+}
+
+void Prediction::makePrediction(PlaybookEvent::EventType event, Ball& state) {
     // If a previous prediction has been made, update the prediction count.
     if (state.selectedTargetState) {
         this->_predictionCounts[event]--;
     }
 
-    state.selectedTarget = this->eventToString(event);
+    state.selectedTarget = PlaybookEvent::eventToString(event);
     state.selectedTargetState = true;
 
     if (this->_predictionCounts.find(event) != this->_predictionCounts.end()) {
@@ -746,10 +751,16 @@ void Prediction::makePrediction(PredictionEvent event, Ball& state) {
     }
 }
 
-void Prediction::processPredictionEvent(PredictionEvent event) {
+void Prediction::undoPrediction(PlaybookEvent::EventType event, Ball& state) {
+    this->_predictionCounts[event]--;
+    state.selectedTarget = "";
+    state.selectedTargetState = false;
+}
+
+void Prediction::processPredictionEvent(PlaybookEvent::EventType event) {
     if (this->_predictionCounts.find(event) != this->_predictionCounts.end()) {
         auto count = this->_predictionCounts[event];
-        CCLOG("Prediction correct: %s", this->eventToString(event).c_str());
+        CCLOG("Prediction correct: %s", PlaybookEvent::eventToString(event).c_str());
 
         // Multiply the count with the score.
         auto score = this->getScoreForEvent(event) * count;
@@ -757,11 +768,11 @@ void Prediction::processPredictionEvent(PredictionEvent event) {
 
         // Show overlay.
         std::stringstream ss;
-        ss << "Prediction correct: " << this->eventToString(event) << std::endl;
+        ss << "Prediction correct: " << PlaybookEvent::eventToString(event) << std::endl;
         ss << "Your score is: " << this->_score << std::endl;
         this->createNotificationOverlay(ss.str());
     } else {
-        CCLOG("Prediction not found: %s", this->eventToString(event).c_str());
+        CCLOG("Prediction not found: %s", PlaybookEvent::eventToString(event).c_str());
     }
 }
 
@@ -775,7 +786,7 @@ std::string Prediction::serialize() {
     // Serialize the prediction game state.
     rapidjson::Value predictionCounts (kObjectType);
     for (const auto& item : this->_predictionCounts) {
-        auto event = this->eventToString(item.first);
+        auto event = PlaybookEvent::eventToString(item.first);
         auto count = item.second;
         predictionCounts.AddMember(
             rapidjson::Value(event.c_str(), allocator).Move(),
@@ -803,6 +814,13 @@ std::string Prediction::serialize() {
     }
     document.AddMember(rapidjson::Value("ballStates", allocator).Move(), ballStates, allocator);
 
+    // Serialize the scene state.
+    document.AddMember(
+        rapidjson::Value("sceneState", allocator).Move(),
+        rapidjson::Value(this->_state).Move(),
+        allocator
+    );
+
     // Create the state.
     StringBuffer buffer;
     Writer<StringBuffer> writer(buffer);
@@ -825,7 +843,7 @@ void Prediction::unserialize(const std::string& data) {
             CCLOGWARN("Prediction->unserialize: predictionCounts is not an object!");
         } else {
             for (const auto& item : predictionCounts.GetObject()) {
-                auto event = this->stringToEvent(item.name.GetString());
+                auto event = PlaybookEvent::stringToEvent(item.name.GetString());
                 auto count = item.value.GetInt();
                 this->_predictionCounts[event] = count;
             }
@@ -877,6 +895,16 @@ void Prediction::unserialize(const std::string& data) {
                 this->_balls[idx].selectedTargetState = selectedTargetStateIterator->value.GetBool();
                 this->_balls[idx].selectedTarget = selectedTargetIterator->value.GetString();
             }
+        }
+    }
+
+    // Restore the scene state.
+    auto sceneStateIterator = document.FindMember("sceneState");
+    if (sceneStateIterator != document.MemberEnd()) {
+        if (!sceneStateIterator->value.IsInt()) {
+            CCLOGWARN("Prediction->unserialize: sceneState is not an integer!");
+        } else {
+            this->_state = (SceneState) sceneStateIterator->value.GetInt();
         }
     }
 }

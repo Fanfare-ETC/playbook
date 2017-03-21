@@ -4,61 +4,28 @@
 #include "cocos2d.h"
 #include "PlaybookLayer.h"
 #include "MappedSprite.h"
+#include "PredictionWebSocket.h"
+#include "PlaybookEvent.h"
 
 class Prediction : public PlaybookLayer
 {
 public:
-
     static cocos2d::Scene* createScene();
 
     virtual bool init();
     virtual void update(float delta);
 
-    void onEnter();
-    void onExit();
     void onResume();
     void onPause();
 
     // implement the "static create()" method manually
     CREATE_FUNC(Prediction);
 
-public:
+private:
     enum SceneState {
         INITIAL,
-        CONTINUE
-    };
-
-    enum PredictionEvent {
-        error,
-        grandslam,
-        shutout_inning,
-        longout,
-        runs_batted,
-        pop_fly,
-        triple_play,
-        double_play,
-        grounder,
-        steal,
-        pick_off,
-        walk,
-        blocked_run,
-        strike_out,
-        hit,
-        homerun,
-        pitchcount_16,
-        walk_off,
-        pitchcount_17,
-        oneb,
-        twob,
-        threeb,
-        unknown
-    };
-
-    struct PredictionEventHash {
-        template <typename T>
-        std::size_t operator()(T t) const {
-            return static_cast<std::size_t>(t);
-        }
+        CONTINUE,
+        CONFIRMED
     };
 
     struct Ball {
@@ -83,23 +50,27 @@ public:
     cocos2d::Sprite* _continueBanner;
 
     MappedSprite* _fieldOverlay;
-    std::unordered_map<PredictionEvent, int, PredictionEventHash> _predictionCounts;
-
+    std::unordered_map<PlaybookEvent::EventType, int, PlaybookEvent::EventTypeHash> _predictionCounts;
     cocos2d::DrawNode* _notificationOverlay;
+
+    PredictionWebSocket* _websocket;
+
     int _score = 0;
 
     void initFieldOverlay();
     void initEvents();
 
-    static PredictionEvent stringToEvent(const std::string &);
-    static std::string eventToString(PredictionEvent event);
-    static PredictionEvent intToEvent(int event);
+    void connectToServer();
+    void disconnectFromServer();
 
     void createNotificationOverlay(const std::string&);
-    int getScoreForEvent(PredictionEvent event);
-    void moveBallToField(PredictionEvent event, Ball& ball, bool withAnimation = true);
-    void makePrediction(PredictionEvent event, Ball&);
-    void processPredictionEvent(PredictionEvent event);
+    int getScoreForEvent(PlaybookEvent::EventType event);
+    void moveBallToField(PlaybookEvent::EventType event, Ball& ball, bool withAnimation = true);
+    void moveBallToSlot(Ball& ball);
+    cocos2d::Vec2 getBallPositionForSlot(cocos2d::Sprite* ballSprite, int slot);
+    void makePrediction(PlaybookEvent::EventType event, Ball&);
+    void undoPrediction(PlaybookEvent::EventType event, Ball&);
+    void processPredictionEvent(PlaybookEvent::EventType event);
 
     void restoreState();
     void saveState();
