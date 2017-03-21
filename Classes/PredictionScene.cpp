@@ -59,7 +59,7 @@ bool Prediction::init()
     this->addChild(node);
 
     // add grass to screen
-    auto grass = Sprite::create("Prediction-BG-Grass.png");
+    auto grass = Sprite::create("Prediction-BG-Grass.jpg");
     grass->setPosition(0.0f, 0.0f);
     grass->setAnchorPoint(Vec2(0.0f, 0.0f));
     grass->setScaleX(visibleSize.width / grass->getContentSize().width);

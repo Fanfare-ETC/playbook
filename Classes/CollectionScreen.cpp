@@ -56,7 +56,7 @@ bool CollectionScreen::init()
     this->addChild(node);
 
     // add grass to screen
-    auto grass = Sprite::create("Collection-BG-Wood.png");
+    auto grass = Sprite::create("Collection-BG-Wood.jpg");
     grass->setPosition(0.0f, 0.0f);
     grass->setAnchorPoint(Vec2(0.0f, 0.0f));
     grass->setScaleX(visibleSize.width / grass->getContentSize().width);
