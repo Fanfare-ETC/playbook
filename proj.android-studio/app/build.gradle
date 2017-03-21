@@ -8,8 +8,8 @@ android {
         applicationId 'edu.cmu.etc.fanfare.playbook'
         minSdkVersion 19
         targetSdkVersion 25
-        versionCode 3
-        versionName '1.0.2'
+        versionCode 4
+        versionName '1.0.3'
 
         buildConfigField 'String', 'PLAYBOOK_TREASUREHUNT_API_HOST', '"10.0.2.2"'
         buildConfigField 'Integer', 'PLAYBOOK_TREASUREHUNT_API_PORT', '9000'
@@ -106,11 +106,11 @@ android {
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
     compile project(':libcocos2dx')
-    compile 'com.android.support:support-v4:25.2.0'
-    compile 'com.android.support:appcompat-v7:25.2.0'
+    compile 'com.android.support:support-v4:25.3.0'
+    compile 'com.android.support:appcompat-v7:25.3.0'
     compile 'com.google.android.gms:play-services-auth:9.6.0'
     compile 'com.android.support.constraint:constraint-layout:1.0.2'
-    compile 'com.android.support:design:25.2.0'
+    compile 'com.android.support:design:25.3.0'
     compile 'com.koushikdutta.async:androidasync:2.+'
 }
 
