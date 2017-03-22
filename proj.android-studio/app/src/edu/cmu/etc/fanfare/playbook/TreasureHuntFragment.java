@@ -1,14 +1,22 @@
 package edu.cmu.etc.fanfare.playbook;
 
+import android.content.Context;
 import android.content.DialogInterface;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AlertDialog;
+import android.util.AttributeSet;
+import android.util.DisplayMetrics;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 
@@ -107,6 +115,107 @@ public class TreasureHuntFragment extends Fragment implements View.OnClickListen
             timerHandler.postDelayed(this, 1000);
         }
     };
+
+    /**
+     * A custom view to draw lines between the runner and the individual
+     * buttons on screen.
+     */
+    public static class LinesView extends View {
+        private final int mWarmerColor = Color.rgb(192, 55, 41);
+        private final int mColderColor = Color.rgb(30, 48, 98);
+        private final int mPlantColor = Color.rgb(255, 195, 13);
+
+        private final Paint mWarmerPaint = new Paint();
+        private final Paint mColderPaint = new Paint();
+        private final Paint mPlantPaint = new Paint();
+
+        private View mRunnerView;
+        private View mWarmerView;
+        private View mColderView;
+        private View mPlantView;
+
+        public LinesView(Context context) {
+            super(context);
+            initPaints();
+        }
+
+        public LinesView(Context context, AttributeSet attributeSet) {
+            super(context, attributeSet);
+            initPaints();
+        }
+
+        private void initPaints() {
+            mWarmerPaint.setColor(mWarmerColor);
+            mColderPaint.setColor(mColderColor);
+            mPlantPaint.setColor(mPlantColor);
+
+            // Make use of display metrics to scale the stroke width appropriately.
+            DisplayMetrics metrics = getResources().getDisplayMetrics();
+            float strokeWidth = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 6.0f, metrics);
+            mWarmerPaint.setStrokeWidth(strokeWidth);
+            mColderPaint.setStrokeWidth(strokeWidth);
+            mPlantPaint.setStrokeWidth(strokeWidth);
+
+            mWarmerPaint.setAntiAlias(true);
+            mColderPaint.setAntiAlias(true);
+            mPlantPaint.setAntiAlias(true);
+        }
+
+        public void setRunnerView(View runnerView) {
+            mRunnerView = runnerView;
+        }
+
+        public void setWarmerView(View warmerView) {
+            mWarmerView = warmerView;
+        }
+
+        public void setColderView(View colderView) {
+            mColderView = colderView;
+        }
+
+        public void setPlantView(View plantView) {
+            mPlantView = plantView;
+        }
+
+        @Override
+        public void onDraw(Canvas canvas) {
+            super.onDraw(canvas);
+
+            // Draw lines only when everything is set up.
+            if (mRunnerView == null || mWarmerView == null || mColderView == null ||
+                    mPlantView == null) {
+                return;
+            }
+
+            int[] runnerLocation = new int[2];
+            int[] warmerLocation = new int[2];
+            int[] colderLocation = new int[2];
+            int[] plantLocation = new int[2];
+            int[] canvasLocation = new int[2];
+
+            mRunnerView.getLocationInWindow(runnerLocation);
+            mWarmerView.getLocationInWindow(warmerLocation);
+            mColderView.getLocationInWindow(colderLocation);
+            mPlantView.getLocationInWindow(plantLocation);
+            this.getLocationInWindow(canvasLocation);
+
+            // Compute the midpoints of these locations.
+            runnerLocation[0] = runnerLocation[0] + mRunnerView.getWidth() / 2 - canvasLocation[0];
+            runnerLocation[1] = runnerLocation[1] + mRunnerView.getHeight() / 2 - canvasLocation[1];
+            warmerLocation[0] = warmerLocation[0] + mWarmerView.getWidth() / 2 - canvasLocation[0];
+            warmerLocation[1] = warmerLocation[1] + mWarmerView.getHeight() / 2 - canvasLocation[1];
+            colderLocation[0] = colderLocation[0] + mColderView.getWidth() / 2 - canvasLocation[0];
+            colderLocation[1] = colderLocation[1] + mColderView.getHeight() / 2 - canvasLocation[1];
+            plantLocation[0] = plantLocation[0] + mPlantView.getWidth() / 2 - canvasLocation[0];
+            plantLocation[1] = plantLocation[1] + mPlantView.getHeight() / 2 - canvasLocation[1];
+
+            // Set up the paints and draw the lines.
+            canvas.drawLine(colderLocation[0], colderLocation[1], runnerLocation[0], runnerLocation[1], mColderPaint);
+            canvas.drawLine(warmerLocation[0], warmerLocation[1], runnerLocation[0], runnerLocation[1], mWarmerPaint);
+            canvas.drawLine(plantLocation[0], plantLocation[1], runnerLocation[0], runnerLocation[1], mPlantPaint);
+        }
+    }
+
     @Override
     public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
                              Bundle savedInstanceState) {
@@ -162,6 +271,24 @@ public class TreasureHuntFragment extends Fragment implements View.OnClickListen
         button_p.setOnClickListener(this);
 
         timerHandler.postDelayed(timerRunnable,0);
+
+        // Dynamically draw lines.
+        view.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                // We only want to know that layout happened for the first time.
+                view.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+
+                // Create a new view for the lines and draw them.
+                LinesView linesView = (LinesView) view.findViewById(R.id.linesView);
+                linesView.setRunnerView(view.findViewById(R.id.runner));
+                linesView.setWarmerView(view.findViewById(R.id.warmer));
+                linesView.setColderView(view.findViewById(R.id.colder));
+                linesView.setPlantView(view.findViewById(R.id.plant));
+                linesView.invalidate();
+            }
+        });
+
         return view;
 
     }
