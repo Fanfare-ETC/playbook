@@ -7,6 +7,7 @@ import android.graphics.Paint;
 import android.graphics.Rect;
 import android.os.Build;
 import android.support.v7.widget.AppCompatTextView;
+import android.text.Layout;
 import android.util.AttributeSet;
 
 public class OutlinedTextView extends AppCompatTextView {
@@ -61,10 +62,11 @@ public class OutlinedTextView extends AppCompatTextView {
         final String transformedText = getTransformationMethod().getTransformation(text, this).toString();
         final Rect textBounds = new Rect();
         final Paint textPaint = getPaint();
+        final Layout textLayout = getLayout();
         final int textWidth = (int) textPaint.measureText(transformedText);
         textPaint.getTextBounds("X", 0, 1, textBounds);
 
-        final int left = w - getPaddingRight() - textWidth - mOuterStrokeWidth;
+        final int left = getPaddingLeft();
         final int bottom = (h + textBounds.height()) / 2;
 
         mPaint.setAntiAlias(true);
@@ -75,18 +77,28 @@ public class OutlinedTextView extends AppCompatTextView {
             mPaint.setLetterSpacing(getLetterSpacing());
         }
 
+        // When drawing, we need to check if the text is ellipsized.
+        int lines = textLayout.getLineCount();
+        int ellipsisCount = textLayout.getEllipsisCount(lines - 1);
+        int ellipsisStart;
+        if (ellipsisCount > 0) {
+            ellipsisStart = textLayout.getEllipsisStart(lines - 1);
+        } else {
+            ellipsisStart = text.length();
+        }
+
         mPaint.setStrokeWidth(mOuterStrokeWidth);
         mPaint.setColor(mOuterStrokeColor);
-        canvas.drawText(transformedText, left, bottom, mPaint);
+        canvas.drawText(transformedText, 0, ellipsisStart, left, bottom, mPaint);
 
         mPaint.setStrokeWidth(mInnerStrokeWidth);
         mPaint.setColor(mInnerStrokeColor);
-        canvas.drawText(transformedText, left, bottom, mPaint);
+        canvas.drawText(transformedText, 0, ellipsisStart, left, bottom, mPaint);
 
         Bitmap bitmap = Bitmap.createBitmap(getMeasuredWidth(), getMeasuredHeight(), Bitmap.Config.ARGB_8888);
         Canvas parentCanvas = new Canvas(bitmap);
         super.onDraw(parentCanvas);
 
-        canvas.drawBitmap(bitmap, mOuterStrokeWidth, 0, new Paint());
+        canvas.drawBitmap(bitmap, 0, 0, null);
     }
 }
