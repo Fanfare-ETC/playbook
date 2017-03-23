@@ -33,8 +33,9 @@ public class TreasureHuntFragment extends Fragment implements View.OnClickListen
 
     public static int section;
     private View view;
-    private boolean iswarm=false,iscold=false,isplant=false;
+    private boolean iswarm=false,iscold=false,isplant=false,isprocess=false;
     private static boolean firstrun=true;
+    private long lastclick_warm=0,lastclick_cold=0,lastclick_plant=0;
     private final String mEndpoint = "ws://" +
             BuildConfig.PLAYBOOK_TREASUREHUNT_API_HOST + ":" +
             BuildConfig.PLAYBOOK_TREASUREHUNT_API_PORT;
@@ -260,53 +261,70 @@ public class TreasureHuntFragment extends Fragment implements View.OnClickListen
     }
     public void onClick(View v) {
         final JSONObject obj= new JSONObject();
+        long current_time = System.currentTimeMillis();
         switch (v.getId()) {
             case R.id.warmer:
-                try
-                {
-                    obj.put("section",section);
-                    obj.put("selection",0);
-                    obj.put("method","post");
+                if((current_time -lastclick_warm) >= 1000 ) {
+                    try {
+                        obj.put("section", section);
+                        obj.put("selection", 0);
+                        obj.put("method", "post");
 
-                } catch (JSONException e) {
-                    e.printStackTrace();
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                    isprocess=true;
+                    lastclick_warm=current_time;
                 }
+                else
+                    isprocess=false;
                 break;
             case R.id.colder:
-                try
-                {
-                    obj.put("section",section);
-                    obj.put("selection",1);
-                    obj.put("method","post");
+                if((current_time -lastclick_cold) >= 1000 ) {
+                    try {
+                        obj.put("section", section);
+                        obj.put("selection", 1);
+                        obj.put("method", "post");
 
-                } catch (JSONException e) {
-                    e.printStackTrace();
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                    isprocess=true;
+                    lastclick_cold=current_time;
                 }
+                else
+                    isprocess=false;
                 break;
             case R.id.plant:
-                try
-                {
-                    obj.put("section",section);
-                    obj.put("selection",2);
-                    obj.put("method","post");
+                if((current_time -lastclick_plant) >= 1000 ) {
+                    try {
+                        obj.put("section", section);
+                        obj.put("selection", 2);
+                        obj.put("method", "post");
 
-                } catch (JSONException e) {
-                    e.printStackTrace();
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                    isprocess=true;
+                    lastclick_plant=current_time;
                 }
+                else
+                    isprocess=false;
                 break;
         }
-        Log.d("endpoint",mEndpoint);
-        AsyncHttpClient.getDefaultInstance().websocket(mEndpoint, "my-protocol", new AsyncHttpClient.WebSocketConnectCallback() {
-            @Override
-            public void onCompleted(Exception ex, WebSocket webSocket) {
-                if (ex != null) {
-                    ex.printStackTrace();
-                    return;
-                }
-                webSocket.send(obj.toString());
+        if(isprocess) {
+            AsyncHttpClient.getDefaultInstance().websocket(mEndpoint, "my-protocol", new AsyncHttpClient.WebSocketConnectCallback() {
+                @Override
+                public void onCompleted(Exception ex, WebSocket webSocket) {
+                    if (ex != null) {
+                        ex.printStackTrace();
+                        return;
+                    }
+                    webSocket.send(obj.toString());
 
-            }
-        });
+                }
+            });
+        }
     }
 
 }
