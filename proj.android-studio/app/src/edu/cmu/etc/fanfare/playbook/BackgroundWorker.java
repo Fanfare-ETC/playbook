@@ -58,7 +58,7 @@ public class  BackgroundWorker extends AsyncTask<String,Void,String> {
                 httpURLConnection.setDoOutput(true);
                 httpURLConnection.setDoInput(true);
                 httpURLConnection.setRequestProperty("Accept", "application/json");
-                httpURLConnection.setRequestProperty("Content-type", "application/json");
+                httpURLConnection.setRequestProperty("C]ontent-type", "application/json");
                 OutputStream outputStream = httpURLConnection.getOutputStream();
                 BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(outputStream, "UTF-8"));
                 JSONObject object = new JSONObject();

@@ -298,25 +298,15 @@ public class TreasureHuntFragment extends Fragment implements View.OnClickListen
         return view;
     }
     public void onClick(View v) {
+        final JSONObject obj= new JSONObject();
         switch (v.getId()) {
             case R.id.warmer:
                 try
                 {
-                    final JSONObject obj= new JSONObject();
                     obj.put("section",section);
                     obj.put("selection",0);
                     obj.put("method","post");
-                    AsyncHttpClient.getDefaultInstance().websocket(mEndpoint, "my-protocol", new AsyncHttpClient.WebSocketConnectCallback() {
-                        @Override
-                        public void onCompleted(Exception ex, WebSocket webSocket) {
-                            if (ex != null) {
-                                ex.printStackTrace();
-                                return;
-                            }
-                            webSocket.send(obj.toString());
 
-                        }
-                    });
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
@@ -324,21 +314,10 @@ public class TreasureHuntFragment extends Fragment implements View.OnClickListen
             case R.id.colder:
                 try
                 {
-                    final JSONObject obj= new JSONObject();
                     obj.put("section",section);
                     obj.put("selection",1);
                     obj.put("method","post");
-                    AsyncHttpClient.getDefaultInstance().websocket(mEndpoint, "my-protocol", new AsyncHttpClient.WebSocketConnectCallback() {
-                        @Override
-                        public void onCompleted(Exception ex, WebSocket webSocket) {
-                            if (ex != null) {
-                                ex.printStackTrace();
-                                return;
-                            }
-                            webSocket.send(obj.toString());
 
-                        }
-                    });
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
@@ -346,28 +325,26 @@ public class TreasureHuntFragment extends Fragment implements View.OnClickListen
             case R.id.plant:
                 try
                 {
-                    final JSONObject obj= new JSONObject();
                     obj.put("section",section);
                     obj.put("selection",2);
                     obj.put("method","post");
-                    AsyncHttpClient.getDefaultInstance().websocket(mEndpoint, "my-protocol", new AsyncHttpClient.WebSocketConnectCallback() {
-                        @Override
-                        public void onCompleted(Exception ex, WebSocket webSocket) {
-                            if (ex != null) {
-                                ex.printStackTrace();
-                                return;
-                            }
-                            webSocket.send(obj.toString());
 
-                        }
-                    });
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
-
                 break;
         }
+        AsyncHttpClient.getDefaultInstance().websocket(mEndpoint, "my-protocol", new AsyncHttpClient.WebSocketConnectCallback() {
+            @Override
+            public void onCompleted(Exception ex, WebSocket webSocket) {
+                if (ex != null) {
+                    ex.printStackTrace();
+                    return;
+                }
+                webSocket.send(obj.toString());
 
+            }
+        });
     }
 
 }
