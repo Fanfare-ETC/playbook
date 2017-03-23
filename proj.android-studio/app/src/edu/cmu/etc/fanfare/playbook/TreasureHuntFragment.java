@@ -2,6 +2,7 @@ package edu.cmu.etc.fanfare.playbook;
 
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.SharedPreferences;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -33,6 +34,7 @@ public class TreasureHuntFragment extends Fragment implements View.OnClickListen
     public static int section;
     private View view;
     private boolean iswarm=false,iscold=false,isplant=false;
+    private static boolean firstrun=true;
     private final String mEndpoint = "ws://" +
             BuildConfig.PLAYBOOK_TREASUREHUNT_API_HOST + ":" +
             BuildConfig.PLAYBOOK_TREASUREHUNT_API_PORT;
@@ -43,57 +45,53 @@ public class TreasureHuntFragment extends Fragment implements View.OnClickListen
         @Override
         public void run() {
             final ImageView runner = (ImageView)view.findViewById(R.id.runner);
-            AsyncHttpClient.getDefaultInstance().websocket(mEndpoint, "my-protocol", new AsyncHttpClient.WebSocketConnectCallback() {
-                @Override
-                public void onCompleted(Exception ex, WebSocket webSocket) {
-                    if (ex != null) {
-                        ex.printStackTrace();
-                        return;
-                    }
-                    final JSONObject obj= new JSONObject();
-                    try {
-                        obj.put("section",section);
-                        obj.put("selection",3);
-                        obj.put("method","get");
-                    } catch (JSONException e1) {
-                        e1.printStackTrace();
-                    }
-
-                    webSocket.send(obj.toString());
-                    webSocket.setStringCallback(new WebSocket.StringCallback() {
-                        public void onStringAvailable(String s) {
-                           if(s!=null)
-                           {
-                               int x=0,y=0,z=0;
-                               StringTokenizer st = new StringTokenizer(s);
-                               while (st.hasMoreTokens()) {
-                                    x = Integer.valueOf(st.nextToken());
-                                    y = Integer.valueOf(st.nextToken());
-                                    z = Integer.valueOf(st.nextToken());
-                               }
-                               Log.d("aggregate",Integer.toString(x)+ " "+Integer.toString(y)+" "+Integer.toString(z));
-                               if(x >=y && x>=z)
-                               {
-                                   Log.d("max","warm");
-                                   iswarm=true;
-                               }
-                               else if(y >z && y>z)
-                               {
-                                   Log.d("max","cold");
-                                   iscold=true;
-                               }
-                               else
-                               {
-                                   Log.d("max","plant");
-                                   isplant=true;
-                               }
-
-                           }
+            if(firstrun) {
+                AsyncHttpClient.getDefaultInstance().websocket(mEndpoint, "my-protocol", new AsyncHttpClient.WebSocketConnectCallback() {
+                    @Override
+                    public void onCompleted(Exception ex, WebSocket webSocket) {
+                        if (ex != null) {
+                            ex.printStackTrace();
+                            return;
                         }
-                    });
+                        final JSONObject obj = new JSONObject();
+                        try {
+                            obj.put("section", section);
+                            obj.put("selection", 3);
+                            obj.put("method", "get");
+                        } catch (JSONException e1) {
+                            e1.printStackTrace();
+                        }
+                        webSocket.send(obj.toString());
+                        webSocket.setStringCallback(new WebSocket.StringCallback() {
+                            public void onStringAvailable(String s) {
+                                if (s != null) {
+                                    int x = 0, y = 0, z = 0;
+                                    StringTokenizer st = new StringTokenizer(s);
+                                    while (st.hasMoreTokens()) {
+                                        x = Integer.valueOf(st.nextToken());
+                                        y = Integer.valueOf(st.nextToken());
+                                        z = Integer.valueOf(st.nextToken());
+                                    }
+                                    Log.d("aggregate", Integer.toString(x) + " " + Integer.toString(y) + " " + Integer.toString(z));
+                                    if (x >= y && x >= z) {
+                                        Log.d("max", "warm");
+                                        iswarm = true;
+                                    } else if (y > z && y > z) {
+                                        Log.d("max", "cold");
+                                        iscold = true;
+                                    } else {
+                                        Log.d("max", "plant");
+                                        isplant = true;
+                                    }
 
-                }
-            });
+                                }
+                            }
+                        });
+
+                    }
+                });
+                firstrun= true;
+            }
             if(iswarm)
             {
                 runner.setImageResource(R.drawable.runnerwarm);
@@ -106,12 +104,13 @@ public class TreasureHuntFragment extends Fragment implements View.OnClickListen
                 view.invalidate();
                 iscold=false;
             }
-            else
+            else if(isplant)
             {
                 runner.setImageResource(R.drawable.runnerplant);
                 view.invalidate();
                 isplant=false;
             }
+            else{}
             timerHandler.postDelayed(this, 1000);
         }
     };
@@ -222,46 +221,8 @@ public class TreasureHuntFragment extends Fragment implements View.OnClickListen
         super.onCreateView(inflater, container, savedInstanceState);
         view=inflater.inflate(R.layout.treasurehunt_fragment, container, false);
 
-        //create a list box to enter section
-
-        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-        final ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(getActivity(), android.R.layout.select_dialog_singlechoice);
-        arrayAdapter.add("1");
-        arrayAdapter.add("2");
-        arrayAdapter.add("3");
-        arrayAdapter.add("4");
-
-        // 2. Chain together various setter methods to set the dialog characteristics
-        //builder.setMessage(R.string.dialog_message1)
-        builder.setTitle("Select Section");
-        builder.setAdapter(arrayAdapter, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                section = which;
-
-                ImageView image= (ImageView)view.findViewById(R.id.map);
-                switch(section)
-                {
-                    case 1:
-                        image.setImageResource(R.drawable.map2);
-
-                        break;
-                    case 2:
-                        image.setImageResource(R.drawable.map2);
-                        break;
-                    case 3:
-                        image.setImageResource(R.drawable.map2);
-                        break;
-                    case 4:
-                        image.setImageResource(R.drawable.map2);
-                        break;
-                }
-
-            }
-        });
-        AlertDialog dialog = builder.create();
-        dialog.show();
-
+        SharedPreferences settings = this.getContext().getSharedPreferences("FANFARE_SHARED", 0);
+        section = settings.getInt("section", 0)-1;
 
         ImageView button_w= (ImageView)view.findViewById(R.id.warmer);
         button_w.setOnClickListener(this);
@@ -270,7 +231,7 @@ public class TreasureHuntFragment extends Fragment implements View.OnClickListen
         ImageView button_p= (ImageView)view.findViewById(R.id.plant);
         button_p.setOnClickListener(this);
 
-        timerHandler.postDelayed(timerRunnable,0);
+       timerHandler.postDelayed(timerRunnable,0);
 
         // Dynamically draw lines.
         view.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
@@ -334,6 +295,7 @@ public class TreasureHuntFragment extends Fragment implements View.OnClickListen
                 }
                 break;
         }
+        Log.d("endpoint",mEndpoint);
         AsyncHttpClient.getDefaultInstance().websocket(mEndpoint, "my-protocol", new AsyncHttpClient.WebSocketConnectCallback() {
             @Override
             public void onCompleted(Exception ex, WebSocket webSocket) {
