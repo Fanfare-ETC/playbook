@@ -2,6 +2,9 @@
 #define PLAYBOOK_PREDICTION_H
 
 #include "cocos2d.h"
+#include "json/rapidjson.h"
+#include "json/document.h"
+
 #include "PlaybookLayer.h"
 #include "MappedSprite.h"
 #include "PredictionWebSocket.h"
@@ -62,6 +65,9 @@ private:
 
     void connectToServer();
     void disconnectFromServer();
+    void handleServerMessage(const std::string& event,
+                             const rapidjson::Value::ConstMemberIterator& data, bool hasData);
+    void handlePlaysCreated(const rapidjson::Value::ConstMemberIterator& data, bool hasData);
 
     void createNotificationOverlay(const std::string&);
     int getScoreForEvent(PlaybookEvent::EventType event);

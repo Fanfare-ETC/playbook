@@ -1,9 +1,8 @@
-#include <json/document.h>
+#include "json/writer.h"
+#include "json/stringbuffer.h"
+
 #include "PredictionScene.h"
 #include "PredictionWebSocket.h"
-#include "rapidjson/rapidjson.h"
-#include "rapidjson/writer.h"
-#include "rapidjson/stringbuffer.h"
 #include "PlaybookEvent.h"
 
 USING_NS_CC;
@@ -578,14 +577,23 @@ void Prediction::connectToServer() {
 
         rapidjson::Document document;
         document.Parse(message.c_str());
-        if (document.IsArray()) {
-            for (auto it = document.Begin(); it != document.End(); ++it) {
-                PlaybookEvent::EventType event = PlaybookEvent::intToEvent(it->GetInt());
-                CCLOG("Events: %s", PlaybookEvent::eventToString(event).c_str());
-                this->processPredictionEvent(event);
+        if (document.IsObject()) {
+            auto eventIterator = document.FindMember("event");
+            if (eventIterator == document.MemberEnd()) {
+                CCLOGWARN("Received message doesn't contain property \"event\"!");
+                return;
             }
+
+            if (!eventIterator->value.IsString()) {
+                CCLOGWARN("Property \"event\" is not a string!");
+                return;
+            }
+
+            std::string eventStr (eventIterator->value.GetString());
+            auto dataIterator = document.FindMember("data");
+            this->handleServerMessage(eventStr, dataIterator, dataIterator != document.MemberEnd());
         } else {
-            CCLOG("Received message is not an array!");
+            CCLOGWARN("Received message is not an object!");
         }
     };
 
@@ -598,6 +606,38 @@ void Prediction::connectToServer() {
 
 void Prediction::disconnectFromServer() {
     this->_websocket->close();
+}
+
+void Prediction::handleServerMessage(const std::string& event,
+                                     const rapidjson::Value::ConstMemberIterator& dataIterator,
+                                     bool hasData) {
+    if (event == "server:playsCreated") {
+        this->handlePlaysCreated(dataIterator, hasData);
+    } else if (event == "server:clearPredictions") {
+
+    } else {
+        CCLOGWARN("Unknown event \"%s\" received from server!", event.c_str());
+    }
+}
+
+void Prediction::handlePlaysCreated(const rapidjson::Value::ConstMemberIterator& dataIterator,
+                                    bool hasData) {
+    if (!hasData) {
+        CCLOGWARN("Event \"server:playsCreated\" doesn't have data!");
+        return;
+    }
+
+    if (!dataIterator->value.IsArray()) {
+        CCLOG("Event \"server:playsCreated\" has data that's not an array!");
+        return;
+    }
+
+    auto plays = dataIterator->value.GetArray();
+    for (auto it = plays.Begin(); it != plays.End(); ++it) {
+        PlaybookEvent::EventType event = PlaybookEvent::intToEvent(it->GetInt());
+        CCLOG("Events: %s", PlaybookEvent::eventToString(event).c_str());
+        this->processPredictionEvent(event);
+    }
 }
 
 void Prediction::update(float delta) {

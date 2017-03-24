@@ -2,14 +2,15 @@
 // Created by ramya on 3/2/17.
 //
 
-#include <rapidjson/document.h>
+#include "json/document.h"
+#include "json/rapidjson.h"
+#include "json/writer.h"
+#include "json/stringbuffer.h"
+
 #include "CollectionScreen.h"
 #include "PredictionScene.h"
 #include "PredictionWebSocket.h"
 #include "MappedSprite.h"
-#include "rapidjson/rapidjson.h"
-#include "rapidjson/writer.h"
-#include "rapidjson/stringbuffer.h"
 
 USING_NS_CC;
 using namespace std;
