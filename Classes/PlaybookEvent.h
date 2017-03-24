@@ -31,6 +31,12 @@ public:
         unknown
     };
 
+    enum Team {
+        BATTING,
+        FIELDING,
+        NONE
+    };
+
     struct EventTypeHash {
         template <typename T>
         std::size_t operator()(T t) const {
@@ -41,6 +47,8 @@ public:
     static EventType stringToEvent(const std::string &);
     static std::string eventToString(EventType event);
     static EventType intToEvent(int event);
+
+    static Team getTeam(EventType event);
 };
 
 #endif //PLAYBOOK_PLAYBOOK_EVENT_H

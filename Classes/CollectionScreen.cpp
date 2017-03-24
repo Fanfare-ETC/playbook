@@ -2,8 +2,6 @@
 // Created by ramya on 3/2/17.
 //
 
-#include "json/document.h"
-#include "json/rapidjson.h"
 #include "json/writer.h"
 #include "json/stringbuffer.h"
 
@@ -13,7 +11,20 @@
 #include "MappedSprite.h"
 
 USING_NS_CC;
-using namespace std;
+
+#ifndef PLAYBOOK_API_HOST
+#define PLAYBOOK_API_HOST 10.0.2.2
+#endif // PLAYBOOK_API_HOST
+
+#ifndef PLAYBOOK_API_PORT
+#define PLAYBOOK_API_PORT 8080
+#endif // PLAYBOOK_API_PORT
+
+#define STR_VALUE(arg) #arg
+#define STR_VALUE_VAR(arg) STR_VALUE(arg)
+#define PLAYBOOK_WEBSOCKET_URL "ws://" \
+    STR_VALUE_VAR(PLAYBOOK_API_HOST) \
+    ":" STR_VALUE_VAR(PLAYBOOK_API_PORT)
 
 //struct type_rect { float  array[4][2]; };
 //typedef struct type_rect type_rect;
@@ -52,6 +63,7 @@ bool CollectionScreen::init()
 
     // Create Node that represents the visible portion of the screen.
     auto node = Node::create();
+    this->_visibleNode = node;
     node->setContentSize(visibleSize);
     node->setPosition(origin);
     this->addChild(node);
@@ -87,21 +99,21 @@ bool CollectionScreen::init()
     //add give to section button
     auto givetosection = Sprite::create("Collection-Button-GiveSection.png");
     auto givetosectionScale = visibleSize.width /givetosection->getContentSize().width;
-    givetosection->setPosition(0.0f, visibleSize.height/3.0);
+    givetosection->setPosition(0.0f, visibleSize.height/3.0f);
     givetosection->setAnchorPoint(Vec2(0.0f, 0.0f));
     givetosection->setScaleX(givetosectionScale/2);
     givetosection->setScaleY(givetosectionScale/2);
-    auto givetosectionHeight =givetosectionScale * givetosection->getContentSize().height;
+    auto givetosectionHeight = givetosectionScale * givetosection->getContentSize().height;
     node->addChild(givetosection, 0);
 
     //add dragtoscore button
     auto dragtoscore = Sprite::create("Collection-Button-ScoreSet.png");
     auto dragtoscoreScale = visibleSize.width /dragtoscore->getContentSize().width;
-    dragtoscore->setPosition(visibleSize.width/2.0, visibleSize.height/3.0);
+    dragtoscore->setPosition(visibleSize.width/2.0f, visibleSize.height/3.0f);
     dragtoscore->setAnchorPoint(Vec2(0.0f, 0.0f));
     dragtoscore->setScaleX(dragtoscoreScale/2);
     dragtoscore->setScaleY(dragtoscoreScale/2);
-    auto dragtoscoreHeight =dragtoscoreScale * dragtoscore->getContentSize().height;
+    auto dragtoscoreHeight = dragtoscoreScale * dragtoscore->getContentSize().height;
     node->addChild(dragtoscore, 0);
 
     //generate a random goal each time
@@ -111,69 +123,153 @@ bool CollectionScreen::init()
 
     /* generate secret number between 1 and 10: */
     int goal_number = rand() % 15 + 1;
-    string file_1= "goal/goal";
-    string file_2= std::to_string(goal_number);
-    string file_3= ".png";
-    string filename = file_1+file_2+file_3;
+    std::string file_1 ("goal/goal");
+    std::string file_2 (std::to_string(goal_number));
+    std::string file_3 (".png");
+    std::string filename (file_1+file_2+file_3);
     CCLOG("filename:%s",filename.c_str());
     //add goals
     auto goal = Sprite::create(filename);
     auto goalScale = visibleSize.width /goal->getContentSize().width;
-    goal->setPosition(visibleSize.width/1.75, visibleSize.height/1.4);
+    goal->setPosition(visibleSize.width/1.75f, visibleSize.height/1.4f);
     goal->setAnchorPoint(Vec2(0.0f, 0.0f));
     goal->setScaleX(goalScale/3);
     goal->setScaleY(goalScale/3);
-    auto goalHeight =goalScale * goal->getContentSize().height;
+    auto goalHeight = goalScale * goal->getContentSize().height;
     node->addChild(goal, 0);
-    receiveCard();
     return true;
 }
 
-void CollectionScreen::receiveCard()
-{
-   /** using namespace rapidjson;
-    //get notified of a play on field
-    //reusing preditcion_notifier
+void CollectionScreen::onResume() {
+    CCLOG("CollectionScreen->onResume: Restoring state...");
+    PlaybookLayer::onResume();
+    //this->restoreState();
+    this->connectToServer();
+}
+
+void CollectionScreen::onPause() {
+    CCLOG("CollectionScreen->onPause: Saving state...");
+    //this->saveState();
+    PlaybookLayer::onPause();
+    this->disconnectFromServer();
+}
+
+void CollectionScreen::connectToServer() {
     // Create websocket client.
-    auto websocket = PredictionWebSocket::create("ws://128.237.140.116:8080");
+    auto websocket = PredictionWebSocket::create(PLAYBOOK_WEBSOCKET_URL);
+
+    CCLOG("Connecting to %s", PLAYBOOK_WEBSOCKET_URL);
     websocket->connect();
+
     websocket->onConnectionOpened = []() {
         CCLOG("Connection to server established");
     };
+
     websocket->onMessageReceived = [this](std::string message) {
         CCLOG("Message received from server: %s", message.c_str());
 
         rapidjson::Document document;
         document.Parse(message.c_str());
-        if (document.IsArray()) {
-            for (auto it = document.Begin(); it != document.End(); ++it) {
-                Prediction::PredictionEvent event = Prediction::intToEvent(it->GetInt());
-                CCLOG("Events: %s", Prediction::eventToString(event).c_str());
-
+        if (document.IsObject()) {
+            auto eventIterator = document.FindMember("event");
+            if (eventIterator == document.MemberEnd()) {
+                CCLOGWARN("Received message doesn't contain property \"event\"!");
+                return;
             }
+
+            if (!eventIterator->value.IsString()) {
+                CCLOGWARN("Property \"event\" is not a string!");
+                return;
+            }
+
+            std::string eventStr (eventIterator->value.GetString());
+            auto dataIterator = document.FindMember("data");
+            this->handleServerMessage(eventStr, dataIterator, dataIterator != document.MemberEnd());
         } else {
-            CCLOG("Received message is not an array!");
+            CCLOGWARN("Received message is not an object!");
         }
     };
+
     websocket->onErrorOccurred = [](const cocos2d::network::WebSocket::ErrorCode& errorCode) {
         CCLOG("Error connecting to server: %d", errorCode);
-    }; **/
+    };
 
+    this->_websocket = websocket;
 }
 
-void CollectionScreen::menuCloseCallback(Ref* pSender)
+void CollectionScreen::disconnectFromServer() {
+    this->_websocket->close();
+}
+
+void CollectionScreen::handleServerMessage(const std::string& event,
+                                      const rapidjson::Value::ConstMemberIterator& dataIterator,
+                                      bool hasData) {
+    CCLOG("Handling event from server: \"%s\"", event.c_str());
+    if (event == "server:playsCreated") {
+        this->handlePlaysCreated(dataIterator, hasData);
+    } else {
+        CCLOGWARN("Unknown event \"%s\" received from server!", event.c_str());
+    }
+}
+
+void CollectionScreen::handlePlaysCreated(const rapidjson::Value::ConstMemberIterator& dataIterator,
+                                     bool hasData) {
+    if (!hasData) {
+        CCLOGWARN("Event \"server:playsCreated\" doesn't have data!");
+        return;
+    }
+
+    if (!dataIterator->value.IsArray()) {
+        CCLOG("Event \"server:playsCreated\" has data that's not an array!");
+        return;
+    }
+
+    auto plays = dataIterator->value.GetArray();
+    for (auto it = plays.Begin(); it != plays.End(); ++it) {
+        PlaybookEvent::EventType event = PlaybookEvent::intToEvent(it->GetInt());
+        CCLOG("Events: %s", PlaybookEvent::eventToString(event).c_str());
+        this->receiveCard(event);
+    }
+}
+
+void CollectionScreen::receiveCard(PlaybookEvent::EventType event)
 {
-    //Close the cocos2d-x game scene and quit the application
-    Director::getInstance()->end();
+    auto team = PlaybookEvent::getTeam(event);
+    if (team == PlaybookEvent::Team::NONE) {
+        return;
+    }
 
-#if (CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
-    exit(0);
-#endif
+    std::stringstream cardFileNameSs;
+    cardFileNameSs << "cards/Card-";
+    switch (team) {
+        case PlaybookEvent::Team::FIELDING:
+            cardFileNameSs << "F-";
+            break;
+        case PlaybookEvent::Team::BATTING:
+            cardFileNameSs << "B-";
+            break;
+        default:
+            break;
+    }
 
-    /*To navigate back to native iOS screen(if present) without quitting the application  ,do not use Director::getInstance()->end() and exit(0) as given above,instead trigger a custom event created in RootViewController.mm as below*/
+    cardFileNameSs << PlaybookEvent::eventToString(event) << ".jpg";
 
-    //EventCustom customEndEvent("game_scene_close_event");
-    //_eventDispatcher->dispatchEvent(&customEndEvent);
+    auto visibleSize = Director::getInstance()->getVisibleSize();
+    auto card = Sprite::create(cardFileNameSs.str());
+    auto cardScale = card->getContentSize().width / visibleSize.width * 0.8f;
+    card->setPosition(visibleSize.width / 2.0f, visibleSize.height / 2.0f);
+    card->setScale(0.0f);
+    this->_visibleNode->addChild(card, 1);
+
+    auto fadeIn = FadeIn::create(0.50f);
+    auto scaleTo = EaseBackOut::create(ScaleTo::create(0.50f, cardScale));
+    card->runAction(fadeIn);
+    card->runAction(scaleTo);
+
+    auto listener = EventListenerTouchOneByOne::create();
+    listener->onTouchBegan = [](Touch* touch, Event*) {
+        CCLOG("Touch began");
+        return true;
+    };
+    card->getEventDispatcher()->addEventListenerWithSceneGraphPriority(listener, card);
 }
-
-
