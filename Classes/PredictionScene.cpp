@@ -611,10 +611,11 @@ void Prediction::disconnectFromServer() {
 void Prediction::handleServerMessage(const std::string& event,
                                      const rapidjson::Value::ConstMemberIterator& dataIterator,
                                      bool hasData) {
+    CCLOG("Handling event from server: \"%s\"", event.c_str());
     if (event == "server:playsCreated") {
         this->handlePlaysCreated(dataIterator, hasData);
     } else if (event == "server:clearPredictions") {
-
+        this->handleClearPredictions(dataIterator, hasData);
     } else {
         CCLOGWARN("Unknown event \"%s\" received from server!", event.c_str());
     }
@@ -638,6 +639,19 @@ void Prediction::handlePlaysCreated(const rapidjson::Value::ConstMemberIterator&
         CCLOG("Events: %s", PlaybookEvent::eventToString(event).c_str());
         this->processPredictionEvent(event);
     }
+}
+
+void Prediction::handleClearPredictions(const rapidjson::Value::ConstMemberIterator&, bool) {
+    CCLOG("Prediction->handleClearPredictions");
+    for (auto& ball : this->_balls) {
+        if (ball.selectedTargetState) {
+            this->undoPrediction(PlaybookEvent::stringToEvent(ball.selectedTarget), ball);
+        }
+        this->moveBallToSlot(ball);
+    }
+
+    this->_score = 0;
+    this->_state = SceneState::INITIAL;
 }
 
 void Prediction::update(float delta) {
@@ -751,7 +765,7 @@ void Prediction::moveBallToField(PlaybookEvent::EventType event, Ball& ball, boo
     }
 }
 
-void Prediction::moveBallToSlot(Ball &ball) {
+void Prediction::moveBallToSlot(Ball &ball, bool withAnimation) {
     // Find the empty slot for this ball.
     auto ballIterator = std::find_if(this->_balls.begin(), this->_balls.end(), [ball](Ball item) {
        return item.sprite == ball.sprite;
@@ -759,8 +773,12 @@ void Prediction::moveBallToSlot(Ball &ball) {
 
     if (ballIterator != this->_balls.end()) {
         auto position = this->getBallPositionForSlot(ball.sprite, ballIterator - this->_balls.begin());
-        auto moveTo = MoveTo::create(0.25f, position);
-        ball.sprite->runAction(moveTo);
+        if (withAnimation) {
+            auto moveTo = MoveTo::create(0.25f, position);
+            ball.sprite->runAction(moveTo);
+        } else {
+            ball.sprite->setPosition(position);
+        }
     } else {
         CCLOGWARN("Prediction->moveBallToSlot: There should have been an empty slot!");
     }
@@ -793,6 +811,9 @@ void Prediction::makePrediction(PlaybookEvent::EventType event, Ball& state) {
 
 void Prediction::undoPrediction(PlaybookEvent::EventType event, Ball& state) {
     this->_predictionCounts[event]--;
+    if (this->_predictionCounts[event] == 0) {
+        this->_predictionCounts.erase(event);
+    }
     state.selectedTarget = "";
     state.selectedTargetState = false;
 }

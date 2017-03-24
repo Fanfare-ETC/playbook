@@ -68,11 +68,12 @@ private:
     void handleServerMessage(const std::string& event,
                              const rapidjson::Value::ConstMemberIterator& data, bool hasData);
     void handlePlaysCreated(const rapidjson::Value::ConstMemberIterator& data, bool hasData);
+    void handleClearPredictions(const rapidjson::Value::ConstMemberIterator& data, bool hasData);
 
     void createNotificationOverlay(const std::string&);
     int getScoreForEvent(PlaybookEvent::EventType event);
     void moveBallToField(PlaybookEvent::EventType event, Ball& ball, bool withAnimation = true);
-    void moveBallToSlot(Ball& ball);
+    void moveBallToSlot(Ball& ball, bool withAnimation = true);
     cocos2d::Vec2 getBallPositionForSlot(cocos2d::Sprite* ballSprite, int slot);
     void makePrediction(PlaybookEvent::EventType event, Ball&);
     void undoPrediction(PlaybookEvent::EventType event, Ball&);
