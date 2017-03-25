@@ -137,14 +137,14 @@ void Prediction::initFieldOverlay() {
     // add overlay to screen
     std::map<std::string, MappedSprite::Polygon> polygons;
 
-    polygons.insert({"error", {
+    polygons.insert({PlaybookEvent::eventToString(PlaybookEvent::EventType::error), {
             Vec2(12.0f, 1908.0f),
             Vec2(408.0f, 1908.0f),
             Vec2(456.0f, 1732.0f),
             Vec2(12.0f, 1474.0f),
     }});
 
-    polygons.insert({"grand_slam", {
+    polygons.insert({PlaybookEvent::eventToString(PlaybookEvent::EventType::grandslam), {
             Vec2(424.0f, 1908.0f),
             Vec2(1016.0f, 1908.0f),
             Vec2(970.0f, 1736.0f),
@@ -152,14 +152,14 @@ void Prediction::initFieldOverlay() {
             Vec2(470.0f, 1736.0f),
     }});
 
-    polygons.insert({"shutout_inning", {
+    polygons.insert({PlaybookEvent::eventToString(PlaybookEvent::EventType::shutout_inning), {
             Vec2(1030.0f, 1908.0f),
             Vec2(1426.0f, 1908.0f),
             Vec2(1426.0f, 1472.0f),
             Vec2(984.0f, 1734.0f)
     }});
 
-    polygons.insert({"long_out", {
+    polygons.insert({PlaybookEvent::eventToString(PlaybookEvent::EventType::longout), {
             Vec2(12.0f, 1448.0f),
             Vec2(224.0f, 1618.0f),
             Vec2(352.0f, 1394.0f),
@@ -167,7 +167,7 @@ void Prediction::initFieldOverlay() {
             Vec2(12.0f, 918.0f)
     }});
 
-    polygons.insert({"runs_batted_in", {
+    polygons.insert({PlaybookEvent::eventToString(PlaybookEvent::EventType::runs_batted), {
             Vec2(238.0f, 1626.0f),
             Vec2(466.0f, 1720.0f),
             Vec2(716.0f, 1754.0f),
@@ -178,7 +178,7 @@ void Prediction::initFieldOverlay() {
             Vec2(364.0f, 1404.0f)
     }});
 
-    polygons.insert({"pop_fly", {
+    polygons.insert({PlaybookEvent::eventToString(PlaybookEvent::EventType::pop_fly), {
             Vec2(1216.0f, 1618.0f),
             Vec2(1428.0f, 1448.0f),
             Vec2(1428.0f, 918.0f),
@@ -186,7 +186,7 @@ void Prediction::initFieldOverlay() {
             Vec2(1088.0f, 1394.0f)
     }});
 
-    polygons.insert({"triple_play", {
+    polygons.insert({PlaybookEvent::eventToString(PlaybookEvent::EventType::triple_play), {
             Vec2(216.0f, 1269.0f),
             Vec2(462.0f, 1018.0f),
             Vec2(322.0f, 880.0f),
@@ -198,7 +198,7 @@ void Prediction::initFieldOverlay() {
             Vec2(64.0f, 1038.0f)
     }});
 
-    polygons.insert({"grounder", {
+    polygons.insert({PlaybookEvent::eventToString(PlaybookEvent::EventType::grounder), {
             Vec2(1224.0f, 1269.0f),
             Vec2(1376.0f, 1038.0f),
             Vec2(1428.0f, 784.0f),
@@ -210,7 +210,7 @@ void Prediction::initFieldOverlay() {
             Vec2(976.0f, 1018.0f)
     }});
 
-    polygons.insert({"double_play", {
+    polygons.insert({PlaybookEvent::eventToString(PlaybookEvent::EventType::double_play), {
             Vec2(224.0f, 1278.0f),
             Vec2(442.0f, 1426.0f),
             Vec2(720.0f, 1480.f),
@@ -223,14 +223,14 @@ void Prediction::initFieldOverlay() {
             Vec2(476.0f, 1032.0f)
     }});
 
-    polygons.insert({"second_base", {
+    polygons.insert({PlaybookEvent::eventToString(PlaybookEvent::EventType::twob), {
             Vec2(720.0f, 1404.0f),
             Vec2(834.0f, 1292.0f),
             Vec2(720.0f, 1180.0f),
             Vec2(606.0f, 1292.0f)
     }});
 
-    polygons.insert({"steal", {
+    polygons.insert({PlaybookEvent::eventToString(PlaybookEvent::EventType::steal), {
             Vec2(484.0f, 1022.0f),
             Vec2(616.0f, 1152.0f),
             Vec2(720.0f, 1112.0f),
@@ -241,7 +241,7 @@ void Prediction::initFieldOverlay() {
             Vec2(632.0f, 874.0f)
     }});
 
-    polygons.insert({"pick_off", {
+    polygons.insert({PlaybookEvent::eventToString(PlaybookEvent::EventType::pick_off), {
             Vec2(474.0f, 1010.0f),
             Vec2(622.0f, 864.0f),
             Vec2(588.0f, 774.0f),
@@ -252,7 +252,7 @@ void Prediction::initFieldOverlay() {
             Vec2(342.0f, 880.0f)
     }});
 
-    polygons.insert({"strike_out", {
+    polygons.insert({PlaybookEvent::eventToString(PlaybookEvent::EventType::strike_out), {
             Vec2(720.0f, 892.0f),
             Vec2(804.0f, 860.0f),
             Vec2(838.0f, 776.0f),
@@ -263,7 +263,7 @@ void Prediction::initFieldOverlay() {
             Vec2(636.0f, 860.0f),
     }});
 
-    polygons.insert({"walk", {
+    polygons.insert({PlaybookEvent::eventToString(PlaybookEvent::EventType::walk), {
             Vec2(966.0f, 1010.0f),
             Vec2(1098.0f, 880.0f),
             Vec2(1058.0f, 774.0f),
@@ -274,21 +274,21 @@ void Prediction::initFieldOverlay() {
             Vec2(818.0f, 864.0f)
     }});
 
-    polygons.insert({"third_base", {
+    polygons.insert({PlaybookEvent::eventToString(PlaybookEvent::EventType::threeb), {
             Vec2(204.0f, 888.0f),
             Vec2(92.0f, 776.0f),
             Vec2(204.0f, 660.0f),
             Vec2(316.0f, 776.0f)
     }});
 
-    polygons.insert({"first_base", {
+    polygons.insert({PlaybookEvent::eventToString(PlaybookEvent::EventType::oneb), {
             Vec2(1236.0f, 888.0f),
             Vec2(1124.0f, 776.0f),
             Vec2(1236.0f, 660.0f),
             Vec2(1348.0f, 776.0f)
     }});
 
-    polygons.insert({"hit", {
+    polygons.insert({PlaybookEvent::eventToString(PlaybookEvent::EventType::hit), {
             Vec2(12.0f, 768.0f),
             Vec2(76.0f, 768.0f),
             Vec2(204.0f, 644.0f),
@@ -306,7 +306,7 @@ void Prediction::initFieldOverlay() {
             Vec2(12.0f, 488.0f)
     }});
 
-    polygons.insert({"home_run", {
+    polygons.insert({PlaybookEvent::eventToString(PlaybookEvent::EventType::homerun), {
             Vec2(612.0f, 322.0f),
             Vec2(828.0f, 322.0f),
             Vec2(828.0f, 190.0f),
@@ -314,7 +314,7 @@ void Prediction::initFieldOverlay() {
             Vec2(612.0f, 190.0f)
     }});
 
-    polygons.insert({"pitch_count_16", {
+    polygons.insert({PlaybookEvent::eventToString(PlaybookEvent::EventType::pitchcount_16), {
             Vec2(1428.0f, 768.0f),
             Vec2(1428.0f, 488.0f),
             Vec2(952.0f, 12.0f),
@@ -332,7 +332,7 @@ void Prediction::initFieldOverlay() {
             Vec2(1364.0f, 768.0f)
     }});
 
-    polygons.insert({"blocked_run", {
+    polygons.insert({PlaybookEvent::eventToString(PlaybookEvent::EventType::blocked_run), {
             Vec2(632.0f, 678.0f),
             Vec2(720.0f, 640.0f),
             Vec2(808.0f, 678.0f),
@@ -343,13 +343,13 @@ void Prediction::initFieldOverlay() {
             Vec2(484.0f, 530.0f)
     }});
 
-    polygons.insert({"walk_off", {
+    polygons.insert({PlaybookEvent::eventToString(PlaybookEvent::EventType::walk_off), {
             Vec2(12.0f, 466.0f),
             Vec2(466.0f, 12.0f),
             Vec2(12.0f, 12.0f)
     }});
 
-    polygons.insert({"pitch_count_17", {
+    polygons.insert({PlaybookEvent::eventToString(PlaybookEvent::EventType::pitchcount_17), {
             Vec2(1428.0f, 466.0f),
             Vec2(1428.0f, 12.0f),
             Vec2(974.0f, 12.0f)
