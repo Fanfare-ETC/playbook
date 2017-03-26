@@ -29,6 +29,8 @@ USING_NS_CC;
 //struct type_rect { float  array[4][2]; };
 //typedef struct type_rect type_rect;
 
+const int CollectionScreen::NUM_SLOTS = 5;
+
 Scene* CollectionScreen::createScene()
 {
     // 'scene' is an autorelease object
@@ -87,13 +89,14 @@ bool CollectionScreen::init()
     node->addChild(banner, 0);
 
     //add ball tray in the bottom
-     auto holder = Sprite::create("Collection-Holder-HandTray.png");
+    auto holder = Sprite::create("Collection-Holder-HandTray.png");
     auto holderScale = visibleSize.width /holder->getContentSize().width;
     holder->setPosition(0.0f, 0.0f);
     holder->setAnchorPoint(Vec2(0.0f, 0.0f));
     holder->setScaleX(holderScale);
     holder->setScaleY(holderScale);
-    auto holderHeight =holderScale * holder->getContentSize().height;
+    auto holderHeight = holderScale * holder->getContentSize().height;
+    this->_cardsHolder = holder;
     node->addChild(holder, 0);
 
     //add give to section button
@@ -137,7 +140,22 @@ bool CollectionScreen::init()
     goal->setScaleY(goalScale/3);
     auto goalHeight = goalScale * goal->getContentSize().height;
     node->addChild(goal, 0);
+
+    // Create DrawNode to highlight card slot.
+    this->_cardSlotDrawNode = DrawNode::create();
+    this->_cardSlotDrawNode->setVisible(false);
+    this->_visibleNode->addChild(this->_cardSlotDrawNode, 1);
+
+    this->scheduleUpdate();
     return true;
+}
+
+void CollectionScreen::update(float delta) {
+    if (!this->_isCardActive && !this->_incomingCardQueue.empty()) {
+        auto play = this->_incomingCardQueue.front();
+        this->_incomingCardQueue.pop();
+        this->receiveCard(play);
+    }
 }
 
 void CollectionScreen::onResume() {
@@ -228,7 +246,7 @@ void CollectionScreen::handlePlaysCreated(const rapidjson::Value::ConstMemberIte
     for (auto it = plays.Begin(); it != plays.End(); ++it) {
         PlaybookEvent::EventType event = PlaybookEvent::intToEvent(it->GetInt());
         CCLOG("Events: %s", PlaybookEvent::eventToString(event).c_str());
-        this->receiveCard(event);
+        this->_incomingCardQueue.push(event);
     }
 }
 
@@ -259,17 +277,136 @@ void CollectionScreen::receiveCard(PlaybookEvent::EventType event)
     auto cardScale = card->getContentSize().width / visibleSize.width * 0.8f;
     card->setPosition(visibleSize.width / 2.0f, visibleSize.height / 2.0f);
     card->setScale(0.0f);
+    card->setRotation(RandomHelper::random_real(-5.0f, 5.0f));
     this->_visibleNode->addChild(card, 1);
+    this->_isCardActive = true;
+    this->_activeCard = card;
 
     auto fadeIn = FadeIn::create(0.50f);
     auto scaleTo = EaseBackOut::create(ScaleTo::create(0.50f, cardScale));
-    card->runAction(fadeIn);
-    card->runAction(scaleTo);
+    auto spawn = Spawn::createWithTwoActions(fadeIn, scaleTo);
+    card->runAction(spawn);
 
     auto listener = EventListenerTouchOneByOne::create();
-    listener->onTouchBegan = [](Touch* touch, Event*) {
-        CCLOG("Touch began");
+    listener->onTouchBegan = [this](Touch* touch, Event*) {
+        this->startDraggingActiveCard(touch);
+        this->_cardSlotDrawNode->setVisible(true);
         return true;
     };
+
+    listener->onTouchMoved = [this](Touch *touch, Event*) {
+        auto position = this->_activeCard->getParent()->convertTouchToNodeSpace(touch);
+        auto slot = this->getNearestCardSlot(this->_activeCard, position);
+        this->_activeCard->setPosition(position);
+
+        // Draw bounding box to show that card can be dropped.
+        auto slotRect = this->getCardBoundingBoxForSlot(this->_activeCard, slot);
+        this->_cardSlotDrawNode->clear();
+
+        auto slotPosition = this->getCardPositionForSlot(this->_activeCard, slot);
+        auto contentScaleFactor = Director::getInstance()->getContentScaleFactor();
+        if (slotPosition.distance(position) < 400.0f * contentScaleFactor) {
+            this->_cardSlotDrawNode->setLineWidth(6.0f * contentScaleFactor);
+            this->_cardSlotDrawNode->drawRect(
+                Vec2(slotRect.getMinX(), slotRect.getMinY()),
+                Vec2(slotRect.getMaxX(), slotRect.getMaxY()),
+                Color4F::ORANGE
+            );
+        }
+
+        return true;
+    };
+
+    listener->onTouchEnded = [this](Touch* touch, Event*) {
+        this->stopDraggingActiveCard(touch);
+        this->_cardSlotDrawNode->setVisible(false);
+        return true;
+    };
+
     card->getEventDispatcher()->addEventListenerWithSceneGraphPriority(listener, card);
+}
+
+void CollectionScreen::startDraggingActiveCard(Touch* touch) {
+    if (this->_activeCard->getNumberOfRunningActions() == 0) {
+        this->_activeCardOrigPosition = this->_activeCard->getPosition();
+        this->_activeCardOrigRotation = this->_activeCard->getRotation();
+        this->_activeCardOrigScale = this->_activeCard->getScale();
+    }
+
+    auto scale = this->getCardScaleInSlot(this->_activeCard);
+    auto position = this->_activeCard->getParent()->convertTouchToNodeSpace(touch);
+
+    auto scaleTo = EaseBackOut::create(ScaleTo::create(0.50f, scale));
+    auto rotateTo = RotateTo::create(0.50f, 0.0f);
+    auto moveTo = MoveTo::create(0.50f, position);
+
+    auto spawn = Spawn::create(scaleTo, rotateTo, moveTo, nullptr);
+    auto callFunc = CallFunc::create([this]() {
+        this->_isCardActive = false;
+    });
+    auto sequence = Sequence::create(spawn, callFunc, nullptr);
+    this->_activeCard->runAction(sequence);
+}
+
+void CollectionScreen::stopDraggingActiveCard(cocos2d::Touch* touch) {
+    // Check if touch position is within the slot.
+    auto touchVisibleSpace = this->_cardsHolder->getParent()->convertTouchToNodeSpace(touch);
+    auto cardsHolderBox = this->_cardsHolder->getBoundingBox();
+    if (cardsHolderBox.containsPoint(touchVisibleSpace)) {
+        this->getNearestCardSlot(this->_activeCard, touchVisibleSpace);
+        CCLOG("Drop card in slot");
+    }
+
+    auto scaleTo = EaseBackOut::create(ScaleTo::create(0.50f, this->_activeCardOrigScale));
+    auto rotateTo = RotateTo::create(0.50f, this->_activeCardOrigRotation);
+    auto moveTo = MoveTo::create(0.50f, this->_activeCardOrigPosition);
+    auto spawn = Spawn::create(scaleTo, rotateTo, moveTo, nullptr);
+    this->_activeCard->runAction(spawn);
+}
+
+float CollectionScreen::getCardScaleInSlot(Node* card) {
+    // Account for the left and right green sides (54px each).
+    auto cardsHolderWidth = (this->_cardsHolder->getContentSize().width - 54.0f) * this->_cardsHolder->getScale();
+    return cardsHolderWidth / card->getContentSize().width / NUM_SLOTS;
+}
+
+Vec2 CollectionScreen::getCardPositionForSlot(Node* card, int slot) {
+    // All target dimensions are in the visible's node space.
+    auto cardScale = this->getCardScaleInSlot(card);
+
+    // Compute positions.
+    auto scaledCardContentSize = card->getContentSize() * cardScale;
+    Vec2 position (
+        this->_cardsHolder->getPosition().x + (slot + 0.5f) * scaledCardContentSize.width + (27.0f * this->_cardsHolder->getScale()),
+        this->_cardsHolder->getPosition().y + scaledCardContentSize.height * 0.5f + (27.0f * this->_cardsHolder->getScale())
+    );
+
+    return position;
+}
+
+Rect CollectionScreen::getCardBoundingBoxForSlot(Node* card, int slot) {
+    Rect box;
+    auto position = this->getCardPositionForSlot(card, slot);
+    box.origin = position - Vec2(
+        card->getContentSize().width * card->getScale() / 2.0f,
+        card->getContentSize().height * card->getScale() / 2.0f
+    );
+    box.size = card->getContentSize() * card->getScale();
+    return box;
+}
+
+int CollectionScreen::getNearestCardSlot(Node* card, const Vec2& position) {
+    int slot = 0;
+    float smallestDistance = FLT_MAX;
+
+    for (int i = 0; i < NUM_SLOTS; ++i) {
+        auto slotPosition = this->getCardPositionForSlot(card, i);
+        auto distance = slotPosition.distance(position);
+        if (distance < smallestDistance) {
+            slot = i;
+            smallestDistance = distance;
+        }
+    }
+
+    return slot;
 }

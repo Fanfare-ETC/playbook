@@ -20,6 +20,7 @@ public:
     static cocos2d::Scene* createScene();
 
     virtual bool init();
+    virtual void update(float delta);
 
     void onResume();
     void onPause();
@@ -28,8 +29,20 @@ public:
     CREATE_FUNC(CollectionScreen);
 
 private:
+    static const int NUM_SLOTS;
+
     cocos2d::Node* _visibleNode;
     PredictionWebSocket* _websocket;
+
+    cocos2d::Sprite* _cardsHolder;
+    cocos2d::DrawNode* _cardSlotDrawNode;
+    std::queue<PlaybookEvent::EventType> _incomingCardQueue;
+    cocos2d::Sprite* _activeCard;
+    float _activeCardOrigScale;
+    cocos2d::Vec2 _activeCardOrigPosition;
+    float _activeCardOrigRotation;
+
+    bool _isCardActive;
 
     void connectToServer();
     void disconnectFromServer();
@@ -38,6 +51,13 @@ private:
     void handlePlaysCreated(const rapidjson::Value::ConstMemberIterator& data, bool hasData);
 
     void receiveCard(PlaybookEvent::EventType event);
+    void startDraggingActiveCard(cocos2d::Touch* touch);
+    void stopDraggingActiveCard(cocos2d::Touch* touch);
+
+    float getCardScaleInSlot(cocos2d::Node* card);
+    cocos2d::Vec2 getCardPositionForSlot(cocos2d::Node* card, int slot);
+    cocos2d::Rect getCardBoundingBoxForSlot(cocos2d::Node* card, int slot);
+    int getNearestCardSlot(cocos2d::Node* card, const cocos2d::Vec2& position);
 };
 
 #endif //PLAYBOOK_COLLECTION_SCREEN_H
