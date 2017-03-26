@@ -39,7 +39,25 @@ private:
 
     struct CardSlot {
         Card card;
+        std::vector<Card> cardSet;
         bool present;
+    };
+
+    enum GoalType {
+        IDENTICAL_CARDS_3,
+        IDENTICAL_CARDS_4,
+        IDENTICAL_CARDS_5,
+        UNIQUE_OUT_CARDS_3,
+        UNIQUE_OUT_CARDS_4,
+        WALK_OR_HIT_3,
+        OUT_3,
+        BASES_3,
+        EACH_COLOR_1,
+        EACH_COLOR_2,
+        SAME_COLOR_3,
+        SAME_COLOR_4,
+        SAME_COLOR_5,
+        BASE_STEAL_RBI
     };
 
     cocos2d::Node* _visibleNode;
@@ -55,6 +73,7 @@ private:
     float _activeCardOrigScale;
     cocos2d::Vec2 _activeCardOrigPosition;
     float _activeCardOrigRotation;
+    cocos2d::EventListener* _activeEventListener;
 
     void connectToServer();
     void disconnectFromServer();
@@ -69,8 +88,11 @@ private:
     float getCardScaleInSlot(cocos2d::Node* card);
     cocos2d::Vec2 getCardPositionForSlot(cocos2d::Node* cardNode, int slot);
     cocos2d::Rect getCardBoundingBoxForSlot(cocos2d::Node* cardNode, int slot);
+    void drawBoundingBoxForSlot(cocos2d::Node* cardNode, int slot);
     int getNearestAvailableCardSlot(cocos2d::Node *card, const cocos2d::Vec2 &position);
     void assignActiveCardToSlot(int slot);
+
+    bool cardSetMeetsGoal(std::vector<Card> cardSet, GoalType goal);
 };
 
 #endif //PLAYBOOK_COLLECTION_SCREEN_H

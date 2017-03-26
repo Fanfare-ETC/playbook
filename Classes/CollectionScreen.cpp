@@ -300,9 +300,15 @@ void CollectionScreen::receiveCard(PlaybookEvent::EventType event)
 
     auto listener = EventListenerTouchOneByOne::create();
     listener->onTouchBegan = [this](Touch* touch, Event*) {
-        this->startDraggingActiveCard(touch);
-        this->_cardSlotDrawNode->setVisible(true);
-        return true;
+        auto position = this->_activeCard.sprite->getParent()->convertTouchToNodeSpace(touch);
+        auto box = this->_activeCard.sprite->getBoundingBox();
+        if (box.containsPoint(position)) {
+            this->startDraggingActiveCard(touch);
+            this->_cardSlotDrawNode->setVisible(true);
+            return true;
+        } else {
+            return false;
+        }
     };
 
     listener->onTouchMoved = [this](Touch *touch, Event*) {
@@ -311,20 +317,10 @@ void CollectionScreen::receiveCard(PlaybookEvent::EventType event)
         this->_activeCard.sprite->setPosition(position);
 
         // Draw bounding box to show that card can be dropped.
-        if (slot >= 0) {
-            auto slotRect = this->getCardBoundingBoxForSlot(this->_activeCard.sprite, slot);
-            this->_cardSlotDrawNode->clear();
-
-            auto slotPosition = this->getCardPositionForSlot(this->_activeCard.sprite, slot);
-            auto contentScaleFactor = Director::getInstance()->getContentScaleFactor();
-            if (slotPosition.distance(position) < 400.0f * contentScaleFactor) {
-                this->_cardSlotDrawNode->setLineWidth(6.0f * contentScaleFactor);
-                this->_cardSlotDrawNode->drawRect(
-                    Vec2(slotRect.getMinX(), slotRect.getMinY()),
-                    Vec2(slotRect.getMaxX(), slotRect.getMaxY()),
-                    Color4F::ORANGE
-                );
-            }
+        auto slotPosition = this->getCardPositionForSlot(this->_activeCard.sprite, slot);
+        auto contentScaleFactor = Director::getInstance()->getContentScaleFactor();
+        if (slot >= 0 && slotPosition.distance(position) < 400.0f * contentScaleFactor) {
+            this->drawBoundingBoxForSlot(this->_activeCard.sprite, slot);
         }
 
         return true;
@@ -337,6 +333,7 @@ void CollectionScreen::receiveCard(PlaybookEvent::EventType event)
     };
 
     card->getEventDispatcher()->addEventListenerWithSceneGraphPriority(listener, card);
+    this->_activeEventListener = listener;
 }
 
 void CollectionScreen::startDraggingActiveCard(Touch* touch) {
@@ -365,7 +362,7 @@ void CollectionScreen::stopDraggingActiveCard(cocos2d::Touch* touch) {
     int slot = this->getNearestAvailableCardSlot(this->_activeCard.sprite, touchVisibleSpace);
     if (cardsHolderBox.containsPoint(touchVisibleSpace) && slot >= 0) {
         this->assignActiveCardToSlot(slot);
-        this->_activeCard.sprite->getEventDispatcher()->removeAllEventListeners();
+        this->_activeCard.sprite->getEventDispatcher()->removeEventListener(this->_activeEventListener);
     } else {
         auto scaleTo = EaseBackOut::create(ScaleTo::create(0.50f, this->_activeCardOrigScale));
         auto rotateTo = RotateTo::create(0.50f, this->_activeCardOrigRotation);
@@ -406,6 +403,19 @@ Rect CollectionScreen::getCardBoundingBoxForSlot(Node* cardNode, int slot) {
     return box;
 }
 
+void CollectionScreen::drawBoundingBoxForSlot(cocos2d::Node *cardNode, int slot) {
+    auto slotRect = this->getCardBoundingBoxForSlot(cardNode, slot);
+    this->_cardSlotDrawNode->clear();
+
+    auto contentScaleFactor = Director::getInstance()->getContentScaleFactor();
+    this->_cardSlotDrawNode->setLineWidth(6.0f * contentScaleFactor);
+    this->_cardSlotDrawNode->drawRect(
+        Vec2(slotRect.getMinX(), slotRect.getMinY()),
+        Vec2(slotRect.getMaxX(), slotRect.getMaxY()),
+        Color4F::ORANGE
+    );
+}
+
 int CollectionScreen::getNearestAvailableCardSlot(Node *card, const Vec2 &position) {
     int slot = -1;
     float smallestDistance = FLT_MAX;
@@ -429,8 +439,31 @@ void CollectionScreen::assignActiveCardToSlot(int slot) {
     auto moveTo = MoveTo::create(0.50f, position);
     auto callFunc = CallFunc::create([this, position]() {
         // In case the card got touched again.
-        this->_activeCard.sprite->setPosition(position);
+        auto cardNode = this->_activeCard.sprite;
+        cardNode->setPosition(position);
         this->_isCardActive = false;
+
+        // Create a new listener for it.
+        auto listener = EventListenerTouchOneByOne::create();
+        listener->setSwallowTouches(false);
+
+        listener->onTouchBegan = [this, cardNode](Touch* touch, Event*) {
+            auto position = cardNode->getParent()->convertTouchToNodeSpace(touch);
+            auto box = cardNode->getBoundingBox();
+            return box.containsPoint(position);
+        };
+
+        listener->onTouchMoved = [this, cardNode](Touch* touch, Event*) {
+            auto position = cardNode->getParent()->convertTouchToNodeSpace(touch);
+            cardNode->setPosition(position);
+            return true;
+        };
+
+        listener->onTouchEnded = [this](Touch* touch, Event*) {
+            return true;
+        };
+
+        cardNode->getEventDispatcher()->addEventListenerWithSceneGraphPriority(listener, cardNode);
     });
     auto sequence = Sequence::create(moveTo, callFunc, nullptr);
     this->_activeCard.sprite->runAction(sequence);
@@ -438,4 +471,114 @@ void CollectionScreen::assignActiveCardToSlot(int slot) {
     // Copy card into slot list.
     this->_cardSlots[slot].card = this->_activeCard;
     this->_cardSlots[slot].present = true;
+}
+
+bool CollectionScreen::cardSetMeetsGoal(std::vector<Card> cardSet, GoalType goal) {
+    auto isBase = [](Card card) {
+        return card.event == PlaybookEvent::EventType::oneb ||
+               card.event == PlaybookEvent::EventType::twob ||
+               card.event == PlaybookEvent::EventType::threeb;
+    };
+
+    auto isBlue = [](Card card) {
+        return card.team == PlaybookEvent::Team::FIELDING;
+    };
+
+    auto isRed = [](Card card) {
+        return card.team == PlaybookEvent::Team::BATTING;
+    };
+
+    auto numBlues = std::count_if(cardSet.begin(), cardSet.end(), isBlue);
+    auto numReds = std::count_if(cardSet.begin(), cardSet.end(), isRed);
+
+    std::unordered_map<PlaybookEvent::EventType, int, PlaybookEvent::EventTypeHash> cardCounts;
+    std::for_each(cardSet.begin(), cardSet.end(), [&cardCounts](Card card) {
+        if (cardCounts.find(card.event) == cardCounts.end()) {
+            cardCounts[card.event] = 0;
+        }
+        cardCounts[card.event]++;
+    });
+
+    switch (goal) {
+        case GoalType::BASE_STEAL_RBI: {
+            auto hasBase = std::any_of(cardSet.begin(), cardSet.end(), isBase);
+
+            auto hasSteal = std::any_of(cardSet.begin(), cardSet.end(), [](Card card) {
+               return card.event == PlaybookEvent::EventType::steal;
+            });
+
+            auto hasRBI = std::any_of(cardSet.begin(), cardSet.end(), [](Card card) {
+                return card.event == PlaybookEvent::EventType::runs_batted;
+            });
+
+            return hasBase && hasSteal && hasRBI;
+        }
+
+        case GoalType::BASES_3: {
+            return std::count_if(cardSet.begin(), cardSet.end(), isBase) > 3;
+        }
+
+        case GoalType::EACH_COLOR_1: {
+            return numBlues >= 1 && numReds >= 1;
+        }
+
+        case GoalType::EACH_COLOR_2: {
+            return numBlues >= 2 && numReds >= 2;
+        }
+
+        case GoalType::IDENTICAL_CARDS_3: {
+            for (const auto& pair : cardCounts) {
+                if (pair.second >= 3) {
+                    return true;
+                }
+            }
+        }
+
+        case GoalType::IDENTICAL_CARDS_4: {
+            for (const auto& pair : cardCounts) {
+                if (pair.second >= 4) {
+                    return true;
+                }
+            }
+        }
+
+        case GoalType::IDENTICAL_CARDS_5: {
+            for (const auto& pair : cardCounts) {
+                if (pair.second >= 5) {
+                    return true;
+                }
+            }
+        }
+
+        case GoalType::OUT_3: {
+            return std::count_if(cardSet.begin(), cardSet.end(), [](Card card) {
+               return card.event == PlaybookEvent::EventType::strike_out;
+            }) >= 3;
+        }
+
+        case GoalType::SAME_COLOR_3: {
+            return numBlues >= 3 || numReds >= 3;
+        }
+
+        case GoalType::SAME_COLOR_4: {
+            return numBlues >= 4 || numReds >= 4;
+        }
+
+        case GoalType::SAME_COLOR_5: {
+            return numBlues >= 5 || numReds >= 5;
+        }
+
+        case GoalType::WALK_OR_HIT_3: {
+            return std::count_if(cardSet.begin(), cardSet.end(), [](Card card) {
+               return card.event == PlaybookEvent::EventType::walk ||
+                      card.event == PlaybookEvent::EventType::hit;
+            }) >= 3;
+        }
+
+        // TODO: Not implemented yet
+        case GoalType::UNIQUE_OUT_CARDS_3:
+        case GoalType::UNIQUE_OUT_CARDS_4: {
+            return false;
+        }
+    }
 }
