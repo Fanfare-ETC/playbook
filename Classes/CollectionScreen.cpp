@@ -280,7 +280,7 @@ void CollectionScreen::receiveCard(PlaybookEvent::EventType event)
 
     auto visibleSize = Director::getInstance()->getVisibleSize();
     auto card = Sprite::create(cardFileNameSs.str());
-    auto cardScale = card->getContentSize().width / visibleSize.width * 0.8f;
+    auto cardScale = visibleSize.width / card->getContentSize().width * 0.8f;
     card->setPosition(visibleSize.width / 2.0f, visibleSize.height / 2.0f);
     card->setScale(0.0f);
     card->setRotation(RandomHelper::random_real(-5.0f, 5.0f));
@@ -425,9 +425,12 @@ int CollectionScreen::getNearestAvailableCardSlot(Node *card, const Vec2 &positi
 }
 
 void CollectionScreen::assignActiveCardToSlot(int slot) {
-    auto moveTo = MoveTo::create(0.50f, this->getCardPositionForSlot(this->_activeCard.sprite, slot));
-    auto callFunc = CallFunc::create([this]() {
-       this->_isCardActive = false;
+    auto position = this->getCardPositionForSlot(this->_activeCard.sprite, slot);
+    auto moveTo = MoveTo::create(0.50f, position);
+    auto callFunc = CallFunc::create([this, position]() {
+        // In case the card got touched again.
+        this->_activeCard.sprite->setPosition(position);
+        this->_isCardActive = false;
     });
     auto sequence = Sequence::create(moveTo, callFunc, nullptr);
     this->_activeCard.sprite->runAction(sequence);
