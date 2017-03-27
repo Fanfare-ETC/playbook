@@ -475,9 +475,9 @@ void CollectionScreen::assignActiveCardToSlot(int slot) {
 
 bool CollectionScreen::cardSetMeetsGoal(std::vector<Card> cardSet, GoalType goal) {
     auto isBase = [](Card card) {
-        return card.event == PlaybookEvent::EventType::oneb ||
-               card.event == PlaybookEvent::EventType::twob ||
-               card.event == PlaybookEvent::EventType::threeb;
+        return card.event == PlaybookEvent::EventType::SINGLE ||
+               card.event == PlaybookEvent::EventType::DOUBLE ||
+               card.event == PlaybookEvent::EventType::TRIPLE;
     };
 
     auto isBlue = [](Card card) {
@@ -504,11 +504,11 @@ bool CollectionScreen::cardSetMeetsGoal(std::vector<Card> cardSet, GoalType goal
             auto hasBase = std::any_of(cardSet.begin(), cardSet.end(), isBase);
 
             auto hasSteal = std::any_of(cardSet.begin(), cardSet.end(), [](Card card) {
-               return card.event == PlaybookEvent::EventType::steal;
+               return card.event == PlaybookEvent::EventType::STEAL;
             });
 
             auto hasRBI = std::any_of(cardSet.begin(), cardSet.end(), [](Card card) {
-                return card.event == PlaybookEvent::EventType::runs_batted;
+                return card.event == PlaybookEvent::EventType::RUN_BATTED_IN;
             });
 
             return hasBase && hasSteal && hasRBI;
@@ -552,7 +552,7 @@ bool CollectionScreen::cardSetMeetsGoal(std::vector<Card> cardSet, GoalType goal
 
         case GoalType::OUT_3: {
             return std::count_if(cardSet.begin(), cardSet.end(), [](Card card) {
-               return card.event == PlaybookEvent::EventType::strike_out;
+               return card.event == PlaybookEvent::EventType::STRIKE_OUT;
             }) >= 3;
         }
 
@@ -570,8 +570,8 @@ bool CollectionScreen::cardSetMeetsGoal(std::vector<Card> cardSet, GoalType goal
 
         case GoalType::WALK_OR_HIT_3: {
             return std::count_if(cardSet.begin(), cardSet.end(), [](Card card) {
-               return card.event == PlaybookEvent::EventType::walk ||
-                      card.event == PlaybookEvent::EventType::hit;
+               return card.event == PlaybookEvent::EventType::WALK ||
+                      card.event == PlaybookEvent::EventType::HIT;
             }) >= 3;
         }
 
