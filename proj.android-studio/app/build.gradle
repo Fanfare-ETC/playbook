@@ -13,6 +13,11 @@ android {
 
         buildConfigField 'String', 'PLAYBOOK_TREASUREHUNT_API_HOST', '"10.0.2.2"'
         buildConfigField 'Integer', 'PLAYBOOK_TREASUREHUNT_API_PORT', '9000'
+        buildConfigField 'String', 'PLAYBOOK_SECTION_API_HOST', '"10.0.2.2"'
+        buildConfigField 'Integer', 'PLAYBOOK_SECTION_API_PORT', '9000'
+        buildConfigField 'String', 'PLAYBOOK_SECTION_APP', '"events"'
+        buildConfigField 'String', 'PLAYBOOK_LEADER_APP', '"leaderboard"'
+        buildConfigField 'String', 'PLAYBOOK_SELF_APP', '"selfScore"'
 
         externalNativeBuild {
             ndkBuild {

@@ -19,6 +19,7 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
     private static final String TAG = "LoginActivity";
     private static final int RC_SIGN_IN = 1;
     private GoogleApiClient mGoogleApiClient;
+    public static GoogleSignInAccount acct;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -76,7 +77,7 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
         Log.d(TAG, "handleSignInResult:" + result.isSuccess());
         if (result.isSuccess()) {
             // Signed in successfully, show authenticated UI.
-            GoogleSignInAccount acct = result.getSignInAccount();
+            acct = result.getSignInAccount();
             startActivity(new Intent(this, SeatSelectActivity.class));
             finish();
         } else {
