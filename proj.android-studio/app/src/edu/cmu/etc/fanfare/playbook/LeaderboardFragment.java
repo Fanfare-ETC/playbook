@@ -11,6 +11,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageView;
 
 import static android.content.Context.MODE_PRIVATE;
 
@@ -21,11 +22,18 @@ import static android.content.Context.MODE_PRIVATE;
 public class LeaderboardFragment extends Fragment {
 
     LeaderboardFragment currActivity = this;
+    ImageView sortTotal;
+    ImageView sortPredict;
+    ImageView sortCollect;
     @Override
     public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
                              Bundle savedInstanceState) {
         super.onCreateView(inflater, container, savedInstanceState);
         final View view=inflater.inflate(R.layout.leaderboard_activity, container, false);
+
+        sortTotal = (ImageView) view.findViewById(R.id.total);
+        sortPredict = (ImageView) view.findViewById(R.id.prediction);
+        sortCollect = (ImageView) view.findViewById(R.id.collection);
 
         LeaderboardWorker backgroundWorker = new LeaderboardWorker(currActivity);
         backgroundWorker.execute("0");
@@ -42,6 +50,9 @@ public class LeaderboardFragment extends Fragment {
             public void onClick(View v) {
                 LeaderboardWorker backgroundWorker = new LeaderboardWorker(currActivity);
                 backgroundWorker.execute("0");
+                sortTotal.setImageResource(R.drawable.total_yellow);
+                sortPredict.setImageResource(R.drawable.predict_white);
+                sortCollect.setImageResource(R.drawable.collect_white);
                 Log.i("Button", "Order by total");
 
             }
@@ -53,6 +64,9 @@ public class LeaderboardFragment extends Fragment {
             public void onClick(View v) {
                 LeaderboardWorker backgroundWorker = new LeaderboardWorker(currActivity);
                 backgroundWorker.execute("1");
+                sortTotal.setImageResource(R.drawable.total_white);
+                sortPredict.setImageResource(R.drawable.predict_yellow);
+                sortCollect.setImageResource(R.drawable.collect_white);
                 Log.i("Button", "Order by prediction");
 
             }
@@ -64,6 +78,9 @@ public class LeaderboardFragment extends Fragment {
             public void onClick(View v) {
                 LeaderboardWorker backgroundWorker = new LeaderboardWorker(currActivity);
                 backgroundWorker.execute("2");
+                sortTotal.setImageResource(R.drawable.total_white);
+                sortPredict.setImageResource(R.drawable.predict_white);
+                sortCollect.setImageResource(R.drawable.collect_yellow);
                 Log.i("Button", "Order by collection");
             }
         });
