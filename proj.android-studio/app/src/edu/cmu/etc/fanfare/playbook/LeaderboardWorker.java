@@ -39,6 +39,14 @@ public class LeaderboardWorker extends AsyncTask<String,Void,String> {
             BuildConfig.PLAYBOOK_SECTION_API_HOST + ":" +
             BuildConfig.PLAYBOOK_SECTION_API_PORT + "/" +
             BuildConfig.PLAYBOOK_LEADER_APP;
+    private final String urlStringLeaderP = "http://" +
+            BuildConfig.PLAYBOOK_SECTION_API_HOST + ":" +
+            BuildConfig.PLAYBOOK_SECTION_API_PORT + "/" +
+            BuildConfig.PLAYBOOK_LEADERP_APP;
+    private final String urlStringLeaderC = "http://" +
+            BuildConfig.PLAYBOOK_SECTION_API_HOST + ":" +
+            BuildConfig.PLAYBOOK_SECTION_API_PORT + "/" +
+            BuildConfig.PLAYBOOK_LEADERC_APP;
 
     LeaderboardWorker(LeaderboardFragment activity)
     {
@@ -54,8 +62,8 @@ public class LeaderboardWorker extends AsyncTask<String,Void,String> {
                 // String sort=Integer.toString(section);
                 //Log.v("sec",Integer.toString(section));
                 //String move = "2";
-                URL url = new URL("http://10.0.2.2:9000/leaderboard");
-                //URL url = new URL(urlStringLeader);
+                //URL url = new URL("http://10.0.2.2:9000/leaderboard");
+                URL url = new URL(urlStringLeader);
                 HttpURLConnection httpURLConnection = (HttpURLConnection)url.openConnection();
                 httpURLConnection.setRequestMethod("GET");
                 //httpURLConnection.setDoOutput(true);
@@ -74,6 +82,110 @@ public class LeaderboardWorker extends AsyncTask<String,Void,String> {
                // bufferedWriter.close();
                // outputStream.close();
                 Log.d("HTTP", "Leaderboard Response code: " + httpURLConnection.getResponseCode());
+                InputStream inputStream = httpURLConnection.getInputStream();
+                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream,"iso-8859-1"));
+                /*StringBuilder sb = new StringBuilder();
+                String row = null;
+                while((row = bufferedReader.readLine()) != null )
+                {
+                    sb.append(row + "\n");
+                }*/
+                //String result="";
+                String line = null;
+                StringBuilder sb = new StringBuilder();
+                while((line = bufferedReader.readLine())!= null) {
+                    Log.i("LEAD_TR", "Count rows of result object");
+                    sb.append(line);
+                }
+                result = sb.toString();
+                bufferedReader.close();
+                inputStream.close();
+                httpURLConnection.disconnect();
+
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        else if (params[0].equals("1")) {
+            try {
+                // String sort=Integer.toString(section);
+                //Log.v("sec",Integer.toString(section));
+                //String move = "2";
+                //URL url = new URL("http://10.0.2.2:9000/leaderboard");
+                URL url = new URL(urlStringLeaderP);
+                HttpURLConnection httpURLConnection = (HttpURLConnection)url.openConnection();
+                httpURLConnection.setRequestMethod("GET");
+                //httpURLConnection.setDoOutput(true);
+                //httpURLConnection.setDoInput(false);
+                httpURLConnection.setRequestProperty("Accept", "application/json");
+                httpURLConnection.setRequestProperty("Content-type", "application/json");
+                //OutputStream outputStream = httpURLConnection.getOutputStream();
+                // BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(outputStream, "UTF-8"));
+                // JSONObject object = new JSONObject();
+               /* object.put("id", section);
+                Log.d("test", object.toString());*/
+                // String post_data = URLEncoder.encode("sectionNo","UTF-8")+"="+URLEncoder.encode(sec,"UTF-8")+"&"
+                //    + URLEncoder.encode("Move","UTF-8")+"="+URLEncoder.encode(move,"UTF-8");
+                //bufferedWriter.write(object.toString());
+                // bufferedWriter.flush();
+                // bufferedWriter.close();
+                // outputStream.close();
+                Log.d("HTTP", "LeaderboardP Response code: " + httpURLConnection.getResponseCode());
+                InputStream inputStream = httpURLConnection.getInputStream();
+                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream,"iso-8859-1"));
+                /*StringBuilder sb = new StringBuilder();
+                String row = null;
+                while((row = bufferedReader.readLine()) != null )
+                {
+                    sb.append(row + "\n");
+                }*/
+                //String result="";
+                String line = null;
+                StringBuilder sb = new StringBuilder();
+                while((line = bufferedReader.readLine())!= null) {
+                    Log.i("LEAD_TR", "Count rows of result object");
+                    sb.append(line);
+                }
+                result = sb.toString();
+                bufferedReader.close();
+                inputStream.close();
+                httpURLConnection.disconnect();
+
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        else if (params[0].equals("2")) {
+            try {
+                // String sort=Integer.toString(section);
+                //Log.v("sec",Integer.toString(section));
+                //String move = "2";
+                //URL url = new URL("http://10.0.2.2:9000/leaderboard");
+                URL url = new URL(urlStringLeaderC);
+                HttpURLConnection httpURLConnection = (HttpURLConnection)url.openConnection();
+                httpURLConnection.setRequestMethod("GET");
+                //httpURLConnection.setDoOutput(true);
+                //httpURLConnection.setDoInput(false);
+                httpURLConnection.setRequestProperty("Accept", "application/json");
+                httpURLConnection.setRequestProperty("Content-type", "application/json");
+                //OutputStream outputStream = httpURLConnection.getOutputStream();
+                // BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(outputStream, "UTF-8"));
+                // JSONObject object = new JSONObject();
+               /* object.put("id", section);
+                Log.d("test", object.toString());*/
+                // String post_data = URLEncoder.encode("sectionNo","UTF-8")+"="+URLEncoder.encode(sec,"UTF-8")+"&"
+                //    + URLEncoder.encode("Move","UTF-8")+"="+URLEncoder.encode(move,"UTF-8");
+                //bufferedWriter.write(object.toString());
+                // bufferedWriter.flush();
+                // bufferedWriter.close();
+                // outputStream.close();
+                Log.d("HTTP", "LeaderboardC Response code: " + httpURLConnection.getResponseCode());
                 InputStream inputStream = httpURLConnection.getInputStream();
                 BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream,"iso-8859-1"));
                 /*StringBuilder sb = new StringBuilder();

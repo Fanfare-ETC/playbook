@@ -17,6 +17,8 @@ android {
         buildConfigField 'Integer', 'PLAYBOOK_SECTION_API_PORT', '9000'
         buildConfigField 'String', 'PLAYBOOK_SECTION_APP', '"events"'
         buildConfigField 'String', 'PLAYBOOK_LEADER_APP', '"leaderboard"'
+        buildConfigField 'String', 'PLAYBOOK_LEADERP_APP', '"leaderboardP"'
+        buildConfigField 'String', 'PLAYBOOK_LEADERC_APP', '"leaderboardC"'
         buildConfigField 'String', 'PLAYBOOK_SELF_APP', '"selfScore"'
 
         externalNativeBuild {
