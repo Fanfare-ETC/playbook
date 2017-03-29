@@ -150,7 +150,7 @@ public class AppActivity extends AppCompatActivity {
                 fragment = new CollectionFragment();
                 break;
             case 4:
-                fragment = new TreasureHuntFragment();
+                fragment = new TreasureHuntTutorialFragment();
                 break;
             case 5:
                 fragment = new SeatSelectFragment();
