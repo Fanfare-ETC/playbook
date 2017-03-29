@@ -221,37 +221,37 @@ public class TreasureHuntFragment extends Fragment implements View.OnClickListen
             //add blink code to runner button
             ObjectAnimator blink = ObjectAnimator.ofFloat(mRunnerView, "alpha", 0.0f, 1.0f);
             blink.setDuration(1000);
-            blink.setRepeatCount(200);
+            blink.setRepeatCount(999999);
             blink.start();
 
             //animate ball from warmer to runner
-            ImageView ball_w = (ImageView)TreasureHuntFragment.view.findViewById(R.id.ball);
+            ImageView ball_w = (ImageView)TreasureHuntFragment.view.findViewById(R.id.ball_w);
             ObjectAnimator animX0 = ObjectAnimator.ofFloat(ball_w, "x", warmerLocation[0], runnerLocation[0]);
             ObjectAnimator animY0 = ObjectAnimator.ofFloat(ball_w, "y", warmerLocation[1], runnerLocation[1]);
-            animX0.setRepeatCount(200);
-            animY0.setRepeatCount(200);
+            animX0.setRepeatCount(999999);
+            animY0.setRepeatCount(999999);
             AnimatorSet animSetXY0 = new AnimatorSet();
             animSetXY0.setDuration(1000);
             animSetXY0.playTogether(animX0, animY0);
             animSetXY0.start();
 
             //animate ball from colder to runner
-            ImageView ball_c = (ImageView)TreasureHuntFragment.view.findViewById(R.id.ball);
-            ObjectAnimator animX1 = ObjectAnimator.ofFloat(ball_w, "x", colderLocation[0], runnerLocation[0]);
-            ObjectAnimator animY1 = ObjectAnimator.ofFloat(ball_w, "y", colderLocation[1], runnerLocation[1]);
-            animX1.setRepeatCount(200);
-            animY1.setRepeatCount(200);
+            ImageView ball_c = (ImageView)TreasureHuntFragment.view.findViewById(R.id.ball_c);
+            ObjectAnimator animX1 = ObjectAnimator.ofFloat(ball_c, "x", colderLocation[0], runnerLocation[0]);
+            ObjectAnimator animY1 = ObjectAnimator.ofFloat(ball_c, "y", colderLocation[1], runnerLocation[1]);
+            animX1.setRepeatCount(999999);
+            animY1.setRepeatCount(999999);
             AnimatorSet animSetXY1 = new AnimatorSet();
             animSetXY1.setDuration(1000);
             animSetXY1.playTogether(animX1, animY1);
             animSetXY1.start();
 
             //animate ball from plant to runner
-            ImageView ball_p = (ImageView)TreasureHuntFragment.view.findViewById(R.id.ball);
+            ImageView ball_p = (ImageView)TreasureHuntFragment.view.findViewById(R.id.ball_p);
             ObjectAnimator animX2 = ObjectAnimator.ofFloat(ball_p, "x", plantLocation[0], runnerLocation[0]);
             ObjectAnimator animY2 = ObjectAnimator.ofFloat(ball_p, "y", plantLocation[1], runnerLocation[1]);
-            animX2.setRepeatCount(200);
-            animY2.setRepeatCount(200);
+            animX2.setRepeatCount(999999);
+            animY2.setRepeatCount(999999);
             AnimatorSet animSetXY2 = new AnimatorSet();
             animSetXY2.setDuration(1000);
             animSetXY2.playTogether(animX2, animY2);
