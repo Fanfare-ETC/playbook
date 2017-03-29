@@ -232,13 +232,14 @@ public class AppActivity extends AppCompatActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.app_activity);
-//get the section ID
+
+        // Get the section ID
         Intent intent = getIntent();
         Bundle extras = intent.getExtras();
-
-        int section = Integer.parseInt(extras.getString("EXTRA_MESSAGE"));
-
-        Log.d("testSection", "Section in AppActivity: " + section);
+        if (extras != null) {
+            int section = Integer.parseInt(extras.getString("EXTRA_MESSAGE"));
+            Log.d(TAG, "Section in AppActivity: " + section);
+        }
 
         mToolbar = (Toolbar) findViewById(R.id.my_toolbar);
         setSupportActionBar(mToolbar);

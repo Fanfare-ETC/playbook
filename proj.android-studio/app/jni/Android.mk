@@ -20,6 +20,7 @@ LOCAL_SRC_FILES := hellocpp/main.cpp \
                    ../../../Classes/CollectionScreen.cpp \
                    ../../../Classes/MappedSprite.cpp \
                    ../../../Classes/PlaybookEvent.cpp \
+                   ../../../Classes/BlurFilter.cpp \
                    ../../../Classes/PredictionWebSocket.cpp
 
 LOCAL_C_INCLUDES := $(LOCAL_PATH)/../../../Classes

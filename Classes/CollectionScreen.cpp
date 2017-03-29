@@ -9,6 +9,7 @@
 #include "PredictionScene.h"
 #include "PredictionWebSocket.h"
 #include "MappedSprite.h"
+#include "BlurFilter.h"
 
 USING_NS_CC;
 
@@ -151,6 +152,10 @@ bool CollectionScreen::init()
         CardSlot slot { .present = false };
         this->_cardSlots.push_back(slot);
     }
+
+    BlurFilter filter;
+    auto filteredGoal = filter.apply(goal, 16);
+    node->addChild(filteredGoal, 1);
 
     this->scheduleUpdate();
     return true;
