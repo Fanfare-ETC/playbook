@@ -8,11 +8,18 @@ android {
         applicationId 'edu.cmu.etc.fanfare.playbook'
         minSdkVersion 19
         targetSdkVersion 25
-        versionCode 5
-        versionName '1.0.5'
+        versionCode 4
+        versionName '1.0.3'
 
-        buildConfigField 'String', 'PLAYBOOK_TREASUREHUNT_API_HOST', '"128.2.238.137"'
-        buildConfigField 'Integer', 'PLAYBOOK_TREASUREHUNT_API_PORT', '8080'
+        buildConfigField 'String', 'PLAYBOOK_TREASUREHUNT_API_HOST', '"10.0.2.2"'
+        buildConfigField 'Integer', 'PLAYBOOK_TREASUREHUNT_API_PORT', '9000'
+        buildConfigField 'String', 'PLAYBOOK_SECTION_API_HOST', '"10.0.2.2"'
+        buildConfigField 'Integer', 'PLAYBOOK_SECTION_API_PORT', '9000'
+        buildConfigField 'String', 'PLAYBOOK_SECTION_APP', '"events"'
+        buildConfigField 'String', 'PLAYBOOK_LEADER_APP', '"leaderboard"'
+        buildConfigField 'String', 'PLAYBOOK_LEADERP_APP', '"leaderboardP"'
+        buildConfigField 'String', 'PLAYBOOK_LEADERC_APP', '"leaderboardC"'
+        buildConfigField 'String', 'PLAYBOOK_SELF_APP', '"selfScore"'
 
         externalNativeBuild {
             ndkBuild {
@@ -62,8 +69,8 @@ android {
             externalNativeBuild {
                 ndkBuild {
                     cppFlags '-DCOCOS2D_DEBUG=1',
-                            '-DPLAYBOOK_API_HOST=128.2.238.137',
-                            '-DPLAYBOOK_API_PORT=8080'
+                            '-DPLAYBOOK_API_HOST=10.0.2.2',
+                            '-DPLAYBOOK_API_PORT=9001'
                 }
             }
         }

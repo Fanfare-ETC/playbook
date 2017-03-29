@@ -3,6 +3,7 @@
     <string name="drawer_open">Open</string>
     <string name="drawer_close">Close</string>
     <string name="select_your_seat">Select Your Seat</string>
+    <string name="leader_board">Leaderboard</string>
     <string-array name="sections_array">
         <item>No section selected</item>
         <item>Section 1</item>

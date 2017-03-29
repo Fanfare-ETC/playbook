@@ -4,6 +4,8 @@ import android.content.Context;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.util.Log;
+import android.widget.TableLayout;
+import android.widget.TableRow;
 
 
 import com.koushikdutta.async.ByteBufferList;
@@ -14,6 +16,7 @@ import com.koushikdutta.async.http.AsyncHttpRequest;
 import com.koushikdutta.async.http.WebSocket;
 
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -38,21 +41,28 @@ import java.nio.charset.StandardCharsets;
 
 public class  BackgroundWorker extends AsyncTask<String,Void,String> {
 
-    private int section;
+    private int param;
+    //public LeaderboardActivity activity;
+    private final String urlStringSection = "http://" +
+            BuildConfig.PLAYBOOK_SECTION_API_HOST + ":" +
+            BuildConfig.PLAYBOOK_SECTION_API_PORT + "/" +
+            BuildConfig.PLAYBOOK_SECTION_APP;
+
     BackgroundWorker(int section)
 {
-    this.section=section;
+    this.param = section;
 }
     @Override
 
     protected String doInBackground(String... params) {
-
-       /*if (params[0].equals("section")) {
+        String result="";
+       if (params[0].equals("section")) {
             try {
-                String sec=Integer.toString(section);
-                Log.v("sec",Integer.toString(section));
+                String sec=Integer.toString(param);
+                Log.v("sec",Integer.toString(param));
                 //String move = "2";
-                URL url = new URL("http://10.0.2.2:8080/events");
+                //URL url = new URL("http://10.0.2.2:8080/events");
+                URL url = new URL(urlStringSection);
                 HttpURLConnection httpURLConnection = (HttpURLConnection)url.openConnection();
                 httpURLConnection.setRequestMethod("POST");
                 httpURLConnection.setDoOutput(true);
@@ -62,10 +72,12 @@ public class  BackgroundWorker extends AsyncTask<String,Void,String> {
                 OutputStream outputStream = httpURLConnection.getOutputStream();
                 BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(outputStream, "UTF-8"));
                 JSONObject object = new JSONObject();
-                object.put("id", section);
+                object.put("id", param);
+                object.put("userId", LoginActivity.acct.getId());
+                object.put("userName", LoginActivity.acct.getGivenName() + " " + LoginActivity.acct.getFamilyName());
                 Log.d("test", object.toString());
                // String post_data = URLEncoder.encode("sectionNo","UTF-8")+"="+URLEncoder.encode(sec,"UTF-8")+"&"
-                        + URLEncoder.encode("Move","UTF-8")+"="+URLEncoder.encode(move,"UTF-8");
+                    //    + URLEncoder.encode("Move","UTF-8")+"="+URLEncoder.encode(move,"UTF-8");
                 bufferedWriter.write(object.toString());
                 bufferedWriter.flush();
                 bufferedWriter.close();
@@ -73,7 +85,7 @@ public class  BackgroundWorker extends AsyncTask<String,Void,String> {
                 Log.d("HTTP", "Response code: " + httpURLConnection.getResponseCode());
                 InputStream inputStream = httpURLConnection.getInputStream();
                 BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream,"iso-8859-1"));
-                String result="";
+               // String result="";
                 String line="";
                 while((line = bufferedReader.readLine())!= null) {
                     result += line;
@@ -88,8 +100,10 @@ public class  BackgroundWorker extends AsyncTask<String,Void,String> {
             } catch (JSONException e) {
                 e.printStackTrace();
             }
-        } */
-        return null;
+        }
+
+
+        return result;
     }
 
     @Override
@@ -99,7 +113,6 @@ public class  BackgroundWorker extends AsyncTask<String,Void,String> {
 
     @Override
     protected void onPostExecute(String result) {
-
     }
 
     @Override

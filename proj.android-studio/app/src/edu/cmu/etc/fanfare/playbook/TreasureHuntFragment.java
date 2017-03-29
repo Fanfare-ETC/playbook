@@ -1,5 +1,7 @@
 package edu.cmu.etc.fanfare.playbook;
 
+import android.animation.AnimatorSet;
+import android.animation.ObjectAnimator;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
@@ -18,6 +20,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 
@@ -32,7 +36,7 @@ import java.util.StringTokenizer;
 public class TreasureHuntFragment extends Fragment implements View.OnClickListener{
 
     public static int section;
-    private View view;
+    public static View view;
     private boolean iswarm=false,iscold=false,isplant=false,isprocess=false;
     private static boolean firstrun=true;
     private long lastclick_warm=0,lastclick_cold=0,lastclick_plant=0;
@@ -213,6 +217,45 @@ public class TreasureHuntFragment extends Fragment implements View.OnClickListen
             canvas.drawLine(colderLocation[0], colderLocation[1], runnerLocation[0], runnerLocation[1], mColderPaint);
             canvas.drawLine(warmerLocation[0], warmerLocation[1], runnerLocation[0], runnerLocation[1], mWarmerPaint);
             canvas.drawLine(plantLocation[0], plantLocation[1], runnerLocation[0], runnerLocation[1], mPlantPaint);
+
+            //add blink code to runner button
+            ObjectAnimator blink = ObjectAnimator.ofFloat(mRunnerView, "alpha", 0.0f, 1.0f);
+            blink.setDuration(1000);
+            blink.setRepeatCount(200);
+            blink.start();
+
+            //animate ball from warmer to runner
+            ImageView ball_w = (ImageView)TreasureHuntFragment.view.findViewById(R.id.ball);
+            ObjectAnimator animX0 = ObjectAnimator.ofFloat(ball_w, "x", warmerLocation[0], runnerLocation[0]);
+            ObjectAnimator animY0 = ObjectAnimator.ofFloat(ball_w, "y", warmerLocation[1], runnerLocation[1]);
+            animX0.setRepeatCount(200);
+            animY0.setRepeatCount(200);
+            AnimatorSet animSetXY0 = new AnimatorSet();
+            animSetXY0.setDuration(1000);
+            animSetXY0.playTogether(animX0, animY0);
+            animSetXY0.start();
+
+            //animate ball from colder to runner
+            ImageView ball_c = (ImageView)TreasureHuntFragment.view.findViewById(R.id.ball);
+            ObjectAnimator animX1 = ObjectAnimator.ofFloat(ball_w, "x", colderLocation[0], runnerLocation[0]);
+            ObjectAnimator animY1 = ObjectAnimator.ofFloat(ball_w, "y", colderLocation[1], runnerLocation[1]);
+            animX1.setRepeatCount(200);
+            animY1.setRepeatCount(200);
+            AnimatorSet animSetXY1 = new AnimatorSet();
+            animSetXY1.setDuration(1000);
+            animSetXY1.playTogether(animX1, animY1);
+            animSetXY1.start();
+
+            //animate ball from plant to runner
+            ImageView ball_p = (ImageView)TreasureHuntFragment.view.findViewById(R.id.ball);
+            ObjectAnimator animX2 = ObjectAnimator.ofFloat(ball_p, "x", plantLocation[0], runnerLocation[0]);
+            ObjectAnimator animY2 = ObjectAnimator.ofFloat(ball_p, "y", plantLocation[1], runnerLocation[1]);
+            animX2.setRepeatCount(200);
+            animY2.setRepeatCount(200);
+            AnimatorSet animSetXY2 = new AnimatorSet();
+            animSetXY2.setDuration(1000);
+            animSetXY2.playTogether(animX2, animY2);
+            animSetXY2.start();
         }
     }
 
@@ -251,12 +294,13 @@ public class TreasureHuntFragment extends Fragment implements View.OnClickListen
             }
         });
 
+
         return view;
 
     }
     public View onResumeView(final LayoutInflater inflater, final ViewGroup container,
                              Bundle savedInstanceState) {
-        timerHandler.postDelayed(timerRunnable,0);
+        //timerHandler.postDelayed(timerRunnable,0);
         return view;
     }
     public void onClick(View v) {

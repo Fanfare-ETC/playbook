@@ -143,7 +143,8 @@ public class AppActivity extends AppCompatActivity {
                 fragment = new PredictionFragment();
                 break;
             case 2:
-                fragment = new SectionScoreFragment();
+                //fragment = new SectionScoreFragment();
+                fragment = new LeaderboardFragment();
                 break;
             case 3:
                 fragment = new CollectionFragment();
