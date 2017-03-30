@@ -52,8 +52,12 @@ RenderTexture* BlurFilter::applyX(cocos2d::RenderTexture *input, int inputStreng
         texture->getPixelFormat()
     );
 
+    auto testNode = DrawNode::create();
+    testNode->drawRect(Vec2(0.0f, 0.0f), Vec2(512.0f, 512.0f), Color4F::RED);
+
     renderTexture->begin();
     sprite->visit();
+    testNode->visit();
     renderTexture->end();
 
     renderTexture->saveToFile("image.png", Image::Format::PNG);

@@ -119,6 +119,7 @@ include_directories(
   ${COCOS2D_ROOT}/cocos
   ${COCOS2D_ROOT}/cocos/platform
   ${COCOS2D_ROOT}/cocos/audio/include/
+  ${COCOS2D_ROOT}/cocos/editor-support
   ${COCOS2D_ROOT}/external
   Classes
 )
@@ -131,19 +132,29 @@ endif( WIN32 )
 
 set(GAME_SRC
   Classes/AppDelegate.cpp
+  Classes/RootScene.cpp
   Classes/PredictionScene.cpp
   Classes/SectionSelectionScene.cpp
+  Classes/SectionScoreScene.cpp
   Classes/CollectionScreen.cpp
   Classes/MappedSprite.cpp
+  Classes/PlaybookEvent.cpp
+  Classes/BlurFilter.cpp
+  Classes/PredictionWebSocket.cpp
   ${PLATFORM_SPECIFIC_SRC}
 )
 
 set(GAME_HEADERS
   Classes/AppDelegate.h
+  Classes/RootScene.h
   Classes/PredictionScene.h
   Classes/SectionSelectionScene.h
+  Classes/SectionScoreScene.h
   Classes/CollectionScreen.h
   Classes/MappedSprite.h
+  Classes/PlaybookEvent.h
+  Classes/BlurFilter.h
+  Classes/PredictionWebSocket.h
   ${PLATFORM_SPECIFIC_HEADERS}
 )
 

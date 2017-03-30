@@ -14,11 +14,11 @@
 USING_NS_CC;
 
 #ifndef PLAYBOOK_API_HOST
-#define PLAYBOOK_API_HOST 10.0.2.2
+#define PLAYBOOK_API_HOST localhost
 #endif // PLAYBOOK_API_HOST
 
 #ifndef PLAYBOOK_API_PORT
-#define PLAYBOOK_API_PORT 8080
+#define PLAYBOOK_API_PORT 9001
 #endif // PLAYBOOK_API_PORT
 
 #define STR_VALUE(arg) #arg
@@ -149,7 +149,11 @@ bool CollectionScreen::init()
 
     // Create the card slots.
     for (int i = 0; i < NUM_SLOTS; i++) {
-        CardSlot slot { .present = false };
+        CardSlot slot {
+            .card = Card(),
+            .cardSet = std::vector<Card>(),
+            .present = false
+        };
         this->_cardSlots.push_back(slot);
     }
 
@@ -292,9 +296,9 @@ void CollectionScreen::receiveCard(PlaybookEvent::EventType event)
     this->_visibleNode->addChild(card, 1);
     this->_isCardActive = true;
     Card state {
-        .sprite = card,
+        .team = team,
         .event = event,
-        .team = team
+        .sprite = card
     };
     this->_activeCard = state;
 

@@ -51,7 +51,9 @@ bool AppDelegate::applicationDidFinishLaunching() {
     }
 
     // turn on display FPS
+#if COCOS2D_DEBUG
     director->setDisplayStats(true);
+#endif
 
     // set FPS. the default value is 1.0/60 if you don't call this
     director->setAnimationInterval(1.0f / 60);
@@ -84,7 +86,9 @@ bool AppDelegate::applicationDidFinishLaunching() {
     director->runWithScene(scene);
 
     // Notify activity that Cocos2dx has arrived
+#if CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID
     JniHelper::callStaticVoidMethod("edu/cmu/etc/fanfare/playbook/Cocos2dxBridge", "onApplicationDidFinishLaunching");
+#endif
 
     return true;
 }
@@ -115,7 +119,7 @@ void AppDelegate::applicationWillEnterForeground() {
 
     // Propagate additional lifecycle events.
     auto scene = director->getRunningScene();
-    if (scene->getChildrenCount() > 0) {
+    if (scene != nullptr && scene->getChildrenCount() > 0) {
         auto children = scene->getChildren();
         auto layer = dynamic_cast<PlaybookLayer*>(children.back());
         if (layer) {

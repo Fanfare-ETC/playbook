@@ -1,3 +1,4 @@
+#include "CollectionScreen.h"
 #include "RootScene.h"
 
 using namespace cocos2d;
@@ -19,5 +20,20 @@ Scene* RootScene::createScene()
 }
 
 bool RootScene::init() {
-    return Layer::init();
+    if (!Layer::init()) {
+        return false;
+    }
+
+    auto listener = EventListenerKeyboard::create();
+
+    listener->onKeyPressed = [](EventKeyboard::KeyCode keyCode, Event*) {
+        if (keyCode == EventKeyboard::KeyCode::KEY_C) {
+            auto scene = CollectionScreen::createScene();
+            Director::getInstance()->replaceScene(scene);
+        }
+    };
+
+    this->getEventDispatcher()->addEventListenerWithSceneGraphPriority(listener, this);
+
+    return true;
 }
