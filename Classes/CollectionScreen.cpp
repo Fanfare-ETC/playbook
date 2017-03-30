@@ -132,8 +132,11 @@ bool CollectionScreen::init()
     std::string file_3 (".png");
     std::string filename (file_1+file_2+file_3);
     CCLOG("filename:%s",filename.c_str());
+
     //add goals
     auto goal = Sprite::create(filename);
+    BlurFilter filter;
+    goal = filter.apply(goal, 16);
     auto goalScale = visibleSize.width /goal->getContentSize().width;
     goal->setPosition(visibleSize.width/1.75f, visibleSize.height/1.4f);
     goal->setAnchorPoint(Vec2(0.0f, 0.0f));
@@ -141,6 +144,7 @@ bool CollectionScreen::init()
     goal->setScaleY(goalScale/3);
     auto goalHeight = goalScale * goal->getContentSize().height;
     node->addChild(goal, 0);
+    this->_goal = goal;
 
     // Create DrawNode to highlight card slot.
     this->_cardSlotDrawNode = DrawNode::create();
@@ -156,10 +160,6 @@ bool CollectionScreen::init()
         };
         this->_cardSlots.push_back(slot);
     }
-
-    BlurFilter filter;
-    auto filteredGoal = filter.apply(goal, 16);
-    node->addChild(filteredGoal, 1);
 
     this->scheduleUpdate();
     return true;
