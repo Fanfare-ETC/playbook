@@ -9,6 +9,7 @@ public:
 
 private:
     static const std::map<int, std::vector<float>> GAUSSIAN_VALUES;
+    static const int SPRITE_PADDING;
     enum Direction { X, Y };
 
     int getMaxKernelSize();

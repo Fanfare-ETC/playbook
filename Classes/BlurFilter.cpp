@@ -12,16 +12,18 @@ const std::map<int, std::vector<float>> BlurFilter::GAUSSIAN_VALUES = {
     {15, {0.000489, 0.002403, 0.009246, 0.02784, 0.065602, 0.120999, 0.174697, 0.197448}}
 };
 
+const int BlurFilter::SPRITE_PADDING = 12;
+
 Sprite* BlurFilter::apply(cocos2d::Sprite *sprite, int inputStrength) {
     auto clone = Sprite::createWithTexture(sprite->getTexture());
-    clone->setPosition(0.0f, 0.0f);
+    clone->setPosition(SPRITE_PADDING, SPRITE_PADDING);
     clone->setScale(1.0f);
     clone->setAnchorPoint(Vec2(0.0f, 0.0f));
 
     auto texture = clone->getTexture();
     auto renderTexture = RenderTexture::create(
-        texture->getPixelsWide(),
-        texture->getPixelsHigh(),
+        texture->getPixelsWide() + (2 * SPRITE_PADDING),
+        texture->getPixelsHigh() + (2 * SPRITE_PADDING),
         texture->getPixelFormat()
     );
 
