@@ -144,7 +144,6 @@ bool CollectionScreen::init()
     goal->setScaleY(goalScale/3);
     auto goalHeight = goalScale * goal->getContentSize().height;
     node->addChild(goal, 0);
-    this->_goal = goal;
 
     // Create DrawNode to highlight card slot.
     this->_cardSlotDrawNode = DrawNode::create();
