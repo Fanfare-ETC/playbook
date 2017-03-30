@@ -35,6 +35,7 @@ LOCAL_STATIC_LIBRARIES := cocos2dx_static
 # _COCOS_LIB_ANDROID_END
 
 include $(BUILD_SHARED_LIBRARY)
+include $(LOCAL_PATH)/../../../cocos2d/gpg-cpp-sdk/android/Android.mk
 
 $(call import-module,.)
 
