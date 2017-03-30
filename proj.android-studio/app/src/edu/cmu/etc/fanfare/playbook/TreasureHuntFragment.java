@@ -267,6 +267,21 @@ public class TreasureHuntFragment extends Fragment implements View.OnClickListen
 
         SharedPreferences settings = this.getContext().getSharedPreferences("FANFARE_SHARED", 0);
         section = settings.getInt("section", 0)-1;
+        ImageView marker0= (ImageView)view.findViewById(R.id.marker0);
+        ImageView marker1= (ImageView)view.findViewById(R.id.marker1);
+        if(section==0)
+        {
+
+            marker0.setVisibility(View.VISIBLE);
+            marker1.setVisibility(View.INVISIBLE);
+        }
+        else if(section==1)
+        {
+            marker0.setVisibility(View.INVISIBLE);
+            marker1.setVisibility(View.VISIBLE);
+        }
+
+        else{}
 
         ImageView button_w= (ImageView)view.findViewById(R.id.warmer);
         button_w.setOnClickListener(this);
