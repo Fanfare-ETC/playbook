@@ -60,6 +60,7 @@ import java.util.Stack;
 
 public class AppActivity extends AppCompatActivity {
     private static final String TAG = "AppActivity";
+    private static final String STATE_SELECTED_SECTION = "selected_section";
     private final int DEFAULT_ITEM = 0;
 
     private DrawerItem[] mMenuItems;
@@ -71,6 +72,8 @@ public class AppActivity extends AppCompatActivity {
     private OutlinedTextView mToolbarTextView;
     private Stack<Integer> mBackStack = new Stack<>();
     private int mLastSelectedItem = DEFAULT_ITEM;
+
+    private int mSection = -1;
 
     private class DrawerItemClickListener implements ListView.OnItemClickListener {
         @Override
@@ -234,11 +237,15 @@ public class AppActivity extends AppCompatActivity {
         setContentView(R.layout.app_activity);
 
         // Get the section ID
-        Intent intent = getIntent();
-        Bundle extras = intent.getExtras();
-        if (extras != null) {
-            int section = Integer.parseInt(extras.getString("EXTRA_MESSAGE"));
-            Log.d(TAG, "Section in AppActivity: " + section);
+        if (savedInstanceState != null) {
+            mSection = savedInstanceState.getInt(STATE_SELECTED_SECTION);
+        } else {
+            Intent intent = getIntent();
+            Bundle extras = intent.getExtras();
+            if (extras != null) {
+                mSection = Integer.parseInt(extras.getString("EXTRA_MESSAGE"));
+                Log.d(TAG, "Section in AppActivity: " + mSection);
+            }
         }
 
         mToolbar = (Toolbar) findViewById(R.id.my_toolbar);
@@ -306,6 +313,12 @@ public class AppActivity extends AppCompatActivity {
 
         // Set the home screen
         selectItem(DEFAULT_ITEM);
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putInt(STATE_SELECTED_SECTION, mSection);
     }
 
     @Override

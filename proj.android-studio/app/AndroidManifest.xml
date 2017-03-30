@@ -19,12 +19,15 @@
                    android:value="MyGame" />
 
         <receiver
-            android:name="edu.cmu.etc.fanfare.playbook.myGcmReceiver"
+            android:name="com.google.android.gms.gcm.GcmReceiver"
             android:exported="true"
             android:permission="com.google.android.c2dm.permission.SEND" >
             <intent-filter>
                 <action android:name="com.google.android.c2dm.intent.RECEIVE" />
                 <category android:name="edu.cmu.etc.fanfare.playbook" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="com.google.android.c2dm.intent.REGISTRATION" />
             </intent-filter>
         </receiver>
         <service
