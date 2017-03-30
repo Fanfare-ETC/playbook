@@ -1,5 +1,6 @@
 package edu.cmu.etc.fanfare.playbook;
 
+import android.app.Activity;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
@@ -19,6 +20,7 @@ import com.google.android.gms.gcm.GcmListenerService;
 public class GcmListener extends GcmListenerService {
 
     private static final String TAG = "MyGcmListenerService";
+    private Context context;
 
     /**
      * Called when message is received.
@@ -33,6 +35,7 @@ public class GcmListener extends GcmListenerService {
         String message = data.getString("message");
         Log.d(TAG, "From: " + from);
         Log.d(TAG, "Message: " + message);
+        context = this;
 
         if (from.startsWith("/topics/global")) {
             // message received from some topic.
@@ -78,6 +81,7 @@ public class GcmListener extends GcmListenerService {
                 .setContentText(message)
                 .setAutoCancel(true)
                 .setSound(defaultSoundUri)
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setContentIntent(pendingIntent);
 
         NotificationManager notificationManager =
