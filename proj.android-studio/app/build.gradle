@@ -24,7 +24,6 @@ android {
         externalNativeBuild {
             ndkBuild {
                 arguments '-j' + Runtime.runtime.availableProcessors()
-                arguments 'NDK_CCACHE=/usr/bin/ccache'
                 cppFlags '-frtti',
                         '-DCC_ENABLE_CHIPMUNK_INTEGRATION=1',
                         '-std=c++11',
@@ -33,7 +32,7 @@ android {
         }
 
         ndk {
-            abiFilters 'x86'
+            abiFilters 'x86', 'armeabi'
         }
     }
 
