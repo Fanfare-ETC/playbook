@@ -138,6 +138,13 @@ public class TreasureHuntFragment extends Fragment implements View.OnClickListen
         private View mColderView;
         private View mPlantView;
 
+
+        public static int[] runnerLocation = new int[2];
+        public static int[] warmerLocation = new int[2];
+        public static int[] colderLocation = new int[2];
+        public static int[] plantLocation = new int[2];
+        public static int[] canvasLocation = new int[2];
+
         public LinesView(Context context) {
             super(context);
             initPaints();
@@ -191,11 +198,6 @@ public class TreasureHuntFragment extends Fragment implements View.OnClickListen
                 return;
             }
 
-            int[] runnerLocation = new int[2];
-            int[] warmerLocation = new int[2];
-            int[] colderLocation = new int[2];
-            int[] plantLocation = new int[2];
-            int[] canvasLocation = new int[2];
 
             mRunnerView.getLocationInWindow(runnerLocation);
             mWarmerView.getLocationInWindow(warmerLocation);
@@ -224,38 +226,7 @@ public class TreasureHuntFragment extends Fragment implements View.OnClickListen
             blink.setRepeatCount(999999);
             blink.start();
 
-            //animate ball from warmer to runner
-            ImageView ball_w = (ImageView)TreasureHuntFragment.view.findViewById(R.id.ball_w);
-            ObjectAnimator animX0 = ObjectAnimator.ofFloat(ball_w, "x", warmerLocation[0], runnerLocation[0]);
-            ObjectAnimator animY0 = ObjectAnimator.ofFloat(ball_w, "y", warmerLocation[1], runnerLocation[1]);
-            animX0.setRepeatCount(999999);
-            animY0.setRepeatCount(999999);
-            AnimatorSet animSetXY0 = new AnimatorSet();
-            animSetXY0.setDuration(1000);
-            animSetXY0.playTogether(animX0, animY0);
-            animSetXY0.start();
 
-            //animate ball from colder to runner
-            ImageView ball_c = (ImageView)TreasureHuntFragment.view.findViewById(R.id.ball_c);
-            ObjectAnimator animX1 = ObjectAnimator.ofFloat(ball_c, "x", colderLocation[0], runnerLocation[0]);
-            ObjectAnimator animY1 = ObjectAnimator.ofFloat(ball_c, "y", colderLocation[1], runnerLocation[1]);
-            animX1.setRepeatCount(999999);
-            animY1.setRepeatCount(999999);
-            AnimatorSet animSetXY1 = new AnimatorSet();
-            animSetXY1.setDuration(1000);
-            animSetXY1.playTogether(animX1, animY1);
-            animSetXY1.start();
-
-            //animate ball from plant to runner
-            ImageView ball_p = (ImageView)TreasureHuntFragment.view.findViewById(R.id.ball_p);
-            ObjectAnimator animX2 = ObjectAnimator.ofFloat(ball_p, "x", plantLocation[0], runnerLocation[0]);
-            ObjectAnimator animY2 = ObjectAnimator.ofFloat(ball_p, "y", plantLocation[1], runnerLocation[1]);
-            animX2.setRepeatCount(999999);
-            animY2.setRepeatCount(999999);
-            AnimatorSet animSetXY2 = new AnimatorSet();
-            animSetXY2.setDuration(1000);
-            animSetXY2.playTogether(animX2, animY2);
-            animSetXY2.start();
         }
     }
 
@@ -321,6 +292,38 @@ public class TreasureHuntFragment extends Fragment implements View.OnClickListen
     public void onClick(View v) {
         final JSONObject obj= new JSONObject();
         long current_time = System.currentTimeMillis();
+
+        ImageView ball_w = (ImageView)TreasureHuntFragment.view.findViewById(R.id.ball_w);
+
+        ObjectAnimator blink_w = ObjectAnimator.ofFloat(ball_w, "alpha", 1.0f, 0.0f);
+        blink_w.setDuration(1000);
+
+        ObjectAnimator animX0 = ObjectAnimator.ofFloat(ball_w, "x", LinesView.warmerLocation[0], LinesView.runnerLocation[0]);
+        ObjectAnimator animY0 = ObjectAnimator.ofFloat(ball_w, "y", LinesView.warmerLocation[1], LinesView.runnerLocation[1]);
+        AnimatorSet animSetXY0 = new AnimatorSet();
+        animSetXY0.setDuration(1000);
+
+        ImageView ball_c = (ImageView)TreasureHuntFragment.view.findViewById(R.id.ball_c);
+
+        ObjectAnimator blink_c = ObjectAnimator.ofFloat(ball_c, "alpha", 1.0f, 0.0f);
+        blink_c.setDuration(1000);
+
+        ObjectAnimator animX1 = ObjectAnimator.ofFloat(ball_c, "x", LinesView.colderLocation[0], LinesView.runnerLocation[0]);
+        ObjectAnimator animY1 = ObjectAnimator.ofFloat(ball_c, "y", LinesView.colderLocation[1], LinesView.runnerLocation[1]);
+        AnimatorSet animSetXY1 = new AnimatorSet();
+        animSetXY1.setDuration(1000);
+
+
+        ImageView ball_p = (ImageView)TreasureHuntFragment.view.findViewById(R.id.ball_p);
+
+        ObjectAnimator blink_p = ObjectAnimator.ofFloat(ball_p, "alpha", 1.0f, 0.0f);
+        blink_p.setDuration(1000);
+
+        ObjectAnimator animX2 = ObjectAnimator.ofFloat(ball_p, "x", LinesView.plantLocation[0], LinesView.runnerLocation[0]);
+        ObjectAnimator animY2 = ObjectAnimator.ofFloat(ball_p, "y", LinesView.plantLocation[1], LinesView.runnerLocation[1]);
+        AnimatorSet animSetXY2 = new AnimatorSet();
+        animSetXY2.setDuration(1000);
+
         switch (v.getId()) {
             case R.id.warmer:
                 if((current_time -lastclick_warm) >= 1000 ) {
@@ -334,6 +337,13 @@ public class TreasureHuntFragment extends Fragment implements View.OnClickListen
                     }
                     isprocess=true;
                     lastclick_warm=current_time;
+
+                    //animate ball from warmer to runner
+                    ball_w.setVisibility(View.VISIBLE);
+                    animSetXY0.play(animX0).with(animY0).with(blink_w);
+                    animSetXY0.start();
+
+                    if(!animSetXY0.isRunning()) ball_w.setVisibility(View.INVISIBLE);
                 }
                 else
                     isprocess=false;
@@ -350,6 +360,13 @@ public class TreasureHuntFragment extends Fragment implements View.OnClickListen
                     }
                     isprocess=true;
                     lastclick_cold=current_time;
+
+                    //animate ball from colder to runner
+                    ball_c.setVisibility(View.VISIBLE);
+                    animSetXY1.play(animX1).with(animY1).with(blink_c);
+                    animSetXY1.start();
+
+                    if(!animSetXY1.isRunning()) ball_c.setVisibility(View.INVISIBLE);
                 }
                 else
                     isprocess=false;
@@ -366,6 +383,13 @@ public class TreasureHuntFragment extends Fragment implements View.OnClickListen
                     }
                     isprocess=true;
                     lastclick_plant=current_time;
+
+                    //animate ball from plant to runner
+                    ball_p.setVisibility(View.VISIBLE);
+                    animSetXY2.play(animX2).with(animY2).with(blink_p);
+                    animSetXY2.start();
+
+                    if(!animSetXY2.isRunning()) ball_p.setVisibility(View.INVISIBLE);
                 }
                 else
                     isprocess=false;
