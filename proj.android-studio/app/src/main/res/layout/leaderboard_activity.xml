@@ -9,8 +9,8 @@
 
     <ImageView
         android:id="@+id/leaderboard_view"
-        android:layout_width="match_parent"
-        android:layout_height="382dp"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
         android:layout_marginEnd="32dp"
         android:layout_marginLeft="32dp"
         android:layout_marginRight="32dp"
@@ -19,9 +19,10 @@
         android:adjustViewBounds="false"
         android:contentDescription="@string/app_name"
         android:scaleType="fitXY"
+        app:layout_constraintBottom_toTopOf="@+id/guideline1"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/leader_view" />
 
     <android.support.constraint.Guideline
@@ -30,16 +31,45 @@
         android:layout_height="wrap_content"
         android:orientation="vertical"
         app:layout_constraintGuide_percent="0.52"
-        />
+        tools:layout_editor_absoluteY="0dp"
+        tools:layout_editor_absoluteX="375dp" />
+    <android.support.constraint.Guideline
+        android:id="@+id/guideline1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent="0.8"
+        tools:layout_editor_absoluteY="922dp"
+        tools:layout_editor_absoluteX="0dp" />
+    <android.support.constraint.Guideline
+        android:id="@+id/guideline2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent="0.11"
+        tools:layout_editor_absoluteY="922dp"
+        tools:layout_editor_absoluteX="0dp" />
+    <android.support.constraint.Guideline
+        android:id="@+id/guideline3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.3" />
+    <android.support.constraint.Guideline
+        android:id="@+id/guideline4"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent="0.87" />
 
     <Button
         android:id="@+id/collectButton"
         android:layout_width="0dp"
-        android:layout_height="48dp"
+        android:layout_height="84dp"
         android:background="@null"
         app:layout_constraintRight_toLeftOf="@+id/totalButton"
         app:layout_constraintLeft_toRightOf="@+id/predictButton"
-        app:layout_constraintTop_toTopOf="@id/leaderboard_view"
+        app:layout_constraintTop_toTopOf="@+id/leaderboard_view"
         app:layout_constraintBottom_toTopOf="@+id/leaderboard"
         android:layout_weight="0.167"
         android:layout_marginTop="8dp"/>
@@ -47,113 +77,130 @@
     <Button
         android:id="@+id/totalButton"
         android:layout_width="0dp"
-        android:layout_height="48dp"
+        android:layout_height="84dp"
         android:layout_marginEnd="8dp"
         android:background="@null"
-        app:layout_constraintRight_toRightOf="@id/leaderboard_view"
-        app:layout_constraintTop_toTopOf="@id/leaderboard_view"
-        app:layout_constraintLeft_toRightOf="@id/collectButton"
+        app:layout_constraintRight_toRightOf="@+id/leaderboard_view"
+        app:layout_constraintTop_toTopOf="@+id/leaderboard_view"
+        app:layout_constraintLeft_toRightOf="@+id/collectButton"
         app:layout_constraintBottom_toTopOf="@+id/leaderboard"
         android:layout_weight="0.167"
         android:layout_marginTop="8dp"/>
 
-
-
     <Button
         android:id="@+id/predictButton"
         android:layout_width="0dp"
-        android:layout_height="48dp"
+        android:layout_height="84dp"
         android:background="@null"
-        app:layout_constraintRight_toLeftOf="@id/collectButton"
-        app:layout_constraintTop_toTopOf="@id/leaderboard_view"
-        app:layout_constraintLeft_toRightOf="@id/guideline"
+        app:layout_constraintRight_toLeftOf="@+id/collectButton"
+        app:layout_constraintTop_toTopOf="@+id/leaderboard_view"
         app:layout_constraintBottom_toTopOf="@+id/leaderboard"
-        android:layout_marginTop="8dp"/>
+        android:layout_marginTop="8dp"
+        app:layout_constraintLeft_toRightOf="@+id/guideline" />
 
 
     <ImageView
         android:id="@+id/board_view"
-        android:layout_width="match_parent"
-        android:layout_height="79dp"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
         android:layout_marginBottom="32dp"
         android:layout_marginEnd="32dp"
         android:layout_marginLeft="32dp"
         android:layout_marginRight="32dp"
         android:layout_marginStart="32dp"
-        android:layout_marginTop="32dp"
+        android:layout_marginTop="24dp"
         android:adjustViewBounds="false"
         android:contentDescription="@string/app_name"
         android:scaleType="fitXY"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintLeft_toLeftOf="@+id/leaderboard_view"
-        app:layout_constraintRight_toRightOf="@+id/leaderboard_view"
-        app:layout_constraintTop_toBottomOf="@+id/leaderboard_view"
-        app:layout_constraintVertical_bias="0.421"
-        app:srcCompat="@drawable/board_holder" />
+        app:layout_constraintTop_toTopOf="@+id/guideline1"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintVertical_bias="0.0"
+        app:srcCompat="@drawable/board_holder"
+        app:layout_constraintHorizontal_bias="0.0" />
 
+    <LinearLayout
+        android:id="@+id/linear"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:orientation="horizontal"
+        app:layout_constraintLeft_toRightOf="@+id/guideline"
+        app:layout_constraintTop_toTopOf="@+id/leaderboard_view"
+        app:layout_constraintRight_toRightOf="@+id/leaderboard_view"
+        app:layout_constraintBottom_toTopOf="@+id/guideline2">
 
             <ImageView
                 android:id="@+id/prediction"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:layout_marginEnd="2dp"
-                android:layout_marginRight="4dp"
-                android:layout_marginTop="10dp"
+                android:layout_marginRight="6dp"
+                android:layout_marginTop="2dp"
+                android:layout_marginBottom="2dp"
                 android:src="@drawable/predict_white"
+                android:layout_weight="1"
                 app:layout_constraintRight_toLeftOf="@+id/collection"
-                app:layout_constraintLeft_toRightOf="@+id/guideline"
-                app:layout_constraintTop_toTopOf="@+id/leaderboard_view" />
+                 />
 
             <ImageView
                 android:id="@+id/collection"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:layout_marginEnd="2dp"
-                android:layout_marginRight="2dp"
-                android:layout_marginLeft="4dp"
-                android:layout_marginTop="10dp"
+                android:layout_marginRight="6dp"
+                android:layout_marginLeft="6dp"
+                android:layout_marginBottom="2dp"
+                android:layout_marginTop="2dp"
+                android:layout_weight="1"
                 android:src="@drawable/collect_white"
                 app:layout_constraintRight_toLeftOf="@+id/total"
                 app:layout_constraintLeft_toRightOf="@+id/prediction"
-                app:layout_constraintTop_toTopOf="@+id/leaderboard_view" />
+                android:layout_marginStart="4dp" />
 
             <ImageView
                 android:id="@+id/total"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:layout_marginEnd="2dp"
-                android:layout_marginRight="6dp"
-                android:layout_marginLeft="8dp"
-                android:layout_marginTop="10dp"
+                android:layout_marginRight="2dp"
+                android:layout_marginLeft="6dp"
+                android:layout_marginTop="2dp"
+                android:layout_marginBottom="2dp"
+                android:layout_weight="1"
                 android:src="@drawable/total_yellow"
-                app:layout_constraintRight_toRightOf="@+id/leaderboard_view"
                 app:layout_constraintLeft_toRightOf="@+id/collection"
-                app:layout_constraintTop_toTopOf="@+id/leaderboard_view" />
+                android:layout_marginStart="4dp" />
 
-
+    </LinearLayout>
     <TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
         android:id="@+id/leaderboard"
-        android:layout_width="match_parent"
-        android:layout_height="380dp"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
         android:layout_marginEnd="32dp"
         android:layout_marginLeft="32dp"
         android:layout_marginRight="32dp"
         android:layout_marginStart="32dp"
-        app:layout_constraintLeft_toLeftOf="@+id/leaderboard_view"
-        app:layout_constraintRight_toRightOf="@+id/leaderboard_view"
-        app:layout_constraintTop_toBottomOf="@+id/total">
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/guideline2"
+        app:layout_constraintBottom_toTopOf="@+id/guideline1"
+        android:layout_marginTop="2dp">
 
     </TableLayout>
 
     <TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
         android:id="@+id/selfboard"
-        android:layout_width="220dp"
-        android:layout_height="wrap_content"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
         android:layout_marginRight="4dp"
-        android:layout_marginBottom="10dp"
+        android:layout_marginBottom="2dp"
+        android:scaleType="fitXY"
+        app:layout_constraintLeft_toRightOf="@+id/guideline3"
         app:layout_constraintRight_toRightOf="@+id/board_view"
         app:layout_constraintBottom_toBottomOf="@+id/board_view"
-        android:layout_marginEnd="4dp">
+        app:layout_constraintTop_toBottomOf="@+id/guideline4"
+        android:layout_marginTop="0dp">
 
     </TableLayout>
 </android.support.constraint.ConstraintLayout>

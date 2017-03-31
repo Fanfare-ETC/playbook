@@ -70,7 +70,10 @@ public class selfScoreWorker extends AsyncTask<String,Void,String> {
                 bufferedWriter.flush();
                 bufferedWriter.close();
                 outputStream.close();
-                Log.d("HTTP", "Self Score Response code: " + httpURLConnection.getResponseCode());
+                int responseCode = httpURLConnection.getResponseCode();
+                if(responseCode != 200)
+                    return null;
+                Log.d("HTTP", "Self Score Response code: " + responseCode);
                 InputStream inputStream = httpURLConnection.getInputStream();
                 BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream,"iso-8859-1"));
                 /*StringBuilder sb = new StringBuilder();
@@ -111,26 +114,27 @@ public class selfScoreWorker extends AsyncTask<String,Void,String> {
     @Override
     protected void onPostExecute(String result) {
         JSONObject jo = null;
-        try {
-            jo = new JSONObject(result);
-            Log.i("SELF_TR", "Within post execute function");
-            TableLayout tv = (TableLayout) activity.getView().findViewById(R.id.selfboard);
-            tv.removeAllViewsInLayout();
+        if(result != null) {
+            try {
+                jo = new JSONObject(result);
+                Log.i("SELF_TR", "Within post execute function");
+                TableLayout tv = (TableLayout) activity.getView().findViewById(R.id.selfboard);
+                tv.removeAllViewsInLayout();
 
                 TableRow tr = new TableRow(activity.getContext());
-                /*tr.setLayoutParams(new TableRow.LayoutParams(
-                        TableRow.LayoutParams.MATCH_PARENT,
-                        TableRow.LayoutParams.MATCH_PARENT));*/
+                    /*tr.setLayoutParams(new TableRow.LayoutParams(
+                            TableRow.LayoutParams.MATCH_PARENT,
+                            TableRow.LayoutParams.MATCH_PARENT));*/
                 TableRow.LayoutParams params1 = new TableRow.LayoutParams(
                         TableRow.LayoutParams.MATCH_PARENT,
                         TableRow.LayoutParams.MATCH_PARENT, 0.5f);
                 TableRow.LayoutParams params2 = new TableRow.LayoutParams(
                         TableRow.LayoutParams.MATCH_PARENT,
-                        TableRow.LayoutParams.MATCH_PARENT, 1/3f);
-            /*
-                JSONObject json_data = null;
-                json_data = jArray.getJSONObject(i);
-*/
+                        TableRow.LayoutParams.MATCH_PARENT, 1 / 3f);
+                /*
+                    JSONObject json_data = null;
+                    json_data = jArray.getJSONObject(i);
+    */
                 Log.i("SELF_TR", "Prediction" + jo.getInt("PredictionScore") +
                         ", Collection" + jo.getString("CollectionScore") +
                         ", Total" + jo.getString("Total"));
@@ -144,7 +148,7 @@ public class selfScoreWorker extends AsyncTask<String,Void,String> {
                 b2.setTypeface(externalFont);
                 b2.setPadding(35, 10, 10, 0);
                 b2.setTextSize(40);
-                b2.setGravity(Gravity.RIGHT|Gravity.CENTER);
+                b2.setGravity(Gravity.RIGHT | Gravity.CENTER);
                 b2.setLayoutParams(params2);
                 tr.addView(b2);
 
@@ -155,7 +159,7 @@ public class selfScoreWorker extends AsyncTask<String,Void,String> {
                 b3.setTypeface(externalFont);
                 b3.setPadding(35, 10, 10, 0);
                 b3.setTextSize(40);
-                b3.setGravity(Gravity.RIGHT|Gravity.CENTER);
+                b3.setGravity(Gravity.RIGHT | Gravity.CENTER);
                 b3.setLayoutParams(params2);
                 tr.addView(b3);
 
@@ -165,7 +169,7 @@ public class selfScoreWorker extends AsyncTask<String,Void,String> {
                 b4.setPadding(35, 10, 10, 0);
                 b4.setTypeface(externalFont);
                 b4.setTextSize(40);
-                b4.setGravity(Gravity.RIGHT|Gravity.CENTER);
+                b4.setGravity(Gravity.RIGHT | Gravity.CENTER);
                 b4.setTextColor(Color.WHITE);
                 b4.setLayoutParams(params2);
                 tr.addView(b4);
@@ -177,9 +181,18 @@ public class selfScoreWorker extends AsyncTask<String,Void,String> {
                 //tv.addView(vline);
 
 
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+        else{
+            Typeface externalFont = Typeface.createFromAsset(activity.getContext().getAssets(), "fonts/nova2.ttf");
 
-        } catch (JSONException e) {
-            e.printStackTrace();
+            TextView b0 = new TextView(activity.getContext());
+            b0.setTypeface(externalFont);
+            b0.setText("Server error. Please inform Project Fanfare for tech support");
+            b0.setPadding(20, 50, 12, 0);
+            b0.setTextSize(18);
         }
     }
 

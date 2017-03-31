@@ -47,6 +47,7 @@ public class LeaderboardWorker extends AsyncTask<String,Void,String> {
             BuildConfig.PLAYBOOK_SECTION_API_HOST + ":" +
             BuildConfig.PLAYBOOK_SECTION_API_PORT + "/" +
             BuildConfig.PLAYBOOK_LEADERC_APP;
+    private int flag = 0; //0 order by total, 1 order by prediction, 2 order by collection
 
     LeaderboardWorker(LeaderboardFragment activity)
     {
@@ -59,6 +60,7 @@ public class LeaderboardWorker extends AsyncTask<String,Void,String> {
 
         if (params[0].equals("0")) {
             try {
+                flag = 0;
                 // String sort=Integer.toString(section);
                 //Log.v("sec",Integer.toString(section));
                 //String move = "2";
@@ -81,7 +83,10 @@ public class LeaderboardWorker extends AsyncTask<String,Void,String> {
                // bufferedWriter.flush();
                // bufferedWriter.close();
                // outputStream.close();
-                Log.d("HTTP", "Leaderboard Response code: " + httpURLConnection.getResponseCode());
+                int responseCode = httpURLConnection.getResponseCode();
+                if(responseCode != 200)
+                    return null;
+                Log.d("HTTP", "Leaderboard Response code: " + responseCode);
                 InputStream inputStream = httpURLConnection.getInputStream();
                 BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream,"iso-8859-1"));
                 /*StringBuilder sb = new StringBuilder();
@@ -111,6 +116,7 @@ public class LeaderboardWorker extends AsyncTask<String,Void,String> {
 
         else if (params[0].equals("1")) {
             try {
+                flag = 1;
                 // String sort=Integer.toString(section);
                 //Log.v("sec",Integer.toString(section));
                 //String move = "2";
@@ -133,7 +139,10 @@ public class LeaderboardWorker extends AsyncTask<String,Void,String> {
                 // bufferedWriter.flush();
                 // bufferedWriter.close();
                 // outputStream.close();
-                Log.d("HTTP", "LeaderboardP Response code: " + httpURLConnection.getResponseCode());
+                int responseCode = httpURLConnection.getResponseCode();
+                if(responseCode != 200)
+                    return null;
+                Log.d("HTTP", "LeaderboardP Response code: " + responseCode);
                 InputStream inputStream = httpURLConnection.getInputStream();
                 BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream,"iso-8859-1"));
                 /*StringBuilder sb = new StringBuilder();
@@ -163,6 +172,7 @@ public class LeaderboardWorker extends AsyncTask<String,Void,String> {
 
         else if (params[0].equals("2")) {
             try {
+                flag = 2;
                 // String sort=Integer.toString(section);
                 //Log.v("sec",Integer.toString(section));
                 //String move = "2";
@@ -185,7 +195,10 @@ public class LeaderboardWorker extends AsyncTask<String,Void,String> {
                 // bufferedWriter.flush();
                 // bufferedWriter.close();
                 // outputStream.close();
-                Log.d("HTTP", "LeaderboardC Response code: " + httpURLConnection.getResponseCode());
+                int responseCode = httpURLConnection.getResponseCode();
+                if(responseCode != 200)
+                    return null;
+                Log.d("HTTP", "LeaderboardC Response code: " + responseCode);
                 InputStream inputStream = httpURLConnection.getInputStream();
                 BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream,"iso-8859-1"));
                 /*StringBuilder sb = new StringBuilder();
@@ -224,89 +237,124 @@ public class LeaderboardWorker extends AsyncTask<String,Void,String> {
     @Override
     protected void onPostExecute(String result) {
         JSONArray jArray = null;
-        try {
-            jArray = new JSONArray(result);
-            Log.i("LEAD_TR", "Within post execute function");
-            TableLayout tv = (TableLayout) activity.getView().findViewById(R.id.leaderboard);
-            tv.removeAllViewsInLayout();
+        if(result != null) {
+            try {
+                jArray = new JSONArray(result);
+                Log.i("LEAD_TR", "Within post execute function");
+                TableLayout tv = (TableLayout) activity.getView().findViewById(R.id.leaderboard);
+                tv.removeAllViewsInLayout();
 
-            for (int i = 0; i < jArray.length(); i++) {
-                TableRow tr = new TableRow(activity.getContext());
-                /*tr.setLayoutParams(new TableRow.LayoutParams(
-                        TableRow.LayoutParams.MATCH_PARENT,
-                        TableRow.LayoutParams.MATCH_PARENT));*/
-                TableRow.LayoutParams params1 = new TableRow.LayoutParams(
-                        TableRow.LayoutParams.MATCH_PARENT,
-                        TableRow.LayoutParams.MATCH_PARENT, 0.5f);
-                TableRow.LayoutParams params2 = new TableRow.LayoutParams(
-                        TableRow.LayoutParams.MATCH_PARENT,
-                        TableRow.LayoutParams.MATCH_PARENT, 1/6f);
+                for (int i = 0; i < jArray.length(); i++) {
+                    TableRow tr = new TableRow(activity.getContext());
+                    /*tr.setLayoutParams(new TableRow.LayoutParams(
+                            TableRow.LayoutParams.MATCH_PARENT,
+                            TableRow.LayoutParams.MATCH_PARENT));*/
+                    TableRow.LayoutParams params1 = new TableRow.LayoutParams(
+                            TableRow.LayoutParams.MATCH_PARENT,
+                            TableRow.LayoutParams.MATCH_PARENT, 0.5f);
+                    TableRow.LayoutParams params2 = new TableRow.LayoutParams(
+                            TableRow.LayoutParams.MATCH_PARENT,
+                            TableRow.LayoutParams.MATCH_PARENT, 1 / 6f);
 
-                Log.i("LEAD_TR", "Within the array iteration");
-                JSONObject json_data = null;
-                json_data = jArray.getJSONObject(i);
+                    Log.i("LEAD_TR", "Within the array iteration");
+                    JSONObject json_data = null;
+                    json_data = jArray.getJSONObject(i);
 
                     Log.i("LEAD_TR", "Name" + json_data.getString("UserName") +
                             ", Prediction" + json_data.getInt("PredictionScore") +
                             ", Collection" + json_data.getString("CollectionScore") +
                             ", Total" + json_data.getString("Total"));
 
-                Typeface externalFont = Typeface.createFromAsset(activity.getContext().getAssets(), "fonts/nova2.ttf");
+                    Typeface externalFont = Typeface.createFromAsset(activity.getContext().getAssets(), "fonts/nova2.ttf");
 
-                TextView b1 = new TextView(activity.getContext());
-                String name = json_data.getString("UserName");
-                b1.setText("#" + (i+1) + "  " + name);
-                b1.setPadding(20, 10, 10, 0);
-                b1.setTextColor(Color.WHITE);
-                b1.setTypeface(externalFont);
-                b1.setTextSize(20);
-                b1.setGravity(Gravity.LEFT);
-                b1.setLayoutParams(params1);
-                tr.addView(b1);
+                    TextView b0 = new TextView(activity.getContext());
+                    //String rank = json_data.getString("UserName");
+                    b0.setText("#" + (i + 1));
+                    b0.setPadding(20, 0, 10, 0);
+                    b0.setTextColor(Color.WHITE);
+                    b0.setTypeface(null, externalFont.ITALIC);
+                    if (i == 0)
+                        b0.setTextSize(26);
+                    else
+                        b0.setTextSize(20);
+                    b0.setGravity(Gravity.LEFT);
+                    b0.setLayoutParams(params1);
+                    tr.addView(b0);
 
-                TextView b2 = new TextView(activity.getContext());
-                String prediction = String.valueOf(json_data.getInt("PredictionScore"));
-                b2.setText(prediction);
-                b2.setTextColor(Color.WHITE);
-                b2.setTypeface(externalFont);
-                b2.setPadding(35, 10, 10, 0);
-                b2.setTextSize(20);
-                b2.setGravity(Gravity.RIGHT|Gravity.CENTER);
-                b2.setLayoutParams(params2);
-                tr.addView(b2);
+                    TextView b1 = new TextView(activity.getContext());
+                    String name = json_data.getString("UserName");
+                    b1.setText(name);
+                    b1.setPadding(10, 0, 10, 0);
+                    b1.setTextColor(Color.WHITE);
+                    b1.setTypeface(externalFont);
+                    b1.setTextSize(20);
+                    b1.setGravity(Gravity.LEFT);
+                    b1.setLayoutParams(params1);
+                    tr.addView(b1);
 
-                TextView b3 = new TextView(activity.getContext());
-                String collection = String.valueOf(json_data.getInt("CollectionScore"));
-                b3.setText(collection);
-                b3.setTextColor(Color.WHITE);
-                b3.setTypeface(externalFont);
-                b3.setPadding(35, 10, 10, 0);
-                b3.setTextSize(20);
-                b3.setGravity(Gravity.RIGHT|Gravity.CENTER);
-                b3.setLayoutParams(params2);
-                tr.addView(b3);
+                    TextView b2 = new TextView(activity.getContext());
+                    String prediction = String.valueOf(json_data.getInt("PredictionScore"));
+                    b2.setText(prediction);
+                    if (flag == 1)
+                        b2.setTextColor(Color.parseColor("#FFB84D"));
+                    else
+                        b2.setTextColor(Color.WHITE);
+                    b2.setTypeface(externalFont);
+                    b2.setPadding(35, 0, 6, 0);
+                    b2.setTextSize(24);
+                    b2.setGravity(Gravity.RIGHT | Gravity.CENTER);
+                    b2.setLayoutParams(params2);
+                    tr.addView(b2);
 
-                TextView b4 = new TextView(activity.getContext());
-                String total = String.valueOf(json_data.getInt("Total"));
-                b4.setText(total);
-                b4.setPadding(35, 10, 10, 0);
-                b4.setTypeface(externalFont);
-                b4.setTextSize(20);
-                b4.setGravity(Gravity.RIGHT|Gravity.CENTER);
-                b4.setTextColor(Color.WHITE);
-                b4.setLayoutParams(params2);
-                tr.addView(b4);
+                    TextView b3 = new TextView(activity.getContext());
+                    String collection = String.valueOf(json_data.getInt("CollectionScore"));
+                    b3.setText(collection);
+                    if (flag == 2)
+                        b3.setTextColor(Color.parseColor("#FFB84D"));
+                    else
+                        b3.setTextColor(Color.WHITE);
+                    b3.setTypeface(externalFont);
+                    b3.setPadding(30, 0, 6, 0);
+                    b3.setTextSize(24);
+                    b3.setGravity(Gravity.RIGHT | Gravity.CENTER);
+                    b3.setLayoutParams(params2);
+                    tr.addView(b3);
 
-                tv.addView(tr);
-               // final View vline = new View(activity);
-                //vline.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.FILL_PARENT, 2));
-                //vline.setBackgroundColor(Color.BLUE);
-                //tv.addView(vline);
+                    TextView b4 = new TextView(activity.getContext());
+                    String total = String.valueOf(json_data.getInt("Total"));
+                    b4.setText(total);
+                    b4.setPadding(30, 0, 12, 0);
+                    b4.setTypeface(externalFont);
+                    b4.setTextSize(24);
+                    b4.setGravity(Gravity.RIGHT | Gravity.CENTER);
+                    if (flag == 0)
+                        b4.setTextColor(Color.parseColor("#FFB84D"));
+                    else
+                        b4.setTextColor(Color.WHITE);
+                    b4.setLayoutParams(params2);
+                    tr.addView(b4);
+
+                    tv.addView(tr);
+                    // final View vline = new View(activity);
+                    //vline.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.FILL_PARENT, 2));
+                    //vline.setBackgroundColor(Color.BLUE);
+                    //tv.addView(vline);
 
 
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
             }
-        } catch (JSONException e) {
-            e.printStackTrace();
+        }
+        else{
+
+            Typeface externalFont = Typeface.createFromAsset(activity.getContext().getAssets(), "fonts/nova2.ttf");
+
+            TextView b0 = new TextView(activity.getContext());
+            b0.setTypeface(externalFont);
+            b0.setText("Server error. Please inform Project Fanfare for tech support");
+            b0.setPadding(20, 50, 12, 0);
+            b0.setTextSize(24);
         }
     }
 
