@@ -135,8 +135,6 @@ bool CollectionScreen::init()
 
     //add goals
     auto goal = Sprite::create(filename);
-    BlurFilter filter;
-    goal = filter.apply(goal, 16);
     auto goalScale = visibleSize.width /goal->getContentSize().width;
     goal->setPosition(visibleSize.width/1.75f, visibleSize.height/1.4f);
     goal->setAnchorPoint(Vec2(0.0f, 0.0f));
@@ -516,7 +514,7 @@ bool CollectionScreen::cardSetMeetsGoal(std::vector<Card> cardSet, GoalType goal
             });
 
             auto hasRBI = std::any_of(cardSet.begin(), cardSet.end(), [](Card card) {
-                return card.event == PlaybookEvent::EventType::RUN_BATTED_IN;
+                return card.event == PlaybookEvent::EventType::RUN_SCORED;
             });
 
             return hasBase && hasSteal && hasRBI;
@@ -560,7 +558,7 @@ bool CollectionScreen::cardSetMeetsGoal(std::vector<Card> cardSet, GoalType goal
 
         case GoalType::OUT_3: {
             return std::count_if(cardSet.begin(), cardSet.end(), [](Card card) {
-               return card.event == PlaybookEvent::EventType::STRIKE_OUT;
+               return card.event == PlaybookEvent::EventType::STRIKEOUT;
             }) >= 3;
         }
 

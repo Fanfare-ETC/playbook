@@ -14,27 +14,75 @@ const std::map<int, std::vector<float>> BlurFilter::GAUSSIAN_VALUES = {
 
 const int BlurFilter::SPRITE_PADDING = 12;
 
-Sprite* BlurFilter::apply(cocos2d::Sprite *sprite, int inputStrength) {
-    auto clone = Sprite::createWithTexture(sprite->getTexture());
+BlurFilter::BlurFilter() : _strength(8), _passes(4) {}
+
+void BlurFilter::onEnter() {
+    // Apply the blur effect.
+    this->_sprite = dynamic_cast<Sprite*>(this->getOwner());
+    if (this->_sprite == nullptr) {
+        CCLOGWARN("BlurFilter applied to a Node that is not a sprite!");
+        return;
+    }
+
+    this->_origTexture = this->_sprite->getTexture();
+    auto texture = this->apply(this->_origTexture);
+    this->_sprite->setTexture(texture);
+
+    // Restore the texture from the cache when the GL context is lost.
+    this->_resumeListener = EventListenerCustom::create(EVENT_RENDERER_RECREATED, [this](EventCustom*) {
+        auto texture = this->apply(this->_origTexture);
+        this->_sprite->setTexture(texture);
+    });
+
+    auto dispatcher = Director::getInstance()->getEventDispatcher();
+    dispatcher->addEventListenerWithFixedPriority(this->_resumeListener, 1);
+}
+
+void BlurFilter::onExit() {
+    auto dispatcher = Director::getInstance()->getEventDispatcher();
+    dispatcher->removeEventListener(this->_resumeListener);
+}
+
+int BlurFilter::getStrength() {
+    return this->_strength;
+}
+
+void BlurFilter::setStrength(int strength) {
+    this->_strength = strength;
+}
+
+int BlurFilter::getPasses() {
+    return this->_passes;
+}
+
+void BlurFilter::setPasses(int passes) {
+    this->_passes = passes;
+}
+
+Texture2D* BlurFilter::apply(cocos2d::Texture2D *texture) {
+    auto clone = Sprite::createWithTexture(texture);
     clone->setPosition(SPRITE_PADDING, SPRITE_PADDING);
     clone->setScale(1.0f);
     clone->setAnchorPoint(Vec2(0.0f, 0.0f));
+    clone->setFlippedY(true);
 
-    auto texture = clone->getTexture();
     auto renderTexture = RenderTexture::create(
         texture->getPixelsWide() + (2 * SPRITE_PADDING),
         texture->getPixelsHigh() + (2 * SPRITE_PADDING),
-        texture->getPixelFormat()
+        Texture2D::PixelFormat::RGBA8888
     );
 
     renderTexture->begin();
     clone->visit();
     renderTexture->end();
 
-    renderTexture = this->applyX(renderTexture, inputStrength);
-    renderTexture = this->applyY(renderTexture, inputStrength);
+    auto strength = this->_strength / this->_passes;
+    for (int i = 0; i < this->_passes; i++) {
+        renderTexture = this->applyX(renderTexture, strength);
+        renderTexture = this->applyY(renderTexture, strength);
+    }
 
-    return renderTexture->getSprite();
+    return renderTexture->getSprite()->getTexture();
 }
 
 RenderTexture* BlurFilter::apply(cocos2d::RenderTexture *input, int inputStrength, Direction direction) {
@@ -54,7 +102,6 @@ RenderTexture* BlurFilter::apply(cocos2d::RenderTexture *input, int inputStrengt
     auto texture = input->getSprite()->getTexture();
     auto sprite = Sprite::createWithTexture(texture);
     sprite->setAnchorPoint(Vec2(0.0f, 0.0f));
-    sprite->setFlippedY(true);
     sprite->setGLProgram(shaderProgram);
 
     auto strength = 1.0f / (sprite->getContentSize().width * sprite->getScaleX()) * 0.5f;
