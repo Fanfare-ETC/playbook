@@ -78,6 +78,8 @@ android {
         staging {
             buildConfigField 'String', 'PLAYBOOK_TREASUREHUNT_API_HOST', '"staging.fanfare.wong.place"'
             buildConfigField 'Integer', 'PLAYBOOK_TREASUREHUNT_API_PORT', '9000'
+            buildConfigField 'String', 'PLAYBOOK_SECTION_API_HOST', '"staging.fanfare.wong.place"'
+            buildConfigField 'Integer', 'PLAYBOOK_SECTION_API_PORT', '9002'
 
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
@@ -97,6 +99,8 @@ android {
         release {
             buildConfigField 'String', 'PLAYBOOK_TREASUREHUNT_API_HOST', '"fanfare.wong.place"'
             buildConfigField 'Integer', 'PLAYBOOK_TREASUREHUNT_API_PORT', '9000'
+            buildConfigField 'String', 'PLAYBOOK_SECTION_API_HOST', '"fanfare.wong.place"'
+            buildConfigField 'Integer', 'PLAYBOOK_SECTION_API_PORT', '9002'
 
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
