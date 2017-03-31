@@ -135,8 +135,6 @@ bool CollectionScreen::init()
 
     //add goals
     auto goal = Sprite::create(filename);
-    BlurFilter filter;
-    goal = filter.apply(goal, 16);
     auto goalScale = visibleSize.width /goal->getContentSize().width;
     goal->setPosition(visibleSize.width/1.75f, visibleSize.height/1.4f);
     goal->setAnchorPoint(Vec2(0.0f, 0.0f));
