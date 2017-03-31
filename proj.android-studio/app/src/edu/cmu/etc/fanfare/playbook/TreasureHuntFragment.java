@@ -260,6 +260,9 @@ public class TreasureHuntFragment extends Fragment implements View.OnClickListen
         button_c.setOnClickListener(this);
         ImageView button_p= (ImageView)view.findViewById(R.id.plant);
         button_p.setOnClickListener(this);
+        ImageView button_tut= (ImageView)view.findViewById(R.id.treasurehunt_tutorial);
+        button_tut.setOnClickListener(this);
+
 
        timerHandler.postDelayed(timerRunnable,0);
 
@@ -393,6 +396,14 @@ public class TreasureHuntFragment extends Fragment implements View.OnClickListen
                 }
                 else
                     isprocess=false;
+                break;
+            case R.id.treasurehunt_tutorial:
+                ImageView translucent= (ImageView)view.findViewById(R.id.translucentlayer);
+                translucent.setVisibility(View.INVISIBLE);
+                ((ViewGroup) translucent.getParent()).removeView(translucent);
+                ImageView tutorial= (ImageView)view.findViewById(R.id.treasurehunt_tutorial);
+                tutorial.setVisibility(View.INVISIBLE);
+                ((ViewGroup) tutorial.getParent()).removeView(tutorial);
                 break;
         }
         if(isprocess) {

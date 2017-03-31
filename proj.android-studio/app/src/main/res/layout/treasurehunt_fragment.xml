@@ -7,18 +7,6 @@
     android:background="@drawable/bg"
     android:orientation="vertical">
 
-    <ImageView
-        android:id="@+id/holder"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:adjustViewBounds="true"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintDimensionRatio="w,1:1"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:srcCompat="@drawable/holder" />
-
     <!--
     <ImageView
         android:id="@+id/lineplant"
@@ -40,6 +28,19 @@
     -->
 
     <ImageView
+        android:id="@+id/holder"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:adjustViewBounds="true"
+        android:visibility="visible"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintDimensionRatio="w,1:1"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:srcCompat="@drawable/holder" />
+
+    <ImageView
         android:id="@+id/map"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -48,6 +49,7 @@
         android:layout_marginRight="16dp"
         android:layout_marginStart="16dp"
         android:adjustViewBounds="true"
+        android:visibility="visible"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
@@ -59,6 +61,7 @@
         class="edu.cmu.etc.fanfare.playbook.TreasureHuntFragment$LinesView"
         android:layout_width="0dp"
         android:layout_height="0dp"
+        android:visibility="visible"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintLeft_toLeftOf="parent"
@@ -98,32 +101,33 @@
         android:id="@+id/warmer"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginRight="8dp"
         android:layout_marginStart="8dp"
         android:layout_marginTop="16dp"
         android:scaleType="fitCenter"
+        android:visibility="visible"
         app:layout_constraintLeft_toLeftOf="@+id/holder"
-        app:layout_constraintTop_toTopOf="@+id/holder"
         app:layout_constraintRight_toLeftOf="@+id/colder"
-        app:srcCompat="@drawable/warm"
-        android:layout_marginLeft="8dp"
-        android:layout_marginRight="8dp"
-        android:layout_marginEnd="8dp"/>
+        app:layout_constraintTop_toTopOf="@+id/holder"
+        app:srcCompat="@drawable/warm" />
 
     <ImageView
         android:id="@+id/colder"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
         android:layout_marginEnd="8dp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginRight="8dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="16dp"
         android:scaleType="fitCenter"
         android:visibility="visible"
+        app:layout_constraintLeft_toRightOf="@+id/warmer"
         app:layout_constraintRight_toRightOf="@+id/holder"
         app:layout_constraintTop_toTopOf="@+id/holder"
-        app:layout_constraintLeft_toRightOf="@+id/warmer"
-        app:srcCompat="@drawable/cold"
-        android:layout_marginRight="8dp"
-        android:layout_marginLeft="8dp"
-        android:layout_marginStart="8dp"/>
+        app:srcCompat="@drawable/cold" />
 
     <ImageView
         android:id="@+id/plant"
@@ -144,7 +148,7 @@
         app:layout_constraintTop_toBottomOf="@+id/warmer"
         app:layout_constraintVertical_bias="1.0"
         app:layout_constraintWidth_max="361dp"
-        app:srcCompat="@drawable/plant"/>
+        app:srcCompat="@drawable/plant" />
 
     <ImageView
         android:id="@+id/marker0"
@@ -159,7 +163,7 @@
         android:adjustViewBounds="true"
         android:cropToPadding="true"
         android:scaleType="fitXY"
-        android:visibility="invisible"
+        android:visibility="visible"
         app:layout_constraintBottom_toBottomOf="@+id/map"
         app:layout_constraintHorizontal_bias="0.59"
         app:layout_constraintLeft_toLeftOf="@+id/map"
@@ -181,7 +185,7 @@
         android:adjustViewBounds="true"
         android:cropToPadding="true"
         android:scaleType="fitXY"
-        android:visibility="invisible"
+        android:visibility="visible"
         app:layout_constraintBottom_toBottomOf="@+id/map"
         app:layout_constraintHorizontal_bias="0.804"
         app:layout_constraintLeft_toLeftOf="@+id/map"
@@ -195,6 +199,10 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginBottom="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="16dp"
+        android:layout_marginStart="16dp"
         android:scaleType="fitCenter"
         android:visibility="visible"
         app:layout_constraintBottom_toTopOf="@+id/holder"
@@ -202,11 +210,7 @@
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/map"
-        app:srcCompat="@drawable/runnercold"
-        android:layout_marginLeft="16dp"
-        android:layout_marginRight="16dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginEnd="16dp"/>
+        app:srcCompat="@drawable/runnercold" />
 
     <ImageView
         android:id="@+id/ball_p"
@@ -252,5 +256,45 @@
         app:layout_constraintRight_toRightOf="@+id/map"
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/ball" />
+
+    <ImageView
+        android:id="@+id/translucentlayer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginBottom="0dp"
+        android:layout_marginLeft="0dp"
+        android:layout_marginRight="0dp"
+        android:layout_marginTop="0dp"
+        android:adjustViewBounds="false"
+        android:alpha="0.5"
+        android:cropToPadding="true"
+        android:scaleType="fitXY"
+        android:scaleX="1"
+        android:scaleY="1"
+        android:visibility="visible"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/bg" />
+
+    <ImageView
+        android:id="@+id/treasurehunt_tutorial"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="0dp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginRight="8dp"
+        android:layout_marginTop="8dp"
+        android:alpha="1"
+        android:elevation="0dp"
+        android:scaleType="fitXY"
+        android:src="@drawable/treasurehunt_tutorial"
+        android:visibility="visible"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.102" />
 
 </android.support.constraint.ConstraintLayout>
