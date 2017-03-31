@@ -137,225 +137,171 @@ void Prediction::initFieldOverlay() {
     // add overlay to screen
     std::map<std::string, MappedSprite::Polygon> polygons;
 
-    polygons.insert({PlaybookEvent::eventToString(PlaybookEvent::EventType::ERROR), {
-            Vec2(12.0f, 1908.0f),
-            Vec2(408.0f, 1908.0f),
-            Vec2(456.0f, 1732.0f),
-            Vec2(12.0f, 1474.0f),
-    }});
-
-    polygons.insert({PlaybookEvent::eventToString(PlaybookEvent::EventType::GRAND_SLAM), {
-            Vec2(424.0f, 1908.0f),
-            Vec2(1016.0f, 1908.0f),
-            Vec2(970.0f, 1736.0f),
-            Vec2(728.0f, 1768.0f),
-            Vec2(470.0f, 1736.0f),
-    }});
-
-    polygons.insert({PlaybookEvent::eventToString(PlaybookEvent::EventType::SHUTOUT_INNING), {
-            Vec2(1030.0f, 1908.0f),
-            Vec2(1426.0f, 1908.0f),
-            Vec2(1426.0f, 1472.0f),
-            Vec2(984.0f, 1734.0f)
-    }});
-
-    polygons.insert({PlaybookEvent::eventToString(PlaybookEvent::EventType::LONG_OUT), {
-            Vec2(12.0f, 1448.0f),
-            Vec2(224.0f, 1618.0f),
-            Vec2(352.0f, 1394.0f),
-            Vec2(144.0f, 1208.0f),
-            Vec2(12.0f, 918.0f)
-    }});
-
-    polygons.insert({PlaybookEvent::eventToString(PlaybookEvent::EventType::RUN_BATTED_IN), {
-            Vec2(238.0f, 1626.0f),
-            Vec2(466.0f, 1720.0f),
-            Vec2(716.0f, 1754.0f),
-            Vec2(976.0f, 1720.0f),
-            Vec2(1202.0f, 1626.0f),
-            Vec2(1074.0f, 1404.0f),
-            Vec2(716.0f, 1494.0f),
-            Vec2(364.0f, 1404.0f)
-    }});
-
-    polygons.insert({PlaybookEvent::eventToString(PlaybookEvent::EventType::POP_FLY), {
-            Vec2(1216.0f, 1618.0f),
-            Vec2(1428.0f, 1448.0f),
-            Vec2(1428.0f, 918.0f),
-            Vec2(1296.0f, 1208.0f),
-            Vec2(1088.0f, 1394.0f)
-    }});
-
-    polygons.insert({PlaybookEvent::eventToString(PlaybookEvent::EventType::TRIPLE_PLAY), {
-            Vec2(216.0f, 1269.0f),
-            Vec2(462.0f, 1018.0f),
-            Vec2(322.0f, 880.0f),
-            Vec2(366.0f, 784.0f),
-            Vec2(332.0f, 784.0f),
-            Vec2(204.0f, 908.0f),
-            Vec2(76.0f, 784.0f),
-            Vec2(12.0f, 784.0f),
-            Vec2(64.0f, 1038.0f)
-    }});
-
-    polygons.insert({PlaybookEvent::eventToString(PlaybookEvent::EventType::GROUNDER), {
-            Vec2(1224.0f, 1269.0f),
-            Vec2(1376.0f, 1038.0f),
-            Vec2(1428.0f, 784.0f),
-            Vec2(1364.0f, 784.0f),
-            Vec2(1236.0f, 908.0f),
-            Vec2(1108.0f, 784.0f),
-            Vec2(1074.0f, 784.0f),
-            Vec2(1118.0f, 880.0f),
-            Vec2(976.0f, 1018.0f)
-    }});
-
-    polygons.insert({PlaybookEvent::eventToString(PlaybookEvent::EventType::DOUBLE_PLAY), {
-            Vec2(224.0f, 1278.0f),
-            Vec2(442.0f, 1426.0f),
-            Vec2(720.0f, 1480.f),
-            Vec2(998.0f, 1426.0f),
-            Vec2(1216.0f, 1278.0f),
-            Vec2(964.0f, 1032.0f),
-            Vec2(832.0f, 1172.0f),
-            Vec2(720.0f, 1128.0f),
-            Vec2(608.0f, 1172.0f),
-            Vec2(476.0f, 1032.0f)
-    }});
-
-    polygons.insert({PlaybookEvent::eventToString(PlaybookEvent::EventType::DOUBLE), {
-            Vec2(720.0f, 1404.0f),
-            Vec2(834.0f, 1292.0f),
-            Vec2(720.0f, 1180.0f),
-            Vec2(606.0f, 1292.0f)
-    }});
-
-    polygons.insert({PlaybookEvent::eventToString(PlaybookEvent::EventType::STEAL), {
-            Vec2(484.0f, 1022.0f),
-            Vec2(616.0f, 1152.0f),
-            Vec2(720.0f, 1112.0f),
-            Vec2(824.0f, 1152.0f),
-            Vec2(956.0f, 1022.0f),
-            Vec2(808.0f, 874.0f),
-            Vec2(720.0f, 906.0f),
-            Vec2(632.0f, 874.0f)
-    }});
-
-    polygons.insert({PlaybookEvent::eventToString(PlaybookEvent::EventType::PICK_OFF), {
-            Vec2(474.0f, 1010.0f),
-            Vec2(622.0f, 864.0f),
-            Vec2(588.0f, 774.0f),
-            Vec2(622.0f, 688.0f),
-            Vec2(474.0f, 540.0f),
-            Vec2(342.0f, 670.0f),
-            Vec2(382.0f, 774.0f),
-            Vec2(342.0f, 880.0f)
-    }});
-
-    polygons.insert({PlaybookEvent::eventToString(PlaybookEvent::EventType::STRIKE_OUT), {
-            Vec2(720.0f, 892.0f),
-            Vec2(804.0f, 860.0f),
-            Vec2(838.0f, 776.0f),
-            Vec2(804.0f, 692.0f),
-            Vec2(720.0f, 658.0f),
-            Vec2(636.0f, 692.0f),
-            Vec2(602.0f, 776.0f),
-            Vec2(636.0f, 860.0f),
-    }});
-
-    polygons.insert({PlaybookEvent::eventToString(PlaybookEvent::EventType::WALK), {
-            Vec2(966.0f, 1010.0f),
-            Vec2(1098.0f, 880.0f),
-            Vec2(1058.0f, 774.0f),
-            Vec2(1098.0f, 670.0f),
-            Vec2(966.0f, 540.0f),
-            Vec2(818.0f, 688.0f),
-            Vec2(852.0f, 774.0f),
-            Vec2(818.0f, 864.0f)
+    polygons.insert({PlaybookEvent::eventToString(PlaybookEvent::EventType::HOME_RUN), {
+        Vec2(720.0f, 672.0f),
+        Vec2(644.0f, 704.0f),
+        Vec2(614.0f, 780.0f),
+        Vec2(644.0f, 856.0f),
+        Vec2(720.0f, 888.0f),
+        Vec2(796.0f, 856.0f),
+        Vec2(826.0f, 780.0f),
+        Vec2(796.0f, 704.0f)
     }});
 
     polygons.insert({PlaybookEvent::eventToString(PlaybookEvent::EventType::TRIPLE), {
-            Vec2(204.0f, 888.0f),
-            Vec2(92.0f, 776.0f),
-            Vec2(204.0f, 660.0f),
-            Vec2(316.0f, 776.0f)
+        Vec2(530.0f, 598.0f),
+        Vec2(476.0f, 678.0f),
+        Vec2(456.0f, 780.0f),
+        Vec2(476.0f, 882.0f),
+        Vec2(530.0f, 962.0f),
+        Vec2(632.0f, 860.0f),
+        Vec2(602.0f, 780.0f),
+        Vec2(632.0f, 700.0f)
+    }});
+
+    polygons.insert({PlaybookEvent::eventToString(PlaybookEvent::EventType::DOUBLE), {
+        Vec2(538.0f, 970.0f),
+        Vec2(616.0f, 1020.0f),
+        Vec2(720.0f, 1042.0f),
+        Vec2(824.0f, 1020.0f),
+        Vec2(902.0f, 970.0f),
+        Vec2(800.0f, 868.0f),
+        Vec2(720.0f, 896.0f),
+        Vec2(640.0f, 868.0f)
     }});
 
     polygons.insert({PlaybookEvent::eventToString(PlaybookEvent::EventType::SINGLE), {
-            Vec2(1236.0f, 888.0f),
-            Vec2(1124.0f, 776.0f),
-            Vec2(1236.0f, 660.0f),
-            Vec2(1348.0f, 776.0f)
+        Vec2(910.0f, 598.0f),
+        Vec2(808.0f, 700.0f),
+        Vec2(838.0f, 780.0f),
+        Vec2(808.0f, 860.0f),
+        Vec2(910.0f, 962.0f),
+        Vec2(964.0f, 882.0f),
+        Vec2(984.0f, 780.0f),
+        Vec2(964.0f, 678.0f)
     }});
 
-    polygons.insert({PlaybookEvent::eventToString(PlaybookEvent::EventType::HIT), {
-            Vec2(12.0f, 768.0f),
-            Vec2(76.0f, 768.0f),
-            Vec2(204.0f, 644.0f),
-            Vec2(332.0f, 768.0f),
-            Vec2(368.0f, 768.0f),
-            Vec2(322.0f, 672.0f),
-            Vec2(616.0f, 378.0f),
-            Vec2(714.0f, 422.0f),
-            Vec2(714.0f, 334.0f),
-            Vec2(600.0f, 334.0f),
-            Vec2(600.0f, 186.0f),
-            Vec2(714.0f, 74.0f),
-            Vec2(714.0f, 12.0f),
-            Vec2(488.0f, 12.0f),
-            Vec2(12.0f, 488.0f)
+    polygons.insert({PlaybookEvent::eventToString(PlaybookEvent::EventType::STEAL), {
+        Vec2(538.0f, 588.0f),
+        Vec2(640.0f, 690.0f),
+        Vec2(720.0f, 660.0f),
+        Vec2(800.0f, 690.0f),
+        Vec2(902.0f, 588.0f),
+        Vec2(824.0f, 536.0f),
+        Vec2(720.0f, 514.0f),
+        Vec2(616.0f, 536.0f)
     }});
 
-    polygons.insert({PlaybookEvent::eventToString(PlaybookEvent::EventType::HOME_RUN), {
-            Vec2(612.0f, 322.0f),
-            Vec2(828.0f, 322.0f),
-            Vec2(828.0f, 190.0f),
-            Vec2(720.0f, 90.0f),
-            Vec2(612.0f, 190.0f)
+    polygons.insert({PlaybookEvent::eventToString(PlaybookEvent::EventType::MOST_IN_INFIELD), {
+        Vec2(12.0f, 784.0f),
+        Vec2(42.0f, 984.0f),
+        Vec2(134.0f, 1188.0f),
+        Vec2(238.0f, 1298.0f),
+        Vec2(320.0f, 1362.0f),
+        Vec2(414.0f, 1418.0f),
+        Vec2(514.0f, 1454.0f),
+        Vec2(720.0f, 1488.0f),
+        Vec2(926.0f, 1454.0f),
+        Vec2(1026.0f, 1418.0f),
+        Vec2(1120.0f, 1362.0f),
+        Vec2(1202.0f, 1298.0f),
+        Vec2(1306.0f, 1188.0f),
+        Vec2(1398.0f, 984.0f),
+        Vec2(1428.0f, 784.0f),
+
+        Vec2(1268.0f, 784.0f),
+        Vec2(720.0f, 1328.0f),
+        Vec2(172.0f, 784.0f)
     }});
 
-    polygons.insert({PlaybookEvent::eventToString(PlaybookEvent::EventType::PITCH_COUNT_16), {
-            Vec2(1428.0f, 768.0f),
-            Vec2(1428.0f, 488.0f),
-            Vec2(952.0f, 12.0f),
-            Vec2(726.0f, 12.0f),
-            Vec2(726.0f, 74.0f),
-            Vec2(840.0f, 186.0f),
-            Vec2(840.0f, 334.0f),
-            Vec2(726.0f, 334.0f),
-            Vec2(726.0f, 422.0f),
-            Vec2(824.0f, 378.0f),
-            Vec2(1118.0f, 672.0f),
-            Vec2(1072.0f, 768.0f),
-            Vec2(1108.0f, 768.0f),
-            Vec2(1236.0f, 644.0f),
-            Vec2(1364.0f, 768.0f)
+    polygons.insert({PlaybookEvent::eventToString(PlaybookEvent::EventType::MOST_IN_RIGHT_OUTFIELD), {
+        Vec2(1428.0f, 920.0f),
+        Vec2(1328.0f, 1182.0f),
+        Vec2(1126.0f, 1374.0f),
+        Vec2(900.0f, 1464.0f),
+        Vec2(728.0f, 1498.0f),
+        Vec2(728.0f, 1738.0f),
+        Vec2(1428.0f, 1738.0f)
     }});
 
-    polygons.insert({PlaybookEvent::eventToString(PlaybookEvent::EventType::BLOCKED_RUN), {
-            Vec2(632.0f, 678.0f),
-            Vec2(720.0f, 640.0f),
-            Vec2(808.0f, 678.0f),
-            Vec2(956.0f, 530.0f),
-            Vec2(824.0f, 398.0f),
-            Vec2(720.0f, 436.0f),
-            Vec2(616.0f, 398.0f),
-            Vec2(484.0f, 530.0f)
+    polygons.insert({PlaybookEvent::eventToString(PlaybookEvent::EventType::MOST_IN_LEFT_OUTFIELD), {
+        Vec2(12.0f, 920.0f),
+        Vec2(12.0f, 1738.0f),
+        Vec2(712.0f, 1738.0f),
+        Vec2(712.0f, 1498.0f),
+        Vec2(500.0f, 1464.0f),
+        Vec2(314.0f, 1374.0f),
+        Vec2(112.0f, 1182.0f)
     }});
 
-    polygons.insert({PlaybookEvent::eventToString(PlaybookEvent::EventType::WALK_OFF), {
-            Vec2(12.0f, 466.0f),
-            Vec2(466.0f, 12.0f),
-            Vec2(12.0f, 12.0f)
+    polygons.insert({PlaybookEvent::eventToString(PlaybookEvent::EventType::SHUTOUT_INNING), {
+        Vec2(726.0f, 1308.0f),
+        Vec2(1252.0f, 784.0f),
+        Vec2(996.0f, 784.0f),
+        Vec2(916.0f, 972.0f),
+        Vec2(726.0f, 1054.0f)
+    }});
+
+    polygons.insert({PlaybookEvent::eventToString(PlaybookEvent::EventType::RUN_SCORED), {
+        Vec2(714.0f, 1308.0f),
+        Vec2(714.0f, 1054.0f),
+        Vec2(524.0f, 972.0f),
+        Vec2(444.0f, 784.0f),
+        Vec2(188.0f, 784.0f)
+    }});
+
+    polygons.insert({PlaybookEvent::eventToString(PlaybookEvent::EventType::FLY_OUT), {
+        Vec2(726.0f, 224.0f),
+        Vec2(726.0f, 500.0f),
+        Vec2(920.0f, 582.0f),
+        Vec2(1000.0f, 772.0f),
+        Vec2(1252.0f, 772.0f)
+    }});
+
+    polygons.insert({PlaybookEvent::eventToString(PlaybookEvent::EventType::GROUND_OUT), {
+        Vec2(714.0f, 224.0f),
+        Vec2(188.0f, 772.0f),
+        Vec2(440.0f, 772.0f),
+        Vec2(520.0f, 582.0f),
+        Vec2(714.0f, 500.0f)
+    }});
+
+    polygons.insert({PlaybookEvent::eventToString(PlaybookEvent::EventType::BATTER_COUNT_5), {
+        Vec2(1010.0f, 508.0f),
+        Vec2(1270.0f, 770.0f),
+        Vec2(1428.0f, 770.0f),
+        Vec2(1428.0f, 508.0f),
+    }});
+
+    polygons.insert({PlaybookEvent::eventToString(PlaybookEvent::EventType::BATTER_COUNT_4), {
+        Vec2(720.0f, 238.0f),
+        Vec2(998.0f, 498.0f),
+        Vec2(1428.0f, 498.0f),
+        Vec2(1428.0f, 238.0f),
     }});
 
     polygons.insert({PlaybookEvent::eventToString(PlaybookEvent::EventType::PITCH_COUNT_17), {
-            Vec2(1428.0f, 466.0f),
-            Vec2(1428.0f, 12.0f),
-            Vec2(974.0f, 12.0f)
+        Vec2(12.0f, 508.0f),
+        Vec2(12.0f, 770.0f),
+        Vec2(170.0f, 770.0f),
+        Vec2(430.0f, 508.0f),
     }});
 
-    this->_fieldOverlay = MappedSprite::create("Prediction-Overlay-Field.png", polygons);
+    polygons.insert({PlaybookEvent::eventToString(PlaybookEvent::EventType::PITCH_COUNT_16), {
+        Vec2(12.0f, 238.0f),
+        Vec2(12.0f, 498.0f),
+        Vec2(442.0f, 498.0f),
+        Vec2(720.0f, 238.0f),
+    }});
+
+    polygons.insert({PlaybookEvent::eventToString(PlaybookEvent::EventType::STRIKEOUT), {
+        Vec2(12.0f, 12.0f),
+        Vec2(12.0f, 224.0f),
+        Vec2(1428.0f, 224.0f),
+        Vec2(1428.0f, 12.0f),
+    }});
+
+    this->_fieldOverlay = MappedSprite::create("Prediction-Overlay.png", polygons);
 
     this->_fieldOverlay->onTouchPolygonBegan = [this](const std::string& name,
                                                       MappedSprite::Polygon polygon,
@@ -727,15 +673,15 @@ int Prediction::getScoreForEvent(PlaybookEvent::EventType event) {
         {PlaybookEvent::EventType::GRAND_SLAM, 400},
         {PlaybookEvent::EventType::SHUTOUT_INNING, 4},
         {PlaybookEvent::EventType::LONG_OUT, 5},
-        {PlaybookEvent::EventType::RUN_BATTED_IN, 4},
-        {PlaybookEvent::EventType::POP_FLY, 2},
+        {PlaybookEvent::EventType::RUN_SCORED, 4},
+        {PlaybookEvent::EventType::FLY_OUT, 2},
         {PlaybookEvent::EventType::TRIPLE_PLAY, 1400},
-        {PlaybookEvent::EventType::GROUNDER, 2},
+        {PlaybookEvent::EventType::GROUND_OUT, 2},
         {PlaybookEvent::EventType::DOUBLE_PLAY, 20},
         {PlaybookEvent::EventType::DOUBLE, 5},
         {PlaybookEvent::EventType::STEAL, 5},
         {PlaybookEvent::EventType::PICK_OFF, 7},
-        {PlaybookEvent::EventType::STRIKE_OUT, 2},
+        {PlaybookEvent::EventType::STRIKEOUT, 2},
         {PlaybookEvent::EventType::WALK, 3},
         {PlaybookEvent::EventType::TRIPLE, 20},
         {PlaybookEvent::EventType::SINGLE, 3},
@@ -743,8 +689,12 @@ int Prediction::getScoreForEvent(PlaybookEvent::EventType event) {
         {PlaybookEvent::EventType::HOME_RUN, 10},
         {PlaybookEvent::EventType::PITCH_COUNT_16, 2},
         {PlaybookEvent::EventType::BLOCKED_RUN, 10},
-        {PlaybookEvent::EventType::WALK_OFF, 50},
-        {PlaybookEvent::EventType::PITCH_COUNT_17, 2}
+        {PlaybookEvent::EventType::PITCH_COUNT_17, 2},
+        {PlaybookEvent::EventType::BATTER_COUNT_4, 2},
+        {PlaybookEvent::EventType::BATTER_COUNT_5, 2},
+        {PlaybookEvent::EventType::MOST_IN_LEFT_OUTFIELD, 2},
+        {PlaybookEvent::EventType::MOST_IN_RIGHT_OUTFIELD, 2},
+        {PlaybookEvent::EventType::MOST_IN_INFIELD, 2}
     };
 
     return map[event];
