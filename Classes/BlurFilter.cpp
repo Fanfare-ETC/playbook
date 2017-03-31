@@ -12,33 +12,50 @@ const std::map<int, std::vector<float>> BlurFilter::GAUSSIAN_VALUES = {
     {15, {0.000489, 0.002403, 0.009246, 0.02784, 0.065602, 0.120999, 0.174697, 0.197448}}
 };
 
+const int BlurFilter::SPRITE_PADDING = 12;
+
 Sprite* BlurFilter::apply(cocos2d::Sprite *sprite, int inputStrength) {
-    auto texture = sprite->getTexture();
+    auto clone = Sprite::createWithTexture(sprite->getTexture());
+    clone->setPosition(SPRITE_PADDING, SPRITE_PADDING);
+    clone->setScale(1.0f);
+    clone->setAnchorPoint(Vec2(0.0f, 0.0f));
+
+    auto texture = clone->getTexture();
     auto renderTexture = RenderTexture::create(
-        texture->getPixelsWide(),
-        1920,
+        texture->getPixelsWide() + (2 * SPRITE_PADDING),
+        texture->getPixelsHigh() + (2 * SPRITE_PADDING),
         texture->getPixelFormat()
     );
 
+    renderTexture->begin();
+    clone->visit();
+    renderTexture->end();
+
     renderTexture = this->applyX(renderTexture, inputStrength);
-    return Sprite::createWithSpriteFrame(renderTexture->getSprite()->getSpriteFrame());
+    renderTexture = this->applyY(renderTexture, inputStrength);
+
+    return renderTexture->getSprite();
 }
 
-RenderTexture* BlurFilter::applyX(cocos2d::RenderTexture *input, int inputStrength) {
+RenderTexture* BlurFilter::apply(cocos2d::RenderTexture *input, int inputStrength, Direction direction) {
     auto kernelSize = this->getMaxKernelSize();
-    auto shaderProgramX = GLProgram::createWithByteArrays(
-        this->generateVertBlurSource(kernelSize, false).c_str(),
+    auto isX = direction == Direction::X;
+    auto shaderProgram = GLProgram::createWithByteArrays(
+        this->generateVertBlurSource(kernelSize, isX).c_str(),
         this->generateFragBlurSource(kernelSize).c_str()
     );
 
+    shaderProgram->link();
+    shaderProgram->updateUniforms();
+    shaderProgram->bindAttribLocation(GLProgram::ATTRIBUTE_NAME_POSITION, GLProgram::VERTEX_ATTRIB_POSITION);
+    shaderProgram->bindAttribLocation(GLProgram::ATTRIBUTE_NAME_COLOR, GLProgram::VERTEX_ATTRIB_COLOR);
+    shaderProgram->bindAttribLocation(GLProgram::ATTRIBUTE_NAME_TEX_COORD, GLProgram::VERTEX_ATTRIB_TEX_COORD);
+
     auto texture = input->getSprite()->getTexture();
     auto sprite = Sprite::createWithTexture(texture);
-    shaderProgramX->link();
-    shaderProgramX->updateUniforms();
-    shaderProgramX->bindAttribLocation(GLProgram::ATTRIBUTE_NAME_POSITION, GLProgram::VERTEX_ATTRIB_POSITION);
-    shaderProgramX->bindAttribLocation(GLProgram::ATTRIBUTE_NAME_COLOR, GLProgram::VERTEX_ATTRIB_COLOR);
-    shaderProgramX->bindAttribLocation(GLProgram::ATTRIBUTE_NAME_TEX_COORD, GLProgram::VERTEX_ATTRIB_TEX_COORD);
-    sprite->setGLProgram(shaderProgramX);
+    sprite->setAnchorPoint(Vec2(0.0f, 0.0f));
+    sprite->setFlippedY(true);
+    sprite->setGLProgram(shaderProgram);
 
     auto strength = 1.0f / (sprite->getContentSize().width * sprite->getScaleX()) * 0.5f;
     strength *= inputStrength;
@@ -52,16 +69,19 @@ RenderTexture* BlurFilter::applyX(cocos2d::RenderTexture *input, int inputStreng
         texture->getPixelFormat()
     );
 
-    auto testNode = DrawNode::create();
-    testNode->drawRect(Vec2(0.0f, 0.0f), Vec2(512.0f, 512.0f), Color4F::RED);
-
     renderTexture->begin();
     sprite->visit();
-    testNode->visit();
     renderTexture->end();
 
-    renderTexture->saveToFile("image.png", Image::Format::PNG);
     return renderTexture;
+}
+
+RenderTexture* BlurFilter::applyX(cocos2d::RenderTexture *input, int inputStrength) {
+    return this->apply(input, inputStrength, Direction::X);
+}
+
+RenderTexture* BlurFilter::applyY(cocos2d::RenderTexture *input, int inputStrength) {
+    return this->apply(input, inputStrength, Direction::Y);
 }
 
 int BlurFilter::getMaxKernelSize() {
