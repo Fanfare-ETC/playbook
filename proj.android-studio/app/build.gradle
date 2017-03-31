@@ -8,8 +8,8 @@ android {
         applicationId 'edu.cmu.etc.fanfare.playbook'
         minSdkVersion 19
         targetSdkVersion 25
-        versionCode 6
-        versionName '1.0.6'
+        versionCode 9
+        versionName '1.1.2'
 
         buildConfigField 'String', 'PLAYBOOK_TREASUREHUNT_API_HOST', '"10.0.2.2"'
         buildConfigField 'Integer', 'PLAYBOOK_TREASUREHUNT_API_PORT', '9000'
@@ -78,6 +78,8 @@ android {
         staging {
             buildConfigField 'String', 'PLAYBOOK_TREASUREHUNT_API_HOST', '"staging.fanfare.wong.place"'
             buildConfigField 'Integer', 'PLAYBOOK_TREASUREHUNT_API_PORT', '9000'
+            buildConfigField 'String', 'PLAYBOOK_SECTION_API_HOST', '"staging.fanfare.wong.place"'
+            buildConfigField 'Integer', 'PLAYBOOK_SECTION_API_PORT', '9002'
 
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
@@ -97,6 +99,8 @@ android {
         release {
             buildConfigField 'String', 'PLAYBOOK_TREASUREHUNT_API_HOST', '"fanfare.wong.place"'
             buildConfigField 'Integer', 'PLAYBOOK_TREASUREHUNT_API_PORT', '9000'
+            buildConfigField 'String', 'PLAYBOOK_SECTION_API_HOST', '"fanfare.wong.place"'
+            buildConfigField 'Integer', 'PLAYBOOK_SECTION_API_PORT', '9002'
 
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
