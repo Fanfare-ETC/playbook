@@ -31,8 +31,6 @@ public:
     CREATE_FUNC(CollectionScreen);
 
 private:
-    static const int NUM_SLOTS;
-
     struct Card {
         PlaybookEvent::Team team;
         PlaybookEvent::EventType event;
@@ -67,8 +65,19 @@ private:
         SAME_COLOR_3,
         SAME_COLOR_4,
         SAME_COLOR_5,
-        BASE_STEAL_RBI
+        BASE_STEAL_RBI,
+        UNKNOWN
     };
+
+    struct GoalTypeHash {
+        template <typename T>
+        std::size_t operator()(T t) const {
+            return static_cast<std::size_t>(t);
+        }
+    };
+
+    static const int NUM_SLOTS;
+    static const std::unordered_map<GoalType, std::string, GoalTypeHash> GOAL_TYPE_FILE_MAP;
 
     cocos2d::Node* _visibleNode;
     PredictionWebSocket* _websocket;
@@ -80,17 +89,30 @@ private:
     bool _isCardActive;
     bool _isCardDragged;
     Card _draggedCard;
+    cocos2d::Vec2 _draggedCardOrigPosition;
 
     cocos2d::Sprite* _giveToSection;
     float _giveToSectionOrigScale;
     bool _giveToSectionHovered;
     cocos2d::EventListener* _giveToSectionListener;
 
+    cocos2d::Sprite* _dragToScore;
+    float _dragToScoreOrigScale;
+    bool _dragToScoreHovered;
+    cocos2d::EventListener* _dragToScoreListener;
+
+    cocos2d::Sprite* _goalSprite;
+    GoalType _activeGoal;
+    std::vector<Card> _cardsMatchingGoal;
+
     Card _activeCard;
     float _activeCardOrigScale;
     cocos2d::Vec2 _activeCardOrigPosition;
     float _activeCardOrigRotation;
     cocos2d::EventListener* _activeEventListener;
+
+    void initEventsGiveToSection();
+    void initEventsDragToScore();
 
     void connectToServer();
     void disconnectFromServer();
@@ -102,6 +124,7 @@ private:
     void startDraggingActiveCard(cocos2d::Touch* touch);
     void stopDraggingActiveCard(cocos2d::Touch* touch);
     void discardCard(const Card& card);
+    void scoreCardSet(const std::vector<Card>& cardSet);
 
     float getCardScaleInSlot(cocos2d::Node* card);
     cocos2d::Vec2 getCardPositionForSlot(cocos2d::Node* cardNode, int slot);
@@ -110,7 +133,9 @@ private:
     int getNearestAvailableCardSlot(cocos2d::Node *card, const cocos2d::Vec2 &position);
     void assignActiveCardToSlot(int slot);
 
-    bool cardSetMeetsGoal(std::vector<Card> cardSet, GoalType goal);
+    void createGoal();
+    void checkIfGoalMet();
+    bool cardSetMeetsGoal(const std::vector<Card>& cardSet, GoalType goal, std::vector<Card>& outSet);
 };
 
 #endif //PLAYBOOK_COLLECTION_SCREEN_H

@@ -32,6 +32,23 @@ USING_NS_CC;
 
 const int CollectionScreen::NUM_SLOTS = 5;
 
+const std::unordered_map<CollectionScreen::GoalType, std::string, CollectionScreen::GoalTypeHash> CollectionScreen::GOAL_TYPE_FILE_MAP = {
+    {GoalType::IDENTICAL_CARDS_3, "goal/goal1.png"},
+    {GoalType::IDENTICAL_CARDS_4, "goal/goal2.png"},
+    {GoalType::UNIQUE_OUT_CARDS_4, "goal/goal3.png"},
+    {GoalType::IDENTICAL_CARDS_5, "goal/goal4.png"},
+    {GoalType::WALK_OR_HIT_3, "goal/goal5.png"},
+    {GoalType::OUT_3, "goal/goal6.png"},
+    {GoalType::BASES_3, "goal/goal7.png"},
+    {GoalType::EACH_COLOR_2, "goal/goal8.png"},
+    {GoalType::SAME_COLOR_3, "goal/goal9.png"},
+    {GoalType::EACH_COLOR_1, "goal/goal11.png"},
+    {GoalType::UNIQUE_OUT_CARDS_3, "goal/goal12.png"},
+    {GoalType::SAME_COLOR_4, "goal/goal13.png"},
+    {GoalType::SAME_COLOR_5, "goal/goal14.png"},
+    {GoalType::BASE_STEAL_RBI, "goal/goal15.png"}
+};
+
 Scene* CollectionScreen::createScene()
 {
     // 'scene' is an autorelease object
@@ -112,38 +129,22 @@ bool CollectionScreen::init()
     this->_giveToSectionOrigScale = giveToSectionScale / 2.0f;
     node->addChild(giveToSection, 0);
 
-    //add dragtoscore button
-    auto dragtoscore = Sprite::create("Collection-Button-ScoreSet.png");
-    auto dragtoscoreScale = visibleSize.width /dragtoscore->getContentSize().width;
-    dragtoscore->setPosition(visibleSize.width/2.0f, visibleSize.height/3.0f);
-    dragtoscore->setAnchorPoint(Vec2(0.0f, 0.0f));
-    dragtoscore->setScaleX(dragtoscoreScale/2);
-    dragtoscore->setScaleY(dragtoscoreScale/2);
-    auto dragtoscoreHeight = dragtoscoreScale * dragtoscore->getContentSize().height;
-    node->addChild(dragtoscore, 0);
+    //add dragToScore button
+    auto dragToScore = Sprite::create("Collection-Button-ScoreSet.png");
+    auto dragToScoreScale = visibleSize.width /dragToScore->getContentSize().width;
+    dragToScore->setPosition(visibleSize.width/2.0f, visibleSize.height/3.0f);
+    dragToScore->setAnchorPoint(Vec2(0.0f, 0.0f));
+    dragToScore->setScaleX(dragToScoreScale/2);
+    dragToScore->setScaleY(dragToScoreScale/2);
+    auto dragToScoreHeight = dragToScoreScale * dragToScore->getContentSize().height;
+    this->_dragToScore = dragToScore;
+    this->_dragToScoreOrigScale = dragToScoreScale / 2.0f;
+    node->addChild(dragToScore, 0);
 
     //generate a random goal each time
 
     /* initialize random seed: */
-    srand (time(NULL));
-
-    /* generate secret number between 1 and 10: */
-    int goal_number = rand() % 15 + 1;
-    std::string file_1 ("goal/goal");
-    std::string file_2 (std::to_string(goal_number));
-    std::string file_3 (".png");
-    std::string filename (file_1+file_2+file_3);
-    CCLOG("filename:%s",filename.c_str());
-
-    //add goals
-    auto goal = Sprite::create(filename);
-    auto goalScale = visibleSize.width /goal->getContentSize().width;
-    goal->setPosition(visibleSize.width/1.75f, visibleSize.height/1.4f);
-    goal->setAnchorPoint(Vec2(0.0f, 0.0f));
-    goal->setScaleX(goalScale/3);
-    goal->setScaleY(goalScale/3);
-    auto goalHeight = goalScale * goal->getContentSize().height;
-    node->addChild(goal, 0);
+    this->createGoal();
 
     // Create DrawNode to highlight card slot.
     this->_cardSlotDrawNode = DrawNode::create();
@@ -175,6 +176,31 @@ void CollectionScreen::update(float delta) {
 
 void CollectionScreen::onEnter() {
     PlaybookLayer::onEnter();
+    this->initEventsGiveToSection();
+    this->initEventsDragToScore();
+}
+
+void CollectionScreen::onExit() {
+    this->getEventDispatcher()->removeEventListener(this->_giveToSectionListener);
+    this->getEventDispatcher()->removeEventListener(this->_dragToScoreListener);
+    PlaybookLayer::onExit();
+}
+
+void CollectionScreen::onResume() {
+    CCLOG("CollectionScreen->onResume: Restoring state...");
+    PlaybookLayer::onResume();
+    //this->restoreState();
+    this->connectToServer();
+}
+
+void CollectionScreen::onPause() {
+    CCLOG("CollectionScreen->onPause: Saving state...");
+    //this->saveState();
+    PlaybookLayer::onPause();
+    this->disconnectFromServer();
+}
+
+void CollectionScreen::initEventsGiveToSection() {
     auto listener = EventListenerTouchOneByOne::create();
 
     listener->onTouchBegan = [](Touch*, Event*) {
@@ -211,23 +237,41 @@ void CollectionScreen::onEnter() {
     this->_giveToSectionListener = listener;
 }
 
-void CollectionScreen::onExit() {
-    this->getEventDispatcher()->removeEventListener(this->_giveToSectionListener);
-    PlaybookLayer::onExit();
-}
+void CollectionScreen::initEventsDragToScore() {
+    auto listener = EventListenerTouchOneByOne::create();
 
-void CollectionScreen::onResume() {
-    CCLOG("CollectionScreen->onResume: Restoring state...");
-    PlaybookLayer::onResume();
-    //this->restoreState();
-    this->connectToServer();
-}
+    listener->onTouchBegan = [](Touch*, Event*) {
+        return true;
+    };
 
-void CollectionScreen::onPause() {
-    CCLOG("CollectionScreen->onPause: Saving state...");
-    //this->saveState();
-    PlaybookLayer::onPause();
-    this->disconnectFromServer();
+    listener->onTouchMoved = [this](Touch* touch, Event*) {
+        // Enlarge "Drag Set to Score" if we're hovering over it.
+        auto position = this->_dragToScore->getParent()->convertTouchToNodeSpace(touch);
+        auto box = this->_dragToScore->getBoundingBox();
+        if (box.containsPoint(position)) {
+            if (!this->_dragToScoreHovered) {
+                this->_dragToScoreHovered = true;
+                auto scaleTo = ScaleTo::create(0.25f, this->_dragToScoreOrigScale * 1.15f);
+                this->_dragToScore->runAction(scaleTo);
+            }
+        }
+    };
+
+    listener->onTouchEnded = [this](Touch* touch, Event*) {
+        this->_dragToScoreHovered = false;
+        auto scaleTo = ScaleTo::create(0.25f, this->_dragToScoreOrigScale);
+        this->_dragToScore->runAction(scaleTo);
+
+        // If we were dragging a card, obtain its set and score.
+        auto position = this->_dragToScore->getParent()->convertTouchToNodeSpace(touch);
+        auto box = this->_dragToScore->getBoundingBox();
+        if (box.containsPoint(position) && this->_isCardDragged && this->_cardsMatchingGoal.size() > 0) {
+            this->scoreCardSet(this->_cardsMatchingGoal);
+        }
+    };
+
+    this->getEventDispatcher()->addEventListenerWithFixedPriority(listener, -1);
+    this->_dragToScoreListener = listener;
 }
 
 void CollectionScreen::connectToServer() {
@@ -455,6 +499,25 @@ void CollectionScreen::discardCard(const Card& card) {
     }
 }
 
+void CollectionScreen::scoreCardSet(const std::vector<Card> &cardSet) {
+    // Remove matching cards.
+    std::for_each(this->_cardSlots.begin(), this->_cardSlots.end(), [cardSet](CardSlot& slot) {
+        auto cardIterator = std::find_if(cardSet.begin(), cardSet.end(), [&slot, cardSet](const Card& card) {
+            return slot.present && card == slot.card;
+        });
+
+        if (cardIterator != cardSet.end()) {
+            cardIterator->sprite->removeFromParentAndCleanup(true);
+            slot.present = false;
+        }
+    });
+
+    // Send score to server.
+
+    // Create a new goal.
+    this->createGoal();
+}
+
 float CollectionScreen::getCardScaleInSlot(Node* card) {
     // Account for the left and right green sides (54px each).
     auto cardsHolderWidth = (this->_cardsHolder->getContentSize().width - 54.0f) * this->_cardsHolder->getScale();
@@ -534,6 +597,7 @@ void CollectionScreen::assignActiveCardToSlot(int slot) {
             if (box.containsPoint(position)) {
                 this->_isCardDragged = true;
                 this->_draggedCard = this->_activeCard;
+                this->_draggedCardOrigPosition = cardNode->getPosition();
                 return true;
             } else {
                 return false;
@@ -546,8 +610,10 @@ void CollectionScreen::assignActiveCardToSlot(int slot) {
             return true;
         };
 
-        listener->onTouchEnded = [this](Touch* touch, Event*) {
+        listener->onTouchEnded = [this, cardNode](Touch* touch, Event*) {
             this->_isCardDragged = false;
+            auto moveTo = MoveTo::create(0.25f, this->_draggedCardOrigPosition);
+            cardNode->runAction(moveTo);
             return true;
         };
 
@@ -559,20 +625,78 @@ void CollectionScreen::assignActiveCardToSlot(int slot) {
     // Copy card into slot list.
     this->_cardSlots[slot].card = this->_activeCard;
     this->_cardSlots[slot].present = true;
+
+    // Check if the set of cards meet the goal.
+    this->checkIfGoalMet();
 }
 
-bool CollectionScreen::cardSetMeetsGoal(std::vector<Card> cardSet, GoalType goal) {
-    auto isBase = [](Card card) {
+void CollectionScreen::checkIfGoalMet() {
+    // Filter out slots with no cards.
+    std::vector<CardSlot> slotsWithCard;
+    std::copy_if(
+        this->_cardSlots.begin(), this->_cardSlots.end(), std::back_inserter(slotsWithCard),
+        [](const CardSlot& slot) {
+            return slot.present;
+        }
+    );
+
+    // Get the cards in those slots with a card.
+    std::vector<Card> cardSet;
+    std::transform(slotsWithCard.begin(), slotsWithCard.end(), std::back_inserter(cardSet),
+        [](const CardSlot& slot) {
+            return slot.card;
+        }
+    );
+
+    std::vector<Card> outSet;
+    if (this->cardSetMeetsGoal(cardSet, this->_activeGoal, outSet)) {
+        std::for_each(outSet.begin(), outSet.end(), [](const Card& card) {
+            auto tintTo = TintTo::create(0.25f, Color3B::GREEN);
+            card.sprite->runAction(tintTo);
+        });
+
+        this->_cardsMatchingGoal = outSet;
+    } else {
+        CCLOG("Goal not met yet.");
+    }
+}
+
+void CollectionScreen::createGoal() {
+    auto visibleSize = Director::getInstance()->getVisibleSize();
+
+    // If we're replacing an old goal, remove it first.
+    if (this->_goalSprite != nullptr) {
+        this->_goalSprite->removeFromParentAndCleanup(true);
+    }
+
+    // Create a random goal.
+    this->_activeGoal = static_cast<GoalType>(RandomHelper::random_int(0, RAND_MAX) % GoalType::UNKNOWN);
+    auto goal = Sprite::create(CollectionScreen::GOAL_TYPE_FILE_MAP.at(this->_activeGoal));
+    auto goalScale = visibleSize.width /goal->getContentSize().width;
+    goal->setPosition(visibleSize.width/1.75f, visibleSize.height/1.4f);
+    goal->setAnchorPoint(Vec2(0.0f, 0.0f));
+    goal->setScaleX(goalScale/3);
+    goal->setScaleY(goalScale/3);
+    auto goalHeight = goalScale * goal->getContentSize().height;
+    this->_visibleNode->addChild(goal, 0);
+    this->_goalSprite = goal;
+
+    // Invalidate.
+    this->checkIfGoalMet();
+}
+
+bool CollectionScreen::cardSetMeetsGoal(const std::vector<Card>& cardSet, GoalType goal, std::vector<Card>& outSet) {
+    auto isBase = [](const Card& card) {
         return card.event == PlaybookEvent::EventType::SINGLE ||
                card.event == PlaybookEvent::EventType::DOUBLE ||
                card.event == PlaybookEvent::EventType::TRIPLE;
     };
 
-    auto isBlue = [](Card card) {
+    auto isBlue = [](const Card& card) {
         return card.team == PlaybookEvent::Team::FIELDING;
     };
 
-    auto isRed = [](Card card) {
+    auto isRed = [](const Card& card) {
         return card.team == PlaybookEvent::Team::BATTING;
     };
 
@@ -589,34 +713,79 @@ bool CollectionScreen::cardSetMeetsGoal(std::vector<Card> cardSet, GoalType goal
 
     switch (goal) {
         case GoalType::BASE_STEAL_RBI: {
-            auto hasBase = std::any_of(cardSet.begin(), cardSet.end(), isBase);
+            auto isSteal = [](const Card& card) {
+                return card.event == PlaybookEvent::EventType::STEAL;
+            };
 
-            auto hasSteal = std::any_of(cardSet.begin(), cardSet.end(), [](Card card) {
-               return card.event == PlaybookEvent::EventType::STEAL;
-            });
-
-            auto hasRBI = std::any_of(cardSet.begin(), cardSet.end(), [](Card card) {
+            auto isRBI = [](const Card& card) {
                 return card.event == PlaybookEvent::EventType::RUN_SCORED;
-            });
+            };
+
+            auto hasBase = std::any_of(cardSet.begin(), cardSet.end(), isBase);
+            auto hasSteal = std::any_of(cardSet.begin(), cardSet.end(), isSteal);
+            auto hasRBI = std::any_of(cardSet.begin(), cardSet.end(), isRBI);
+
+            // Collect matching cards.
+            if (hasBase) {
+                auto baseIterator = std::find_if(cardSet.begin(), cardSet.end(), isBase);
+                outSet.push_back(*baseIterator);
+            }
+
+            if (hasSteal) {
+                auto stealIterator = std::find_if(cardSet.begin(), cardSet.end(), isSteal);
+                outSet.push_back(*stealIterator);
+            }
+
+            if (hasRBI) {
+                auto RBIIterator = std::find_if(cardSet.begin(), cardSet.end(), isRBI);
+                outSet.push_back(*RBIIterator);
+            }
 
             return hasBase && hasSteal && hasRBI;
         }
 
         case GoalType::BASES_3: {
-            return std::count_if(cardSet.begin(), cardSet.end(), isBase) > 3;
+            auto satisfied = std::count_if(cardSet.begin(), cardSet.end(), isBase) >= 3;
+            if (satisfied) {
+                std::vector<Card> temp;
+                std::copy_if(cardSet.begin(), cardSet.end(), std::back_inserter(temp), isBase);
+                std::copy_n(temp.begin(), 3, std::back_inserter(outSet));
+            }
+            return satisfied;
         }
 
         case GoalType::EACH_COLOR_1: {
-            return numBlues >= 1 && numReds >= 1;
+            auto satisfied = numBlues >= 1 && numReds >= 1;
+            if (satisfied) {
+                auto blueIterator = std::find_if(cardSet.begin(), cardSet.end(), isBlue);
+                auto redIterator = std::find_if(cardSet.begin(), cardSet.end(), isRed);
+                outSet.push_back(*blueIterator);
+                outSet.push_back(*redIterator);
+            }
+            return satisfied;
         }
 
         case GoalType::EACH_COLOR_2: {
-            return numBlues >= 2 && numReds >= 2;
+            auto satisfied = numBlues >= 2 && numReds >= 2;
+            if (satisfied) {
+                std::vector<Card> blueTemp;
+                std::vector<Card> redTemp;
+                std::copy_if(cardSet.begin(), cardSet.end(), std::back_inserter(blueTemp), isBlue);
+                std::copy_if(cardSet.begin(), cardSet.end(), std::back_inserter(redTemp), isRed);
+                std::copy_n(blueTemp.begin(), 2, std::back_inserter(outSet));
+                std::copy_n(redTemp.begin(), 2, std::back_inserter(outSet));
+            }
+            return satisfied;
         }
 
         case GoalType::IDENTICAL_CARDS_3: {
             for (const auto& pair : cardCounts) {
                 if (pair.second >= 3) {
+                    std::vector<Card> temp;
+                    std::copy_if(cardSet.begin(), cardSet.end(), std::back_inserter(temp), [pair](const Card& card) {
+                       return card.event == pair.first;
+                    });
+                    std::copy_n(temp.begin(), 3, std::back_inserter(outSet));
                     return true;
                 }
             }
@@ -625,6 +794,11 @@ bool CollectionScreen::cardSetMeetsGoal(std::vector<Card> cardSet, GoalType goal
         case GoalType::IDENTICAL_CARDS_4: {
             for (const auto& pair : cardCounts) {
                 if (pair.second >= 4) {
+                    std::vector<Card> temp;
+                    std::copy_if(cardSet.begin(), cardSet.end(), std::back_inserter(temp), [pair](const Card& card) {
+                        return card.event == pair.first;
+                    });
+                    std::copy_n(temp.begin(), 4, std::back_inserter(outSet));
                     return true;
                 }
             }
@@ -633,39 +807,91 @@ bool CollectionScreen::cardSetMeetsGoal(std::vector<Card> cardSet, GoalType goal
         case GoalType::IDENTICAL_CARDS_5: {
             for (const auto& pair : cardCounts) {
                 if (pair.second >= 5) {
+                    std::vector<Card> temp;
+                    std::copy_if(cardSet.begin(), cardSet.end(), std::back_inserter(temp), [pair](const Card& card) {
+                        return card.event == pair.first;
+                    });
+                    std::copy_n(temp.begin(), 5, std::back_inserter(outSet));
                     return true;
                 }
             }
         }
 
         case GoalType::OUT_3: {
-            return std::count_if(cardSet.begin(), cardSet.end(), [](Card card) {
-               return card.event == PlaybookEvent::EventType::STRIKEOUT;
-            }) >= 3;
+            auto isOut = [](const Card& card) {
+                return card.event == PlaybookEvent::EventType::STRIKEOUT;
+            };
+
+            auto satisfied = std::count_if(cardSet.begin(), cardSet.end(), isOut) >= 3;
+            if (satisfied) {
+                std::vector<Card> temp;
+                std::copy_if(cardSet.begin(), cardSet.end(), std::back_inserter(temp), isOut);
+                std::copy_n(temp.begin(), 3, std::back_inserter(outSet));
+            }
+            return satisfied;
         }
 
         case GoalType::SAME_COLOR_3: {
-            return numBlues >= 3 || numReds >= 3;
+            auto satisfied = numBlues >= 3 || numReds >= 3;
+            if (satisfied) {
+                std::vector<Card> temp;
+                if (numBlues >= 3) {
+                    std::copy_if(cardSet.begin(), cardSet.end(), std::back_inserter(temp), isBlue);
+                } else if (numReds >= 3) {
+                    std::copy_if(cardSet.begin(), cardSet.end(), std::back_inserter(temp), isRed);
+                }
+                std::copy_n(temp.begin(), 3, std::back_inserter(outSet));
+            }
+            return satisfied;
         }
 
         case GoalType::SAME_COLOR_4: {
-            return numBlues >= 4 || numReds >= 4;
+            auto satisfied = numBlues >= 4 || numReds >= 4;
+            if (satisfied) {
+                std::vector<Card> temp;
+                if (numBlues >= 4) {
+                    std::copy_if(cardSet.begin(), cardSet.end(), std::back_inserter(temp), isBlue);
+                } else if (numReds >= 4) {
+                    std::copy_if(cardSet.begin(), cardSet.end(), std::back_inserter(temp), isRed);
+                }
+                std::copy_n(temp.begin(), 4, std::back_inserter(outSet));
+            }
+            return satisfied;
         }
 
         case GoalType::SAME_COLOR_5: {
-            return numBlues >= 5 || numReds >= 5;
+            auto satisfied = numBlues >= 5 || numReds >= 5;
+            if (satisfied) {
+                std::vector<Card> temp;
+                if (numBlues >= 5) {
+                    std::copy_if(cardSet.begin(), cardSet.end(), std::back_inserter(temp), isBlue);
+                } else if (numReds >= 5) {
+                    std::copy_if(cardSet.begin(), cardSet.end(), std::back_inserter(temp), isRed);
+                }
+                std::copy_n(temp.begin(), 5, std::back_inserter(outSet));
+            }
+            return satisfied;
         }
 
         case GoalType::WALK_OR_HIT_3: {
-            return std::count_if(cardSet.begin(), cardSet.end(), [](Card card) {
-               return card.event == PlaybookEvent::EventType::WALK ||
-                      card.event == PlaybookEvent::EventType::HIT;
-            }) >= 3;
+            auto isWalkOrHit = [](const Card& card) {
+                return card.event == PlaybookEvent::EventType::WALK ||
+                       card.event == PlaybookEvent::EventType::HIT;
+            };
+
+            auto satisfied = std::count_if(cardSet.begin(), cardSet.end(), isWalkOrHit) >= 3;
+            if (satisfied) {
+                std::vector<Card> temp;
+                std::copy_if(cardSet.begin(), cardSet.end(), std::back_inserter(temp), isWalkOrHit);
+                std::copy_n(temp.begin(), 3, std::back_inserter(outSet));
+            }
+            return satisfied;
         }
 
         // TODO: Not implemented yet
         case GoalType::UNIQUE_OUT_CARDS_3:
-        case GoalType::UNIQUE_OUT_CARDS_4: {
+        case GoalType::UNIQUE_OUT_CARDS_4:
+        default: {
             return false;
         }
     }
