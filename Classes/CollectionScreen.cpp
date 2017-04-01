@@ -737,6 +737,7 @@ void CollectionScreen::assignActiveCardToSlot(int slot) {
     auto moveTo = MoveTo::create(0.50f, position);
     auto callFunc = CallFunc::create([this, position]() {
         // In case the card got touched again.
+        auto card = this->_activeCard;
         auto cardNode = this->_activeCard.sprite;
         cardNode->setPosition(position);
         this->_isCardActive = false;
@@ -745,12 +746,12 @@ void CollectionScreen::assignActiveCardToSlot(int slot) {
         auto listener = EventListenerTouchOneByOne::create();
         listener->setSwallowTouches(false);
 
-        listener->onTouchBegan = [this, cardNode](Touch* touch, Event*) {
+        listener->onTouchBegan = [this, card, cardNode](Touch* touch, Event*) {
             auto position = cardNode->getParent()->convertTouchToNodeSpace(touch);
             auto box = cardNode->getBoundingBox();
             if (box.containsPoint(position)) {
                 this->_isCardDragged = true;
-                this->_draggedCard = this->_activeCard;
+                this->_draggedCard = card;
                 this->_draggedCardOrigPosition = cardNode->getPosition();
                 return true;
             } else {
