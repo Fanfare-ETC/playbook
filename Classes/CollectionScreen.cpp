@@ -171,8 +171,6 @@ bool CollectionScreen::init()
     node->addChild(dragToScore, 0);
 
     //generate a random goal each time
-
-    /* initialize random seed: */
     this->createGoal();
 
     // Create DrawNode to highlight card slot.
@@ -189,6 +187,15 @@ bool CollectionScreen::init()
         };
         this->_cardSlots.push_back(slot);
     }
+
+    // Create a score overlay.
+    auto scoreLabel = Label::createWithTTF("Score", "fonts/SCOREBOARD.ttf", 216.0f);
+    scoreLabel->enableShadow(Color4B::BLACK, Size(12.0f, -12.0f), 12);
+    scoreLabel->setPosition(visibleSize.width / 2.0f, visibleSize.height / 2.0f);
+    scoreLabel->setOpacity(0);
+    scoreLabel->setVisible(false);
+    this->_scoreLabel = scoreLabel;
+    this->_visibleNode->addChild(scoreLabel);
 
     // Create event listeners.
     this->scheduleUpdate();
@@ -258,6 +265,7 @@ void CollectionScreen::initEventsGiveToSection() {
         auto position = this->_giveToSection->getParent()->convertTouchToNodeSpace(touch);
         auto box = this->_giveToSection->getBoundingBox();
         if (box.containsPoint(position) && this->_isCardDragged) {
+            this->_draggedCardDropping = true;
             this->discardCard(this->_draggedCard);
         }
     };
@@ -295,6 +303,7 @@ void CollectionScreen::initEventsDragToScore() {
         auto position = this->_dragToScore->getParent()->convertTouchToNodeSpace(touch);
         auto box = this->_dragToScore->getBoundingBox();
         if (box.containsPoint(position) && this->_isCardDragged && this->_cardsMatchingGoal.size() > 0) {
+            this->_draggedCardDropping = true;
             this->scoreCardSet(this->_activeGoal, this->_cardsMatchingGoal);
         }
     };
@@ -579,13 +588,26 @@ void CollectionScreen::discardCard(const Card& card) {
 
 void CollectionScreen::scoreCardSet(GoalType goal, const std::vector<Card> &cardSet) {
     // Remove matching cards.
-    std::for_each(this->_cardSlots.begin(), this->_cardSlots.end(), [cardSet](CardSlot& slot) {
-        auto cardIterator = std::find_if(cardSet.begin(), cardSet.end(), [&slot, cardSet](const Card& card) {
+    std::for_each(this->_cardSlots.begin(), this->_cardSlots.end(), [this, cardSet](CardSlot& slot) {
+        auto cardIterator = std::find_if(cardSet.begin(), cardSet.end(), [this, &slot](const Card& card) {
             return slot.present && card == slot.card;
         });
 
         if (cardIterator != cardSet.end()) {
-            cardIterator->sprite->removeFromParentAndCleanup(true);
+            auto card = *cardIterator;
+            auto dragToScorePosition = this->_dragToScore->getParent()->convertToWorldSpace(this->_dragToScore->getPosition());
+            auto dragToScoreSize = this->_dragToScore->getBoundingBox().size;
+            dragToScorePosition += Vec2(dragToScoreSize.width / 2.0f, dragToScoreSize.height / 2.0f);
+
+            auto position = card.sprite->getParent()->convertToNodeSpace(dragToScorePosition);
+            auto moveTo = MoveTo::create(0.25f, position);
+            auto fadeOut = FadeOut::create(0.25f);
+            auto spawn = Spawn::create(moveTo, fadeOut, nullptr);
+            auto callFunc = CallFunc::create([card]() {
+                card.sprite->removeFromParentAndCleanup(true);
+            });
+            auto sequence = Sequence::create(spawn, callFunc, nullptr);
+            card.sprite->runAction(sequence);
             slot.present = false;
         }
     });
@@ -593,8 +615,37 @@ void CollectionScreen::scoreCardSet(GoalType goal, const std::vector<Card> &card
     // Send score to server.
     this->reportScore(GOAL_TYPE_SCORE_MAP.at(goal));
 
-    // Create a new goal.
-    this->createGoal();
+    // Display score on UI.
+    this->displayScore(GOAL_TYPE_SCORE_MAP.at(goal));
+
+    // We need to delay the execution of this so that animation completes.
+    auto delayTime = DelayTime::create(0.25f);
+    auto callFunc = CallFunc::create([this, goal]() {
+        // Create a new goal.
+        this->createGoal();
+    });
+
+    auto sequence = Sequence::create(delayTime, callFunc, nullptr);
+    this->runAction(sequence);
+}
+
+void CollectionScreen::displayScore(int score) {
+    this->_scoreLabel->setString(std::to_string(score));
+    this->_scoreLabel->setOpacity(255);
+    this->_scoreLabel->setVisible(true);
+
+    auto delayTime = DelayTime::create(1.0f);
+    auto fadeOut = FadeOut::create(0.5f);
+    auto moveBy = MoveBy::create(0.5f, Vec2(0.0f, 60.0f));
+    auto spawn = Spawn::create(fadeOut, moveBy, nullptr);
+
+    auto callFunc = CallFunc::create([this]() {
+        this->_scoreLabel->setVisible(false);
+        this->_scoreLabel->setPositionY(this->_scoreLabel->getPositionY() - 60.0f);
+    });
+    auto sequence = Sequence::create(delayTime, spawn, callFunc, nullptr);
+
+    this->_scoreLabel->runAction(sequence);
 }
 
 float CollectionScreen::getCardScaleInSlot(Node* card) {
@@ -691,8 +742,12 @@ void CollectionScreen::assignActiveCardToSlot(int slot) {
 
         listener->onTouchEnded = [this, cardNode](Touch* touch, Event*) {
             this->_isCardDragged = false;
-            auto moveTo = MoveTo::create(0.25f, this->_draggedCardOrigPosition);
-            cardNode->runAction(moveTo);
+            if (!this->_draggedCardDropping) {
+                auto moveTo = MoveTo::create(0.25f, this->_draggedCardOrigPosition);
+                cardNode->runAction(moveTo);
+            } else {
+                this->_draggedCardDropping = false;
+            }
             return true;
         };
 

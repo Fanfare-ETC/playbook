@@ -90,6 +90,7 @@ private:
     bool _isCardActive;
     bool _isCardDragged;
     Card _draggedCard;
+    bool _draggedCardDropping;
     cocos2d::Vec2 _draggedCardOrigPosition;
 
     cocos2d::Sprite* _giveToSection;
@@ -105,6 +106,8 @@ private:
     cocos2d::Sprite* _goalSprite;
     GoalType _activeGoal;
     std::vector<Card> _cardsMatchingGoal;
+
+    cocos2d::Label* _scoreLabel;
 
     Card _activeCard;
     float _activeCardOrigScale;
@@ -127,6 +130,7 @@ private:
     void stopDraggingActiveCard(cocos2d::Touch* touch);
     void discardCard(const Card& card);
     void scoreCardSet(GoalType goal, const std::vector<Card>& cardSet);
+    void displayScore(int score);
 
     float getCardScaleInSlot(cocos2d::Node* card);
     cocos2d::Vec2 getCardPositionForSlot(cocos2d::Node* cardNode, int slot);

@@ -139,7 +139,7 @@ public class selfScoreWorker extends AsyncTask<String,Void,String> {
                         ", Collection" + jo.getString("CollectionScore") +
                         ", Total" + jo.getString("Total"));
 
-                Typeface externalFont = Typeface.createFromAsset(activity.getContext().getAssets(), "fonts/SCOREBOARD.ttf");
+                Typeface externalFont = Typeface.createFromAsset(activity.getContext().getAssets(), "SCOREBOARD.ttf");
 
                 TextView b2 = new TextView(activity.getContext());
                 String prediction = String.valueOf(jo.getInt("PredictionScore"));
