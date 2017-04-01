@@ -2,7 +2,7 @@
 // Created by ramya on 3/2/17.
 //
 
-#include <network/HttpClient.h>
+#include "network/HttpClient.h"
 #include "json/writer.h"
 #include "json/stringbuffer.h"
 
@@ -1061,6 +1061,29 @@ std::string CollectionScreen::serialize() {
     Document document;
     document.SetObject();
     Document::AllocatorType& allocator = document.GetAllocator();
+
+    // Serialize the active card, if any.
+    document.AddMember(
+        rapidjson::Value("isCardActive", allocator).Move(),
+        rapidjson::Value(this->_isCardActive).Move(),
+        allocator
+    );
+
+    rapidjson::Value activeCard (kObjectType);
+
+    activeCard.AddMember(
+        rapidjson::Value("event", allocator).Move(),
+        rapidjson::Value(PlaybookEvent::eventToString(this->_activeCard.event).c_str(), allocator).Move(),
+        allocator
+    );
+
+    activeCard.AddMember(
+        rapidjson::Value("team", allocator).Move(),
+        rapidjson::Value(this->_activeCard.team).Move(),
+        allocator
+    );
+
+    document.AddMember(rapidjson::Value("activeCard", allocator).Move(), activeCard, allocator);
 
     // Serialize the card slots.
     rapidjson::Value cardSlots (kArrayType);
