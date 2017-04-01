@@ -22,6 +22,8 @@ public:
     virtual bool init();
     virtual void update(float delta);
 
+    void onEnter();
+    void onExit();
     void onResume();
     void onPause();
 
@@ -35,6 +37,14 @@ private:
         PlaybookEvent::Team team;
         PlaybookEvent::EventType event;
         cocos2d::Sprite* sprite;
+
+        bool operator==(const Card& card) const {
+            return this->sprite == card.sprite;
+        }
+
+        bool operator!=(const Card& card) const {
+            return !this->operator==(card);
+        }
     };
 
     struct CardSlot {
@@ -68,6 +78,13 @@ private:
     std::queue<PlaybookEvent::EventType> _incomingCardQueue;
     std::vector<CardSlot> _cardSlots;
     bool _isCardActive;
+    bool _isCardDragged;
+    Card _draggedCard;
+
+    cocos2d::Sprite* _giveToSection;
+    float _giveToSectionOrigScale;
+    bool _giveToSectionHovered;
+    cocos2d::EventListener* _giveToSectionListener;
 
     Card _activeCard;
     float _activeCardOrigScale;
@@ -84,6 +101,7 @@ private:
     void receiveCard(PlaybookEvent::EventType event);
     void startDraggingActiveCard(cocos2d::Touch* touch);
     void stopDraggingActiveCard(cocos2d::Touch* touch);
+    void discardCard(const Card& card);
 
     float getCardScaleInSlot(cocos2d::Node* card);
     cocos2d::Vec2 getCardPositionForSlot(cocos2d::Node* cardNode, int slot);

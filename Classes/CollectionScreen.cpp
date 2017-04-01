@@ -101,14 +101,16 @@ bool CollectionScreen::init()
     node->addChild(holder, 0);
 
     //add give to section button
-    auto givetosection = Sprite::create("Collection-Button-GiveSection.png");
-    auto givetosectionScale = visibleSize.width /givetosection->getContentSize().width;
-    givetosection->setPosition(0.0f, visibleSize.height/3.0f);
-    givetosection->setAnchorPoint(Vec2(0.0f, 0.0f));
-    givetosection->setScaleX(givetosectionScale/2);
-    givetosection->setScaleY(givetosectionScale/2);
-    auto givetosectionHeight = givetosectionScale * givetosection->getContentSize().height;
-    node->addChild(givetosection, 0);
+    auto giveToSection = Sprite::create("Collection-Button-GiveSection.png");
+    auto giveToSectionScale = visibleSize.width /giveToSection->getContentSize().width;
+    giveToSection->setPosition(0.0f, visibleSize.height/3.0f);
+    giveToSection->setAnchorPoint(Vec2(0.0f, 0.0f));
+    giveToSection->setScaleX(giveToSectionScale/2);
+    giveToSection->setScaleY(giveToSectionScale/2);
+    auto giveToSectionHeight = giveToSectionScale * giveToSection->getContentSize().height;
+    this->_giveToSection = giveToSection;
+    this->_giveToSectionOrigScale = giveToSectionScale / 2.0f;
+    node->addChild(giveToSection, 0);
 
     //add dragtoscore button
     auto dragtoscore = Sprite::create("Collection-Button-ScoreSet.png");
@@ -158,6 +160,7 @@ bool CollectionScreen::init()
         this->_cardSlots.push_back(slot);
     }
 
+    // Create event listeners.
     this->scheduleUpdate();
     return true;
 }
@@ -168,6 +171,49 @@ void CollectionScreen::update(float delta) {
         this->_incomingCardQueue.pop();
         this->receiveCard(play);
     }
+}
+
+void CollectionScreen::onEnter() {
+    PlaybookLayer::onEnter();
+    auto listener = EventListenerTouchOneByOne::create();
+
+    listener->onTouchBegan = [](Touch*, Event*) {
+        return true;
+    };
+
+    listener->onTouchMoved = [this](Touch* touch, Event*) {
+        // Enlarge "Give to Section" if we're hovering over it.
+        auto position = this->_giveToSection->getParent()->convertTouchToNodeSpace(touch);
+        auto box = this->_giveToSection->getBoundingBox();
+        if (box.containsPoint(position)) {
+            if (!this->_giveToSectionHovered) {
+                this->_giveToSectionHovered = true;
+                auto scaleTo = ScaleTo::create(0.25f, this->_giveToSectionOrigScale * 1.15f);
+                this->_giveToSection->runAction(scaleTo);
+            }
+        }
+    };
+
+    listener->onTouchEnded = [this](Touch* touch, Event*) {
+        this->_giveToSectionHovered = false;
+        auto scaleTo = ScaleTo::create(0.25f, this->_giveToSectionOrigScale);
+        this->_giveToSection->runAction(scaleTo);
+
+        // If we were dragging a card, discard it.
+        auto position = this->_giveToSection->getParent()->convertTouchToNodeSpace(touch);
+        auto box = this->_giveToSection->getBoundingBox();
+        if (box.containsPoint(position) && this->_isCardDragged) {
+            this->discardCard(this->_draggedCard);
+        }
+    };
+
+    this->getEventDispatcher()->addEventListenerWithFixedPriority(listener, -1);
+    this->_giveToSectionListener = listener;
+}
+
+void CollectionScreen::onExit() {
+    this->getEventDispatcher()->removeEventListener(this->_giveToSectionListener);
+    PlaybookLayer::onExit();
 }
 
 void CollectionScreen::onResume() {
@@ -325,6 +371,7 @@ void CollectionScreen::receiveCard(PlaybookEvent::EventType event)
         // Draw bounding box to show that card can be dropped.
         auto slotPosition = this->getCardPositionForSlot(this->_activeCard.sprite, slot);
         auto contentScaleFactor = Director::getInstance()->getContentScaleFactor();
+        this->_cardSlotDrawNode->clear();
         if (slot >= 0 && slotPosition.distance(position) < 400.0f * contentScaleFactor) {
             this->drawBoundingBoxForSlot(this->_activeCard.sprite, slot);
         }
@@ -359,6 +406,9 @@ void CollectionScreen::startDraggingActiveCard(Touch* touch) {
 
     auto spawn = Spawn::create(scaleTo, rotateTo, moveTo, nullptr);
     cardNode->runAction(spawn);
+
+    this->_isCardDragged = true;
+    this->_draggedCard = this->_activeCard;
 }
 
 void CollectionScreen::stopDraggingActiveCard(cocos2d::Touch* touch) {
@@ -375,6 +425,33 @@ void CollectionScreen::stopDraggingActiveCard(cocos2d::Touch* touch) {
         auto moveTo = MoveTo::create(0.50f, this->_activeCardOrigPosition);
         auto spawn = Spawn::create(scaleTo, rotateTo, moveTo, nullptr);
         this->_activeCard.sprite->runAction(spawn);
+    }
+
+    this->_isCardDragged = false;
+}
+
+void CollectionScreen::discardCard(const Card& card) {
+    if (this->_isCardActive) {
+        if (this->_activeCard != card) {
+            CCLOGWARN("A card is active, but card to be discarded is not the active card!");
+            return;
+        }
+
+        this->_activeCard.sprite->removeFromParentAndCleanup(true);
+        this->_isCardActive = false;
+
+    } else {
+        auto slotIterator = std::find_if(this->_cardSlots.begin(), this->_cardSlots.end(), [card](const CardSlot& slot) {
+            return slot.card == card;
+        });
+
+        if (slotIterator == this->_cardSlots.end()) {
+            CCLOGWARN("Attempting to discard card that doesn't exist in slot!");
+            return;
+        }
+
+        slotIterator->present = false;
+        slotIterator->card.sprite->removeFromParentAndCleanup(true);
     }
 }
 
@@ -411,8 +488,6 @@ Rect CollectionScreen::getCardBoundingBoxForSlot(Node* cardNode, int slot) {
 
 void CollectionScreen::drawBoundingBoxForSlot(cocos2d::Node *cardNode, int slot) {
     auto slotRect = this->getCardBoundingBoxForSlot(cardNode, slot);
-    this->_cardSlotDrawNode->clear();
-
     auto contentScaleFactor = Director::getInstance()->getContentScaleFactor();
     this->_cardSlotDrawNode->setLineWidth(6.0f * contentScaleFactor);
     this->_cardSlotDrawNode->drawRect(
@@ -456,7 +531,13 @@ void CollectionScreen::assignActiveCardToSlot(int slot) {
         listener->onTouchBegan = [this, cardNode](Touch* touch, Event*) {
             auto position = cardNode->getParent()->convertTouchToNodeSpace(touch);
             auto box = cardNode->getBoundingBox();
-            return box.containsPoint(position);
+            if (box.containsPoint(position)) {
+                this->_isCardDragged = true;
+                this->_draggedCard = this->_activeCard;
+                return true;
+            } else {
+                return false;
+            }
         };
 
         listener->onTouchMoved = [this, cardNode](Touch* touch, Event*) {
@@ -466,6 +547,7 @@ void CollectionScreen::assignActiveCardToSlot(int slot) {
         };
 
         listener->onTouchEnded = [this](Touch* touch, Event*) {
+            this->_isCardDragged = false;
             return true;
         };
 
