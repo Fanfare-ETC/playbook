@@ -70,7 +70,9 @@ android {
                 ndkBuild {
                     cppFlags '-DCOCOS2D_DEBUG=1',
                             '-DPLAYBOOK_API_HOST=10.0.2.2',
-                            '-DPLAYBOOK_API_PORT=9001'
+                            '-DPLAYBOOK_API_PORT=9001',
+                            '-DPLAYBOOK_SECTION_API_HOST=10.0.2.2',
+                            '-DPLAYBOOK_SECTION_API_PORT=9002'
                 }
             }
         }
@@ -91,7 +93,9 @@ android {
                 ndkBuild {
                     cppFlags '-DNDEBUG',
                             '-DPLAYBOOK_API_HOST=staging.fanfare.wong.place',
-                            '-DPLAYBOOK_API_PORT=9001'
+                            '-DPLAYBOOK_API_PORT=9001',
+                            '-DPLAYBOOK_SECTION_API_HOST=staging.fanfare.wong.place',
+                            '-DPLAYBOOK_SECTION_API_PORT=9002'
                 }
             }
         }
@@ -112,7 +116,9 @@ android {
                 ndkBuild {
                     cppFlags '-DNDEBUG',
                             '-DPLAYBOOK_API_HOST=fanfare.wong.place',
-                            '-DPLAYBOOK_API_PORT=9001'
+                            '-DPLAYBOOK_API_PORT=9001',
+                            '-DPLAYBOOK_SECTION_API_HOST=fanfare.wong.place',
+                            '-DPLAYBOOK_SECTION_API_PORT=9002'
                 }
             }
 

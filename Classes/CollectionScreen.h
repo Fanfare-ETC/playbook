@@ -55,8 +55,8 @@ private:
         IDENTICAL_CARDS_3,
         IDENTICAL_CARDS_4,
         IDENTICAL_CARDS_5,
-        UNIQUE_OUT_CARDS_3,
-        UNIQUE_OUT_CARDS_4,
+        //UNIQUE_OUT_CARDS_3,
+        //UNIQUE_OUT_CARDS_4,
         WALK_OR_HIT_3,
         OUT_3,
         BASES_3,
@@ -78,6 +78,7 @@ private:
 
     static const int NUM_SLOTS;
     static const std::unordered_map<GoalType, std::string, GoalTypeHash> GOAL_TYPE_FILE_MAP;
+    static const std::unordered_map<GoalType, int, GoalTypeHash> GOAL_TYPE_SCORE_MAP;
 
     cocos2d::Node* _visibleNode;
     PredictionWebSocket* _websocket;
@@ -119,12 +120,13 @@ private:
     void handleServerMessage(const std::string& event,
                              const rapidjson::Value::ConstMemberIterator& data, bool hasData);
     void handlePlaysCreated(const rapidjson::Value::ConstMemberIterator& data, bool hasData);
+    void reportScore(int score);
 
     void receiveCard(PlaybookEvent::EventType event);
     void startDraggingActiveCard(cocos2d::Touch* touch);
     void stopDraggingActiveCard(cocos2d::Touch* touch);
     void discardCard(const Card& card);
-    void scoreCardSet(const std::vector<Card>& cardSet);
+    void scoreCardSet(GoalType goal, const std::vector<Card>& cardSet);
 
     float getCardScaleInSlot(cocos2d::Node* card);
     cocos2d::Vec2 getCardPositionForSlot(cocos2d::Node* cardNode, int slot);

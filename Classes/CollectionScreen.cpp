@@ -2,6 +2,7 @@
 // Created by ramya on 3/2/17.
 //
 
+#include <network/HttpClient.h>
 #include "json/writer.h"
 #include "json/stringbuffer.h"
 
@@ -21,11 +22,22 @@ USING_NS_CC;
 #define PLAYBOOK_API_PORT 9001
 #endif // PLAYBOOK_API_PORT
 
+#ifndef PLAYBOOK_SECTION_API_HOST
+#define PLAYBOOK_SECTION_API_HOST localhost
+#endif //PLAYBOOK_SECTION_API_HOST
+
+#ifndef PLAYBOOK_SECTION_API_PORT
+#define PLAYBOOK_SECTION_API_PORT 9002
+#endif // PLAYBOOK_SECTION_API_PORT
+
 #define STR_VALUE(arg) #arg
 #define STR_VALUE_VAR(arg) STR_VALUE(arg)
 #define PLAYBOOK_WEBSOCKET_URL "ws://" \
     STR_VALUE_VAR(PLAYBOOK_API_HOST) \
     ":" STR_VALUE_VAR(PLAYBOOK_API_PORT)
+#define PLAYBOOK_SECTION_API_URL "http://" \
+    STR_VALUE_VAR(PLAYBOOK_SECTION_API_HOST) \
+    ":" STR_VALUE_VAR(PLAYBOOK_SECTION_API_PORT)
 
 //struct type_rect { float  array[4][2]; };
 //typedef struct type_rect type_rect;
@@ -35,7 +47,7 @@ const int CollectionScreen::NUM_SLOTS = 5;
 const std::unordered_map<CollectionScreen::GoalType, std::string, CollectionScreen::GoalTypeHash> CollectionScreen::GOAL_TYPE_FILE_MAP = {
     {GoalType::IDENTICAL_CARDS_3, "goal/goal1.png"},
     {GoalType::IDENTICAL_CARDS_4, "goal/goal2.png"},
-    {GoalType::UNIQUE_OUT_CARDS_4, "goal/goal3.png"},
+    //{GoalType::UNIQUE_OUT_CARDS_4, "goal/goal3.png"},
     {GoalType::IDENTICAL_CARDS_5, "goal/goal4.png"},
     {GoalType::WALK_OR_HIT_3, "goal/goal5.png"},
     {GoalType::OUT_3, "goal/goal6.png"},
@@ -43,10 +55,27 @@ const std::unordered_map<CollectionScreen::GoalType, std::string, CollectionScre
     {GoalType::EACH_COLOR_2, "goal/goal8.png"},
     {GoalType::SAME_COLOR_3, "goal/goal9.png"},
     {GoalType::EACH_COLOR_1, "goal/goal11.png"},
-    {GoalType::UNIQUE_OUT_CARDS_3, "goal/goal12.png"},
+    //{GoalType::UNIQUE_OUT_CARDS_3, "goal/goal12.png"},
     {GoalType::SAME_COLOR_4, "goal/goal13.png"},
     {GoalType::SAME_COLOR_5, "goal/goal14.png"},
     {GoalType::BASE_STEAL_RBI, "goal/goal15.png"}
+};
+
+const std::unordered_map<CollectionScreen::GoalType, int, CollectionScreen::GoalTypeHash> CollectionScreen::GOAL_TYPE_SCORE_MAP = {
+    {GoalType::IDENTICAL_CARDS_3, 4},
+    {GoalType::IDENTICAL_CARDS_4, 6},
+    //{GoalType::UNIQUE_OUT_CARDS_4, 6},
+    {GoalType::IDENTICAL_CARDS_5, 10},
+    {GoalType::WALK_OR_HIT_3, 0},
+    {GoalType::OUT_3, 3},
+    {GoalType::BASES_3, 4},
+    {GoalType::EACH_COLOR_2, 6},
+    {GoalType::SAME_COLOR_3, 4},
+    {GoalType::EACH_COLOR_1, 2},
+    //{GoalType::UNIQUE_OUT_CARDS_3, 4},
+    {GoalType::SAME_COLOR_4, 6},
+    {GoalType::SAME_COLOR_5, 10},
+    {GoalType::BASE_STEAL_RBI, 4}
 };
 
 Scene* CollectionScreen::createScene()
@@ -266,7 +295,7 @@ void CollectionScreen::initEventsDragToScore() {
         auto position = this->_dragToScore->getParent()->convertTouchToNodeSpace(touch);
         auto box = this->_dragToScore->getBoundingBox();
         if (box.containsPoint(position) && this->_isCardDragged && this->_cardsMatchingGoal.size() > 0) {
-            this->scoreCardSet(this->_cardsMatchingGoal);
+            this->scoreCardSet(this->_activeGoal, this->_cardsMatchingGoal);
         }
     };
 
@@ -350,6 +379,55 @@ void CollectionScreen::handlePlaysCreated(const rapidjson::Value::ConstMemberIte
         CCLOG("Events: %s", PlaybookEvent::eventToString(event).c_str());
         this->_incomingCardQueue.push(event);
     }
+}
+
+void CollectionScreen::reportScore(int score) {
+    using namespace rapidjson;
+    auto playerID = JniHelper::callStaticStringMethod("edu/cmu/etc/fanfare/playbook/Cocos2dxBridge", "getPlayerID");
+
+    Document document;
+    document.SetObject();
+    Document::AllocatorType& allocator = document.GetAllocator();
+
+    // Serialize the score report.
+    document.AddMember(
+        rapidjson::Value("cat", allocator).Move(),
+        rapidjson::Value("collect", allocator).Move(),
+        allocator
+    );
+
+    document.AddMember(
+        rapidjson::Value("collectScore", allocator).Move(),
+        rapidjson::Value(score).Move(),
+        allocator
+    );
+
+    document.AddMember(
+        rapidjson::Value("id", allocator).Move(),
+        rapidjson::Value(playerID.c_str(), allocator).Move(),
+        allocator
+    );
+
+    // Create the JSON.
+    StringBuffer buffer;
+    Writer<StringBuffer> writer(buffer);
+    document.Accept(writer);
+
+    // Send the JSON to the server.
+    CCLOG("Sending score to: %s", PLAYBOOK_SECTION_API_URL "/updateScore");
+    network::HttpRequest* request = new network::HttpRequest();
+    request->setUrl(PLAYBOOK_SECTION_API_URL "/updateScore");
+    request->setRequestType(network::HttpRequest::Type::POST);
+    request->setRequestData(buffer.GetString(), buffer.GetSize());
+    request->setHeaders({ "Content-Type: application/json" });
+    request->setResponseCallback([](network::HttpClient*, network::HttpResponse* response) {
+       if (response != nullptr) {
+           // Dump the data
+           CCLOG("Response: %s", response->getResponseDataString());
+       }
+    });
+    network::HttpClient::getInstance()->send(request);
+    request->release();
 }
 
 void CollectionScreen::receiveCard(PlaybookEvent::EventType event)
@@ -499,7 +577,7 @@ void CollectionScreen::discardCard(const Card& card) {
     }
 }
 
-void CollectionScreen::scoreCardSet(const std::vector<Card> &cardSet) {
+void CollectionScreen::scoreCardSet(GoalType goal, const std::vector<Card> &cardSet) {
     // Remove matching cards.
     std::for_each(this->_cardSlots.begin(), this->_cardSlots.end(), [cardSet](CardSlot& slot) {
         auto cardIterator = std::find_if(cardSet.begin(), cardSet.end(), [&slot, cardSet](const Card& card) {
@@ -513,6 +591,7 @@ void CollectionScreen::scoreCardSet(const std::vector<Card> &cardSet) {
     });
 
     // Send score to server.
+    this->reportScore(GOAL_TYPE_SCORE_MAP.at(goal));
 
     // Create a new goal.
     this->createGoal();
@@ -889,8 +968,8 @@ bool CollectionScreen::cardSetMeetsGoal(const std::vector<Card>& cardSet, GoalTy
         }
 
         // TODO: Not implemented yet
-        case GoalType::UNIQUE_OUT_CARDS_3:
-        case GoalType::UNIQUE_OUT_CARDS_4:
+        //case GoalType::UNIQUE_OUT_CARDS_3:
+        //case GoalType::UNIQUE_OUT_CARDS_4:
         default: {
             return false;
         }
