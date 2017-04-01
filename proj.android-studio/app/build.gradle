@@ -98,6 +98,10 @@ android {
                             '-DPLAYBOOK_SECTION_API_PORT=9002'
                 }
             }
+
+            ndk {
+                abiFilters 'x86', 'armeabi'
+            }
         }
 
         release {
