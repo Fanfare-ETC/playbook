@@ -402,7 +402,9 @@ void CollectionScreen::handlePlaysCreated(const rapidjson::Value::ConstMemberIte
     for (auto it = plays.Begin(); it != plays.End(); ++it) {
         PlaybookEvent::EventType event = PlaybookEvent::intToEvent(it->GetInt());
         CCLOG("Events: %s", PlaybookEvent::eventToString(event).c_str());
-        this->_incomingCardQueue.push(event);
+        if (PlaybookEvent::getTeam(event) != PlaybookEvent::Team::NONE) {
+            this->_incomingCardQueue.push(event);
+        }
     }
 }
 
@@ -978,14 +980,49 @@ bool CollectionScreen::cardSetMeetsGoal(const std::vector<Card>& cardSet, GoalTy
 
         case GoalType::OUT_3: {
             auto isOut = [](const Card& card) {
-                return card.event == PlaybookEvent::EventType::STRIKEOUT;
+                return card.event == PlaybookEvent::EventType::STRIKEOUT ||
+                    card.event == PlaybookEvent::EventType::GROUND_OUT ||
+                    card.event == PlaybookEvent::EventType::FLY_OUT;
             };
 
-            auto satisfied = std::count_if(cardSet.begin(), cardSet.end(), isOut) >= 3;
+            auto isDoublePlay = [](const Card& card) {
+                return card.event == PlaybookEvent::EventType::DOUBLE_PLAY;
+            };
+
+            auto isTriplePlay = [](const Card& card) {
+                return card.event == PlaybookEvent::EventType::TRIPLE_PLAY;
+            };
+
+            auto numOuts = std::count_if(cardSet.begin(), cardSet.end(), isOut);
+            auto numDoublePlays = std::count_if(cardSet.begin(), cardSet.end(), isDoublePlay);
+            auto numTriplePlays = std::count_if(cardSet.begin(), cardSet.end(), isTriplePlay);
+
+            auto totalOuts = numOuts + (numDoublePlays * 2) + (numTriplePlays * 3);
+            auto satisfied = totalOuts >= 3;
             if (satisfied) {
-                std::vector<Card> temp;
-                std::copy_if(cardSet.begin(), cardSet.end(), std::back_inserter(temp), isOut);
-                std::copy_n(temp.begin(), 3, std::back_inserter(outSet));
+                // TODO: If players could select their own sets, that can work fine.
+                if (numTriplePlays > 0) {
+                    // If there's a triple play, the condition is already satisfied.
+                    auto cardIterator = std::find_if(cardSet.begin(), cardSet.end(), isTriplePlay);
+                    outSet.push_back(*cardIterator);
+                } else if (numDoublePlays > 0) {
+                    // Two cases: We can satisfy this with two double plays or a double play
+                    // and a single out.
+                    if (numOuts > 0 && numDoublePlays > 0) {
+                        auto cardIterator = std::find_if(cardSet.begin(), cardSet.end(), isDoublePlay);
+                        auto outCardIterator = std::find_if(cardSet.begin(), cardSet.end(), isOut);
+                        outSet.push_back(*cardIterator);
+                        outSet.push_back(*outCardIterator);
+                    } else {
+                        std::vector<Card> temp;
+                        std::copy_if(cardSet.begin(), cardSet.end(), std::back_inserter(temp), isDoublePlay);
+                        std::copy_n(temp.begin(), 2, std::back_inserter(outSet));
+                    }
+                } else {
+                    std::vector<Card> temp;
+                    std::copy_if(cardSet.begin(), cardSet.end(), std::back_inserter(temp), isOut);
+                    std::copy_n(temp.begin(), 3, std::back_inserter(outSet));
+                }
             }
             return satisfied;
         }
