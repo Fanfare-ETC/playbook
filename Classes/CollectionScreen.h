@@ -47,7 +47,6 @@ private:
 
     struct CardSlot {
         Card card;
-        std::vector<Card> cardSet;
         bool present;
     };
 
@@ -126,6 +125,7 @@ private:
     void reportScore(int score);
 
     void receiveCard(PlaybookEvent::EventType event);
+    Card createCard(PlaybookEvent::EventType event);
     void startDraggingActiveCard(cocos2d::Touch* touch);
     void stopDraggingActiveCard(cocos2d::Touch* touch);
     void discardCard(const Card& card);
@@ -142,6 +142,11 @@ private:
     void createGoal();
     void checkIfGoalMet();
     bool cardSetMeetsGoal(const std::vector<Card>& cardSet, GoalType goal, std::vector<Card>& outSet);
+
+    void restoreState();
+    void saveState();
+    std::string serialize();
+    void unserialize(const std::string& data);
 };
 
 #endif //PLAYBOOK_COLLECTION_SCREEN_H

@@ -182,7 +182,6 @@ bool CollectionScreen::init()
     for (int i = 0; i < NUM_SLOTS; i++) {
         CardSlot slot {
             .card = Card(),
-            .cardSet = std::vector<Card>(),
             .present = false
         };
         this->_cardSlots.push_back(slot);
@@ -225,15 +224,32 @@ void CollectionScreen::onExit() {
 void CollectionScreen::onResume() {
     CCLOG("CollectionScreen->onResume: Restoring state...");
     PlaybookLayer::onResume();
-    //this->restoreState();
+    this->restoreState();
     this->connectToServer();
 }
 
 void CollectionScreen::onPause() {
     CCLOG("CollectionScreen->onPause: Saving state...");
-    //this->saveState();
+    this->saveState();
     PlaybookLayer::onPause();
     this->disconnectFromServer();
+}
+
+void CollectionScreen::restoreState() {
+    auto preferences = UserDefault::getInstance();
+    auto state = preferences->getStringForKey("Collection");
+    if (!state.empty()) {
+        CCLOG("Collection->restoreState: Restoring: %s", state.c_str());
+        this->unserialize(state);
+    } else {
+        CCLOG("Collection->restoreState: No state to restore");
+    }
+}
+
+void CollectionScreen::saveState() {
+    auto preferences = UserDefault::getInstance();
+    preferences->setStringForKey("Collection", this->serialize());
+    preferences->flush();
 }
 
 void CollectionScreen::initEventsGiveToSection() {
@@ -441,40 +457,12 @@ void CollectionScreen::reportScore(int score) {
 
 void CollectionScreen::receiveCard(PlaybookEvent::EventType event)
 {
-    auto team = PlaybookEvent::getTeam(event);
-    if (team == PlaybookEvent::Team::NONE) {
-        return;
-    }
-
-    std::stringstream cardFileNameSs;
-    cardFileNameSs << "cards/Card-";
-    switch (team) {
-        case PlaybookEvent::Team::FIELDING:
-            cardFileNameSs << "F-";
-            break;
-        case PlaybookEvent::Team::BATTING:
-            cardFileNameSs << "B-";
-            break;
-        default:
-            break;
-    }
-
-    cardFileNameSs << PlaybookEvent::eventToString(event) << ".jpg";
+    this->_activeCard = createCard(event);
+    this->_isCardActive = true;
+    auto card = this->_activeCard.sprite;
 
     auto visibleSize = Director::getInstance()->getVisibleSize();
-    auto card = Sprite::create(cardFileNameSs.str());
     auto cardScale = visibleSize.width / card->getContentSize().width * 0.8f;
-    card->setPosition(visibleSize.width / 2.0f, visibleSize.height / 2.0f);
-    card->setScale(0.0f);
-    card->setRotation(RandomHelper::random_real(-5.0f, 5.0f));
-    this->_visibleNode->addChild(card, 1);
-    this->_isCardActive = true;
-    Card state {
-        .team = team,
-        .event = event,
-        .sprite = card
-    };
-    this->_activeCard = state;
 
     auto fadeIn = FadeIn::create(0.50f);
     auto scaleTo = EaseBackOut::create(ScaleTo::create(0.50f, cardScale));
@@ -518,6 +506,42 @@ void CollectionScreen::receiveCard(PlaybookEvent::EventType event)
 
     card->getEventDispatcher()->addEventListenerWithSceneGraphPriority(listener, card);
     this->_activeEventListener = listener;
+}
+
+CollectionScreen::Card CollectionScreen::createCard(PlaybookEvent::EventType event) {
+    auto team = PlaybookEvent::getTeam(event);
+    if (team == PlaybookEvent::Team::NONE) {
+        return Card();
+    }
+
+    std::stringstream cardFileNameSs;
+    cardFileNameSs << "cards/Card-";
+    switch (team) {
+        case PlaybookEvent::Team::FIELDING:
+            cardFileNameSs << "F-";
+            break;
+        case PlaybookEvent::Team::BATTING:
+            cardFileNameSs << "B-";
+            break;
+        default:
+            break;
+    }
+
+    cardFileNameSs << PlaybookEvent::eventToString(event) << ".jpg";
+
+    auto card = Sprite::create(cardFileNameSs.str());
+    auto visibleSize = Director::getInstance()->getVisibleSize();
+    card->setPosition(visibleSize.width / 2.0f, visibleSize.height / 2.0f);
+    card->setScale(0.0f);
+    card->setRotation(RandomHelper::random_real(-5.0f, 5.0f));
+    this->_visibleNode->addChild(card, 1);
+    Card state {
+        .team = team,
+        .event = event,
+        .sprite = card
+    };
+
+    return state;
 }
 
 void CollectionScreen::startDraggingActiveCard(Touch* touch) {
@@ -1029,4 +1053,61 @@ bool CollectionScreen::cardSetMeetsGoal(const std::vector<Card>& cardSet, GoalTy
             return false;
         }
     }
+}
+
+std::string CollectionScreen::serialize() {
+    using namespace rapidjson;
+
+    Document document;
+    document.SetObject();
+    Document::AllocatorType& allocator = document.GetAllocator();
+
+    // Serialize the card slots.
+    rapidjson::Value cardSlots (kArrayType);
+    for (const auto& item : this->_cardSlots) {
+        auto event = PlaybookEvent::eventToString(item.card.event);
+
+        rapidjson::Value cardSlot (kObjectType);
+        rapidjson::Value card (kObjectType);
+
+        card.AddMember(
+            rapidjson::Value("event", allocator).Move(),
+            rapidjson::Value(event.c_str(), allocator).Move(),
+            allocator
+        );
+
+        card.AddMember(
+            rapidjson::Value("team", allocator).Move(),
+            rapidjson::Value(item.card.team).Move(),
+            allocator
+        );
+
+        cardSlot.AddMember(
+            rapidjson::Value("card", allocator).Move(),
+            card, allocator
+        );
+
+        cardSlot.AddMember(
+            rapidjson::Value("present", allocator).Move(),
+            rapidjson::Value(item.present).Move(),
+            allocator
+        );
+
+        cardSlots.PushBack(cardSlot, allocator);
+    }
+    document.AddMember(rapidjson::Value("cardSlots", allocator).Move(), cardSlots, allocator);
+
+    // Create the state.
+    StringBuffer buffer;
+    Writer<StringBuffer> writer(buffer);
+    document.Accept(writer);
+
+    return std::string(buffer.GetString());
+}
+
+void CollectionScreen::unserialize(const std::string& data) {
+    using namespace rapidjson;
+
+    Document document;
+    document.Parse(data.c_str());
 }
