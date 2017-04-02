@@ -253,6 +253,7 @@ void CollectionScreen::saveState() {
 }
 
 void CollectionScreen::initEventsGiveToSection() {
+    CCLOG("CollectionScreen->initEventsGiveToSection");
     auto listener = EventListenerTouchOneByOne::create();
 
     listener->onTouchBegan = [](Touch*, Event*) {
@@ -266,22 +267,27 @@ void CollectionScreen::initEventsGiveToSection() {
         if (box.containsPoint(position)) {
             if (!this->_giveToSectionHovered) {
                 this->_giveToSectionHovered = true;
-                auto scaleTo = ScaleTo::create(0.25f, this->_giveToSectionOrigScale * 1.15f);
-                this->_giveToSection->runAction(scaleTo);
+                auto tintTo = TintTo::create(0.25f, Color3B::RED);
+                this->_giveToSection->runAction(tintTo);
+            }
+        } else {
+            if (this->_giveToSectionHovered) {
+                this->_giveToSectionHovered = false;
+                auto tintTo = TintTo::create(0.25f, Color3B::WHITE);
+                this->_giveToSection->runAction(tintTo);
             }
         }
     };
 
     listener->onTouchEnded = [this](Touch* touch, Event*) {
         this->_giveToSectionHovered = false;
-        auto scaleTo = ScaleTo::create(0.25f, this->_giveToSectionOrigScale);
-        this->_giveToSection->runAction(scaleTo);
+        auto tintTo = TintTo::create(0.25f, Color3B::WHITE);
+        this->_giveToSection->runAction(tintTo);
 
         // If we were dragging a card, discard it.
         auto position = this->_giveToSection->getParent()->convertTouchToNodeSpace(touch);
         auto box = this->_giveToSection->getBoundingBox();
         if (box.containsPoint(position) && this->_isCardDragged) {
-            this->_draggedCardDropping = true;
             this->discardCard(this->_draggedCard);
         }
     };
@@ -291,6 +297,7 @@ void CollectionScreen::initEventsGiveToSection() {
 }
 
 void CollectionScreen::initEventsDragToScore() {
+    CCLOG("CollectionScreen->initEventsDragToScore");
     auto listener = EventListenerTouchOneByOne::create();
 
     listener->onTouchBegan = [](Touch*, Event*) {
@@ -304,16 +311,24 @@ void CollectionScreen::initEventsDragToScore() {
         if (box.containsPoint(position)) {
             if (!this->_dragToScoreHovered) {
                 this->_dragToScoreHovered = true;
-                auto scaleTo = ScaleTo::create(0.25f, this->_dragToScoreOrigScale * 1.15f);
-                this->_dragToScore->runAction(scaleTo);
+                if (this->_cardsMatchingGoal.size() > 0) {
+                    auto tintTo = TintTo::create(0.25f, Color3B::GREEN);
+                    this->_dragToScore->runAction(tintTo);
+                }
+            }
+        } else {
+            if (this->_dragToScoreHovered) {
+                this->_dragToScoreHovered = false;
+                auto tintTo = TintTo::create(0.25f, Color3B::WHITE);
+                this->_dragToScore->runAction(tintTo);
             }
         }
     };
 
     listener->onTouchEnded = [this](Touch* touch, Event*) {
         this->_dragToScoreHovered = false;
-        auto scaleTo = ScaleTo::create(0.25f, this->_dragToScoreOrigScale);
-        this->_dragToScore->runAction(scaleTo);
+        auto tintTo = TintTo::create(0.25f, Color3B::WHITE);
+        this->_dragToScore->runAction(tintTo);
 
         // If we were dragging a card, obtain its set and score.
         auto position = this->_dragToScore->getParent()->convertTouchToNodeSpace(touch);
@@ -409,6 +424,8 @@ void CollectionScreen::handlePlaysCreated(const rapidjson::Value::ConstMemberIte
 }
 
 void CollectionScreen::reportScore(int score) {
+    CCLOG("CollectionScreen->reportScore: %d", score);
+
     using namespace rapidjson;
     auto playerID = JniHelper::callStaticStringMethod("edu/cmu/etc/fanfare/playbook/Cocos2dxBridge", "getPlayerID");
 
@@ -459,6 +476,8 @@ void CollectionScreen::reportScore(int score) {
 
 void CollectionScreen::receiveCard(PlaybookEvent::EventType event)
 {
+    CCLOG("CollectionScreen->receiveCard: %s", PlaybookEvent::eventToString(event).c_str());
+
     this->_activeCard = createCard(event);
     this->_isCardActive = true;
     auto card = this->_activeCard.sprite;
@@ -511,6 +530,7 @@ void CollectionScreen::receiveCard(PlaybookEvent::EventType event)
 }
 
 CollectionScreen::Card CollectionScreen::createCard(PlaybookEvent::EventType event) {
+    CCLOG("CollectionScreen->createCard: %s", PlaybookEvent::eventToString(event).c_str());
     auto team = PlaybookEvent::getTeam(event);
     if (team == PlaybookEvent::Team::NONE) {
         return Card();
@@ -547,6 +567,8 @@ CollectionScreen::Card CollectionScreen::createCard(PlaybookEvent::EventType eve
 }
 
 void CollectionScreen::startDraggingActiveCard(Touch* touch) {
+    CCLOG("CollectionScreen->startDraggingActiveCard");
+
     auto cardNode = this->_activeCard.sprite;
     if (cardNode->getNumberOfRunningActions() == 0) {
         this->_activeCardOrigPosition = cardNode->getPosition();
@@ -560,15 +582,19 @@ void CollectionScreen::startDraggingActiveCard(Touch* touch) {
     auto scaleTo = EaseBackOut::create(ScaleTo::create(0.50f, scale));
     auto rotateTo = RotateTo::create(0.50f, 0.0f);
     auto moveTo = MoveTo::create(0.50f, position);
+    auto callFunc = CallFunc::create([this]() {
+        this->_isCardDragged = true;
+        this->_draggedCard = this->_activeCard;
+    });
 
     auto spawn = Spawn::create(scaleTo, rotateTo, moveTo, nullptr);
-    cardNode->runAction(spawn);
-
-    this->_isCardDragged = true;
-    this->_draggedCard = this->_activeCard;
+    auto sequence = Sequence::create(spawn, callFunc, nullptr);
+    cardNode->runAction(sequence);
 }
 
 void CollectionScreen::stopDraggingActiveCard(cocos2d::Touch* touch) {
+    CCLOG("CollectionScreen->dropDraggingActiveCard");
+
     // Check if touch position is within the slot.
     auto touchVisibleSpace = this->_cardsHolder->getParent()->convertTouchToNodeSpace(touch);
     auto cardsHolderBox = this->_cardsHolder->getBoundingBox();
@@ -588,6 +614,8 @@ void CollectionScreen::stopDraggingActiveCard(cocos2d::Touch* touch) {
 }
 
 void CollectionScreen::discardCard(const Card& card) {
+    CCLOG("CollectionScreen->discardCard");
+
     if (this->_isCardActive) {
         if (this->_activeCard != card) {
             CCLOGWARN("A card is active, but card to be discarded is not the active card!");
@@ -613,6 +641,8 @@ void CollectionScreen::discardCard(const Card& card) {
 }
 
 void CollectionScreen::scoreCardSet(GoalType goal, const std::vector<Card> &cardSet) {
+    CCLOG("CollectionScreen->scoreCardSet");
+
     // Remove matching cards.
     std::for_each(this->_cardSlots.begin(), this->_cardSlots.end(), [this, cardSet](CardSlot& slot) {
         auto cardIterator = std::find_if(cardSet.begin(), cardSet.end(), [this, &slot](const Card& card) {
@@ -656,6 +686,8 @@ void CollectionScreen::scoreCardSet(GoalType goal, const std::vector<Card> &card
 }
 
 void CollectionScreen::displayScore(int score) {
+    CCLOG("CollectionScreen->displayScore: %d", score);
+
     this->_scoreLabel->setString(std::to_string(score));
     this->_scoreLabel->setOpacity(255);
     this->_scoreLabel->setVisible(true);
@@ -735,6 +767,8 @@ int CollectionScreen::getNearestAvailableCardSlot(Node *card, const Vec2 &positi
 }
 
 void CollectionScreen::assignActiveCardToSlot(int slot) {
+    CCLOG("CollectionScreen->assignActiveCardToSlot");
+
     auto position = this->getCardPositionForSlot(this->_activeCard.sprite, slot);
     auto moveTo = MoveTo::create(0.50f, position);
     auto callFunc = CallFunc::create([this, position]() {
@@ -749,6 +783,11 @@ void CollectionScreen::assignActiveCardToSlot(int slot) {
         listener->setSwallowTouches(false);
 
         listener->onTouchBegan = [this, card, cardNode](Touch* touch, Event*) {
+            // Prevent cards from being stuck if we're still moving it.
+            if (card.sprite->getNumberOfRunningActions() > 0) {
+                return false;
+            }
+
             auto position = cardNode->getParent()->convertTouchToNodeSpace(touch);
             auto box = cardNode->getBoundingBox();
             if (box.containsPoint(position)) {
@@ -792,6 +831,8 @@ void CollectionScreen::assignActiveCardToSlot(int slot) {
 }
 
 void CollectionScreen::checkIfGoalMet() {
+    CCLOG("CollectionScreen->checkIfGoalMet");
+
     // Filter out slots with no cards.
     std::vector<CardSlot> slotsWithCard;
     std::copy_if(
@@ -815,14 +856,14 @@ void CollectionScreen::checkIfGoalMet() {
             auto tintTo = TintTo::create(0.25f, Color3B::GREEN);
             card.sprite->runAction(tintTo);
         });
-
-        this->_cardsMatchingGoal = outSet;
     } else {
         CCLOG("Goal not met yet.");
     }
+    this->_cardsMatchingGoal = outSet;
 }
 
 void CollectionScreen::createGoal() {
+    CCLOG("CollectionScreen->createGoal");
     auto visibleSize = Director::getInstance()->getVisibleSize();
 
     // If we're replacing an old goal, remove it first.
@@ -847,6 +888,8 @@ void CollectionScreen::createGoal() {
 }
 
 bool CollectionScreen::cardSetMeetsGoal(const std::vector<Card>& cardSet, GoalType goal, std::vector<Card>& outSet) {
+    CCLOG("CollectionScreen->cardSetMeetsGoal");
+
     auto isBase = [](const Card& card) {
         return card.event == PlaybookEvent::EventType::SINGLE ||
                card.event == PlaybookEvent::EventType::DOUBLE ||
