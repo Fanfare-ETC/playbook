@@ -1,3 +1,4 @@
+#include "network/HttpClient.h"
 #include "json/writer.h"
 #include "json/stringbuffer.h"
 
@@ -15,11 +16,22 @@ USING_NS_CC;
 #define PLAYBOOK_API_PORT 8080
 #endif // PLAYBOOK_API_PORT
 
+#ifndef PLAYBOOK_SECTION_API_HOST
+#define PLAYBOOK_SECTION_API_HOST localhost
+#endif //PLAYBOOK_SECTION_API_HOST
+
+#ifndef PLAYBOOK_SECTION_API_PORT
+#define PLAYBOOK_SECTION_API_PORT 9002
+#endif // PLAYBOOK_SECTION_API_PORT
+
 #define STR_VALUE(arg) #arg
 #define STR_VALUE_VAR(arg) STR_VALUE(arg)
 #define PLAYBOOK_WEBSOCKET_URL "ws://" \
     STR_VALUE_VAR(PLAYBOOK_API_HOST) \
     ":" STR_VALUE_VAR(PLAYBOOK_API_PORT)
+#define PLAYBOOK_SECTION_API_URL "http://" \
+    STR_VALUE_VAR(PLAYBOOK_SECTION_API_HOST) \
+    ":" STR_VALUE_VAR(PLAYBOOK_SECTION_API_PORT)
 
 Scene* Prediction::createScene()
 {
@@ -600,6 +612,55 @@ void Prediction::handleClearPredictions(const rapidjson::Value::ConstMemberItera
     this->_state = SceneState::INITIAL;
 }
 
+void Prediction::reportScore(int score) {
+    using namespace rapidjson;
+    auto playerID = JniHelper::callStaticStringMethod("edu/cmu/etc/fanfare/playbook/Cocos2dxBridge", "getPlayerID");
+
+    Document document;
+    document.SetObject();
+    Document::AllocatorType& allocator = document.GetAllocator();
+
+    // Serialize the score report.
+    document.AddMember(
+        rapidjson::Value("cat", allocator).Move(),
+        rapidjson::Value("predict", allocator).Move(),
+        allocator
+    );
+
+    document.AddMember(
+        rapidjson::Value("predictScore", allocator).Move(),
+        rapidjson::Value(score).Move(),
+        allocator
+    );
+
+    document.AddMember(
+        rapidjson::Value("id", allocator).Move(),
+        rapidjson::Value(playerID.c_str(), allocator).Move(),
+        allocator
+    );
+
+    // Create the JSON.
+    StringBuffer buffer;
+    Writer<StringBuffer> writer(buffer);
+    document.Accept(writer);
+
+    // Send the JSON to the server.
+    CCLOG("Sending score to: %s", PLAYBOOK_SECTION_API_URL "/updateScore");
+    network::HttpRequest* request = new network::HttpRequest();
+    request->setUrl(PLAYBOOK_SECTION_API_URL "/updateScore");
+    request->setRequestType(network::HttpRequest::Type::POST);
+    request->setRequestData(buffer.GetString(), buffer.GetSize());
+    request->setHeaders({ "Content-Type: application/json" });
+    request->setResponseCallback([](network::HttpClient*, network::HttpResponse* response) {
+        if (response != nullptr) {
+            // Dump the data
+            CCLOG("Response: %s", response->getResponseDataString());
+        }
+    });
+    network::HttpClient::getInstance()->send(request);
+    request->release();
+}
+
 void Prediction::update(float delta) {
     switch (this->_state) {
         case SceneState::INITIAL:
@@ -782,6 +843,7 @@ void Prediction::processPredictionEvent(PlaybookEvent::EventType event) {
         ss << "Prediction correct: " << PlaybookEvent::eventToString(event) << std::endl;
         ss << "Your score is: " << this->_score << std::endl;
         this->createNotificationOverlay(ss.str());
+        this->reportScore(score);
     } else {
         CCLOG("Prediction not found: %s", PlaybookEvent::eventToString(event).c_str());
     }

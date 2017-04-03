@@ -9,6 +9,8 @@ public class Cocos2dxBridge {
     private static final String TAG = "Cocos2dxBridge";
     private static boolean mDidFinishLaunching = false;
     private static List<Cocos2dxFragment> mRegisteredFragments = new ArrayList<>();
+    private static String mPlayerName;
+    private static String mPlayerID;
 
     public static native void loadScene(String sceneName);
     public static native int getSection();
@@ -42,4 +44,12 @@ public class Cocos2dxBridge {
     public static boolean didFinishLaunching() {
         return Cocos2dxBridge.mDidFinishLaunching;
     }
+
+    /**
+     * For LoginActivity to set the player name and ID.
+     */
+    public static void setPlayerName(String name) { mPlayerName = name; }
+    public static String getPlayerName() { return mPlayerName; }
+    public static void setPlayerID(String id) { mPlayerID = id; }
+    public static String getPlayerID() { return mPlayerID; }
 }

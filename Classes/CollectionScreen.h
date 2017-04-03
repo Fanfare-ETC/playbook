@@ -22,6 +22,8 @@ public:
     virtual bool init();
     virtual void update(float delta);
 
+    void onEnter();
+    void onExit();
     void onResume();
     void onPause();
 
@@ -29,17 +31,22 @@ public:
     CREATE_FUNC(CollectionScreen);
 
 private:
-    static const int NUM_SLOTS;
-
     struct Card {
         PlaybookEvent::Team team;
         PlaybookEvent::EventType event;
         cocos2d::Sprite* sprite;
+
+        bool operator==(const Card& card) const {
+            return this->sprite == card.sprite;
+        }
+
+        bool operator!=(const Card& card) const {
+            return !this->operator==(card);
+        }
     };
 
     struct CardSlot {
         Card card;
-        std::vector<Card> cardSet;
         bool present;
     };
 
@@ -47,8 +54,8 @@ private:
         IDENTICAL_CARDS_3,
         IDENTICAL_CARDS_4,
         IDENTICAL_CARDS_5,
-        UNIQUE_OUT_CARDS_3,
-        UNIQUE_OUT_CARDS_4,
+        //UNIQUE_OUT_CARDS_3,
+        //UNIQUE_OUT_CARDS_4,
         WALK_OR_HIT_3,
         OUT_3,
         BASES_3,
@@ -57,8 +64,20 @@ private:
         SAME_COLOR_3,
         SAME_COLOR_4,
         SAME_COLOR_5,
-        BASE_STEAL_RBI
+        BASE_STEAL_RBI,
+        UNKNOWN
     };
+
+    struct GoalTypeHash {
+        template <typename T>
+        std::size_t operator()(T t) const {
+            return static_cast<std::size_t>(t);
+        }
+    };
+
+    static const int NUM_SLOTS;
+    static const std::unordered_map<GoalType, std::string, GoalTypeHash> GOAL_TYPE_FILE_MAP;
+    static const std::unordered_map<GoalType, int, GoalTypeHash> GOAL_TYPE_SCORE_MAP;
 
     cocos2d::Node* _visibleNode;
     PredictionWebSocket* _websocket;
@@ -68,6 +87,26 @@ private:
     std::queue<PlaybookEvent::EventType> _incomingCardQueue;
     std::vector<CardSlot> _cardSlots;
     bool _isCardActive;
+    bool _isCardDragged;
+    Card _draggedCard;
+    bool _draggedCardDropping;
+    cocos2d::Vec2 _draggedCardOrigPosition;
+
+    cocos2d::Sprite* _giveToSection;
+    float _giveToSectionOrigScale;
+    bool _giveToSectionHovered;
+    cocos2d::EventListener* _giveToSectionListener;
+
+    cocos2d::Sprite* _dragToScore;
+    float _dragToScoreOrigScale;
+    bool _dragToScoreHovered;
+    cocos2d::EventListener* _dragToScoreListener;
+
+    cocos2d::Sprite* _goalSprite;
+    GoalType _activeGoal;
+    std::vector<Card> _cardsMatchingGoal;
+
+    cocos2d::Label* _scoreLabel;
 
     Card _activeCard;
     float _activeCardOrigScale;
@@ -75,15 +114,23 @@ private:
     float _activeCardOrigRotation;
     cocos2d::EventListener* _activeEventListener;
 
+    void initEventsGiveToSection();
+    void initEventsDragToScore();
+
     void connectToServer();
     void disconnectFromServer();
     void handleServerMessage(const std::string& event,
                              const rapidjson::Value::ConstMemberIterator& data, bool hasData);
     void handlePlaysCreated(const rapidjson::Value::ConstMemberIterator& data, bool hasData);
+    void reportScore(int score);
 
     void receiveCard(PlaybookEvent::EventType event);
+    Card createCard(PlaybookEvent::EventType event);
     void startDraggingActiveCard(cocos2d::Touch* touch);
     void stopDraggingActiveCard(cocos2d::Touch* touch);
+    void discardCard(const Card& card);
+    void scoreCardSet(GoalType goal, const std::vector<Card>& cardSet);
+    void displayScore(int score);
 
     float getCardScaleInSlot(cocos2d::Node* card);
     cocos2d::Vec2 getCardPositionForSlot(cocos2d::Node* cardNode, int slot);
@@ -92,7 +139,14 @@ private:
     int getNearestAvailableCardSlot(cocos2d::Node *card, const cocos2d::Vec2 &position);
     void assignActiveCardToSlot(int slot);
 
-    bool cardSetMeetsGoal(std::vector<Card> cardSet, GoalType goal);
+    void createGoal();
+    void checkIfGoalMet();
+    bool cardSetMeetsGoal(const std::vector<Card>& cardSet, GoalType goal, std::vector<Card>& outSet);
+
+    void restoreState();
+    void saveState();
+    std::string serialize();
+    void unserialize(const std::string& data);
 };
 
 #endif //PLAYBOOK_COLLECTION_SCREEN_H

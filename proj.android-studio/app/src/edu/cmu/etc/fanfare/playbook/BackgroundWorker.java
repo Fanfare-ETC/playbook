@@ -40,7 +40,7 @@ import java.nio.charset.StandardCharsets;
  */
 
 public class  BackgroundWorker extends AsyncTask<String,Void,String> {
-
+    private static final String TAG = BackgroundWorker.class.getSimpleName();
     private int param;
     //public LeaderboardActivity activity;
     private final String urlStringSection = "http://" +
@@ -68,7 +68,7 @@ public class  BackgroundWorker extends AsyncTask<String,Void,String> {
                 httpURLConnection.setDoOutput(true);
                 httpURLConnection.setDoInput(true);
                 httpURLConnection.setRequestProperty("Accept", "application/json");
-                httpURLConnection.setRequestProperty("C]ontent-type", "application/json");
+                httpURLConnection.setRequestProperty("Content-Type", "application/json");
                 OutputStream outputStream = httpURLConnection.getOutputStream();
                 BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(outputStream, "UTF-8"));
                 JSONObject object = new JSONObject();
@@ -82,25 +82,37 @@ public class  BackgroundWorker extends AsyncTask<String,Void,String> {
                 bufferedWriter.flush();
                 bufferedWriter.close();
                 outputStream.close();
-                Log.d("HTTP", "Response code: " + httpURLConnection.getResponseCode());
-                InputStream inputStream = httpURLConnection.getInputStream();
-                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream,"iso-8859-1"));
-               // String result="";
-                String line="";
-                while((line = bufferedReader.readLine())!= null) {
-                    result += line;
+                Log.d(TAG, "Response code: " + httpURLConnection.getResponseCode());
+
+                try {
+                    InputStream inputStream = httpURLConnection.getInputStream();
+                    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream,"utf-8"));
+                    // String result="";
+                    String line="";
+                    while((line = bufferedReader.readLine())!= null) {
+                        result += line;
+                    }
+                    Log.d(TAG, "Result: " + result);
+                    bufferedReader.close();
+                    inputStream.close();
+                } catch (IOException e) {
+                    InputStream errorStream = httpURLConnection.getErrorStream();
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(errorStream));
+                    String errorResult = "";
+                    String line = "";
+                    while ((line = reader.readLine()) != null) {
+                        errorResult += line;
+                    }
+                    Log.d(TAG, "Server returned error: " + errorResult);
+                    reader.close();
+                    errorStream.close();
                 }
-                bufferedReader.close();
-                inputStream.close();
+
                 httpURLConnection.disconnect();
-            } catch (MalformedURLException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (JSONException e) {
+            } catch (IOException | JSONException e) {
                 e.printStackTrace();
             }
-        }
+       }
 
 
         return result;

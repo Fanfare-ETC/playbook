@@ -69,6 +69,7 @@ private:
                              const rapidjson::Value::ConstMemberIterator& data, bool hasData);
     void handlePlaysCreated(const rapidjson::Value::ConstMemberIterator& data, bool hasData);
     void handleClearPredictions(const rapidjson::Value::ConstMemberIterator& data, bool hasData);
+    void reportScore(int score);
 
     void createNotificationOverlay(const std::string&);
     int getScoreForEvent(PlaybookEvent::EventType event);

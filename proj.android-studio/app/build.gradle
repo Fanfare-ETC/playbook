@@ -8,8 +8,8 @@ android {
         applicationId 'edu.cmu.etc.fanfare.playbook'
         minSdkVersion 19
         targetSdkVersion 25
-        versionCode 9
-        versionName '1.1.2'
+        versionCode 15
+        versionName '1.1.8'
 
         buildConfigField 'String', 'PLAYBOOK_TREASUREHUNT_API_HOST', '"10.0.2.2"'
         buildConfigField 'Integer', 'PLAYBOOK_TREASUREHUNT_API_PORT', '9000'
@@ -70,7 +70,9 @@ android {
                 ndkBuild {
                     cppFlags '-DCOCOS2D_DEBUG=1',
                             '-DPLAYBOOK_API_HOST=10.0.2.2',
-                            '-DPLAYBOOK_API_PORT=9001'
+                            '-DPLAYBOOK_API_PORT=9001',
+                            '-DPLAYBOOK_SECTION_API_HOST=10.0.2.2',
+                            '-DPLAYBOOK_SECTION_API_PORT=9002'
                 }
             }
         }
@@ -91,8 +93,14 @@ android {
                 ndkBuild {
                     cppFlags '-DNDEBUG',
                             '-DPLAYBOOK_API_HOST=staging.fanfare.wong.place',
-                            '-DPLAYBOOK_API_PORT=9001'
+                            '-DPLAYBOOK_API_PORT=9001',
+                            '-DPLAYBOOK_SECTION_API_HOST=staging.fanfare.wong.place',
+                            '-DPLAYBOOK_SECTION_API_PORT=9002'
                 }
+            }
+
+            ndk {
+                abiFilters 'x86', 'armeabi'
             }
         }
 
@@ -112,7 +120,9 @@ android {
                 ndkBuild {
                     cppFlags '-DNDEBUG',
                             '-DPLAYBOOK_API_HOST=fanfare.wong.place',
-                            '-DPLAYBOOK_API_PORT=9001'
+                            '-DPLAYBOOK_API_PORT=9001',
+                            '-DPLAYBOOK_SECTION_API_HOST=fanfare.wong.place',
+                            '-DPLAYBOOK_SECTION_API_PORT=9002'
                 }
             }
 

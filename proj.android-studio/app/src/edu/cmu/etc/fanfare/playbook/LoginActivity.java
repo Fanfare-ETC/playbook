@@ -4,8 +4,10 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.app.NotificationCompat;
 import android.util.Log;
 import android.view.View;
+import android.widget.Toast;
 
 import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
@@ -78,9 +80,16 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
         if (result.isSuccess()) {
             // Signed in successfully, show authenticated UI.
             acct = result.getSignInAccount();
-            startActivity(new Intent(this, AppActivity.class));// Need to be changed to prediction
-            finish();
+            if (acct != null) {
+                Cocos2dxBridge.setPlayerName(acct.getDisplayName());
+                Cocos2dxBridge.setPlayerID(acct.getId());
+                startActivity(new Intent(this, AppActivity.class));
+                finish();
+            } else {
+                Toast.makeText(this, "Failed to sign in using Google.", Toast.LENGTH_SHORT).show();
+            }
         } else {
+            Toast.makeText(this, "Failed to sign in using Google.", Toast.LENGTH_SHORT).show();
             // Signed out, show unauthenticated UI.
             //updateUI(false);
         }
