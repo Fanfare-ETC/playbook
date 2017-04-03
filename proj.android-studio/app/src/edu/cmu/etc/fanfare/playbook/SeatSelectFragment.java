@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -62,28 +63,34 @@ public class SeatSelectFragment extends Fragment implements AdapterView.OnItemSe
                 BackgroundWorker backgroundWorker = new BackgroundWorker(section);
                 backgroundWorker.execute("section");
 
-                /*
-                Fragment predictionFragment = new PredictionFragment();
-
-                FragmentTransaction ft = getFragmentManager().beginTransaction();
-                ft.replace(R.id.fragment_container, predictionFragment);
-                ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
-                ft.addToBackStack(null);
-                ft.commit();
-                */
-                Intent intent = new Intent(v.getContext(), AppActivity.class);
-                Bundle extras = new Bundle();
-//save the section selected to shared preference
                 SharedPreferences.Editor editor = v.getContext().getSharedPreferences("FANFARE_SHARED", MODE_PRIVATE).edit();
                 editor.putInt("section", section);
                 editor.apply();
 
-                extras.putString("EXTRA_MESSAGE", Integer.toString(section));
-                intent.putExtras(extras);
+                Fragment treasureHuntFragment = new TreasureHuntFragment();
+
+                FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
+                fragmentManager.beginTransaction()
+                        .replace(R.id.content_frame, treasureHuntFragment)
+                        .commit();
+/*
+                FragmentTransaction ft = getFragmentManager().beginTransaction();
+                ft.replace(R.id.content_frame, treasureHuntFragment);
+                ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
+                ft.addToBackStack(null);
+                ft.commit();
+*/
+                //Intent intent = new Intent(v.getContext(), TreasureHuntFragment.class); //change to treasure hunt scene
+               Bundle extras = new Bundle();
+//save the section selected to shared preference
+
+
+               // extras.putString("EXTRA_MESSAGE", Integer.toString(section));
+                //intent.putExtras(extras);
                 //intent.putExtra(EXTRA_MESSAGE, seatNo);
                 //intent.putExtra(EXTRA_COLOR, colorController);
-                startActivity(intent);
-                getActivity().finish();
+                //startActivity(intent);
+                //getActivity().finish();
             }
         });
 

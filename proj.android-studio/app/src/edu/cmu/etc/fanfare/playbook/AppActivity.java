@@ -74,6 +74,7 @@ public class AppActivity extends AppCompatActivity {
     private int mLastSelectedItem = DEFAULT_ITEM;
 
     private int mSection = -1;
+    private boolean sectionFlag = false;
 
     private class DrawerItemClickListener implements ListView.OnItemClickListener {
         @Override
@@ -142,24 +143,26 @@ public class AppActivity extends AppCompatActivity {
         // Create a new fragment based on selected position
         Fragment fragment;
         switch (position) {
-            case 1:
+            case 0:
                 fragment = new PredictionFragment();
                 break;
-            case 2:
+            case 1:
                 //fragment = new SectionScoreFragment();
                 fragment = new LeaderboardFragment();
                 break;
-            case 3:
+            case 2:
                 fragment = new CollectionFragment();
                 break;
-            case 4:
-                fragment = new TreasureHuntFragment();
-                break;
-            case 5:
-                fragment = new SeatSelectFragment();
+            case 3:
+                if(sectionFlag == false){
+                    fragment = new SeatSelectFragment();
+                    sectionFlag = true;
+                }
+                else
+                    fragment = new TreasureHuntFragment();
                 break;
             default:
-                fragment = new CollectionFragment();
+                fragment = new PredictionFragment();
         };
 
         // Insert the fragment by replacing any existing fragment

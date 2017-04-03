@@ -1,21 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string-array name="menu_items">
-        <item>Collect Sets</item>
-        <item>Catch the Play</item>
-        <item>Section Score</item>
-        <item>Collect Play</item>
+        <item>Prediction</item>
+        <item>Leaderboard</item>
+        <item>Collection</item>
         <item>Guide Your Runner</item>
     </string-array>
     <array name="menu_item_icons">
-        <item>@drawable/ic_home_black_60dp</item>
         <item>@drawable/ic_betting_board</item>
         <item>@drawable/ic_section_score</item>
         <item>@drawable/ic_catch_the_play_game</item>
         <item>@drawable/ic_golf_course_black_60dp</item>
     </array>
     <array name="menu_item_fragment_title">
-        <item>Collect Sets</item>
         <item>Place Your Bets</item>
         <item>Section Score</item>
         <item>Collect Sets</item>
@@ -24,19 +21,16 @@
     <array name="menu_item_fragment_color">
         <item>@color/tertiary</item>
         <item>@color/tertiary</item>
-        <item>@color/tertiary</item>
         <item>@color/primary</item>
         <item>@color/tertiary</item>
     </array>
     <array name="menu_item_fragment_color_dark">
         <item>@color/tertiary_dark</item>
         <item>@color/tertiary_dark</item>
-        <item>@color/tertiary_dark</item>
         <item>@color/primary_dark</item>
         <item>@color/tertiary_dark</item>
     </array>
     <array name="menu_item_title_text_color">
-        <item>?android:attr/textColorPrimaryInverse</item>
         <item>?android:attr/textColorPrimaryInverse</item>
         <item>?android:attr/textColorPrimaryInverse</item>
         <item>?android:attr/textColorPrimary</item>
