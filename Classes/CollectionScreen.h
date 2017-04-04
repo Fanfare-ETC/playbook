@@ -32,21 +32,14 @@ public:
 
 private:
     struct Card {
+        Card(PlaybookEvent::Team team, PlaybookEvent::EventType event, cocos2d::Sprite* sprite);
         PlaybookEvent::Team team;
         PlaybookEvent::EventType event;
         cocos2d::Sprite* sprite;
-
-        bool operator==(const Card& card) const {
-            return this->sprite == card.sprite;
-        }
-
-        bool operator!=(const Card& card) const {
-            return !this->operator==(card);
-        }
     };
 
     struct CardSlot {
-        Card card;
+        std::shared_ptr<Card> card;
         bool present;
     };
 
@@ -88,7 +81,7 @@ private:
     std::vector<CardSlot> _cardSlots;
     bool _isCardActive;
     bool _isCardDragged;
-    Card _draggedCard;
+    std::weak_ptr<Card> _draggedCard;
     bool _draggedCardDropping;
     cocos2d::Vec2 _draggedCardOrigPosition;
 
@@ -104,11 +97,11 @@ private:
 
     cocos2d::Sprite* _goalSprite;
     GoalType _activeGoal;
-    std::vector<Card> _cardsMatchingGoal;
+    std::vector<std::weak_ptr<Card>> _cardsMatchingGoal;
 
     cocos2d::Label* _scoreLabel;
 
-    Card _activeCard;
+    std::shared_ptr<Card> _activeCard;
     float _activeCardOrigScale;
     cocos2d::Vec2 _activeCardOrigPosition;
     float _activeCardOrigRotation;
@@ -125,11 +118,11 @@ private:
     void reportScore(int score);
 
     void receiveCard(PlaybookEvent::EventType event);
-    Card createCard(PlaybookEvent::EventType event);
+    std::shared_ptr<Card> createCard(PlaybookEvent::EventType event);
     void startDraggingActiveCard(cocos2d::Touch* touch);
     void stopDraggingActiveCard(cocos2d::Touch* touch);
-    void discardCard(const Card& card);
-    void scoreCardSet(GoalType goal, const std::vector<Card>& cardSet);
+    void discardCard(std::weak_ptr<Card> card);
+    void scoreCardSet(GoalType goal, const std::vector<std::weak_ptr<Card>>& cardSet);
     void displayScore(int score);
 
     float getCardScaleInSlot(cocos2d::Node* card);
@@ -141,7 +134,9 @@ private:
 
     void createGoal();
     void checkIfGoalMet();
-    bool cardSetMeetsGoal(const std::vector<Card>& cardSet, GoalType goal, std::vector<Card>& outSet);
+    bool cardSetMeetsGoal(const std::vector<std::weak_ptr<Card>>& cardSet,
+                          GoalType goal,
+                          std::vector<std::weak_ptr<Card>>& outSet);
 
     void restoreState();
     void saveState();

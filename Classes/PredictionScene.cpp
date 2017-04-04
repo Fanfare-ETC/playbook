@@ -614,7 +614,11 @@ void Prediction::handleClearPredictions(const rapidjson::Value::ConstMemberItera
 
 void Prediction::reportScore(int score) {
     using namespace rapidjson;
+#if CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID
     auto playerID = JniHelper::callStaticStringMethod("edu/cmu/etc/fanfare/playbook/Cocos2dxBridge", "getPlayerID");
+#else
+    std::string playerID ("Player");
+#endif
 
     Document document;
     document.SetObject();
