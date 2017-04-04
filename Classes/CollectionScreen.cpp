@@ -318,9 +318,21 @@ void CollectionScreen::initEventsDragToScore() {
         if (box.containsPoint(position)) {
             if (!this->_dragToScoreHovered) {
                 this->_dragToScoreHovered = true;
-                if (this->_cardsMatchingGoal.size() > 0) {
-                    auto tintTo = TintTo::create(0.25f, Color3B::GREEN);
-                    this->_dragToScore->runAction(tintTo);
+
+                // Check if dragged card is in matching goal set.
+                if (this->_isCardDragged) {
+                    auto iterator = std::find_if(
+                        this->_cardsMatchingGoal.begin(),
+                        this->_cardsMatchingGoal.end(),
+                        [this](std::weak_ptr<Card> card) {
+                            return card.lock() == this->_draggedCard.lock();
+                        }
+                    );
+
+                    if (this->_cardsMatchingGoal.size() > 0 && iterator != this->_cardsMatchingGoal.end()) {
+                        auto tintTo = TintTo::create(0.25f, Color3B::GREEN);
+                        this->_dragToScore->runAction(tintTo);
+                    }
                 }
             }
         } else {
@@ -340,9 +352,22 @@ void CollectionScreen::initEventsDragToScore() {
         // If we were dragging a card, obtain its set and score.
         auto position = this->_dragToScore->getParent()->convertTouchToNodeSpace(touch);
         auto box = this->_dragToScore->getBoundingBox();
-        if (box.containsPoint(position) && this->_isCardDragged && this->_cardsMatchingGoal.size() > 0) {
-            this->_draggedCardDropping = true;
-            this->scoreCardSet(this->_activeGoal, this->_cardsMatchingGoal);
+
+        // Check if dragged card is in matching goal set.
+        if (this->_isCardDragged) {
+            auto iterator = std::find_if(
+                this->_cardsMatchingGoal.begin(),
+                this->_cardsMatchingGoal.end(),
+                [this](std::weak_ptr<Card> card) {
+                    return card.lock() == this->_draggedCard.lock();
+                }
+            );
+
+            if (box.containsPoint(position) && this->_cardsMatchingGoal.size() > 0 &&
+                iterator != this->_cardsMatchingGoal.end()) {
+                this->_draggedCardDropping = true;
+                this->scoreCardSet(this->_activeGoal, this->_cardsMatchingGoal);
+            }
         }
     };
 
@@ -859,6 +884,11 @@ void CollectionScreen::checkIfGoalMet() {
 
     std::vector<std::weak_ptr<Card>> outSet;
     if (this->cardSetMeetsGoal(cardSet, this->_activeGoal, outSet)) {
+        std::for_each(cardSet.begin(), cardSet.end(), [](std::weak_ptr<Card> card) {
+           auto tintTo = TintTo::create(0.0f, Color3B::WHITE);
+            card.lock()->sprite->runAction(tintTo);
+        });
+
         std::for_each(outSet.begin(), outSet.end(), [](std::weak_ptr<Card> card) {
             auto tintTo = TintTo::create(0.25f, Color3B::GREEN);
             card.lock()->sprite->runAction(tintTo);
