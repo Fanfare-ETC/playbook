@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -68,6 +69,10 @@ public class SeatSelectFragment extends Fragment implements AdapterView.OnItemSe
                 SharedPreferences.Editor editor = v.getContext().getSharedPreferences("FANFARE_SHARED", MODE_PRIVATE).edit();
                 editor.putInt("section", section);
                 editor.apply();
+
+                Toolbar mToolbar = (Toolbar) getActivity().findViewById(R.id.my_toolbar);
+               // setSupportActionBar(mToolbar);
+                mToolbar.setTitle("Guide Your Runner");
 
                 Fragment treasureHuntFragment = new TreasureHuntFragment();
 

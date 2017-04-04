@@ -205,7 +205,7 @@ public class AppActivity extends AppCompatActivity {
         }
     }
 
-    private DrawerItem[] getDrawerItems() {
+    public DrawerItem[] getDrawerItems() {
         String[] menuItems = getResources().getStringArray(R.array.menu_items);
         TypedArray menuItemIcons = getResources().obtainTypedArray(R.array.menu_item_icons);
         String[] menuItemFragmentTitle = getResources().getStringArray(R.array.menu_item_fragment_title);
