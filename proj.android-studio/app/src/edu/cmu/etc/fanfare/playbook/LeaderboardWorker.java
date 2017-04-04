@@ -348,13 +348,14 @@ public class LeaderboardWorker extends AsyncTask<String,Void,String> {
         }
         else{
 
-            Typeface externalFont = Typeface.createFromAsset(activity.getContext().getAssets(), "fonts/nova2.ttf");
+            /*Typeface externalFont = Typeface.createFromAsset(activity.getContext().getAssets(), "fonts/nova2.ttf");
 
             TextView b0 = new TextView(activity.getContext());
             b0.setTypeface(externalFont);
             b0.setText("Server error. Please inform Project Fanfare for tech support");
             b0.setPadding(20, 50, 12, 0);
-            b0.setTextSize(24);
+            b0.setTextSize(24);*/
+            Log.i("Leaderboard", "Server error. Object is null");
         }
     }
 

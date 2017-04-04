@@ -30,6 +30,8 @@ public class SeatSelectFragment extends Fragment implements AdapterView.OnItemSe
         super.onCreateView(inflater, container, savedInstanceState);
         final View view=inflater.inflate(R.layout.stadium_select_fragment, container, false);
 
+        AppActivity.sectionFlag = true;
+
         mStadiumMap = (ImageView) view.findViewById(R.id.stadium_map);
 
         final Spinner spinner = (Spinner)view.findViewById(R.id.sections_spinner);

@@ -17,23 +17,24 @@
         <item>Section Score</item>
         <item>Collect Sets</item>
         <item>Guide Your Runner</item>
+        <item>Select Section</item>
     </array>
     <array name="menu_item_fragment_color">
         <item>@color/tertiary</item>
         <item>@color/tertiary</item>
-        <item>@color/primary</item>
+        <item>@color/tertiary</item>
         <item>@color/tertiary</item>
     </array>
     <array name="menu_item_fragment_color_dark">
         <item>@color/tertiary_dark</item>
         <item>@color/tertiary_dark</item>
-        <item>@color/primary_dark</item>
+        <item>@color/tertiary_dark</item>
         <item>@color/tertiary_dark</item>
     </array>
     <array name="menu_item_title_text_color">
         <item>?android:attr/textColorPrimaryInverse</item>
         <item>?android:attr/textColorPrimaryInverse</item>
-        <item>?android:attr/textColorPrimary</item>
+        <item>?android:attr/textColorPrimaryInverse</item>
         <item>?android:attr/textColorPrimaryInverse</item>
     </array>
 </resources>

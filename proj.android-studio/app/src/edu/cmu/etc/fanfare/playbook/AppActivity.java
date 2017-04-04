@@ -74,7 +74,7 @@ public class AppActivity extends AppCompatActivity {
     private int mLastSelectedItem = DEFAULT_ITEM;
 
     private int mSection = -1;
-    private boolean sectionFlag = false;
+    public static boolean sectionFlag = false;
 
     private class DrawerItemClickListener implements ListView.OnItemClickListener {
         @Override
@@ -156,10 +156,12 @@ public class AppActivity extends AppCompatActivity {
             case 3:
                 if(sectionFlag == false){
                     fragment = new SeatSelectFragment();
-                    sectionFlag = true;
+                    //sectionFlag = true;
                 }
-                else
+                else {
                     fragment = new TreasureHuntFragment();
+                }
+                Log.i("sectionFlag", Boolean.toString(sectionFlag));
                 break;
             default:
                 fragment = new PredictionFragment();
@@ -216,7 +218,17 @@ public class AppActivity extends AppCompatActivity {
             DrawerItem drawerItem = new DrawerItem();
             drawerItem.text = menuItems[i];
             drawerItem.icon = menuItemIcons.getDrawable(i);
-            drawerItem.fragmentTitle = menuItemFragmentTitle[i];
+
+            if((sectionFlag == false) && (i == menuItems.length - 1)){
+                Log.i("section", "Section selection fragment");
+                drawerItem.fragmentTitle = menuItemFragmentTitle[i+1];
+                //sectionFlag = true;
+            }
+            else{
+                Log.i("section", "treasure hunt fragment");
+                drawerItem.fragmentTitle = menuItemFragmentTitle[i];
+            }
+
             drawerItem.fragmentColor = menuItemFragmentColor.getColor(i, ContextCompat.getColor(this, R.color.primary));
             drawerItem.fragmentColorDark = menuItemFragmentColorDark.getColor(i, ContextCompat.getColor(this, R.color.primary_dark));
 
