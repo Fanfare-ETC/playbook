@@ -268,6 +268,12 @@ void CollectionScreen::initEventsGiveToSection() {
     };
 
     listener->onTouchMoved = [this](Touch* touch, Event*) {
+        // Look for the card that's dragged.
+        auto card = this->getDraggedCard(touch);
+        if (card.expired()) {
+            return;
+        }
+
         // Enlarge "Give to Section" if we're hovering over it.
         auto position = this->_giveToSection->getParent()->convertTouchToNodeSpace(touch);
         auto box = this->_giveToSection->getBoundingBox();
@@ -287,15 +293,18 @@ void CollectionScreen::initEventsGiveToSection() {
     };
 
     listener->onTouchEnded = [this](Touch* touch, Event*) {
-        this->_giveToSectionHovered = false;
-        auto tintTo = TintTo::create(0.25f, Color3B::WHITE);
-        this->_giveToSection->runAction(tintTo);
+        auto card = this->getDraggedCard(touch);
+        if (!card.expired()) {
+            this->_giveToSectionHovered = false;
+            auto tintTo = TintTo::create(0.25f, Color3B::WHITE);
+            this->_giveToSection->runAction(tintTo);
 
-        // If we were dragging a card, discard it.
-        auto position = this->_giveToSection->getParent()->convertTouchToNodeSpace(touch);
-        auto box = this->_giveToSection->getBoundingBox();
-        if (box.containsPoint(position) && this->_isCardDragged) {
-            this->discardCard(this->_draggedCard);
+            // If we were dragging a card, discard it.
+            auto position = this->_giveToSection->getParent()->convertTouchToNodeSpace(touch);
+            auto box = this->_giveToSection->getBoundingBox();
+            if (box.containsPoint(position)) {
+                this->discardCard(card);
+            }
         }
     };
 
@@ -312,6 +321,12 @@ void CollectionScreen::initEventsDragToScore() {
     };
 
     listener->onTouchMoved = [this](Touch* touch, Event*) {
+        // Look for the card that's dragged.
+        auto card = this->getDraggedCard(touch);
+        if (card.expired()) {
+            return;
+        }
+
         // Enlarge "Drag Set to Score" if we're hovering over it.
         auto position = this->_dragToScore->getParent()->convertTouchToNodeSpace(touch);
         auto box = this->_dragToScore->getBoundingBox();
@@ -320,19 +335,17 @@ void CollectionScreen::initEventsDragToScore() {
                 this->_dragToScoreHovered = true;
 
                 // Check if dragged card is in matching goal set.
-                if (this->_isCardDragged) {
-                    auto iterator = std::find_if(
-                        this->_cardsMatchingGoal.begin(),
-                        this->_cardsMatchingGoal.end(),
-                        [this](std::weak_ptr<Card> card) {
-                            return card.lock() == this->_draggedCard.lock();
-                        }
-                    );
-
-                    if (this->_cardsMatchingGoal.size() > 0 && iterator != this->_cardsMatchingGoal.end()) {
-                        auto tintTo = TintTo::create(0.25f, Color3B::GREEN);
-                        this->_dragToScore->runAction(tintTo);
+                auto iterator = std::find_if(
+                    this->_cardsMatchingGoal.begin(),
+                    this->_cardsMatchingGoal.end(),
+                    [this, card](std::weak_ptr<Card> cardInGoal) {
+                        return cardInGoal.lock() == card.lock();
                     }
+                );
+
+                if (this->_cardsMatchingGoal.size() > 0 && iterator != this->_cardsMatchingGoal.end()) {
+                    auto tintTo = TintTo::create(0.25f, Color3B::GREEN);
+                    this->_dragToScore->runAction(tintTo);
                 }
             }
         } else {
@@ -354,18 +367,19 @@ void CollectionScreen::initEventsDragToScore() {
         auto box = this->_dragToScore->getBoundingBox();
 
         // Check if dragged card is in matching goal set.
-        if (this->_isCardDragged) {
+        auto card = this->getDraggedCard(touch);
+        if (!card.expired()) {
             auto iterator = std::find_if(
                 this->_cardsMatchingGoal.begin(),
                 this->_cardsMatchingGoal.end(),
-                [this](std::weak_ptr<Card> card) {
-                    return card.lock() == this->_draggedCard.lock();
+                [this, card](std::weak_ptr<Card> cardInGoal) {
+                    return cardInGoal.lock() == card.lock();
                 }
             );
 
             if (box.containsPoint(position) && this->_cardsMatchingGoal.size() > 0 &&
                 iterator != this->_cardsMatchingGoal.end()) {
-                this->_draggedCardDropping = true;
+                card.lock()->draggedDropping = true;
                 this->scoreCardSet(this->_activeGoal, this->_cardsMatchingGoal);
             }
         }
@@ -448,7 +462,8 @@ void CollectionScreen::handlePlaysCreated(const rapidjson::Value::ConstMemberIte
     auto plays = dataIterator->value.GetArray();
     for (auto it = plays.Begin(); it != plays.End(); ++it) {
         PlaybookEvent::EventType event = PlaybookEvent::intToEvent(it->GetInt());
-        CCLOG("Events: %s", PlaybookEvent::eventToString(event).c_str());
+        CCLOG("CollectionScreen->handlePlaysCreated: %s",
+              PlaybookEvent::eventToString(event).c_str());
         if (PlaybookEvent::getTeam(event) != PlaybookEvent::Team::NONE) {
             this->_incomingCardQueue.push(event);
         }
@@ -494,7 +509,8 @@ void CollectionScreen::reportScore(int score) {
     document.Accept(writer);
 
     // Send the JSON to the server.
-    CCLOG("Sending score to: %s", PLAYBOOK_SECTION_API_URL "/updateScore");
+    CCLOG("CollectionScreen->reportScore: Sending score to: %s",
+          PLAYBOOK_SECTION_API_URL "/updateScore");
     network::HttpRequest* request = new network::HttpRequest();
     request->setUrl(PLAYBOOK_SECTION_API_URL "/updateScore");
     request->setRequestType(network::HttpRequest::Type::POST);
@@ -503,11 +519,35 @@ void CollectionScreen::reportScore(int score) {
     request->setResponseCallback([](network::HttpClient*, network::HttpResponse* response) {
        if (response != nullptr) {
            // Dump the data
-           CCLOG("Response: %s", response->getResponseDataString());
+           CCLOG("CollectionScreen->reportScore: Response: %s", response->getResponseDataString());
        }
     });
     network::HttpClient::getInstance()->send(request);
     request->release();
+}
+
+std::weak_ptr<CollectionScreen::Card> CollectionScreen::getDraggedCard(cocos2d::Touch *touch) {
+    // Look for the card that's dragged.
+    auto slotIterator = std::find_if(
+        this->_cardSlots.begin(), this->_cardSlots.end(),
+        [touch](const CardSlot& slot) {
+            if (slot.present) {
+                return slot.card->isDragged &&
+                    slot.card->draggedTouchID == touch->getID();
+            } else {
+                return false;
+            }
+        }
+    );
+
+    std::weak_ptr<Card> card;
+    if (slotIterator != this->_cardSlots.end()) {
+        card = slotIterator->card;
+    } else if (this->_activeCard && touch->getID() == this->_activeCard->draggedTouchID) {
+        card = this->_activeCard;
+    }
+
+    return card;
 }
 
 void CollectionScreen::receiveCard(PlaybookEvent::EventType event)
@@ -522,10 +562,16 @@ void CollectionScreen::receiveCard(PlaybookEvent::EventType event)
     auto visibleSize = Director::getInstance()->getVisibleSize();
     auto cardScale = visibleSize.width / cardNode->getContentSize().width * 0.8f;
 
+    // Animate the appearance of the card.
     auto fadeIn = FadeIn::create(0.50f);
     auto scaleTo = EaseBackOut::create(ScaleTo::create(0.50f, cardScale));
     auto spawn = Spawn::createWithTwoActions(fadeIn, scaleTo);
     cardNode->runAction(spawn);
+
+    // Save these so that the animations can use them later.
+    this->_activeCardOrigPosition = cardNode->getPosition();
+    this->_activeCardOrigRotation = cardNode->getRotation();
+    this->_activeCardOrigScale = cardScale;
 
     auto listener = EventListenerTouchOneByOne::create();
     listener->onTouchBegan = [this, cardNode](Touch* touch, Event*) {
@@ -600,48 +646,43 @@ std::shared_ptr<CollectionScreen::Card> CollectionScreen::createCard(PlaybookEve
 void CollectionScreen::startDraggingActiveCard(Touch* touch) {
     CCLOG("CollectionScreen->startDraggingActiveCard");
 
-    auto cardNode = this->_activeCard->sprite;
-    if (cardNode->getNumberOfRunningActions() == 0) {
-        this->_activeCardOrigPosition = cardNode->getPosition();
-        this->_activeCardOrigRotation = cardNode->getRotation();
-        this->_activeCardOrigScale = cardNode->getScale();
-    }
+    auto card = this->_activeCard;
+    card->isDragged = true;
+    card->draggedTouchID = touch->getID();
 
+    auto cardNode = this->_activeCard->sprite;
     auto scale = this->getCardScaleInSlot(cardNode);
     auto position = cardNode->getParent()->convertTouchToNodeSpace(touch);
-
     auto scaleTo = EaseBackOut::create(ScaleTo::create(0.50f, scale));
     auto rotateTo = RotateTo::create(0.50f, 0.0f);
     auto moveTo = MoveTo::create(0.50f, position);
-    auto callFunc = CallFunc::create([this]() {
-        this->_isCardDragged = true;
-        this->_draggedCard = this->_activeCard;
-    });
-
     auto spawn = Spawn::create(scaleTo, rotateTo, moveTo, nullptr);
-    auto sequence = Sequence::create(spawn, callFunc, nullptr);
-    cardNode->runAction(sequence);
+    cardNode->runAction(spawn);
+
+    this->_activeCardAction = spawn;
 }
 
 void CollectionScreen::stopDraggingActiveCard(cocos2d::Touch* touch) {
     CCLOG("CollectionScreen->stopDraggingActiveCard");
 
+    this->_activeCard->isDragged = false;
+    auto cardNode = this->_activeCard->sprite;
+    cardNode->stopAction(this->_activeCardAction);
+
     // Check if touch position is within the slot.
     auto touchVisibleSpace = this->_cardsHolder->getParent()->convertTouchToNodeSpace(touch);
     auto cardsHolderBox = this->_cardsHolder->getBoundingBox();
-    int slot = this->getNearestAvailableCardSlot(this->_activeCard->sprite, touchVisibleSpace);
+    int slot = this->getNearestAvailableCardSlot(cardNode, touchVisibleSpace);
     if (cardsHolderBox.containsPoint(touchVisibleSpace) && slot >= 0) {
-        this->_activeCard->sprite->getEventDispatcher()->removeEventListener(this->_activeEventListener);
+        cardNode->getEventDispatcher()->removeEventListener(this->_activeEventListener);
         this->assignActiveCardToSlot(slot);
     } else {
         auto scaleTo = EaseBackOut::create(ScaleTo::create(0.50f, this->_activeCardOrigScale));
         auto rotateTo = RotateTo::create(0.50f, this->_activeCardOrigRotation);
         auto moveTo = MoveTo::create(0.50f, this->_activeCardOrigPosition);
         auto spawn = Spawn::create(scaleTo, rotateTo, moveTo, nullptr);
-        this->_activeCard->sprite->runAction(spawn);
+        cardNode->runAction(spawn);
     }
-
-    this->_isCardDragged = false;
 }
 
 void CollectionScreen::discardCard(std::weak_ptr<Card> card) {
@@ -654,6 +695,7 @@ void CollectionScreen::discardCard(std::weak_ptr<Card> card) {
         }
 
         this->_activeCard->sprite->removeFromParentAndCleanup(true);
+        this->_activeCard.reset();
         this->_isCardActive = false;
 
     } else {
@@ -668,7 +710,10 @@ void CollectionScreen::discardCard(std::weak_ptr<Card> card) {
 
         slotIterator->present = false;
         slotIterator->card->sprite->removeFromParentAndCleanup(true);
+        slotIterator->card.reset();
     }
+
+    this->checkIfGoalMet();
 }
 
 void CollectionScreen::scoreCardSet(GoalType goal, const std::vector<std::weak_ptr<Card>> &cardSet) {
@@ -827,9 +872,9 @@ void CollectionScreen::assignActiveCardToSlot(int slot) {
             auto position = cardNode->getParent()->convertTouchToNodeSpace(touch);
             auto box = cardNode->getBoundingBox();
             if (box.containsPoint(position)) {
-                this->_isCardDragged = true;
-                this->_draggedCard = card;
-                this->_draggedCardOrigPosition = cardNode->getPosition();
+                card->isDragged = true;
+                card->draggedTouchID = touch->getID();
+                card->draggedOrigPosition = cardNode->getPosition();
                 return true;
             } else {
                 return false;
@@ -842,13 +887,15 @@ void CollectionScreen::assignActiveCardToSlot(int slot) {
             return true;
         };
 
-        listener->onTouchEnded = [this, cardNode](Touch* touch, Event*) {
-            this->_isCardDragged = false;
-            if (!this->_draggedCardDropping) {
-                auto moveTo = MoveTo::create(0.25f, this->_draggedCardOrigPosition);
-                cardNode->runAction(moveTo);
-            } else {
-                this->_draggedCardDropping = false;
+        listener->onTouchEnded = [this, card, cardNode](Touch* touch, Event*) {
+            if (touch->getID() == card->draggedTouchID) {
+                card->isDragged = false;
+                if (!card->draggedDropping) {
+                    auto moveTo = MoveTo::create(0.25f, card->draggedOrigPosition);
+                    cardNode->runAction(moveTo);
+                } else {
+                    card->draggedDropping = false;
+                }
             }
             return true;
         };
@@ -894,7 +941,7 @@ void CollectionScreen::checkIfGoalMet() {
             card.lock()->sprite->runAction(tintTo);
         });
     } else {
-        CCLOG("Goal not met yet.");
+        CCLOG("CollectionScreen->checkIfGoalMet: Not yet.");
     }
     this->_cardsMatchingGoal = outSet;
 }
@@ -909,8 +956,7 @@ void CollectionScreen::createGoal() {
     }
 
     // Create a random goal.
-    //this->_activeGoal = static_cast<GoalType>(RandomHelper::random_int(0, RAND_MAX) % GoalType::UNKNOWN);
-    this->_activeGoal = GoalType::IDENTICAL_CARDS_3;
+    this->_activeGoal = static_cast<GoalType>(RandomHelper::random_int(0, RAND_MAX) % GoalType::UNKNOWN);
     auto goal = Sprite::create(CollectionScreen::GOAL_TYPE_FILE_MAP.at(this->_activeGoal));
     auto goalScale = visibleSize.width /goal->getContentSize().width;
     goal->setPosition(visibleSize.width/1.75f, visibleSize.height/1.4f);

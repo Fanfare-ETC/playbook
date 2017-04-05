@@ -36,6 +36,11 @@ private:
         PlaybookEvent::Team team;
         PlaybookEvent::EventType event;
         cocos2d::Sprite* sprite;
+
+        bool isDragged;
+        int draggedTouchID;
+        cocos2d::Vec2 draggedOrigPosition;
+        bool draggedDropping;
     };
 
     struct CardSlot {
@@ -80,10 +85,6 @@ private:
     std::queue<PlaybookEvent::EventType> _incomingCardQueue;
     std::vector<CardSlot> _cardSlots;
     bool _isCardActive;
-    bool _isCardDragged;
-    std::weak_ptr<Card> _draggedCard;
-    bool _draggedCardDropping;
-    cocos2d::Vec2 _draggedCardOrigPosition;
 
     cocos2d::Sprite* _giveToSection;
     float _giveToSectionOrigScale;
@@ -102,6 +103,7 @@ private:
     cocos2d::Label* _scoreLabel;
 
     std::shared_ptr<Card> _activeCard;
+    cocos2d::Action* _activeCardAction;
     float _activeCardOrigScale;
     cocos2d::Vec2 _activeCardOrigPosition;
     float _activeCardOrigRotation;
@@ -117,6 +119,7 @@ private:
     void handlePlaysCreated(const rapidjson::Value::ConstMemberIterator& data, bool hasData);
     void reportScore(int score);
 
+    std::weak_ptr<Card> getDraggedCard(cocos2d::Touch* touch);
     void receiveCard(PlaybookEvent::EventType event);
     std::shared_ptr<Card> createCard(PlaybookEvent::EventType event);
     void startDraggingActiveCard(cocos2d::Touch* touch);
