@@ -734,10 +734,7 @@ void Prediction::saveState() {
 
 int Prediction::getScoreForEvent(PlaybookEvent::EventType event) {
     std::unordered_map<PlaybookEvent::EventType, int, PlaybookEvent::EventTypeHash> map = {
-        {PlaybookEvent::EventType::ERROR, 15},
-        {PlaybookEvent::EventType::GRAND_SLAM, 400},
         {PlaybookEvent::EventType::SHUTOUT_INNING, 4},
-        {PlaybookEvent::EventType::LONG_OUT, 5},
         {PlaybookEvent::EventType::RUN_SCORED, 4},
         {PlaybookEvent::EventType::FLY_OUT, 2},
         {PlaybookEvent::EventType::TRIPLE_PLAY, 1400},

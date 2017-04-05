@@ -4,10 +4,7 @@
 
 PlaybookEvent::EventType PlaybookEvent::stringToEvent(const std::string &event) {
     std::unordered_map<std::string, EventType> map = {
-        {"Error", EventType::ERROR},
-        {"GrandSlam", EventType::GRAND_SLAM},
         {"ShutoutInning", EventType::SHUTOUT_INNING},
-        {"LongOut", EventType::LONG_OUT},
         {"RunScored", EventType::RUN_SCORED},
         {"FlyOut", EventType::FLY_OUT},
         {"TriplePlay", EventType::TRIPLE_PLAY},
@@ -37,10 +34,7 @@ PlaybookEvent::EventType PlaybookEvent::stringToEvent(const std::string &event) 
 
 std::string PlaybookEvent::eventToString(EventType event) {
     std::unordered_map<EventType, std::string, EventTypeHash> map = {
-        {EventType::ERROR, "Error"},
-        {EventType::GRAND_SLAM, "GrandSlam"},
         {EventType::SHUTOUT_INNING, "ShutoutInning"},
-        {EventType::LONG_OUT, "LongOut"},
         {EventType::RUN_SCORED, "RunScored"},
         {EventType::FLY_OUT, "FlyOut"},
         {EventType::TRIPLE_PLAY, "TriplePlay"},
@@ -70,10 +64,7 @@ std::string PlaybookEvent::eventToString(EventType event) {
 
 PlaybookEvent::EventType PlaybookEvent::intToEvent(int event) {
     std::vector<EventType> map = {
-        EventType::ERROR,
-        EventType::GRAND_SLAM,
         EventType::SHUTOUT_INNING,
-        EventType::LONG_OUT,
         EventType::RUN_SCORED,
         EventType::FLY_OUT,
         EventType::TRIPLE_PLAY,
@@ -103,10 +94,7 @@ PlaybookEvent::EventType PlaybookEvent::intToEvent(int event) {
 
 PlaybookEvent::Team PlaybookEvent::getTeam(EventType event) {
     std::unordered_map<EventType, Team, EventTypeHash> map = {
-        {EventType::ERROR, Team::NONE},
-        {EventType::GRAND_SLAM, Team::BATTING},
         {EventType::SHUTOUT_INNING, Team::NONE},
-        {EventType::LONG_OUT, Team::FIELDING},
         {EventType::RUN_SCORED, Team::BATTING},
         {EventType::FLY_OUT, Team::FIELDING},
         {EventType::TRIPLE_PLAY, Team::FIELDING},
