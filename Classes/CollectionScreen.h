@@ -77,6 +77,9 @@ private:
     static const std::unordered_map<GoalType, std::string, GoalTypeHash> GOAL_TYPE_FILE_MAP;
     static const std::unordered_map<GoalType, int, GoalTypeHash> GOAL_TYPE_SCORE_MAP;
 
+    const std::string NODE_NAME_GOAL_BAR = "goalBar";
+    const std::string NODE_NAME_GOAL_BAR_LABEL = "goalBarLabel";
+
     cocos2d::Node* _visibleNode;
     PredictionWebSocket* _websocket;
 
@@ -86,7 +89,7 @@ private:
     std::vector<CardSlot> _cardSlots;
     bool _isCardActive;
 
-    cocos2d::Sprite* _dragToDiscard;
+    cocos2d::Node* _dragToDiscard;
     bool _dragToDiscardHovered;
     cocos2d::EventListener* _dragToDiscardListener;
 

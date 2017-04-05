@@ -132,53 +132,131 @@ bool CollectionScreen::init()
     grass->setScaleY(visibleSize.height / grass->getContentSize().height);
     node->addChild(grass, 0);
 
-    // add banner on top to screen
-    auto banner = Sprite::create("Collection-Banner.png");
-    auto bannerScale = visibleSize.width / banner->getContentSize().width;
-    banner->setPosition(0.0f, visibleSize.height);
-    banner->setAnchorPoint(Vec2(0.0f, 1.0f));
-    banner->setScaleX(bannerScale);
-    banner->setScaleY(bannerScale);
-    auto bannerHeight = bannerScale * banner->getContentSize().height;
-    node->addChild(banner, 0);
-
-    //add ball tray in the bottom
-    auto holder = Sprite::create("Collection-Holder-HandTray.png");
-    auto holderScale = visibleSize.width /holder->getContentSize().width;
+    // Add card tray at the bottom.
+    auto holder = Sprite::create("Collection-Tray-9x16.png");
+    auto holderScale = visibleSize.width / holder->getContentSize().width;
     holder->setPosition(0.0f, 0.0f);
     holder->setAnchorPoint(Vec2(0.0f, 0.0f));
     holder->setScaleX(holderScale);
     holder->setScaleY(holderScale);
-    auto holderHeight = holderScale * holder->getContentSize().height;
     this->_cardsHolder = holder;
-    node->addChild(holder, 0);
+    node->addChild(holder, 1);
 
-    //add give to section button
-    auto dragToDiscard = Sprite::create("Collection-Button-GiveSection.png");
-    auto dragToDiscardScale = visibleSize.width /dragToDiscard->getContentSize().width;
-    dragToDiscard->setPosition(0.0f, visibleSize.height/3.0f);
-    dragToDiscard->setAnchorPoint(Vec2(0.0f, 0.0f));
-    dragToDiscard->setScaleX(dragToDiscardScale/2);
-    dragToDiscard->setScaleY(dragToDiscardScale/2);
-    this->_dragToDiscard = dragToDiscard;
-    node->addChild(dragToDiscard, 0);
+    // Add score section.
+    auto scoreBar = Sprite::create("Collection-Bar-Gold-9x16.png");
+    auto scoreBarHeight = 96.0f;
+    scoreBar->setContentSize(Size(visibleSize.width / 2.0f, scoreBarHeight));
+    scoreBar->setAnchorPoint(Vec2(0.0f, 0.0f));
+    scoreBar->setPosition(0.0f, holder->getContentSize().height * holderScale);
 
-    //add dragToScore button
-    auto dragToScore = Sprite::create("Collection-Button-ScoreSet.png");
-    auto dragToScoreScale = visibleSize.width /dragToScore->getContentSize().width;
-    dragToScore->setPosition(visibleSize.width/2.0f, visibleSize.height/3.0f);
-    dragToScore->setAnchorPoint(Vec2(0.0f, 0.0f));
-    dragToScore->setScaleX(dragToScoreScale/2);
-    dragToScore->setScaleY(dragToScoreScale/2);
-    this->_dragToScore = dragToScore;
-    node->addChild(dragToScore, 0);
+    auto scoreBarShadow = Sprite::create("Collection-Shadow-9x16.png");
+    scoreBarShadow->setContentSize(Size(visibleSize.width / 2.0f, scoreBarHeight));
+    scoreBarShadow->setAnchorPoint(Vec2(0.0f, 0.0f));
+    scoreBar->addChild(scoreBarShadow, 0);
 
-    //generate a random goal each time
+    auto scoreBarLabel = Label::createWithTTF("SCORE:", "fonts/nova2.ttf", 80.0f);
+    scoreBarLabel->setColor(Color3B::WHITE);
+    scoreBarLabel->setAnchorPoint(Vec2(0.0f, 0.5f));
+    scoreBarLabel->setPosition(64.0f, scoreBarHeight / 2.0f);
+    scoreBar->addChild(scoreBarLabel, 1);
+
+    auto scoreBarScoreCard = Label::createWithTTF("000", "fonts/SCOREBOARD.ttf", 80.0f);
+    scoreBarScoreCard->setColor(Color3B::WHITE);
+    scoreBarScoreCard->setAnchorPoint(Vec2(0.0f, 0.5f));
+    scoreBarScoreCard->setPosition(
+        // Left margin + the "SCORE:" label + left margin.
+        64.0f + scoreBarLabel->getContentSize().width + 32.0f,
+        // XXX: For some reason, the scoreboard font doesn't align itself in the middle.
+        (scoreBarHeight / 2.0f) - 4.0f
+    );
+    scoreBar->addChild(scoreBarScoreCard, 1);
+
+    node->addChild(scoreBar, 0);
+
+    // Add goal section.
+    auto goalBar = Sprite::create("Collection-Bar-Yellow-9x16.png");
+    auto goalBarHeight = scoreBarHeight;
+    goalBar->setName(NODE_NAME_GOAL_BAR);
+    goalBar->setContentSize(Size(visibleSize.width / 2.0f, goalBarHeight));
+    goalBar->setAnchorPoint(Vec2(0.0f, 0.0f));
+    goalBar->setPosition(visibleSize.width / 2.0f, holder->getContentSize().height * holderScale);
+
+    auto goalBarShadow = Sprite::create("Collection-Shadow-9x16.png");
+    goalBarShadow->setContentSize(Size(visibleSize.width / 2.0f, scoreBarHeight));
+    goalBarShadow->setAnchorPoint(Vec2(0.0f, 0.0f));
+    goalBar->addChild(goalBarShadow, 0);
+
+    auto goalBarLabel = Label::createWithTTF("GOAL:", "fonts/nova2.ttf", 80.0f);
+    goalBarLabel->setName(NODE_NAME_GOAL_BAR_LABEL);
+    goalBarLabel->setColor(Color3B(0x80, 0x62, 0x00));
+    goalBarLabel->setAnchorPoint(Vec2(0.0f, 0.5f));
+    goalBarLabel->setPosition(64.0f, goalBarHeight / 2.0f);
+    goalBar->addChild(goalBarLabel, 1);
+
+    node->addChild(goalBar, 0);
+
+    // Generate a random goal.
     this->createGoal();
+
+    // Small little white strip at the top of the view.
+    auto whiteBanner = DrawNode::create();
+    auto whiteBannerHeight = 24.0f;
+    whiteBanner->setContentSize(Size(visibleSize.width, whiteBannerHeight));
+    whiteBanner->setPosition(0.0f, visibleSize.height - whiteBannerHeight);
+    whiteBanner->drawSolidRect(
+        Vec2(0.0f, whiteBannerHeight),
+        Vec2(visibleSize.width, 0.0f),
+        Color4F::WHITE
+    );
+    node->addChild(whiteBanner, 2);
+
+    // Drag plays up to discard.
+    auto dragToDiscard = Sprite::create("Collection-Banner-9x16.png");
+    auto dragToDiscardHeight = 96.0f;
+    dragToDiscard->setContentSize(Size(visibleSize.width, dragToDiscardHeight));
+    dragToDiscard->setAnchorPoint(Vec2(0.0f, 0.0f));
+    dragToDiscard->setPosition(0.0f, visibleSize.height - dragToDiscardHeight - whiteBannerHeight);
+
+    auto dragToDiscardLabel = Label::createWithTTF(
+        "DRAG PLAYS UP TO DISCARD",
+        "fonts/nova2.ttf", 80.0f
+    );
+    dragToDiscardLabel->setColor(Color3B::WHITE);
+    dragToDiscardLabel->setAlignment(TextHAlignment::CENTER);
+    dragToDiscardLabel->setPosition(visibleSize.width / 2.0f, dragToDiscardHeight / 2.0f);
+    dragToDiscard->addChild(dragToDiscardLabel, 0);
+
+    node->addChild(dragToDiscard, 0);
+    this->_dragToDiscard = dragToDiscard;
+
+    // Add Drag to Score button.
+    auto dragToScore = Sprite::create("Collection-Star-9x16.png");
+    auto dragToScoreHeight = visibleSize.height -
+        // Margins
+        128.0f * 2 -
+        // Bottom part of screen
+        holder->getContentSize().height * holder->getScaleY() -
+        scoreBar->getContentSize().height * scoreBar->getScaleY() -
+        // Top part of screen
+        whiteBanner->getContentSize().height * whiteBanner->getScaleY() -
+        dragToDiscard->getContentSize().height * dragToDiscard->getScaleY();
+    auto dragToScoreWidth = visibleSize.width - 128.0f * 2;
+    auto dragToScoreScaleX = dragToScoreWidth / dragToScore->getContentSize().width;
+    auto dragToScoreScaleY = dragToScoreHeight / dragToScore->getContentSize().height;
+    auto dragToScoreScale = std::min(dragToScoreScaleX, dragToScoreScaleY);
+    dragToScore->setPosition(
+        visibleSize.width / 2.0f,
+        (dragToDiscard->getPosition().y +
+        scoreBar->getPosition().y + (scoreBar->getContentSize().height * scoreBar->getScaleY())) / 2.0f
+    );
+    dragToScore->setScale(dragToScoreScale);
+    this->_dragToScore = dragToScore;
+
+    node->addChild(dragToScore, 0);
 
     // Create DrawNode to highlight card slot.
     this->_cardSlotDrawNode = DrawNode::create();
-    this->_cardSlotDrawNode->setVisible(false);
+    this->_cardSlotDrawNode->setVisible(true);
     this->_visibleNode->addChild(this->_cardSlotDrawNode, 1);
 
     // Create the card slots.
@@ -191,13 +269,13 @@ bool CollectionScreen::init()
     }
 
     // Create a score overlay.
-    auto scoreLabel = Label::createWithTTF("Score", "fonts/SCOREBOARD.ttf", 216.0f);
-    scoreLabel->enableShadow(Color4B::BLACK, Size(12.0f, -12.0f), 12);
-    scoreLabel->setPosition(visibleSize.width / 2.0f, visibleSize.height / 2.0f);
-    scoreLabel->setOpacity(0);
-    scoreLabel->setVisible(false);
-    this->_scoreLabel = scoreLabel;
-    this->_visibleNode->addChild(scoreLabel);
+    auto scoreOverlayLabel = Label::createWithTTF("Score", "fonts/SCOREBOARD.ttf", 216.0f);
+    scoreOverlayLabel->enableShadow(Color4B::BLACK, Size(12.0f, -12.0f), 12);
+    scoreOverlayLabel->setPosition(visibleSize.width / 2.0f, visibleSize.height / 2.0f);
+    scoreOverlayLabel->setOpacity(0);
+    scoreOverlayLabel->setVisible(false);
+    this->_scoreLabel = scoreOverlayLabel;
+    this->_visibleNode->addChild(scoreOverlayLabel);
 
     // Create event listeners.
     this->scheduleUpdate();
@@ -635,7 +713,7 @@ std::shared_ptr<CollectionScreen::Card> CollectionScreen::createCard(PlaybookEve
     card->setPosition(visibleSize.width / 2.0f, visibleSize.height / 2.0f);
     card->setScale(0.0f);
     card->setRotation(RandomHelper::random_real(-5.0f, 5.0f));
-    this->_visibleNode->addChild(card, 1);
+    this->_visibleNode->addChild(card, 2);
     return std::make_shared<Card>(team, event, card);
 }
 
@@ -725,7 +803,6 @@ void CollectionScreen::scoreCardSet(GoalType goal, const std::vector<std::weak_p
             auto card = cardIterator->lock();
             auto dragToScorePosition = this->_dragToScore->getParent()->convertToWorldSpace(this->_dragToScore->getPosition());
             auto dragToScoreSize = this->_dragToScore->getBoundingBox().size;
-            dragToScorePosition += Vec2(dragToScoreSize.width / 2.0f, dragToScoreSize.height / 2.0f);
 
             auto position = card->sprite->getParent()->convertToNodeSpace(dragToScorePosition);
             auto moveTo = MoveTo::create(0.25f, position);
@@ -952,15 +1029,24 @@ void CollectionScreen::createGoal() {
     }
 
     // Create a random goal.
+    auto goalBar = this->_visibleNode->getChildByName(NODE_NAME_GOAL_BAR);
+    auto goalBarLabel = goalBar->getChildByName(NODE_NAME_GOAL_BAR_LABEL);
+
     this->_activeGoal = static_cast<GoalType>(RandomHelper::random_int(0, RAND_MAX) % GoalType::UNKNOWN);
     auto goal = Sprite::create(CollectionScreen::GOAL_TYPE_FILE_MAP.at(this->_activeGoal));
-    auto goalScale = visibleSize.width /goal->getContentSize().width;
-    goal->setPosition(visibleSize.width/1.75f, visibleSize.height/1.4f);
+    auto goalWidth = (visibleSize.width / 2.0f) -
+        // Left and right margins and padding to the left of the goal.
+        (64.0f + 48.0f + 32.0f) -
+        // Space occupied by goal bar label
+        goalBarLabel->getContentSize().width * goalBarLabel->getScaleX();
+    auto goalScale = goalWidth / goal->getContentSize().width;
+    goal->setPosition(
+        64.0f + goalBarLabel->getContentSize().width + 32.0f,
+        16.0f
+    );
     goal->setAnchorPoint(Vec2(0.0f, 0.0f));
-    goal->setScaleX(goalScale/3);
-    goal->setScaleY(goalScale/3);
-    auto goalHeight = goalScale * goal->getContentSize().height;
-    this->_visibleNode->addChild(goal, 0);
+    goal->setScale(goalScale);
+    goalBar->addChild(goal, 0);
     this->_goalSprite = goal;
 
     // Invalidate.
@@ -1241,40 +1327,45 @@ std::string CollectionScreen::serialize() {
     );
 
     rapidjson::Value activeCard (kObjectType);
+    if (this->_isCardActive) {
+        activeCard.AddMember(
+            rapidjson::Value("event", allocator).Move(),
+            rapidjson::Value(PlaybookEvent::eventToString(this->_activeCard->event).c_str(), allocator).Move(),
+            allocator
+        );
 
-    activeCard.AddMember(
-        rapidjson::Value("event", allocator).Move(),
-        rapidjson::Value(PlaybookEvent::eventToString(this->_activeCard->event).c_str(), allocator).Move(),
-        allocator
-    );
-
-    activeCard.AddMember(
-        rapidjson::Value("team", allocator).Move(),
-        rapidjson::Value(this->_activeCard->team).Move(),
-        allocator
-    );
-
+        activeCard.AddMember(
+            rapidjson::Value("team", allocator).Move(),
+            rapidjson::Value(this->_activeCard->team).Move(),
+            allocator
+        );
+    } else {
+        activeCard.SetNull();
+    }
     document.AddMember(rapidjson::Value("activeCard", allocator).Move(), activeCard, allocator);
 
     // Serialize the card slots.
     rapidjson::Value cardSlots (kArrayType);
     for (const auto& item : this->_cardSlots) {
-        auto event = PlaybookEvent::eventToString(item.card->event);
-
         rapidjson::Value cardSlot (kObjectType);
         rapidjson::Value card (kObjectType);
 
-        card.AddMember(
-            rapidjson::Value("event", allocator).Move(),
-            rapidjson::Value(event.c_str(), allocator).Move(),
-            allocator
-        );
+        if (item.card) {
+            auto event = PlaybookEvent::eventToString(item.card->event);
+            card.AddMember(
+                rapidjson::Value("event", allocator).Move(),
+                rapidjson::Value(event.c_str(), allocator).Move(),
+                allocator
+            );
 
-        card.AddMember(
-            rapidjson::Value("team", allocator).Move(),
-            rapidjson::Value(item.card->team).Move(),
-            allocator
-        );
+            card.AddMember(
+                rapidjson::Value("team", allocator).Move(),
+                rapidjson::Value(item.card->team).Move(),
+                allocator
+            );
+        } else {
+            card.SetNull();
+        }
 
         cardSlot.AddMember(
             rapidjson::Value("card", allocator).Move(),
