@@ -37,20 +37,19 @@ public class TreasureHuntFragment extends Fragment implements View.OnClickListen
 
     public static int section;
     public static View view;
-    private boolean iswarm=false,iscold=false,isplant=false,isprocess=false;
-    private static boolean firstrun=true;
-    private long lastclick_warm=0,lastclick_cold=0,lastclick_plant=0;
-    private final String mEndpoint = "ws://" +
+    private boolean treasurehunt_live=false;
+
+    private  String mEndpoint = "ws://" +
             BuildConfig.PLAYBOOK_TREASUREHUNT_API_HOST + ":" +
             BuildConfig.PLAYBOOK_TREASUREHUNT_API_PORT;
-    final Handler timerHandler = new Handler();
+    //final Handler timerHandler = new Handler();
 
-    Runnable timerRunnable = new Runnable() {
+    /**Runnable timerRunnable = new Runnable() {
 
         @Override
         public void run() {
             final ImageView runner = (ImageView)view.findViewById(R.id.runner);
-            if(firstrun) {
+
                 AsyncHttpClient.getDefaultInstance().websocket(mEndpoint, "my-protocol", new AsyncHttpClient.WebSocketConnectCallback() {
                     @Override
                     public void onCompleted(Exception ex, WebSocket webSocket) {
@@ -95,8 +94,7 @@ public class TreasureHuntFragment extends Fragment implements View.OnClickListen
 
                     }
                 });
-                firstrun= true;
-            }
+
             if(iswarm)
             {
                 runner.setImageResource(R.drawable.runnerwarm);
@@ -119,7 +117,7 @@ public class TreasureHuntFragment extends Fragment implements View.OnClickListen
             timerHandler.postDelayed(this, 1000);
         }
     };
-
+  **/
     /**
      * A custom view to draw lines between the runner and the individual
      * buttons on screen.
@@ -216,16 +214,34 @@ public class TreasureHuntFragment extends Fragment implements View.OnClickListen
             plantLocation[1] = plantLocation[1] + mPlantView.getHeight() / 2 - canvasLocation[1];
 
             // Set up the paints and draw the lines.
-            canvas.drawLine(colderLocation[0], colderLocation[1], runnerLocation[0], runnerLocation[1], mColderPaint);
-            canvas.drawLine(warmerLocation[0], warmerLocation[1], runnerLocation[0], runnerLocation[1], mWarmerPaint);
+            canvas.drawLine(colderLocation[0], colderLocation[1], colderLocation[0], colderLocation[1]-400, mColderPaint);
+            canvas.drawLine(warmerLocation[0], warmerLocation[1],warmerLocation[0], warmerLocation[1]-400, mWarmerPaint);
             canvas.drawLine(plantLocation[0], plantLocation[1], runnerLocation[0], runnerLocation[1], mPlantPaint);
 
-            //add blink code to runner button
-            ObjectAnimator blink = ObjectAnimator.ofFloat(mRunnerView, "alpha", 0.0f, 1.0f);
-            blink.setDuration(1000);
-            blink.setRepeatCount(999999);
-            blink.start();
+            mWarmerPaint.setStrokeWidth(10);
+            mWarmerPaint.setStyle(Paint.Style.STROKE);
+            // draw a red bucket
+            canvas.drawLine(warmerLocation[0]-150, warmerLocation[1]-400, warmerLocation[0]+ 150, warmerLocation[1]-400, mWarmerPaint); //bottom horizontal
+            canvas.drawLine(warmerLocation[0]-150, warmerLocation[1]-400, warmerLocation[0]-150, warmerLocation[1]-600, mWarmerPaint); //left vertical
+            canvas.drawLine(warmerLocation[0]-150, warmerLocation[1]-600, warmerLocation[0]+150, warmerLocation[1]-600, mWarmerPaint); //top horizontal
+            canvas.drawLine( warmerLocation[0]+150, warmerLocation[1]-600, warmerLocation[0]+ 150, warmerLocation[1]-400, mWarmerPaint); //right horizontal
 
+            mColderPaint.setStrokeWidth(10);
+            mColderPaint.setStyle(Paint.Style.STROKE);
+            // draw a blue bucket
+            canvas.drawLine(colderLocation[0]-150, colderLocation[1]-400, colderLocation[0]+ 150, colderLocation[1]-400,mColderPaint); //bottom horizontal
+            canvas.drawLine(colderLocation[0]-150, colderLocation[1]-400, colderLocation[0]-150, colderLocation[1]-600, mColderPaint); //left vertical
+            canvas.drawLine(colderLocation[0]-150, colderLocation[1]-600, colderLocation[0]+150, colderLocation[1]-600, mColderPaint); //top horizontal
+            canvas.drawLine(colderLocation[0]+150, colderLocation[1]-600, colderLocation[0]+ 150, colderLocation[1]-400, mColderPaint); //right horizontal
+
+            mPlantPaint.setStrokeWidth(10);
+            mPlantPaint.setStyle(Paint.Style.STROKE);
+            // draw a yellow bucket
+            runnerLocation[1] = runnerLocation[1] + 400;
+            canvas.drawLine(runnerLocation[0]-150, runnerLocation[1]-400, runnerLocation[0]+ 150, runnerLocation[1]-400,mPlantPaint); //bottom horizontal
+            canvas.drawLine(runnerLocation[0]-150, runnerLocation[1]-400, runnerLocation[0]-150, runnerLocation[1]-600, mPlantPaint); //left vertical
+            canvas.drawLine(runnerLocation[0]-150, runnerLocation[1]-600, runnerLocation[0]+150, runnerLocation[1]-600, mPlantPaint); //top horizontal
+            canvas.drawLine(runnerLocation[0]+150, runnerLocation[1]-600, runnerLocation[0]+ 150, runnerLocation[1]-400, mPlantPaint); //right horizontal
 
         }
     }
@@ -242,7 +258,6 @@ public class TreasureHuntFragment extends Fragment implements View.OnClickListen
         ImageView marker1= (ImageView)view.findViewById(R.id.marker1);
         if(section==0)
         {
-
             marker0.setVisibility(View.VISIBLE);
             marker1.setVisibility(View.INVISIBLE);
         }
@@ -260,11 +275,8 @@ public class TreasureHuntFragment extends Fragment implements View.OnClickListen
         button_c.setOnClickListener(this);
         ImageView button_p= (ImageView)view.findViewById(R.id.plant);
         button_p.setOnClickListener(this);
-        ImageView button_tut= (ImageView)view.findViewById(R.id.treasurehunt_tutorial);
-        button_tut.setOnClickListener(this);
 
-
-       timerHandler.postDelayed(timerRunnable,0);
+       //timerHandler.postDelayed(timerRunnable,0);
 
         // Dynamically draw lines.
         view.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
@@ -282,6 +294,58 @@ public class TreasureHuntFragment extends Fragment implements View.OnClickListen
                 linesView.invalidate();
             }
         });
+        mEndpoint="ws://128.2.238.137:9000";
+        Log.d("url",mEndpoint);
+
+                AsyncHttpClient.getDefaultInstance().websocket(mEndpoint, "my-protocol", new AsyncHttpClient.WebSocketConnectCallback() {
+                    @Override
+                    public void onCompleted(Exception ex, WebSocket webSocket) {
+                        if (ex != null) {
+                            ex.printStackTrace();
+                            return;
+                        }
+                        webSocket.setStringCallback(new WebSocket.StringCallback() {
+                            public void onStringAvailable(String s) {
+                                if (s != null) {
+                                    Log.d("signal",s);
+                                    if(s.equals("start"))
+                                    {
+                                        treasurehunt_live=true;
+                                        getActivity().runOnUiThread(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                ImageView translucent = (ImageView) view.findViewById(R.id.translucentlayer);
+                                                translucent.setVisibility(View.INVISIBLE);
+                                                ImageView tutorial = (ImageView) view.findViewById(R.id.treasurehunt_tutorial);
+                                                ObjectAnimator blink_tut = ObjectAnimator.ofFloat(tutorial, "alpha", 0.5f, 0.0f);
+                                                blink_tut.setDuration(500);
+                                                blink_tut.start();
+                                            }
+                                        });
+                                    }
+                                    else if(s.equals("stop"))
+                                    {
+                                        treasurehunt_live=false;
+                                    }
+                                    else if(s.equals("plus10warmer"))
+                                    {
+
+                                    }
+                                    else if(s.equals("plus10colder"))
+                                    {
+
+                                    }
+                                    else if(s.equals("plus10plant"))
+                                    {
+
+                                    }
+                                    else{}
+
+                                }
+                            }
+                        });
+                    }
+                });
 
 
         return view;
@@ -293,43 +357,46 @@ public class TreasureHuntFragment extends Fragment implements View.OnClickListen
         return view;
     }
     public void onClick(View v) {
+
+        ImageView translucent = (ImageView) view.findViewById(R.id.translucentlayer);
+        translucent.setVisibility(View.INVISIBLE);
+
         final JSONObject obj= new JSONObject();
-        long current_time = System.currentTimeMillis();
 
         ImageView ball_w = (ImageView)TreasureHuntFragment.view.findViewById(R.id.ball_w);
 
         ObjectAnimator blink_w = ObjectAnimator.ofFloat(ball_w, "alpha", 1.0f, 0.0f);
-        blink_w.setDuration(1000);
+        blink_w.setDuration(500);
 
         ObjectAnimator animX0 = ObjectAnimator.ofFloat(ball_w, "x", LinesView.warmerLocation[0], LinesView.runnerLocation[0]);
         ObjectAnimator animY0 = ObjectAnimator.ofFloat(ball_w, "y", LinesView.warmerLocation[1], LinesView.runnerLocation[1]);
         AnimatorSet animSetXY0 = new AnimatorSet();
-        animSetXY0.setDuration(1000);
+        animSetXY0.setDuration(500);
 
         ImageView ball_c = (ImageView)TreasureHuntFragment.view.findViewById(R.id.ball_c);
 
         ObjectAnimator blink_c = ObjectAnimator.ofFloat(ball_c, "alpha", 1.0f, 0.0f);
-        blink_c.setDuration(1000);
+        blink_c.setDuration(500);
 
         ObjectAnimator animX1 = ObjectAnimator.ofFloat(ball_c, "x", LinesView.colderLocation[0], LinesView.runnerLocation[0]);
         ObjectAnimator animY1 = ObjectAnimator.ofFloat(ball_c, "y", LinesView.colderLocation[1], LinesView.runnerLocation[1]);
         AnimatorSet animSetXY1 = new AnimatorSet();
-        animSetXY1.setDuration(1000);
+        animSetXY1.setDuration(500);
 
 
         ImageView ball_p = (ImageView)TreasureHuntFragment.view.findViewById(R.id.ball_p);
 
         ObjectAnimator blink_p = ObjectAnimator.ofFloat(ball_p, "alpha", 1.0f, 0.0f);
-        blink_p.setDuration(1000);
+        blink_p.setDuration(500);
 
         ObjectAnimator animX2 = ObjectAnimator.ofFloat(ball_p, "x", LinesView.plantLocation[0], LinesView.runnerLocation[0]);
         ObjectAnimator animY2 = ObjectAnimator.ofFloat(ball_p, "y", LinesView.plantLocation[1], LinesView.runnerLocation[1]);
         AnimatorSet animSetXY2 = new AnimatorSet();
-        animSetXY2.setDuration(1000);
+        animSetXY2.setDuration(500);
 
         switch (v.getId()) {
+
             case R.id.warmer:
-                if((current_time -lastclick_warm) >= 1000 ) {
                     try {
                         obj.put("section", section);
                         obj.put("selection", 0);
@@ -338,8 +405,6 @@ public class TreasureHuntFragment extends Fragment implements View.OnClickListen
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
-                    isprocess=true;
-                    lastclick_warm=current_time;
 
                     //animate ball from warmer to runner
                     ball_w.setVisibility(View.VISIBLE);
@@ -347,12 +412,10 @@ public class TreasureHuntFragment extends Fragment implements View.OnClickListen
                     animSetXY0.start();
 
                     if(!animSetXY0.isRunning()) ball_w.setVisibility(View.INVISIBLE);
-                }
-                else
-                    isprocess=false;
+
                 break;
             case R.id.colder:
-                if((current_time -lastclick_cold) >= 1000 ) {
+
                     try {
                         obj.put("section", section);
                         obj.put("selection", 1);
@@ -361,8 +424,6 @@ public class TreasureHuntFragment extends Fragment implements View.OnClickListen
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
-                    isprocess=true;
-                    lastclick_cold=current_time;
 
                     //animate ball from colder to runner
                     ball_c.setVisibility(View.VISIBLE);
@@ -370,12 +431,10 @@ public class TreasureHuntFragment extends Fragment implements View.OnClickListen
                     animSetXY1.start();
 
                     if(!animSetXY1.isRunning()) ball_c.setVisibility(View.INVISIBLE);
-                }
-                else
-                    isprocess=false;
+
                 break;
             case R.id.plant:
-                if((current_time -lastclick_plant) >= 1000 ) {
+
                     try {
                         obj.put("section", section);
                         obj.put("selection", 2);
@@ -384,8 +443,6 @@ public class TreasureHuntFragment extends Fragment implements View.OnClickListen
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
-                    isprocess=true;
-                    lastclick_plant=current_time;
 
                     //animate ball from plant to runner
                     ball_p.setVisibility(View.VISIBLE);
@@ -393,20 +450,11 @@ public class TreasureHuntFragment extends Fragment implements View.OnClickListen
                     animSetXY2.start();
 
                     if(!animSetXY2.isRunning()) ball_p.setVisibility(View.INVISIBLE);
-                }
-                else
-                    isprocess=false;
-                break;
-            case R.id.treasurehunt_tutorial:
-                ImageView translucent= (ImageView)view.findViewById(R.id.translucentlayer);
-                translucent.setVisibility(View.INVISIBLE);
-                ((ViewGroup) translucent.getParent()).removeView(translucent);
-                ImageView tutorial= (ImageView)view.findViewById(R.id.treasurehunt_tutorial);
-                tutorial.setVisibility(View.INVISIBLE);
-                ((ViewGroup) tutorial.getParent()).removeView(tutorial);
+
                 break;
         }
-        if(isprocess) {
+        if(treasurehunt_live) {
+            Log.d("sending",obj.toString());
             AsyncHttpClient.getDefaultInstance().websocket(mEndpoint, "my-protocol", new AsyncHttpClient.WebSocketConnectCallback() {
                 @Override
                 public void onCompleted(Exception ex, WebSocket webSocket) {
@@ -419,6 +467,7 @@ public class TreasureHuntFragment extends Fragment implements View.OnClickListen
                 }
             });
         }
+
     }
 
 }
