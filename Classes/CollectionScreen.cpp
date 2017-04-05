@@ -47,35 +47,35 @@ const int CollectionScreen::NUM_SLOTS = 5;
 const std::unordered_map<CollectionScreen::GoalType, std::string, CollectionScreen::GoalTypeHash> CollectionScreen::GOAL_TYPE_FILE_MAP = {
     {GoalType::IDENTICAL_CARDS_3, "goal/goal1.png"},
     {GoalType::IDENTICAL_CARDS_4, "goal/goal2.png"},
-    //{GoalType::UNIQUE_OUT_CARDS_4, "goal/goal3.png"},
+    {GoalType::UNIQUE_OUT_CARDS_4, "goal/goal3.png"},
     {GoalType::IDENTICAL_CARDS_5, "goal/goal4.png"},
-    {GoalType::WALK_OR_HIT_3, "goal/goal5.png"},
+    {GoalType::WALK_OR_HIT_BY_PITCH_3, "goal/goal5.png"},
     {GoalType::OUT_3, "goal/goal6.png"},
-    {GoalType::BASES_3, "goal/goal7.png"},
+    {GoalType::BASES_RBI_3, "goal/goal7.png"},
     {GoalType::EACH_COLOR_2, "goal/goal8.png"},
     {GoalType::SAME_COLOR_3, "goal/goal9.png"},
     {GoalType::EACH_COLOR_1, "goal/goal11.png"},
-    //{GoalType::UNIQUE_OUT_CARDS_3, "goal/goal12.png"},
+    {GoalType::UNIQUE_OUT_CARDS_3, "goal/goal12.png"},
     {GoalType::SAME_COLOR_4, "goal/goal13.png"},
     {GoalType::SAME_COLOR_5, "goal/goal14.png"},
     {GoalType::BASE_STEAL_RBI, "goal/goal15.png"}
 };
 
 const std::unordered_map<CollectionScreen::GoalType, int, CollectionScreen::GoalTypeHash> CollectionScreen::GOAL_TYPE_SCORE_MAP = {
-    {GoalType::IDENTICAL_CARDS_3, 4},
-    {GoalType::IDENTICAL_CARDS_4, 6},
-    //{GoalType::UNIQUE_OUT_CARDS_4, 6},
-    {GoalType::IDENTICAL_CARDS_5, 10},
-    {GoalType::WALK_OR_HIT_3, 0},
-    {GoalType::OUT_3, 3},
-    {GoalType::BASES_3, 4},
-    {GoalType::EACH_COLOR_2, 6},
-    {GoalType::SAME_COLOR_3, 4},
-    {GoalType::EACH_COLOR_1, 2},
-    //{GoalType::UNIQUE_OUT_CARDS_3, 4},
-    {GoalType::SAME_COLOR_4, 6},
-    {GoalType::SAME_COLOR_5, 10},
-    {GoalType::BASE_STEAL_RBI, 4}
+    {GoalType::IDENTICAL_CARDS_3, 8},
+    {GoalType::IDENTICAL_CARDS_4, 12},
+    {GoalType::UNIQUE_OUT_CARDS_4, 12},
+    {GoalType::IDENTICAL_CARDS_5, 20},
+    {GoalType::WALK_OR_HIT_BY_PITCH_3, 8},
+    {GoalType::OUT_3, 6},
+    {GoalType::BASES_RBI_3, 12},
+    {GoalType::EACH_COLOR_2, 12},
+    {GoalType::SAME_COLOR_3, 8},
+    {GoalType::EACH_COLOR_1, 4},
+    {GoalType::UNIQUE_OUT_CARDS_3, 8},
+    {GoalType::SAME_COLOR_4, 12},
+    {GoalType::SAME_COLOR_5, 20},
+    {GoalType::BASE_STEAL_RBI, 8}
 };
 
 CollectionScreen::Card::Card(PlaybookEvent::Team team, PlaybookEvent::EventType event,
@@ -113,9 +113,7 @@ bool CollectionScreen::init()
     }
     
     auto visibleSize = Director::getInstance()->getVisibleSize();
-    auto winSize = Director::getInstance()->getWinSize();
     Vec2 origin = Director::getInstance()->getVisibleOrigin();
-    auto scale =  Director::getInstance()->getContentScaleFactor();
 
     // Create Node that represents the visible portion of the screen.
     auto node = Node::create();
@@ -124,13 +122,13 @@ bool CollectionScreen::init()
     node->setPosition(origin);
     this->addChild(node);
 
-    // add grass to screen
-    auto grass = Sprite::create("Collection-BG-Wood.jpg");
-    grass->setPosition(0.0f, 0.0f);
-    grass->setAnchorPoint(Vec2(0.0f, 0.0f));
-    grass->setScaleX(visibleSize.width / grass->getContentSize().width);
-    grass->setScaleY(visibleSize.height / grass->getContentSize().height);
-    node->addChild(grass, 0);
+    // add background to screen
+    auto background = Sprite::create("Collection-BG-Wood.jpg");
+    background->setPosition(0.0f, 0.0f);
+    background->setAnchorPoint(Vec2(0.0f, 0.0f));
+    background->setScaleX(visibleSize.width / background->getContentSize().width);
+    background->setScaleY(visibleSize.height / background->getContentSize().height);
+    node->addChild(background, 0);
 
     // Add card tray at the bottom.
     auto holder = Sprite::create("Collection-Tray-9x16.png");
@@ -140,7 +138,7 @@ bool CollectionScreen::init()
     holder->setScaleX(holderScale);
     holder->setScaleY(holderScale);
     this->_cardsHolder = holder;
-    node->addChild(holder, 1);
+    node->addChild(holder, 2);
 
     // Add score section.
     auto scoreBar = Sprite::create("Collection-Bar-Gold-9x16.png");
@@ -171,7 +169,7 @@ bool CollectionScreen::init()
     );
     scoreBar->addChild(scoreBarScoreCard, 1);
 
-    node->addChild(scoreBar, 0);
+    node->addChild(scoreBar, 1);
 
     // Add goal section.
     auto goalBar = Sprite::create("Collection-Bar-Yellow-9x16.png");
@@ -193,7 +191,7 @@ bool CollectionScreen::init()
     goalBarLabel->setPosition(64.0f, goalBarHeight / 2.0f);
     goalBar->addChild(goalBarLabel, 1);
 
-    node->addChild(goalBar, 0);
+    node->addChild(goalBar, 1);
 
     // Generate a random goal.
     this->createGoal();
@@ -208,7 +206,7 @@ bool CollectionScreen::init()
         Vec2(visibleSize.width, 0.0f),
         Color4F::WHITE
     );
-    node->addChild(whiteBanner, 2);
+    node->addChild(whiteBanner, 0);
 
     // Drag plays up to discard.
     auto dragToDiscard = Sprite::create("Collection-Banner-9x16.png");
@@ -226,8 +224,25 @@ bool CollectionScreen::init()
     dragToDiscardLabel->setPosition(visibleSize.width / 2.0f, dragToDiscardHeight / 2.0f);
     dragToDiscard->addChild(dragToDiscardLabel, 0);
 
-    node->addChild(dragToDiscard, 0);
+    node->addChild(dragToDiscard, 1);
     this->_dragToDiscard = dragToDiscard;
+
+    // Draw shadows for the drag to score section.
+    auto dragToScoreShadowTop = Sprite::create("Collection-Shadow-9x16.png");
+    dragToScoreShadowTop->setContentSize(Size(visibleSize.width, 64.0f));
+    dragToScoreShadowTop->setAnchorPoint(Vec2(0.0f, 0.0f));
+    dragToScoreShadowTop->setScaleY(-1.0f);
+    dragToScoreShadowTop->setPosition(dragToDiscard->getPosition());
+    node->addChild(dragToScoreShadowTop, 0);
+
+    auto dragToScoreShadowBottom = Sprite::create("Collection-Shadow-9x16.png");
+    dragToScoreShadowBottom->setContentSize(Size(visibleSize.width, 64.0f));
+    dragToScoreShadowBottom->setAnchorPoint(Vec2(0.0f, 0.0f));
+    dragToScoreShadowBottom->setPosition(
+        0.0f,
+        scoreBar->getPosition().y + scoreBar->getContentSize().height * scoreBar->getScaleY()
+    );
+    node->addChild(dragToScoreShadowBottom, 0);
 
     // Add Drag to Score button.
     auto dragToScore = Sprite::create("Collection-Star-9x16.png");
@@ -252,7 +267,7 @@ bool CollectionScreen::init()
     dragToScore->setScale(dragToScoreScale);
     this->_dragToScore = dragToScore;
 
-    node->addChild(dragToScore, 0);
+    node->addChild(dragToScore, 1);
 
     // Create DrawNode to highlight card slot.
     this->_cardSlotDrawNode = DrawNode::create();
@@ -275,7 +290,7 @@ bool CollectionScreen::init()
     scoreOverlayLabel->setOpacity(0);
     scoreOverlayLabel->setVisible(false);
     this->_scoreLabel = scoreOverlayLabel;
-    this->_visibleNode->addChild(scoreOverlayLabel);
+    node->addChild(scoreOverlayLabel, 3);
 
     // Create event listeners.
     this->scheduleUpdate();
@@ -713,7 +728,7 @@ std::shared_ptr<CollectionScreen::Card> CollectionScreen::createCard(PlaybookEve
     card->setPosition(visibleSize.width / 2.0f, visibleSize.height / 2.0f);
     card->setScale(0.0f);
     card->setRotation(RandomHelper::random_real(-5.0f, 5.0f));
-    this->_visibleNode->addChild(card, 2);
+    this->_visibleNode->addChild(card, 3);
     return std::make_shared<Card>(team, event, card);
 }
 
@@ -802,7 +817,6 @@ void CollectionScreen::scoreCardSet(GoalType goal, const std::vector<std::weak_p
         if (cardIterator != cardSet.end()) {
             auto card = cardIterator->lock();
             auto dragToScorePosition = this->_dragToScore->getParent()->convertToWorldSpace(this->_dragToScore->getPosition());
-            auto dragToScoreSize = this->_dragToScore->getBoundingBox().size;
 
             auto position = card->sprite->getParent()->convertToNodeSpace(dragToScorePosition);
             auto moveTo = MoveTo::create(0.25f, position);
@@ -1046,7 +1060,7 @@ void CollectionScreen::createGoal() {
     );
     goal->setAnchorPoint(Vec2(0.0f, 0.0f));
     goal->setScale(goalScale);
-    goalBar->addChild(goal, 0);
+    goalBar->addChild(goal, 1);
     this->_goalSprite = goal;
 
     // Invalidate.
@@ -1118,7 +1132,7 @@ bool CollectionScreen::cardSetMeetsGoal(const std::vector<std::weak_ptr<Card>>& 
             return hasBase && hasSteal && hasRBI;
         }
 
-        case GoalType::BASES_3: {
+        case GoalType::BASES_RBI_3: {
             auto satisfied = std::count_if(cardSet.begin(), cardSet.end(), isBase) >= 3;
             if (satisfied) {
                 std::vector<std::weak_ptr<Card>> temp;
@@ -1287,11 +1301,11 @@ bool CollectionScreen::cardSetMeetsGoal(const std::vector<std::weak_ptr<Card>>& 
             return satisfied;
         }
 
-        case GoalType::WALK_OR_HIT_3: {
+        case GoalType::WALK_OR_HIT_BY_PITCH_3: {
             auto isWalkOrHit = [](std::weak_ptr<Card> weakCard) {
                 auto card = weakCard.lock();
                 return card->event == PlaybookEvent::EventType::WALK ||
-                       card->event == PlaybookEvent::EventType::HIT;
+                       card->event == PlaybookEvent::EventType::HIT_BY_PITCH;
             };
 
             auto satisfied = std::count_if(cardSet.begin(), cardSet.end(), isWalkOrHit) >= 3;
@@ -1304,8 +1318,8 @@ bool CollectionScreen::cardSetMeetsGoal(const std::vector<std::weak_ptr<Card>>& 
         }
 
         // TODO: Not implemented yet
-        //case GoalType::UNIQUE_OUT_CARDS_3:
-        //case GoalType::UNIQUE_OUT_CARDS_4:
+        case GoalType::UNIQUE_OUT_CARDS_3:
+        case GoalType::UNIQUE_OUT_CARDS_4:
         default: {
             return false;
         }

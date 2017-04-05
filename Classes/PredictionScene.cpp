@@ -750,7 +750,7 @@ int Prediction::getScoreForEvent(PlaybookEvent::EventType event) {
         {PlaybookEvent::EventType::WALK, 3},
         {PlaybookEvent::EventType::TRIPLE, 20},
         {PlaybookEvent::EventType::SINGLE, 3},
-        {PlaybookEvent::EventType::HIT, 2},
+        {PlaybookEvent::EventType::HIT_BY_PITCH, 2},
         {PlaybookEvent::EventType::HOME_RUN, 10},
         {PlaybookEvent::EventType::PITCH_COUNT_16, 2},
         {PlaybookEvent::EventType::BLOCKED_RUN, 10},

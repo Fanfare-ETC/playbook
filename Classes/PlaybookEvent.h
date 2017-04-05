@@ -20,7 +20,7 @@ public:
         WALK,
         BLOCKED_RUN,
         STRIKEOUT,
-        HIT,
+        HIT_BY_PITCH,
         HOME_RUN,
         PITCH_COUNT_16,
         PITCH_COUNT_17,
