@@ -86,13 +86,11 @@ private:
     std::vector<CardSlot> _cardSlots;
     bool _isCardActive;
 
-    cocos2d::Sprite* _giveToSection;
-    float _giveToSectionOrigScale;
-    bool _giveToSectionHovered;
-    cocos2d::EventListener* _giveToSectionListener;
+    cocos2d::Sprite* _dragToDiscard;
+    bool _dragToDiscardHovered;
+    cocos2d::EventListener* _dragToDiscardListener;
 
     cocos2d::Sprite* _dragToScore;
-    float _dragToScoreOrigScale;
     bool _dragToScoreHovered;
     cocos2d::EventListener* _dragToScoreListener;
 
@@ -109,7 +107,7 @@ private:
     float _activeCardOrigRotation;
     cocos2d::EventListener* _activeEventListener;
 
-    void initEventsGiveToSection();
+    void initEventsDragToDiscard();
     void initEventsDragToScore();
 
     void connectToServer();

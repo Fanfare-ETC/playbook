@@ -154,16 +154,14 @@ bool CollectionScreen::init()
     node->addChild(holder, 0);
 
     //add give to section button
-    auto giveToSection = Sprite::create("Collection-Button-GiveSection.png");
-    auto giveToSectionScale = visibleSize.width /giveToSection->getContentSize().width;
-    giveToSection->setPosition(0.0f, visibleSize.height/3.0f);
-    giveToSection->setAnchorPoint(Vec2(0.0f, 0.0f));
-    giveToSection->setScaleX(giveToSectionScale/2);
-    giveToSection->setScaleY(giveToSectionScale/2);
-    auto giveToSectionHeight = giveToSectionScale * giveToSection->getContentSize().height;
-    this->_giveToSection = giveToSection;
-    this->_giveToSectionOrigScale = giveToSectionScale / 2.0f;
-    node->addChild(giveToSection, 0);
+    auto dragToDiscard = Sprite::create("Collection-Button-GiveSection.png");
+    auto dragToDiscardScale = visibleSize.width /dragToDiscard->getContentSize().width;
+    dragToDiscard->setPosition(0.0f, visibleSize.height/3.0f);
+    dragToDiscard->setAnchorPoint(Vec2(0.0f, 0.0f));
+    dragToDiscard->setScaleX(dragToDiscardScale/2);
+    dragToDiscard->setScaleY(dragToDiscardScale/2);
+    this->_dragToDiscard = dragToDiscard;
+    node->addChild(dragToDiscard, 0);
 
     //add dragToScore button
     auto dragToScore = Sprite::create("Collection-Button-ScoreSet.png");
@@ -172,9 +170,7 @@ bool CollectionScreen::init()
     dragToScore->setAnchorPoint(Vec2(0.0f, 0.0f));
     dragToScore->setScaleX(dragToScoreScale/2);
     dragToScore->setScaleY(dragToScoreScale/2);
-    auto dragToScoreHeight = dragToScoreScale * dragToScore->getContentSize().height;
     this->_dragToScore = dragToScore;
-    this->_dragToScoreOrigScale = dragToScoreScale / 2.0f;
     node->addChild(dragToScore, 0);
 
     //generate a random goal each time
@@ -218,12 +214,12 @@ void CollectionScreen::update(float delta) {
 
 void CollectionScreen::onEnter() {
     PlaybookLayer::onEnter();
-    this->initEventsGiveToSection();
+    this->initEventsDragToDiscard();
     this->initEventsDragToScore();
 }
 
 void CollectionScreen::onExit() {
-    this->getEventDispatcher()->removeEventListener(this->_giveToSectionListener);
+    this->getEventDispatcher()->removeEventListener(this->_dragToDiscardListener);
     this->getEventDispatcher()->removeEventListener(this->_dragToScoreListener);
     PlaybookLayer::onExit();
 }
@@ -259,8 +255,8 @@ void CollectionScreen::saveState() {
     preferences->flush();
 }
 
-void CollectionScreen::initEventsGiveToSection() {
-    CCLOG("CollectionScreen->initEventsGiveToSection");
+void CollectionScreen::initEventsDragToDiscard() {
+    CCLOG("CollectionScreen->initEventsDragToDiscard");
     auto listener = EventListenerTouchOneByOne::create();
 
     listener->onTouchBegan = [](Touch*, Event*) {
@@ -274,20 +270,20 @@ void CollectionScreen::initEventsGiveToSection() {
             return;
         }
 
-        // Enlarge "Give to Section" if we're hovering over it.
-        auto position = this->_giveToSection->getParent()->convertTouchToNodeSpace(touch);
-        auto box = this->_giveToSection->getBoundingBox();
+        // Change "Drag to Discard" color if we're hovering over it.
+        auto position = this->_dragToDiscard->getParent()->convertTouchToNodeSpace(touch);
+        auto box = this->_dragToDiscard->getBoundingBox();
         if (box.containsPoint(position)) {
-            if (!this->_giveToSectionHovered) {
-                this->_giveToSectionHovered = true;
+            if (!this->_dragToDiscardHovered) {
+                this->_dragToDiscardHovered = true;
                 auto tintTo = TintTo::create(0.25f, Color3B::RED);
-                this->_giveToSection->runAction(tintTo);
+                this->_dragToDiscard->runAction(tintTo);
             }
         } else {
-            if (this->_giveToSectionHovered) {
-                this->_giveToSectionHovered = false;
+            if (this->_dragToDiscardHovered) {
+                this->_dragToDiscardHovered = false;
                 auto tintTo = TintTo::create(0.25f, Color3B::WHITE);
-                this->_giveToSection->runAction(tintTo);
+                this->_dragToDiscard->runAction(tintTo);
             }
         }
     };
@@ -295,13 +291,13 @@ void CollectionScreen::initEventsGiveToSection() {
     listener->onTouchEnded = [this](Touch* touch, Event*) {
         auto card = this->getDraggedCard(touch);
         if (!card.expired()) {
-            this->_giveToSectionHovered = false;
+            this->_dragToDiscardHovered = false;
             auto tintTo = TintTo::create(0.25f, Color3B::WHITE);
-            this->_giveToSection->runAction(tintTo);
+            this->_dragToDiscard->runAction(tintTo);
 
             // If we were dragging a card, discard it.
-            auto position = this->_giveToSection->getParent()->convertTouchToNodeSpace(touch);
-            auto box = this->_giveToSection->getBoundingBox();
+            auto position = this->_dragToDiscard->getParent()->convertTouchToNodeSpace(touch);
+            auto box = this->_dragToDiscard->getBoundingBox();
             if (box.containsPoint(position)) {
                 this->discardCard(card);
             }
@@ -309,7 +305,7 @@ void CollectionScreen::initEventsGiveToSection() {
     };
 
     this->getEventDispatcher()->addEventListenerWithFixedPriority(listener, -1);
-    this->_giveToSectionListener = listener;
+    this->_dragToDiscardListener = listener;
 }
 
 void CollectionScreen::initEventsDragToScore() {
