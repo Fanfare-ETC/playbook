@@ -79,6 +79,8 @@ private:
 
     const std::string NODE_NAME_GOAL_BAR = "goalBar";
     const std::string NODE_NAME_GOAL_BAR_LABEL = "goalBarLabel";
+    const std::string NODE_NAME_SCORE_BAR = "scoreBar";
+    const std::string NODE_NAME_SCORE_BAR_SCORE_CARD = "scoreBarScoreCard";
 
     cocos2d::Node* _visibleNode;
     PredictionWebSocket* _websocket;
@@ -100,8 +102,6 @@ private:
     cocos2d::Sprite* _goalSprite;
     GoalType _activeGoal;
     std::vector<std::weak_ptr<Card>> _cardsMatchingGoal;
-
-    cocos2d::Label* _scoreLabel;
 
     std::shared_ptr<Card> _activeCard;
     cocos2d::Action* _activeCardAction;
@@ -127,7 +127,7 @@ private:
     void stopDraggingActiveCard(cocos2d::Touch* touch);
     void discardCard(std::weak_ptr<Card> card);
     void scoreCardSet(GoalType goal, const std::vector<std::weak_ptr<Card>>& cardSet);
-    void displayScore(int score);
+    void updateScore(int score);
 
     float getCardScaleInSlot(cocos2d::Node* card);
     cocos2d::Vec2 getCardPositionForSlot(cocos2d::Node* cardNode, int slot);

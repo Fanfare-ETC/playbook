@@ -143,6 +143,7 @@ bool CollectionScreen::init()
     // Add score section.
     auto scoreBar = Sprite::create("Collection-Bar-Gold-9x16.png");
     auto scoreBarHeight = 96.0f;
+    scoreBar->setName(NODE_NAME_SCORE_BAR);
     scoreBar->setContentSize(Size(visibleSize.width / 2.0f, scoreBarHeight));
     scoreBar->setAnchorPoint(Vec2(0.0f, 0.0f));
     scoreBar->setPosition(0.0f, holder->getContentSize().height * holderScale);
@@ -159,6 +160,7 @@ bool CollectionScreen::init()
     scoreBar->addChild(scoreBarLabel, 1);
 
     auto scoreBarScoreCard = Label::createWithTTF("000", "fonts/SCOREBOARD.ttf", 80.0f);
+    scoreBarScoreCard->setName(NODE_NAME_SCORE_BAR_SCORE_CARD);
     scoreBarScoreCard->setColor(Color3B::WHITE);
     scoreBarScoreCard->setAnchorPoint(Vec2(0.0f, 0.5f));
     scoreBarScoreCard->setPosition(
@@ -282,15 +284,6 @@ bool CollectionScreen::init()
         };
         this->_cardSlots.push_back(slot);
     }
-
-    // Create a score overlay.
-    auto scoreOverlayLabel = Label::createWithTTF("Score", "fonts/SCOREBOARD.ttf", 216.0f);
-    scoreOverlayLabel->enableShadow(Color4B::BLACK, Size(12.0f, -12.0f), 12);
-    scoreOverlayLabel->setPosition(visibleSize.width / 2.0f, visibleSize.height / 2.0f);
-    scoreOverlayLabel->setOpacity(0);
-    scoreOverlayLabel->setVisible(false);
-    this->_scoreLabel = scoreOverlayLabel;
-    node->addChild(scoreOverlayLabel, 3);
 
     // Create event listeners.
     this->scheduleUpdate();
@@ -834,8 +827,8 @@ void CollectionScreen::scoreCardSet(GoalType goal, const std::vector<std::weak_p
     // Send score to server.
     this->reportScore(GOAL_TYPE_SCORE_MAP.at(goal));
 
-    // Display score on UI.
-    this->displayScore(GOAL_TYPE_SCORE_MAP.at(goal));
+    // Update score on UI.
+    this->updateScore(GOAL_TYPE_SCORE_MAP.at(goal));
 
     // We need to delay the execution of this so that animation completes.
     auto delayTime = DelayTime::create(0.25f);
@@ -848,25 +841,27 @@ void CollectionScreen::scoreCardSet(GoalType goal, const std::vector<std::weak_p
     this->runAction(sequence);
 }
 
-void CollectionScreen::displayScore(int score) {
-    CCLOG("CollectionScreen->displayScore: %d", score);
+void CollectionScreen::updateScore(int score) {
+    CCLOG("CollectionScreen->updateScore: %d", score);
 
-    this->_scoreLabel->setString(std::to_string(score));
-    this->_scoreLabel->setOpacity(255);
-    this->_scoreLabel->setVisible(true);
+    auto scoreBar = this->_visibleNode->getChildByName(NODE_NAME_SCORE_BAR);
+    auto scoreBarScoreCard = dynamic_cast<Label*>(scoreBar->getChildByName(NODE_NAME_SCORE_BAR_SCORE_CARD));
+    CC_ASSERT(scoreBarScoreCard != nullptr);
 
-    auto delayTime = DelayTime::create(1.0f);
-    auto fadeOut = FadeOut::create(0.5f);
-    auto moveBy = MoveBy::create(0.5f, Vec2(0.0f, 60.0f));
-    auto spawn = Spawn::create(fadeOut, moveBy, nullptr);
+    auto origScale = scoreBarScoreCard->getScale();
+    scoreBarScoreCard->setOpacity(0);
+    scoreBarScoreCard->setScale(origScale * 3.0f);
 
-    auto callFunc = CallFunc::create([this]() {
-        this->_scoreLabel->setVisible(false);
-        this->_scoreLabel->setPositionY(this->_scoreLabel->getPositionY() - 60.0f);
-    });
-    auto sequence = Sequence::create(delayTime, spawn, callFunc, nullptr);
+    auto scoreString = std::to_string(score);
+    for (unsigned int i = 0; i < 3 - scoreString.length(); i++) {
+        scoreString.insert(0, "0");
+    }
+    scoreBarScoreCard->setString(scoreString);
 
-    this->_scoreLabel->runAction(sequence);
+    auto scaleTo = ScaleTo::create(0.5f, origScale);
+    auto fadeIn = FadeIn::create(0.5f);
+    auto spawn = Spawn::create(scaleTo, fadeIn, nullptr);
+    scoreBarScoreCard->runAction(spawn);
 }
 
 float CollectionScreen::getCardScaleInSlot(Node* card) {
