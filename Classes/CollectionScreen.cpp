@@ -866,8 +866,9 @@ void CollectionScreen::updateScore(int score) {
 
 float CollectionScreen::getCardScaleInSlot(Node* card) {
     // Account for the left and right green sides (54px each).
-    auto cardsHolderWidth = (this->_cardsHolder->getContentSize().width - 54.0f) * this->_cardsHolder->getScale();
-    return cardsHolderWidth / card->getContentSize().width / NUM_SLOTS;
+    auto visibleSize = Director::getInstance()->getVisibleSize();
+    auto cardsHolderWidth = (visibleSize.width - (48.0f * 2) - ((NUM_SLOTS - 1) * 24.0f)) / 5.0f;
+    return cardsHolderWidth / card->getContentSize().width;
 }
 
 Vec2 CollectionScreen::getCardPositionForSlot(Node* cardNode, int slot) {
@@ -877,8 +878,9 @@ Vec2 CollectionScreen::getCardPositionForSlot(Node* cardNode, int slot) {
     // Compute positions.
     auto scaledCardContentSize = cardNode->getContentSize() * cardScale;
     Vec2 position (
-        this->_cardsHolder->getPosition().x + (slot + 0.5f) * scaledCardContentSize.width + (27.0f * this->_cardsHolder->getScale()),
-        this->_cardsHolder->getPosition().y + scaledCardContentSize.height * 0.5f + (27.0f * this->_cardsHolder->getScale())
+        48.0f + (slot * 24.0f) + // Left margin and slot margins
+            (slot + 0.5f) * scaledCardContentSize.width, // Space occupied by slot,
+        48.0f + (scaledCardContentSize.height * 0.5f)
     );
 
     return position;
