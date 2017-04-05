@@ -209,8 +209,7 @@
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/map"
-        app:srcCompat="@drawable/runnercold" />
+        app:layout_constraintTop_toBottomOf="@+id/map" />
 
     <ImageView
         android:id="@+id/ball_p"
@@ -259,12 +258,8 @@
 
     <ImageView
         android:id="@+id/translucentlayer"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_marginBottom="0dp"
-        android:layout_marginLeft="0dp"
-        android:layout_marginRight="0dp"
-        android:layout_marginTop="0dp"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
         android:adjustViewBounds="false"
         android:alpha="0.5"
         android:cropToPadding="true"
@@ -282,9 +277,10 @@
         android:id="@+id/treasurehunt_tutorial"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="0dp"
+        android:layout_marginEnd="8dp"
         android:layout_marginLeft="8dp"
         android:layout_marginRight="8dp"
+        android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
         android:alpha="1"
         android:elevation="0dp"
