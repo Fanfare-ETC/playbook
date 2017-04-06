@@ -6,10 +6,7 @@
 class PlaybookEvent {
 public:
     enum EventType {
-        ERROR,
-        GRAND_SLAM,
         SHUTOUT_INNING,
-        LONG_OUT,
         RUN_SCORED,
         FLY_OUT,
         TRIPLE_PLAY,
@@ -20,7 +17,7 @@ public:
         WALK,
         BLOCKED_RUN,
         STRIKEOUT,
-        HIT,
+        HIT_BY_PITCH,
         HOME_RUN,
         PITCH_COUNT_16,
         PITCH_COUNT_17,

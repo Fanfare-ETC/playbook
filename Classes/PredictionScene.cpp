@@ -614,7 +614,11 @@ void Prediction::handleClearPredictions(const rapidjson::Value::ConstMemberItera
 
 void Prediction::reportScore(int score) {
     using namespace rapidjson;
+#if CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID
     auto playerID = JniHelper::callStaticStringMethod("edu/cmu/etc/fanfare/playbook/Cocos2dxBridge", "getPlayerID");
+#else
+    std::string playerID ("Player");
+#endif
 
     Document document;
     document.SetObject();
@@ -730,10 +734,7 @@ void Prediction::saveState() {
 
 int Prediction::getScoreForEvent(PlaybookEvent::EventType event) {
     std::unordered_map<PlaybookEvent::EventType, int, PlaybookEvent::EventTypeHash> map = {
-        {PlaybookEvent::EventType::ERROR, 15},
-        {PlaybookEvent::EventType::GRAND_SLAM, 400},
         {PlaybookEvent::EventType::SHUTOUT_INNING, 4},
-        {PlaybookEvent::EventType::LONG_OUT, 5},
         {PlaybookEvent::EventType::RUN_SCORED, 4},
         {PlaybookEvent::EventType::FLY_OUT, 2},
         {PlaybookEvent::EventType::TRIPLE_PLAY, 1400},
@@ -746,7 +747,7 @@ int Prediction::getScoreForEvent(PlaybookEvent::EventType event) {
         {PlaybookEvent::EventType::WALK, 3},
         {PlaybookEvent::EventType::TRIPLE, 20},
         {PlaybookEvent::EventType::SINGLE, 3},
-        {PlaybookEvent::EventType::HIT, 2},
+        {PlaybookEvent::EventType::HIT_BY_PITCH, 2},
         {PlaybookEvent::EventType::HOME_RUN, 10},
         {PlaybookEvent::EventType::PITCH_COUNT_16, 2},
         {PlaybookEvent::EventType::BLOCKED_RUN, 10},

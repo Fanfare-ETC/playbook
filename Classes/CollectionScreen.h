@@ -32,21 +32,19 @@ public:
 
 private:
     struct Card {
+        Card(PlaybookEvent::Team team, PlaybookEvent::EventType event, cocos2d::Sprite* sprite);
         PlaybookEvent::Team team;
         PlaybookEvent::EventType event;
         cocos2d::Sprite* sprite;
 
-        bool operator==(const Card& card) const {
-            return this->sprite == card.sprite;
-        }
-
-        bool operator!=(const Card& card) const {
-            return !this->operator==(card);
-        }
+        bool isDragged;
+        int draggedTouchID;
+        cocos2d::Vec2 draggedOrigPosition;
+        bool draggedDropping;
     };
 
     struct CardSlot {
-        Card card;
+        std::shared_ptr<Card> card;
         bool present;
     };
 
@@ -54,11 +52,11 @@ private:
         IDENTICAL_CARDS_3,
         IDENTICAL_CARDS_4,
         IDENTICAL_CARDS_5,
-        //UNIQUE_OUT_CARDS_3,
-        //UNIQUE_OUT_CARDS_4,
-        WALK_OR_HIT_3,
+        UNIQUE_OUT_CARDS_3,
+        UNIQUE_OUT_CARDS_4,
+        WALK_OR_HIT_BY_PITCH_3,
         OUT_3,
-        BASES_3,
+        BASES_RBI_3,
         EACH_COLOR_1,
         EACH_COLOR_2,
         SAME_COLOR_3,
@@ -79,6 +77,11 @@ private:
     static const std::unordered_map<GoalType, std::string, GoalTypeHash> GOAL_TYPE_FILE_MAP;
     static const std::unordered_map<GoalType, int, GoalTypeHash> GOAL_TYPE_SCORE_MAP;
 
+    const std::string NODE_NAME_GOAL_BAR = "goalBar";
+    const std::string NODE_NAME_GOAL_BAR_LABEL = "goalBarLabel";
+    const std::string NODE_NAME_SCORE_BAR = "scoreBar";
+    const std::string NODE_NAME_SCORE_BAR_SCORE_CARD = "scoreBarScoreCard";
+
     cocos2d::Node* _visibleNode;
     PredictionWebSocket* _websocket;
 
@@ -87,34 +90,27 @@ private:
     std::queue<PlaybookEvent::EventType> _incomingCardQueue;
     std::vector<CardSlot> _cardSlots;
     bool _isCardActive;
-    bool _isCardDragged;
-    Card _draggedCard;
-    bool _draggedCardDropping;
-    cocos2d::Vec2 _draggedCardOrigPosition;
 
-    cocos2d::Sprite* _giveToSection;
-    float _giveToSectionOrigScale;
-    bool _giveToSectionHovered;
-    cocos2d::EventListener* _giveToSectionListener;
+    cocos2d::Node* _dragToDiscard;
+    bool _dragToDiscardHovered;
+    cocos2d::EventListener* _dragToDiscardListener;
 
     cocos2d::Sprite* _dragToScore;
-    float _dragToScoreOrigScale;
     bool _dragToScoreHovered;
     cocos2d::EventListener* _dragToScoreListener;
 
     cocos2d::Sprite* _goalSprite;
     GoalType _activeGoal;
-    std::vector<Card> _cardsMatchingGoal;
+    std::vector<std::weak_ptr<Card>> _cardsMatchingGoal;
 
-    cocos2d::Label* _scoreLabel;
-
-    Card _activeCard;
+    std::shared_ptr<Card> _activeCard;
+    cocos2d::Action* _activeCardAction;
     float _activeCardOrigScale;
     cocos2d::Vec2 _activeCardOrigPosition;
     float _activeCardOrigRotation;
     cocos2d::EventListener* _activeEventListener;
 
-    void initEventsGiveToSection();
+    void initEventsDragToDiscard();
     void initEventsDragToScore();
 
     void connectToServer();
@@ -124,13 +120,14 @@ private:
     void handlePlaysCreated(const rapidjson::Value::ConstMemberIterator& data, bool hasData);
     void reportScore(int score);
 
+    std::weak_ptr<Card> getDraggedCard(cocos2d::Touch* touch);
     void receiveCard(PlaybookEvent::EventType event);
-    Card createCard(PlaybookEvent::EventType event);
+    std::shared_ptr<Card> createCard(PlaybookEvent::EventType event);
     void startDraggingActiveCard(cocos2d::Touch* touch);
     void stopDraggingActiveCard(cocos2d::Touch* touch);
-    void discardCard(const Card& card);
-    void scoreCardSet(GoalType goal, const std::vector<Card>& cardSet);
-    void displayScore(int score);
+    void discardCard(std::weak_ptr<Card> card);
+    void scoreCardSet(GoalType goal, const std::vector<std::weak_ptr<Card>>& cardSet);
+    void updateScore(int score);
 
     float getCardScaleInSlot(cocos2d::Node* card);
     cocos2d::Vec2 getCardPositionForSlot(cocos2d::Node* cardNode, int slot);
@@ -141,7 +138,9 @@ private:
 
     void createGoal();
     void checkIfGoalMet();
-    bool cardSetMeetsGoal(const std::vector<Card>& cardSet, GoalType goal, std::vector<Card>& outSet);
+    bool cardSetMeetsGoal(const std::vector<std::weak_ptr<Card>>& cardSet,
+                          GoalType goal,
+                          std::vector<std::weak_ptr<Card>>& outSet);
 
     void restoreState();
     void saveState();
