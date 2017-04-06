@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/treasurehunt_layout"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -26,48 +27,6 @@
         app:layout_constraintHorizontal_bias="0.497"
         app:layout_constraintVertical_bias="0.953" />
     -->
-
-    <ImageView
-        android:id="@+id/holder"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:adjustViewBounds="true"
-        android:visibility="visible"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintDimensionRatio="w,1:1"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:srcCompat="@drawable/holder" />
-
-    <ImageView
-        android:id="@+id/map"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="16dp"
-        android:layout_marginLeft="16dp"
-        android:layout_marginRight="16dp"
-        android:layout_marginStart="16dp"
-        android:adjustViewBounds="true"
-        android:visibility="visible"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/map_test" />
-
-    <view
-        android:id="@+id/linesView"
-        class="edu.cmu.etc.fanfare.playbook.TreasureHuntFragment$LinesView"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:visibility="visible"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.0" />
 
     <!--
     <ImageView
@@ -97,185 +56,152 @@
         app:layout_constraintVertical_bias="0.0"/>
     -->
 
-    <ImageView
-        android:id="@+id/warmer"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="8dp"
-        android:layout_marginLeft="8dp"
-        android:layout_marginRight="8dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="16dp"
-        android:scaleType="fitCenter"
-        android:visibility="visible"
-        app:layout_constraintLeft_toLeftOf="@+id/holder"
-        app:layout_constraintRight_toLeftOf="@+id/colder"
-        app:layout_constraintTop_toTopOf="@+id/holder"
-        app:srcCompat="@drawable/warm" />
-
-    <ImageView
-        android:id="@+id/colder"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="8dp"
-        android:layout_marginLeft="8dp"
-        android:layout_marginRight="8dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="16dp"
-        android:scaleType="fitCenter"
-        android:visibility="visible"
-        app:layout_constraintLeft_toRightOf="@+id/warmer"
-        app:layout_constraintRight_toRightOf="@+id/holder"
-        app:layout_constraintTop_toTopOf="@+id/holder"
-        app:srcCompat="@drawable/cold" />
-
-    <ImageView
-        android:id="@+id/plant"
+    <view
+        class="edu.cmu.etc.fanfare.playbook.TreasureHuntFragment$LinesView"
+        android:id="@+id/linesView"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginBottom="16dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginLeft="8dp"
-        android:layout_marginRight="8dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="16dp"
-        android:adjustViewBounds="true"
-        android:scaleType="fitCenter"
-        android:visibility="visible"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/warmer"
-        app:layout_constraintVertical_bias="1.0"
-        app:layout_constraintWidth_max="361dp"
-        app:srcCompat="@drawable/plant" />
+        app:layout_constraintTop_toTopOf="parent"
+        tools:layout_editor_absoluteX="8dp"
+        tools:layout_editor_absoluteY="8dp" />
+
+    <ImageView
+        android:id="@+id/warmer_section"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:scaleType="fitXY"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintHorizontal_bias="0.158"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.362" />
+
+    <ImageView
+        android:id="@+id/map"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="32dp"
+        android:adjustViewBounds="true"
+        android:cropToPadding="true"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.0"
+        app:srcCompat="@drawable/map" />
 
     <ImageView
         android:id="@+id/marker0"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginLeft="8dp"
-        android:layout_marginRight="8dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
-        android:adjustViewBounds="true"
-        android:cropToPadding="true"
-        android:scaleType="fitXY"
-        android:visibility="visible"
-        app:layout_constraintBottom_toBottomOf="@+id/map"
-        app:layout_constraintHorizontal_bias="0.59"
-        app:layout_constraintLeft_toLeftOf="@+id/map"
-        app:layout_constraintRight_toRightOf="@+id/map"
-        app:layout_constraintTop_toTopOf="@+id/linesView"
-        app:layout_constraintVertical_bias="0.593"
-        app:srcCompat="@drawable/hotcoldx" />
+        app:srcCompat="@drawable/hotcoldx"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintHorizontal_bias="0.802"
+        app:layout_constraintVertical_bias="0.05" />
 
     <ImageView
         android:id="@+id/marker1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginLeft="8dp"
-        android:layout_marginRight="8dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
-        android:adjustViewBounds="true"
-        android:cropToPadding="true"
-        android:scaleType="fitXY"
-        android:visibility="visible"
-        app:layout_constraintBottom_toBottomOf="@+id/map"
-        app:layout_constraintHorizontal_bias="0.804"
-        app:layout_constraintLeft_toLeftOf="@+id/map"
-        app:layout_constraintRight_toRightOf="@+id/map"
-        app:layout_constraintTop_toTopOf="@+id/linesView"
-        app:layout_constraintVertical_bias="0.101"
-        app:srcCompat="@drawable/hotcoldx" />
+        app:srcCompat="@drawable/hotcoldx"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintHorizontal_bias="0.22"
+        app:layout_constraintVertical_bias="0.206" />
 
     <ImageView
-        android:id="@+id/runner"
+        android:id="@+id/sectionsays"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginLeft="16dp"
-        android:layout_marginRight="16dp"
-        android:layout_marginStart="16dp"
-        android:scaleType="fitCenter"
-        android:visibility="visible"
-        app:layout_constraintBottom_toTopOf="@+id/holder"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/map" />
+        app:layout_constraintTop_toTopOf="@+id/map"
+        app:layout_constraintVertical_bias="0.334"
+        app:srcCompat="@drawable/sectionsays" />
 
     <ImageView
-        android:id="@+id/ball_p"
-        android:layout_width="wrap_content"
+        android:id="@+id/aggregate"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:adjustViewBounds="true"
-        android:cropToPadding="false"
-        android:scaleType="fitXY"
-        android:visibility="invisible"
-        app:layout_constraintBottom_toBottomOf="@+id/linesView"
-        app:layout_constraintHorizontal_bias="0.538"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="@+id/map"
-        app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/ball" />
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/sectionsays"
+        app:srcCompat="@drawable/aggregate"
+        app:layout_constraintVertical_bias="0.114" />
 
     <ImageView
-        android:id="@+id/ball_c"
+        android:id="@+id/warmer"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:adjustViewBounds="true"
-        android:cropToPadding="false"
-        android:scaleType="fitXY"
-        android:visibility="invisible"
-        app:layout_constraintBottom_toBottomOf="@+id/linesView"
-        app:layout_constraintHorizontal_bias="0.538"
+        app:srcCompat="@drawable/warmer"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="@+id/map"
+        app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/ball" />
+        android:layout_marginTop="32dp"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintVertical_bias="1.0" />
 
     <ImageView
-        android:id="@+id/ball_w"
+        android:id="@+id/colder"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:adjustViewBounds="true"
-        android:cropToPadding="false"
-        android:scaleType="fitXY"
-        android:visibility="invisible"
-        app:layout_constraintBottom_toBottomOf="@+id/linesView"
-        app:layout_constraintHorizontal_bias="0.538"
+        app:srcCompat="@drawable/colder"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="@+id/map"
+        app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/ball" />
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintVertical_bias="1.0" />
+
+    <ImageView
+        android:id="@+id/plant"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:srcCompat="@drawable/plan_on"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.871"
+        app:layout_constraintHorizontal_bias="0.497" />
 
     <ImageView
         android:id="@+id/translucentlayer"
         android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:adjustViewBounds="false"
+        android:layout_height="wrap_content"
+        android:adjustViewBounds="true"
         android:alpha="0.5"
         android:cropToPadding="true"
         android:scaleType="fitXY"
         android:scaleX="1"
         android:scaleY="1"
-        android:visibility="visible"
+        android:visibility="invisible"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.0"
         app:srcCompat="@drawable/bg" />
 
     <ImageView
         android:id="@+id/treasurehunt_tutorial"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginEnd="8dp"
         android:layout_marginLeft="8dp"
@@ -286,11 +212,11 @@
         android:elevation="0dp"
         android:scaleType="fitXY"
         android:src="@drawable/treasurehunt_tutorial"
-        android:visibility="visible"
+        android:visibility="invisible"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.102" />
+        app:layout_constraintVertical_bias="0.0" />
 
 </android.support.constraint.ConstraintLayout>

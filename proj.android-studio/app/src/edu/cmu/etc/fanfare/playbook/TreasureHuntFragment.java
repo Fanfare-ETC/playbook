@@ -8,8 +8,10 @@ import android.content.SharedPreferences;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.media.Image;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.constraint.ConstraintLayout;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AlertDialog;
 import android.util.AttributeSet;
@@ -31,13 +33,17 @@ import com.koushikdutta.async.http.WebSocket;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.Random;
 import java.util.StringTokenizer;
+import java.util.Vector;
 
 public class TreasureHuntFragment extends Fragment implements View.OnClickListener{
 
     public static int section;
     public static View view;
     private boolean treasurehunt_live=false;
+    private ConstraintLayout layout;
+    private int id;
 
     private  String mEndpoint = "ws://" +
             BuildConfig.PLAYBOOK_TREASUREHUNT_API_HOST + ":" +
@@ -122,7 +128,9 @@ public class TreasureHuntFragment extends Fragment implements View.OnClickListen
      * A custom view to draw lines between the runner and the individual
      * buttons on screen.
      */
+
     public static class LinesView extends View {
+
         private final int mWarmerColor = Color.rgb(192, 55, 41);
         private final int mColderColor = Color.rgb(30, 48, 98);
         private final int mPlantColor = Color.rgb(255, 195, 13);
@@ -131,13 +139,10 @@ public class TreasureHuntFragment extends Fragment implements View.OnClickListen
         private final Paint mColderPaint = new Paint();
         private final Paint mPlantPaint = new Paint();
 
-        private View mRunnerView;
         private View mWarmerView;
         private View mColderView;
         private View mPlantView;
 
-
-        public static int[] runnerLocation = new int[2];
         public static int[] warmerLocation = new int[2];
         public static int[] colderLocation = new int[2];
         public static int[] plantLocation = new int[2];
@@ -170,10 +175,6 @@ public class TreasureHuntFragment extends Fragment implements View.OnClickListen
             mPlantPaint.setAntiAlias(true);
         }
 
-        public void setRunnerView(View runnerView) {
-            mRunnerView = runnerView;
-        }
-
         public void setWarmerView(View warmerView) {
             mWarmerView = warmerView;
         }
@@ -191,27 +192,27 @@ public class TreasureHuntFragment extends Fragment implements View.OnClickListen
             super.onDraw(canvas);
 
             // Draw lines only when everything is set up.
-            if (mRunnerView == null || mWarmerView == null || mColderView == null ||
+            if ( mWarmerView == null || mColderView == null ||
                     mPlantView == null) {
                 return;
             }
 
 
-            mRunnerView.getLocationInWindow(runnerLocation);
+           // mRunnerView.getLocationInWindow(runnerLocation);
             mWarmerView.getLocationInWindow(warmerLocation);
             mColderView.getLocationInWindow(colderLocation);
             mPlantView.getLocationInWindow(plantLocation);
             this.getLocationInWindow(canvasLocation);
 
             // Compute the midpoints of these locations.
-            runnerLocation[0] = runnerLocation[0] + mRunnerView.getWidth() / 2 - canvasLocation[0];
-            runnerLocation[1] = runnerLocation[1] + mRunnerView.getHeight() / 2 - canvasLocation[1];
             warmerLocation[0] = warmerLocation[0] + mWarmerView.getWidth() / 2 - canvasLocation[0];
             warmerLocation[1] = warmerLocation[1] + mWarmerView.getHeight() / 2 - canvasLocation[1];
             colderLocation[0] = colderLocation[0] + mColderView.getWidth() / 2 - canvasLocation[0];
             colderLocation[1] = colderLocation[1] + mColderView.getHeight() / 2 - canvasLocation[1];
             plantLocation[0] = plantLocation[0] + mPlantView.getWidth() / 2 - canvasLocation[0];
             plantLocation[1] = plantLocation[1] + mPlantView.getHeight() / 2 - canvasLocation[1];
+
+            /**
 
             // Set up the paints and draw the lines.
             canvas.drawLine(colderLocation[0], colderLocation[1], colderLocation[0], colderLocation[1]-400, mColderPaint);
@@ -242,7 +243,7 @@ public class TreasureHuntFragment extends Fragment implements View.OnClickListen
             canvas.drawLine(runnerLocation[0]-150, runnerLocation[1]-400, runnerLocation[0]-150, runnerLocation[1]-600, mPlantPaint); //left vertical
             canvas.drawLine(runnerLocation[0]-150, runnerLocation[1]-600, runnerLocation[0]+150, runnerLocation[1]-600, mPlantPaint); //top horizontal
             canvas.drawLine(runnerLocation[0]+150, runnerLocation[1]-600, runnerLocation[0]+ 150, runnerLocation[1]-400, mPlantPaint); //right horizontal
-
+          **/
         }
     }
 
@@ -252,7 +253,7 @@ public class TreasureHuntFragment extends Fragment implements View.OnClickListen
         super.onCreateView(inflater, container, savedInstanceState);
         view=inflater.inflate(R.layout.treasurehunt_fragment, container, false);
 
-        SharedPreferences settings = this.getContext().getSharedPreferences("FANFARE_SHARED", 0);
+      SharedPreferences settings = this.getContext().getSharedPreferences("FANFARE_SHARED", 0);
         section = settings.getInt("section", 0)-1;
         ImageView marker0= (ImageView)view.findViewById(R.id.marker0);
         ImageView marker1= (ImageView)view.findViewById(R.id.marker1);
@@ -269,12 +270,12 @@ public class TreasureHuntFragment extends Fragment implements View.OnClickListen
 
         else{}
 
-        ImageView button_w= (ImageView)view.findViewById(R.id.warmer);
-        button_w.setOnClickListener(this);
-        ImageView button_c= (ImageView)view.findViewById(R.id.colder);
-        button_c.setOnClickListener(this);
-        ImageView button_p= (ImageView)view.findViewById(R.id.plant);
-        button_p.setOnClickListener(this);
+        ImageView WarmerView= (ImageView)view.findViewById(R.id.warmer);
+        WarmerView.setOnClickListener(this);
+        ImageView ColderView= (ImageView)view.findViewById(R.id.colder);
+        ColderView.setOnClickListener(this);
+        ImageView PlantView= (ImageView)view.findViewById(R.id.plant);
+        PlantView.setOnClickListener(this);
 
        //timerHandler.postDelayed(timerRunnable,0);
 
@@ -282,18 +283,19 @@ public class TreasureHuntFragment extends Fragment implements View.OnClickListen
         view.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
             public void onGlobalLayout() {
-                // We only want to know that layout happened for the first time.
-                view.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+         // We only want to know that layout happened for the first time.
+         view.getViewTreeObserver().removeOnGlobalLayoutListener(this);
 
                 // Create a new view for the lines and draw them.
                 LinesView linesView = (LinesView) view.findViewById(R.id.linesView);
-                linesView.setRunnerView(view.findViewById(R.id.runner));
                 linesView.setWarmerView(view.findViewById(R.id.warmer));
                 linesView.setColderView(view.findViewById(R.id.colder));
                 linesView.setPlantView(view.findViewById(R.id.plant));
                 linesView.invalidate();
             }
         });
+
+
         mEndpoint="ws://128.2.238.137:9000";
         Log.d("url",mEndpoint);
 
@@ -307,6 +309,7 @@ public class TreasureHuntFragment extends Fragment implements View.OnClickListen
                         webSocket.setStringCallback(new WebSocket.StringCallback() {
                             public void onStringAvailable(String s) {
                                 if (s != null) {
+
                                     Log.d("signal",s);
                                     if(s.equals("start"))
                                     {
@@ -329,6 +332,38 @@ public class TreasureHuntFragment extends Fragment implements View.OnClickListen
                                     }
                                     else if(s.equals("plus10warmer"))
                                     {
+                                        getActivity().runOnUiThread(new Runnable() {
+                                            @Override
+                                            public void run() {
+
+
+                                                //create a new plusten
+                                        ConstraintLayout layout=(ConstraintLayout)view.findViewById(R.id.treasurehunt_layout);
+                                        int[] warmerlocation = new int[2];
+                                        int w_id = getResources().getIdentifier("plusten_w", "drawable", getActivity().getPackageName());
+
+                                        ImageView new_w= new ImageView(getContext());
+                                        new_w.setImageResource(w_id);
+                                        new_w.setVisibility(View.VISIBLE);
+                                        ImageView warmer_section = (ImageView) view.findViewById(R.id.warmer_section);
+                                        warmer_section.getLocationOnScreen(warmerlocation);
+
+                                                Random generator = new Random();
+                                                int i = generator.nextInt(50)+10 ;
+
+                                        new_w.setRotation(i);
+                                        new_w.setX(warmerlocation[0]+i);
+                                        new_w.setY(warmerlocation[1]+i);
+                                        layout.addView(new_w);
+
+                                                //add animation to plusten
+
+                                                ObjectAnimator blink_plusten_w = ObjectAnimator.ofFloat(new_w, "alpha", 1.0f, 0.0f);
+                                                blink_plusten_w.setDuration(2000);
+                                                blink_plusten_w.start();
+
+                                            }
+                                        });
 
                                     }
                                     else if(s.equals("plus10colder"))
@@ -347,6 +382,10 @@ public class TreasureHuntFragment extends Fragment implements View.OnClickListen
                     }
                 });
 
+        //define all common animations
+
+         layout=(ConstraintLayout)view.findViewById(R.id.treasurehunt_layout);
+         id = getResources().getIdentifier("plusone", "drawable", getActivity().getPackageName());
 
         return view;
 
@@ -358,42 +397,7 @@ public class TreasureHuntFragment extends Fragment implements View.OnClickListen
     }
     public void onClick(View v) {
 
-        ImageView translucent = (ImageView) view.findViewById(R.id.translucentlayer);
-        translucent.setVisibility(View.INVISIBLE);
-
         final JSONObject obj= new JSONObject();
-
-        ImageView ball_w = (ImageView)TreasureHuntFragment.view.findViewById(R.id.ball_w);
-
-        ObjectAnimator blink_w = ObjectAnimator.ofFloat(ball_w, "alpha", 1.0f, 0.0f);
-        blink_w.setDuration(500);
-
-        ObjectAnimator animX0 = ObjectAnimator.ofFloat(ball_w, "x", LinesView.warmerLocation[0], LinesView.runnerLocation[0]);
-        ObjectAnimator animY0 = ObjectAnimator.ofFloat(ball_w, "y", LinesView.warmerLocation[1], LinesView.runnerLocation[1]);
-        AnimatorSet animSetXY0 = new AnimatorSet();
-        animSetXY0.setDuration(500);
-
-        ImageView ball_c = (ImageView)TreasureHuntFragment.view.findViewById(R.id.ball_c);
-
-        ObjectAnimator blink_c = ObjectAnimator.ofFloat(ball_c, "alpha", 1.0f, 0.0f);
-        blink_c.setDuration(500);
-
-        ObjectAnimator animX1 = ObjectAnimator.ofFloat(ball_c, "x", LinesView.colderLocation[0], LinesView.runnerLocation[0]);
-        ObjectAnimator animY1 = ObjectAnimator.ofFloat(ball_c, "y", LinesView.colderLocation[1], LinesView.runnerLocation[1]);
-        AnimatorSet animSetXY1 = new AnimatorSet();
-        animSetXY1.setDuration(500);
-
-
-        ImageView ball_p = (ImageView)TreasureHuntFragment.view.findViewById(R.id.ball_p);
-
-        ObjectAnimator blink_p = ObjectAnimator.ofFloat(ball_p, "alpha", 1.0f, 0.0f);
-        blink_p.setDuration(500);
-
-        ObjectAnimator animX2 = ObjectAnimator.ofFloat(ball_p, "x", LinesView.plantLocation[0], LinesView.runnerLocation[0]);
-        ObjectAnimator animY2 = ObjectAnimator.ofFloat(ball_p, "y", LinesView.plantLocation[1], LinesView.runnerLocation[1]);
-        AnimatorSet animSetXY2 = new AnimatorSet();
-        animSetXY2.setDuration(500);
-
         switch (v.getId()) {
 
             case R.id.warmer:
@@ -405,13 +409,22 @@ public class TreasureHuntFragment extends Fragment implements View.OnClickListen
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
+                    Log.d("pressed","warmer");
 
-                    //animate ball from warmer to runner
-                    ball_w.setVisibility(View.VISIBLE);
-                    animSetXY0.play(animX0).with(animY0).with(blink_w);
-                    animSetXY0.start();
+                     //create a new plusone
+                     ImageView new_w= new ImageView(getContext());
+                     new_w.setImageResource(id);
+                     new_w.setVisibility(View.VISIBLE);
+                     new_w.setX(LinesView.warmerLocation[0]);
+                     new_w.setY(LinesView.warmerLocation[1]);
+                     layout.addView(new_w);
 
-                    if(!animSetXY0.isRunning()) ball_w.setVisibility(View.INVISIBLE);
+                     ObjectAnimator anim_plusone_w = ObjectAnimator.ofFloat(new_w, "y",LinesView.warmerLocation[1], LinesView.warmerLocation[1]-500);
+                     anim_plusone_w.setDuration(500);
+                     anim_plusone_w.start();
+                     ObjectAnimator blink_plusone_w = ObjectAnimator.ofFloat(new_w, "alpha", 1.0f, 0.0f);
+                     blink_plusone_w.setDuration(500);
+                     blink_plusone_w.start();
 
                 break;
             case R.id.colder:
@@ -424,13 +437,21 @@ public class TreasureHuntFragment extends Fragment implements View.OnClickListen
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
+                //create a new plusone
+                ImageView new_c= new ImageView(getContext());
+                new_c.setImageResource(id);
+                new_c.setVisibility(View.VISIBLE);
+                new_c.setX(LinesView.colderLocation[0]);
+                new_c.setY(LinesView.colderLocation[1]);
+                layout.addView(new_c);
 
-                    //animate ball from colder to runner
-                    ball_c.setVisibility(View.VISIBLE);
-                    animSetXY1.play(animX1).with(animY1).with(blink_c);
-                    animSetXY1.start();
+                ObjectAnimator anim_plusone_c = ObjectAnimator.ofFloat(new_c, "y",LinesView.colderLocation[1], LinesView.colderLocation[1]-500);
+                anim_plusone_c.setDuration(500);
+                anim_plusone_c.start();
+                ObjectAnimator blink_plusone_c = ObjectAnimator.ofFloat(new_c, "alpha", 1.0f, 0.0f);
+                blink_plusone_c.setDuration(500);
+                blink_plusone_c.start();
 
-                    if(!animSetXY1.isRunning()) ball_c.setVisibility(View.INVISIBLE);
 
                 break;
             case R.id.plant:
@@ -443,13 +464,21 @@ public class TreasureHuntFragment extends Fragment implements View.OnClickListen
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
+                //create a new plusone
+                ImageView new_p= new ImageView(getContext());
+                new_p.setImageResource(id);
+                new_p.setVisibility(View.VISIBLE);
+                new_p.setX(LinesView.plantLocation[0]);
+                new_p.setY(LinesView.plantLocation[1]);
+                layout.addView(new_p);
 
-                    //animate ball from plant to runner
-                    ball_p.setVisibility(View.VISIBLE);
-                    animSetXY2.play(animX2).with(animY2).with(blink_p);
-                    animSetXY2.start();
+                ObjectAnimator anim_plusone_p = ObjectAnimator.ofFloat(new_p, "y",LinesView.plantLocation[1], LinesView.plantLocation[1]-500);
+                anim_plusone_p.setDuration(500);
+                anim_plusone_p.start();
+                ObjectAnimator blink_plusone_p = ObjectAnimator.ofFloat(new_p, "alpha", 1.0f, 0.0f);
+                blink_plusone_p.setDuration(500);
+                blink_plusone_p.start();
 
-                    if(!animSetXY2.isRunning()) ball_p.setVisibility(View.INVISIBLE);
 
                 break;
         }
