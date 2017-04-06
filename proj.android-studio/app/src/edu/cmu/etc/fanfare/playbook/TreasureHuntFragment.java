@@ -383,8 +383,8 @@ public class TreasureHuntFragment extends Fragment implements View.OnClickListen
                                                 section.getLocationInWindow(location);
 
                                                 Random generator = new Random();
-                                                int x = generator.nextInt(100)-50;
-                                                int y = generator.nextInt(100)-50 ;
+                                                int x = generator.nextInt(100)-80;
+                                                int y = generator.nextInt(100)-80 ;
 
                                                 new_plusten.setRotation(x*y);
                                                 new_plusten.setX(location[0]+x);
@@ -439,8 +439,8 @@ public class TreasureHuntFragment extends Fragment implements View.OnClickListen
                                                 section.getLocationOnScreen(location);
 
                                                 Random generator = new Random();
-                                                int x = generator.nextInt(100)-50;
-                                                int y = generator.nextInt(100)-50 ;
+                                                int x = generator.nextInt(100)-80;
+                                                int y = generator.nextInt(100)-80 ;
 
                                                 new_plusten.setRotation(x*y);
                                                 new_plusten.setX(location[0]+x);
@@ -496,8 +496,8 @@ public class TreasureHuntFragment extends Fragment implements View.OnClickListen
                                                 section.getLocationInWindow(location);
 
                                                 Random generator = new Random();
-                                                int x = generator.nextInt(100)-50;
-                                                int y = generator.nextInt(100)-50 ;
+                                                int x = generator.nextInt(100)-80;
+                                                int y = generator.nextInt(100)-80 ;
 
                                                 new_plusten.setRotation(x*y);
                                                 new_plusten.setX(location[0]+x);
