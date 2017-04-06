@@ -83,6 +83,9 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
             if (acct != null) {
                 Cocos2dxBridge.setPlayerName(acct.getDisplayName());
                 Cocos2dxBridge.setPlayerID(acct.getId());
+                //insert player
+                BackgroundWorker backgroundWorker = new BackgroundWorker();
+                backgroundWorker.execute("section");
                 startActivity(new Intent(this, AppActivity.class));
                 finish();
             } else {

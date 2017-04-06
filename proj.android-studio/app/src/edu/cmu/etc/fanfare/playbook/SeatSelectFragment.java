@@ -44,6 +44,7 @@ public class SeatSelectFragment extends Fragment implements AdapterView.OnItemSe
         // Apply the adapter to the spinner
         spinner.setAdapter(adapter);
         spinner.setOnItemSelectedListener(this);
+
         arrow = (ImageView) view.findViewById(R.id.btn_dropdown);
         arrow.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
@@ -63,8 +64,8 @@ public class SeatSelectFragment extends Fragment implements AdapterView.OnItemSe
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                BackgroundWorker backgroundWorker = new BackgroundWorker(section);
-                backgroundWorker.execute("section");
+               // BackgroundWorker backgroundWorker = new BackgroundWorker(section);
+                //backgroundWorker.execute("section");
 
                 SharedPreferences.Editor editor = v.getContext().getSharedPreferences("FANFARE_SHARED", MODE_PRIVATE).edit();
                 editor.putInt("section", section);

@@ -13,11 +13,11 @@
         android:layout_height="64dp"
         android:background="@null"
         android:rotation="58"
-        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintLeft_toLeftOf="@+id/stadium_map"
         app:layout_constraintTop_toTopOf="parent"
         android:layout_marginStart="8dp"
         android:layout_marginLeft="8dp"
-        android:layout_marginTop="174dp" />
+        android:layout_marginTop="148dp" />
 
     <Button
         android:id="@+id/section2"
@@ -25,11 +25,11 @@
         android:layout_height="69dp"
         android:background="@null"
         android:rotation="43"
-        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintLeft_toLeftOf="@+id/stadium_map"
         app:layout_constraintTop_toTopOf="parent"
         android:layout_marginStart="8dp"
         android:layout_marginLeft="8dp"
-        android:layout_marginTop="264dp" />
+        android:layout_marginTop="212dp" />
 
     <Button
         android:id="@+id/section3"
@@ -37,11 +37,11 @@
         android:layout_height="69dp"
         android:background="@null"
         android:rotation="-43"
-        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="@+id/stadium_map"
         app:layout_constraintTop_toTopOf="parent"
         android:layout_marginStart="8dp"
         android:layout_marginLeft="8dp"
-        android:layout_marginTop="264dp" />
+        android:layout_marginTop="212dp" />
 
     <Button
         android:id="@+id/section4"
@@ -49,11 +49,11 @@
         android:layout_height="64dp"
         android:background="@null"
         android:rotation="-58"
-        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="@+id/stadium_map"
         app:layout_constraintTop_toTopOf="parent"
         android:layout_marginStart="8dp"
         android:layout_marginLeft="8dp"
-        android:layout_marginTop="174dp" />
+        android:layout_marginTop="148dp" />
 
     <ImageView
         android:id="@+id/stadium_map"

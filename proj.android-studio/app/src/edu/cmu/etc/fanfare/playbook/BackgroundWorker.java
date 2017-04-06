@@ -48,10 +48,10 @@ public class  BackgroundWorker extends AsyncTask<String,Void,String> {
             BuildConfig.PLAYBOOK_SECTION_API_PORT + "/" +
             BuildConfig.PLAYBOOK_SECTION_APP;
 
-    BackgroundWorker(int section)
-{
-    this.param = section;
-}
+    BackgroundWorker()
+    {
+        //this.param = section;
+    }
     @Override
 
     protected String doInBackground(String... params) {
@@ -72,7 +72,7 @@ public class  BackgroundWorker extends AsyncTask<String,Void,String> {
                 OutputStream outputStream = httpURLConnection.getOutputStream();
                 BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(outputStream, "UTF-8"));
                 JSONObject object = new JSONObject();
-                object.put("id", param);
+                //object.put("id", param);
                 object.put("userId", LoginActivity.acct.getId());
                 object.put("userName", LoginActivity.acct.getGivenName() + " " + LoginActivity.acct.getFamilyName());
                 Log.d("test", object.toString());

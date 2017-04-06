@@ -154,6 +154,9 @@ public class AppActivity extends AppCompatActivity {
                 fragment = new CollectionFragment();
                 break;
             case 3:
+                fragment = new TrophyFragment();
+                break;
+            case 4:
                 if(sectionFlag == false){
                     fragment = new SeatSelectFragment();
                     //sectionFlag = true;
@@ -354,6 +357,7 @@ public class AppActivity extends AppCompatActivity {
         if (id == R.id.action_about) {
             return true;
         } else if (id == R.id.action_debug) {
+
             Cocos2dxBridge.loadScene("SectionSelection");
         }
 
