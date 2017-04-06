@@ -399,7 +399,7 @@ public class TreasureHuntFragment extends Fragment implements View.OnClickListen
                                                 }
 
                                                 ObjectAnimator blink_plusten = ObjectAnimator.ofFloat(new_plusten, "alpha", 1.0f, 0.0f);
-                                                blink_plusten.setDuration(10000);
+                                                blink_plusten.setDuration(2000);
 
                                                 if(anim_plustens.size()==10)
                                                 {
@@ -455,7 +455,7 @@ public class TreasureHuntFragment extends Fragment implements View.OnClickListen
                                                 }
 
                                                 ObjectAnimator blink_plusten = ObjectAnimator.ofFloat(new_plusten, "alpha", 1.0f, 0.0f);
-                                                blink_plusten.setDuration(10000);
+                                                blink_plusten.setDuration(2000);
 
                                                 if(anim_plustens.size()==10)
                                                 {
@@ -512,7 +512,7 @@ public class TreasureHuntFragment extends Fragment implements View.OnClickListen
                                                 }
 
                                                 ObjectAnimator blink_plusten = ObjectAnimator.ofFloat(new_plusten, "alpha", 1.0f, 0.0f);
-                                                blink_plusten.setDuration(10000);
+                                                blink_plusten.setDuration(2000);
 
                                                 if(anim_plustens.size()==10)
                                                 {
