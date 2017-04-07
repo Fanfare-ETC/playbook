@@ -259,7 +259,7 @@ public class TreasureHuntFragment extends Fragment implements View.OnClickListen
             translucent.setVisibility(View.VISIBLE);
             ImageView tutorial = (ImageView) view.findViewById(R.id.treasurehunt_tutorial);
             tutorial.setVisibility(View.VISIBLE);
-            treasurehunt_live=true;
+           // treasurehunt_live=true;
         }
 
         SharedPreferences settings = this.getContext().getSharedPreferences("FANFARE_SHARED", 0);
