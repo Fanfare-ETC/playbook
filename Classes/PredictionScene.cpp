@@ -856,7 +856,7 @@ void Prediction::processPredictionEvent(PlaybookEvent::EventType event) {
         CCLOG("Prediction correct: %s", PlaybookEvent::eventToString(event).c_str());
 
         // Multiply the count with the score.
-        auto score = this->getScoreForEvent(event) * count;
+        auto score = Prediction::getScoreForEvent(event) * count;
         this->_score += score;
 
         // Show overlay.

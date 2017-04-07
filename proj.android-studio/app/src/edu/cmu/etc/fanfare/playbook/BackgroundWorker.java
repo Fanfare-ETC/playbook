@@ -1,43 +1,20 @@
 package edu.cmu.etc.fanfare.playbook;
 
-import android.content.Context;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.util.Log;
-import android.widget.TableLayout;
-import android.widget.TableRow;
 
-
-import com.koushikdutta.async.ByteBufferList;
-import com.koushikdutta.async.DataEmitter;
-import com.koushikdutta.async.callback.DataCallback;
-import com.koushikdutta.async.http.AsyncHttpClient;
-import com.koushikdutta.async.http.AsyncHttpRequest;
-import com.koushikdutta.async.http.WebSocket;
-
-
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-
-/**
- * Created by ramya on 3/7/17.
- */
 
 public class  BackgroundWorker extends AsyncTask<String,Void,String> {
     private static final String TAG = BackgroundWorker.class.getSimpleName();

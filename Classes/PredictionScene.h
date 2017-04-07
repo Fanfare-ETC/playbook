@@ -14,6 +14,7 @@ class Prediction : public PlaybookLayer
 {
 public:
     static cocos2d::Scene* createScene();
+    static int getScoreForEvent(PlaybookEvent::EventType event);
 
     virtual bool init();
     virtual void update(float delta);
@@ -72,7 +73,6 @@ private:
     void reportScore(int score);
 
     void createNotificationOverlay(const std::string&);
-    int getScoreForEvent(PlaybookEvent::EventType event);
     void moveBallToField(PlaybookEvent::EventType event, Ball& ball, bool withAnimation = true);
     void moveBallToSlot(Ball& ball, bool withAnimation = true);
     cocos2d::Vec2 getBallPositionForSlot(cocos2d::Sprite* ballSprite, int slot);

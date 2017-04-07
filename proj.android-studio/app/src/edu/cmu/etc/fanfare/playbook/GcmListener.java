@@ -108,23 +108,25 @@ public class GcmListener extends FirebaseMessagingService {
                 notificationManager.notify(0 /* ID of notification */, notificationBuilder.build());
 
                 // Update score on server.
-                Log.d(TAG, "Updating score on server...");
-                JSONObject jsonObj = new JSONObject();
-                jsonObj.put("cat", "predict");
-                jsonObj.put("predictScore", 4);
-                jsonObj.put("id", Cocos2dxBridge.getPlayerID());
+                for (int event : correctPredictions) {
+                    Log.d(TAG, "Updating score on server...");
+                    JSONObject jsonObj = new JSONObject();
+                    jsonObj.put("cat", "predict");
+                    jsonObj.put("predictScore", Cocos2dxBridge.getPredictionScoreForEvent(event));
+                    jsonObj.put("id", Cocos2dxBridge.getPlayerID());
 
-                String url = "http://" + BuildConfig.PLAYBOOK_SECTION_API_HOST + ":" +
-                        BuildConfig.PLAYBOOK_SECTION_API_PORT + "/updateScore";
-                AsyncHttpPost post = new AsyncHttpPost(url);
-                JSONObjectBody body = new JSONObjectBody(jsonObj);
-                post.setBody(body);
-                AsyncHttpClient.getDefaultInstance().executeString(post, new AsyncHttpClient.StringCallback() {
-                    @Override
-                    public void onCompleted(Exception e, AsyncHttpResponse source, String result) {
-                        Log.d(TAG, "Score updated.");
-                    }
-                });
+                    String url = "http://" + BuildConfig.PLAYBOOK_SECTION_API_HOST + ":" +
+                            BuildConfig.PLAYBOOK_SECTION_API_PORT + "/updateScore";
+                    AsyncHttpPost post = new AsyncHttpPost(url);
+                    JSONObjectBody body = new JSONObjectBody(jsonObj);
+                    post.setBody(body);
+                    AsyncHttpClient.getDefaultInstance().executeString(post, new AsyncHttpClient.StringCallback() {
+                        @Override
+                        public void onCompleted(Exception e, AsyncHttpResponse source, String result) {
+                            Log.d(TAG, "Score updated.");
+                        }
+                    });
+                }
             }
 
         } catch (JSONException e) {
