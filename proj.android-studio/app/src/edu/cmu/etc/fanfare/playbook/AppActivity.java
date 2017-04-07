@@ -63,9 +63,14 @@ import java.util.Stack;
 public class AppActivity extends AppCompatActivity {
     public static final String INTENT_EXTRA_PREDICTIONS_SCORED = "intentNotificationPredictionScored";
 
+    public static final int DRAWER_PREDICTION_FRAGMENT = 0;
+    public static final int DRAWER_LEADERBOARD_FRAGMENT = 1;
+    public static final int DRAWER_COLLECTION_FRAGMENT = 2;
+    public static final int DRAWER_TROPHY_FRAGMENT = 3;
+    public static final int DRAWER_TREASURE_HUNT_FRAGMENT = 4;
+
     private static final String TAG = "AppActivity";
     private static final String STATE_SELECTED_SECTION = "selected_section";
-    private static final int DRAWER_PREDICTION_FRAGMENT = 0;
     private static final int DEFAULT_ITEM = DRAWER_PREDICTION_FRAGMENT;
 
     private DrawerItem[] mMenuItems;
@@ -79,7 +84,9 @@ public class AppActivity extends AppCompatActivity {
     private int mLastSelectedItem = DEFAULT_ITEM;
 
     private int mSection = -1;
+    public static boolean isInForeground = false;
     public static boolean sectionFlag = false;
+    public static int selectedItem = -1;
 
     private class DrawerItemClickListener implements ListView.OnItemClickListener {
         @Override
@@ -151,17 +158,17 @@ public class AppActivity extends AppCompatActivity {
             case DRAWER_PREDICTION_FRAGMENT:
                 fragment = new PredictionFragment();
                 break;
-            case 1:
+            case DRAWER_LEADERBOARD_FRAGMENT:
                 //fragment = new SectionScoreFragment();
                 fragment = new LeaderboardFragment();
                 break;
-            case 2:
+            case DRAWER_COLLECTION_FRAGMENT:
                 fragment = new CollectionFragment();
                 break;
-            case 3:
+            case DRAWER_TROPHY_FRAGMENT:
                 fragment = new TrophyFragment();
                 break;
-            case 4:
+            case DRAWER_TREASURE_HUNT_FRAGMENT:
                 if(sectionFlag == false){
                     fragment = new SeatSelectFragment();
                     //sectionFlag = true;
@@ -188,6 +195,7 @@ public class AppActivity extends AppCompatActivity {
         }
 
         // Close the drawer
+        selectedItem = position;
         mDrawerLayout.closeDrawer(mDrawerList);
         updateUIForItem(position);
     }
@@ -338,6 +346,18 @@ public class AppActivity extends AppCompatActivity {
 
         // Set the home screen
         selectItem(DEFAULT_ITEM);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        isInForeground = true;
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        isInForeground = false;
     }
 
     @Override

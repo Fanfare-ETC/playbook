@@ -136,6 +136,11 @@ void AppDelegate::applicationWillEnterForeground() {
 
 extern "C" {
 
+JNIEXPORT jint JNICALL
+Java_edu_cmu_etc_fanfare_playbook_Cocos2dxBridge_getPredictionScoreForEvent(JNIEnv* env, jclass clazz, jint event) {
+    return Prediction::getScoreForEvent(PlaybookEvent::intToEvent(event));
+}
+
 JNIEXPORT void JNICALL
 Java_edu_cmu_etc_fanfare_playbook_Cocos2dxBridge_loadScene(JNIEnv* env, jclass clazz, jstring sceneName) {
     jboolean isCopy;

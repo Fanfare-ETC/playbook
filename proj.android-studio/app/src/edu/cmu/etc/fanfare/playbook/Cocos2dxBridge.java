@@ -18,6 +18,7 @@ public class Cocos2dxBridge {
 
     public static native void loadScene(String sceneName);
     public static native int getSection();
+    public static native int getPredictionScoreForEvent(int event);
 
     /**
      * Called by Cocos2dxFragment when the native library completes loading.

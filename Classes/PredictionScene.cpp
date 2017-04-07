@@ -733,6 +733,17 @@ void Prediction::restoreState() {
             );
         }
     }
+
+    // Re-register the predictions with the Java side.
+#if CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID
+    if (this->_state == SceneState::CONFIRMED) {
+        JniHelper::callStaticVoidMethod("edu/cmu/etc/fanfare/playbook/Cocos2dxBridge", "clearPredictions");
+        for (const auto& pair : this->_predictionCounts) {
+            JniHelper::callStaticVoidMethod("edu/cmu/etc/fanfare/playbook/Cocos2dxBridge", "addPrediction",
+                                            static_cast<int>(pair.first), pair.second);
+        }
+    }
+#endif
 }
 
 void Prediction::saveState() {
@@ -845,7 +856,7 @@ void Prediction::processPredictionEvent(PlaybookEvent::EventType event) {
         CCLOG("Prediction correct: %s", PlaybookEvent::eventToString(event).c_str());
 
         // Multiply the count with the score.
-        auto score = this->getScoreForEvent(event) * count;
+        auto score = Prediction::getScoreForEvent(event) * count;
         this->_score += score;
 
         // Show overlay.
