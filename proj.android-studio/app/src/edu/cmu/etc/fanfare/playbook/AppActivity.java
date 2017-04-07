@@ -59,6 +59,8 @@ import java.lang.reflect.Field;
 import java.util.Stack;
 
 public class AppActivity extends AppCompatActivity {
+    public static final int REQUEST_CODE_PREDICTION_SCORED = 0;
+
     private static final String TAG = "AppActivity";
     private static final String STATE_SELECTED_SECTION = "selected_section";
     private final int DEFAULT_ITEM = 0;

@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.app.NotificationCompat;
 import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
@@ -55,6 +54,10 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
                 startActivityForResult(signInIntent, RC_SIGN_IN);
             }
         });
+
+        // Set up Google Cloud Messaging.
+        Intent intent = new Intent(this, RegistrationIntentService.class);
+        startService(intent);
     }
 
     @Override

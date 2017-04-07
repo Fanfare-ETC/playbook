@@ -3,7 +3,9 @@ package edu.cmu.etc.fanfare.playbook;
 import android.util.Log;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Cocos2dxBridge {
     private static final String TAG = "Cocos2dxBridge";
@@ -11,6 +13,8 @@ public class Cocos2dxBridge {
     private static List<Cocos2dxFragment> mRegisteredFragments = new ArrayList<>();
     private static String mPlayerName;
     private static String mPlayerID;
+
+    private static Map<Integer, Integer> mPredictionCounts = new HashMap<>();
 
     public static native void loadScene(String sceneName);
     public static native int getSection();
@@ -52,4 +56,26 @@ public class Cocos2dxBridge {
     public static String getPlayerName() { return mPlayerName; }
     public static void setPlayerID(String id) { mPlayerID = id; }
     public static String getPlayerID() { return mPlayerID; }
+
+    /**
+     * For prediction screen to set predictions.
+     */
+    public static void addPrediction(int event, int count) {
+        Log.d(TAG, "addPrediction: event: " + event + ", count: " + count);
+        mPredictionCounts.put(event, count);
+    }
+
+    public static void clearPredictions() {
+        Log.d(TAG, "clearPredictions");
+        mPredictionCounts.clear();
+    }
+
+    public static int getPredictionCount(int event) {
+        Log.d(TAG, "getPredictionCount: event: " + event);
+        if (mPredictionCounts.containsKey(event)) {
+            return mPredictionCounts.get(event);
+        } else {
+            return 0;
+        }
+    }
 }
