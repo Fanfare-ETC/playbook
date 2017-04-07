@@ -74,6 +74,7 @@ private:
         std::string file;
         int score;
         bool isHidden;
+        int serverId;
     };
 
     struct GoalTypeHash {
@@ -138,6 +139,7 @@ private:
                              const rapidjson::Value::ConstMemberIterator& data, bool hasData);
     void handlePlaysCreated(const rapidjson::Value::ConstMemberIterator& data, bool hasData);
     void reportScore(int score);
+    void reportGoal(GoalType goal);
 
     std::weak_ptr<Card> getDraggedCard(cocos2d::Touch* touch);
     void receiveCard(PlaybookEvent::EventType event);

@@ -52,97 +52,97 @@ const std::unordered_map<
         "IDENTICAL_CARDS_3",
         "3 IDENTICAL CARDS",
         "goal/goal1.png",
-        8, true
+        8, true, 1
     }},
     {GoalType::IDENTICAL_CARDS_4, {
         "IDENTICAL_CARDS_4",
         "4 IDENTICAL CARDS",
         "goal/goal2.png",
-        12, false
+        12, false, 9
     }},
     {GoalType::UNIQUE_OUT_CARDS_4, {
         "UNIQUE_OUT_CARDS_4",
         "4 DIFFERENT OUT CARDS",
         "goal/goal3.png",
-        12, false
+        12, false, 17
     }},
     {GoalType::IDENTICAL_CARDS_5, {
         "IDENTICAL_CARDS_5",
         "5 IDENTICAL CARDS",
         "goal/goal4.png",
-        20, false
+        20, false, 13
     }},
     {GoalType::WALK_OR_HIT_BY_PITCH_3, {
         "WALK_OR_HIT_BY_PITCH_3",
         "3 OF WALK OR HIT BY PITCH",
         "goal/goal5.png",
-        8, true
+        8, true, 4
     }},
     {GoalType::OUT_3, {
         "OUT_3",
         "SET SHOWS 3 OUTS",
         "goal/goal6.png",
-        6, false
+        6, false, 7
     }},
     {GoalType::BASES_RBI_3, {
         "BASES_RBI_3",
         "SET SHOWS 3 BASES",
         "goal/goal7.png",
-        12, false
+        12, false, 16
     }},
     {GoalType::EACH_COLOR_2, {
         "EACH_COLOR_2",
         "2 CARDS OF EACH COLOR",
         "goal/goal8.png",
-        12, false
+        12, false, 12
     }},
     {GoalType::SAME_COLOR_3, {
         "SAME_COLOR_3",
         "3 CARDS OF SAME COLOR",
         "goal/goal9.png",
-        8, true
+        8, true, 2
     }},
     {GoalType::EACH_COLOR_1, {
         "EACH_COLOR_1",
         "1 CARD OF EACH COLOR",
         "goal/goal11.png",
-        4, true
+        4, true, 3
     }},
     {GoalType::UNIQUE_OUT_CARDS_3, {
         "UNIQUE_OUT_CARDS_3",
         "3 DIFFERENT OUT CARDS",
         "goal/goal12.png",
-        8, false
+        8, false, 8
     }},
     {GoalType::SAME_COLOR_4, {
         "SAME_COLOR_4",
         "4 CARDS OF SAME COLOR",
         "goal/goal13.png",
-        12, false
+        12, false, 10
     }},
     {GoalType::SAME_COLOR_5, {
         "SAME_COLOR_5",
         "5 CARDS OF SAME COLOR",
         "goal/goal14.png",
-        20, false
+        20, false, 14
     }},
     {GoalType::BASE_STEAL_RBI, {
         "BASE_STEAL_RBI",
         "BASE, STEAL & RBI",
         "goal/goal15.png",
-        8, false
+        8, false, 11
     }},
     {GoalType::ON_BASE_STEAL_PICK_OFF, {
         "ON_BASE_STEAL_PICK_OFF",
         "BASE, STEAL & PICK OFF",
         "",
-        8, true
+        8, true, 5
     }},
     {GoalType::FULL_HOUSE, {
         "FULL_HOUSE",
         "FULL HOUSE",
         "",
-        16, true
+        16, true, 6
     }}
 };
 
@@ -712,6 +712,56 @@ void CollectionScreen::reportScore(int score) {
     request->release();
 }
 
+void CollectionScreen::reportGoal(GoalType goal) {
+    CCLOG("CollectionScreen->reportGoal: %d", goal);
+
+    using namespace rapidjson;
+#if CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID
+    auto playerID = JniHelper::callStaticStringMethod("edu/cmu/etc/fanfare/playbook/Cocos2dxBridge", "getPlayerID");
+#else
+    std::string playerID ("Player");
+#endif
+
+    Document document;
+    document.SetObject();
+    Document::AllocatorType& allocator = document.GetAllocator();
+
+    // Serialize the goal report.
+    document.AddMember(
+        rapidjson::Value("userId", allocator).Move(),
+        rapidjson::Value(playerID.c_str(), allocator).Move(),
+        allocator
+    );
+
+    document.AddMember(
+        rapidjson::Value("trophyId", allocator).Move(),
+        rapidjson::Value(GOAL_TYPE_METADATA_MAP.at(goal).serverId).Move(),
+        allocator
+    );
+
+    // Create the JSON.
+    StringBuffer buffer;
+    Writer<StringBuffer> writer(buffer);
+    document.Accept(writer);
+
+    // Send the JSON to the server.
+    CCLOG("CollectionScreen->reportGoal: Reporting goal to: %s",
+          PLAYBOOK_SECTION_API_URL "/updateTrophy");
+    network::HttpRequest* request = new network::HttpRequest();
+    request->setUrl(PLAYBOOK_SECTION_API_URL "/updateTrophy");
+    request->setRequestType(network::HttpRequest::Type::POST);
+    request->setRequestData(buffer.GetString(), buffer.GetSize());
+    request->setHeaders({ "Content-Type: application/json" });
+    request->setResponseCallback([](network::HttpClient*, network::HttpResponse* response) {
+        if (response != nullptr) {
+            // Dump the data
+            CCLOG("CollectionScreen->reportGoal: Response: %s", response->getResponseDataString());
+        }
+    });
+    network::HttpClient::getInstance()->send(request);
+    request->release();
+}
+
 std::weak_ptr<CollectionScreen::Card> CollectionScreen::getDraggedCard(cocos2d::Touch *touch) {
     // Look for the card that's dragged.
     auto slotIterator = std::find_if(
@@ -930,6 +980,7 @@ void CollectionScreen::scoreCardSet(GoalType goal, const std::vector<std::weak_p
 
     // Send score to server.
     this->reportScore(GOAL_TYPE_METADATA_MAP.at(goal).score);
+    this->reportGoal(goal);
 
     // Update score on UI.
     this->updateScore(this->_score + GOAL_TYPE_METADATA_MAP.at(goal).score);
