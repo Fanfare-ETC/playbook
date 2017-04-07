@@ -104,7 +104,6 @@ private:
     cocos2d::DrawNode* _cardSlotDrawNode;
     std::queue<PlaybookEvent::EventType> _incomingCardQueue;
     std::vector<CardSlot> _cardSlots;
-    bool _isCardActive;
 
     cocos2d::Node* _dragToDiscard;
     bool _dragToDiscardHovered;
@@ -118,6 +117,7 @@ private:
     GoalType _activeGoal;
     std::vector<std::weak_ptr<Card>> _cardsMatchingGoal;
 
+    bool _isCardActive;
     std::shared_ptr<Card> _activeCard;
     cocos2d::Action* _activeCardAction;
     float _activeCardOrigScale;

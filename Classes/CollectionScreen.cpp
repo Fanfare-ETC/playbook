@@ -1641,32 +1641,29 @@ std::string CollectionScreen::serialize() {
     document.SetObject();
     Document::AllocatorType& allocator = document.GetAllocator();
 
-    // Serialize the active card, if any.
+    // Incoming card queue.
+    rapidjson::Value incomingCardQueue (kArrayType);
+
+    auto incomingCardQueueCopy = this->_incomingCardQueue;
+    std::vector<PlaybookEvent::EventType> incomingCardVector;
+    while (!incomingCardQueueCopy.empty()) {
+        incomingCardVector.push_back(incomingCardQueueCopy.front());
+        incomingCardQueueCopy.pop();
+    }
+
+    for (const auto& item : incomingCardVector) {
+        incomingCardQueue.PushBack(
+            rapidjson::Value(PlaybookEvent::eventToString(item).c_str(), allocator).Move(),
+            allocator
+        );
+    }
+
     document.AddMember(
-        rapidjson::Value("isCardActive", allocator).Move(),
-        rapidjson::Value(this->_isCardActive).Move(),
-        allocator
+        rapidjson::Value("incomingCardQueue", allocator).Move(),
+        incomingCardQueue, allocator
     );
 
-    rapidjson::Value activeCard (kObjectType);
-    if (this->_isCardActive) {
-        activeCard.AddMember(
-            rapidjson::Value("event", allocator).Move(),
-            rapidjson::Value(PlaybookEvent::eventToString(this->_activeCard->event).c_str(), allocator).Move(),
-            allocator
-        );
-
-        activeCard.AddMember(
-            rapidjson::Value("team", allocator).Move(),
-            rapidjson::Value(this->_activeCard->team).Move(),
-            allocator
-        );
-    } else {
-        activeCard.SetNull();
-    }
-    document.AddMember(rapidjson::Value("activeCard", allocator).Move(), activeCard, allocator);
-
-    // Serialize the card slots.
+    // Card slots (_cardSlots).
     rapidjson::Value cardSlots (kArrayType);
     for (const auto& item : this->_cardSlots) {
         rapidjson::Value cardSlot (kObjectType);
@@ -1703,6 +1700,80 @@ std::string CollectionScreen::serialize() {
         cardSlots.PushBack(cardSlot, allocator);
     }
     document.AddMember(rapidjson::Value("cardSlots", allocator).Move(), cardSlots, allocator);
+
+    // The active goal (_activeGoal).
+    document.AddMember(
+        rapidjson::Value("activeGoal", allocator).Move(),
+        rapidjson::Value(this->_activeGoal).Move(),
+        allocator
+    );
+
+    // The active state (_isCardActive).
+    document.AddMember(
+        rapidjson::Value("isCardActive", allocator).Move(),
+        rapidjson::Value(this->_isCardActive).Move(),
+        allocator
+    );
+
+    // The active card (_activeCard).
+    rapidjson::Value activeCard (kObjectType);
+    if (this->_isCardActive) {
+        activeCard.AddMember(
+            rapidjson::Value("event", allocator).Move(),
+            rapidjson::Value(PlaybookEvent::eventToString(this->_activeCard->event).c_str(), allocator).Move(),
+            allocator
+        );
+
+        activeCard.AddMember(
+            rapidjson::Value("team", allocator).Move(),
+            rapidjson::Value(this->_activeCard->team).Move(),
+            allocator
+        );
+    } else {
+        activeCard.SetNull();
+    }
+    document.AddMember(rapidjson::Value("activeCard", allocator).Move(), activeCard, allocator);
+
+    // The active card scale (_activeCardOrigScale).
+    document.AddMember(
+        rapidjson::Value("activeCardOrigScale", allocator).Move(),
+        rapidjson::Value(this->_activeCardOrigScale).Move(),
+        allocator
+    );
+
+    // The active card position (_activeCardOrigPosition).
+    rapidjson::Value activeCardOrigPosition (kObjectType);
+
+    activeCardOrigPosition.AddMember(
+        rapidjson::Value("x", allocator).Move(),
+        rapidjson::Value(this->_activeCardOrigPosition.x).Move(),
+        allocator
+    );
+
+    activeCardOrigPosition.AddMember(
+        rapidjson::Value("y", allocator).Move(),
+        rapidjson::Value(this->_activeCardOrigPosition.y).Move(),
+        allocator
+    );
+
+    document.AddMember(
+        rapidjson::Value("activeCardOrigPosition", allocator).Move(),
+        activeCardOrigPosition, allocator
+    );
+
+    // The active card rotation (_activeCardOrigRotation).
+    document.AddMember(
+        rapidjson::Value("activeCardOrigRotation", allocator).Move(),
+        rapidjson::Value(this->_activeCardOrigRotation).Move(),
+        allocator
+    );
+
+    // The score.
+    document.AddMember(
+        rapidjson::Value("score", allocator).Move(),
+        rapidjson::Value(this->_score).Move(),
+        allocator
+    );
 
     // Create the state.
     StringBuffer buffer;
