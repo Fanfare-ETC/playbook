@@ -331,8 +331,8 @@ bool CollectionScreen::init()
     node->addChild(dragToScore, 1);
 
     // Generate a random goal.
-    // createGoal calls invalidateDragToScore in the end.
-    this->createGoal();
+    // createRandomGoal calls invalidateDragToScore in the end.
+    this->createRandomGoal();
 
     // Create DrawNode to highlight card slot.
     this->_cardSlotDrawNode = DrawNode::create();
@@ -481,14 +481,14 @@ void CollectionScreen::initEventsDragToScore() {
 
                 // Check if dragged card is in matching goal set.
                 auto iterator = std::find_if(
-                    this->_cardsMatchingGoal.begin(),
-                    this->_cardsMatchingGoal.end(),
+                    this->_cardsMatchingSelectedGoal.begin(),
+                    this->_cardsMatchingSelectedGoal.end(),
                     [this, card](std::weak_ptr<Card> cardInGoal) {
                         return cardInGoal.lock() == card.lock();
                     }
                 );
 
-                if (this->_cardsMatchingGoal.size() > 0 && iterator != this->_cardsMatchingGoal.end()) {
+                if (this->_cardsMatchingSelectedGoal.size() > 0 && iterator != this->_cardsMatchingSelectedGoal.end()) {
                     auto tintTo = TintTo::create(0.25f, Color3B::GREEN);
                     this->_dragToScore->runAction(tintTo);
                 }
@@ -515,17 +515,17 @@ void CollectionScreen::initEventsDragToScore() {
         auto card = this->getDraggedCard(touch);
         if (!card.expired()) {
             auto iterator = std::find_if(
-                this->_cardsMatchingGoal.begin(),
-                this->_cardsMatchingGoal.end(),
+                this->_cardsMatchingSelectedGoal.begin(),
+                this->_cardsMatchingSelectedGoal.end(),
                 [this, card](std::weak_ptr<Card> cardInGoal) {
                     return cardInGoal.lock() == card.lock();
                 }
             );
 
-            if (box.containsPoint(position) && this->_cardsMatchingGoal.size() > 0 &&
-                iterator != this->_cardsMatchingGoal.end()) {
+            if (box.containsPoint(position) && this->_cardsMatchingSelectedGoal.size() > 0 &&
+                iterator != this->_cardsMatchingSelectedGoal.end()) {
                 card.lock()->draggedDropping = true;
-                this->scoreCardSet(this->_activeGoal, this->_cardsMatchingGoal);
+                this->scoreCardSet(this->_selectedGoal, this->_cardsMatchingSelectedGoal);
             }
         }
     };
@@ -932,30 +932,30 @@ void CollectionScreen::scoreCardSet(GoalType goal, const std::vector<std::weak_p
     this->reportScore(GOAL_TYPE_METADATA_MAP.at(goal).score);
 
     // Update score on UI.
-    this->_score += GOAL_TYPE_METADATA_MAP.at(goal).score;
-    this->updateScore(this->_score);
+    this->updateScore(this->_score + GOAL_TYPE_METADATA_MAP.at(goal).score);
 
     // We need to delay the execution of this so that animation completes.
     auto delayTime = DelayTime::create(0.25f);
     auto callFunc = CallFunc::create([this, goal]() {
         // Create a new goal.
-        this->createGoal();
+        if (!GOAL_TYPE_METADATA_MAP.at(goal).isHidden) {
+            this->createRandomGoal();
+        } else {
+            this->checkIfGoalMet();
+        }
     });
 
     auto sequence = Sequence::create(delayTime, callFunc, nullptr);
     this->runAction(sequence);
 }
 
-void CollectionScreen::updateScore(int score) {
+void CollectionScreen::updateScore(int score, bool withAnimation) {
     CCLOG("CollectionScreen->updateScore: %d", score);
+    this->_score = score;
 
     auto scoreBar = this->_visibleNode->getChildByName(NODE_NAME_SCORE_BAR);
     auto scoreBarScoreCard = dynamic_cast<Label*>(scoreBar->getChildByName(NODE_NAME_SCORE_BAR_SCORE_CARD));
     CC_ASSERT(scoreBarScoreCard != nullptr);
-
-    auto origScale = scoreBarScoreCard->getScale();
-    scoreBarScoreCard->setOpacity(0);
-    scoreBarScoreCard->setScale(origScale * 3.0f);
 
     auto scoreString = std::to_string(score);
     for (unsigned int i = 0; i < 3 - scoreString.length(); i++) {
@@ -963,10 +963,16 @@ void CollectionScreen::updateScore(int score) {
     }
     scoreBarScoreCard->setString(scoreString);
 
-    auto scaleTo = ScaleTo::create(0.5f, origScale);
-    auto fadeIn = FadeIn::create(0.5f);
-    auto spawn = Spawn::create(scaleTo, fadeIn, nullptr);
-    scoreBarScoreCard->runAction(spawn);
+    if (withAnimation) {
+        auto origScale = scoreBarScoreCard->getScale();
+        scoreBarScoreCard->setScale(origScale * 3.0f);
+        scoreBarScoreCard->setOpacity(0);
+
+        auto scaleTo = ScaleTo::create(0.5f, origScale);
+        auto fadeIn = FadeIn::create(0.5f);
+        auto spawn = Spawn::create(scaleTo, fadeIn, nullptr);
+        scoreBarScoreCard->runAction(spawn);
+    }
 }
 
 float CollectionScreen::getCardScaleInSlot(Node* card) {
@@ -1029,6 +1035,67 @@ int CollectionScreen::getNearestAvailableCardSlot(Node *card, const Vec2 &positi
     }
 
     return slot;
+}
+
+void CollectionScreen::assignCardToSlot(std::shared_ptr<Card> card, int slot) {
+    CCLOG("CollectionScreen->assignCardToSlot");
+
+    // Copy card into slot list.
+    this->_cardSlots[slot].card = card;
+    this->_cardSlots[slot].present = true;
+
+    auto cardNode = card->sprite;
+    auto position = this->getCardPositionForSlot(cardNode, slot);
+    auto scale = this->getCardScaleInSlot(cardNode);
+    cardNode->setPosition(position);
+    cardNode->setScale(scale);
+    cardNode->setRotation(0.0f);
+
+    // Create a new listener for it.
+    auto listener = EventListenerTouchOneByOne::create();
+    listener->setSwallowTouches(false);
+
+    listener->onTouchBegan = [this, card, cardNode](Touch* touch, Event*) {
+        // Prevent cards from being stuck if we're still moving it.
+        if (cardNode->getNumberOfRunningActions() > 0) {
+            return false;
+        }
+
+        auto position = cardNode->getParent()->convertTouchToNodeSpace(touch);
+        auto box = cardNode->getBoundingBox();
+        if (box.containsPoint(position)) {
+            card->isDragged = true;
+            card->draggedTouchID = touch->getID();
+            card->draggedOrigPosition = cardNode->getPosition();
+            return true;
+        } else {
+            return false;
+        }
+    };
+
+    listener->onTouchMoved = [this, cardNode](Touch* touch, Event*) {
+        auto position = cardNode->getParent()->convertTouchToNodeSpace(touch);
+        cardNode->setPosition(position);
+        return true;
+    };
+
+    listener->onTouchEnded = [this, card, cardNode](Touch* touch, Event*) {
+        if (touch->getID() == card->draggedTouchID) {
+            card->isDragged = false;
+            if (!card->draggedDropping) {
+                auto moveTo = MoveTo::create(0.25f, card->draggedOrigPosition);
+                cardNode->runAction(moveTo);
+            } else {
+                card->draggedDropping = false;
+            }
+        }
+        return true;
+    };
+
+    cardNode->getEventDispatcher()->addEventListenerWithSceneGraphPriority(listener, cardNode);
+
+    // Check if the set of cards meet the goal.
+    this->checkIfGoalMet();
 }
 
 void CollectionScreen::assignActiveCardToSlot(int slot) {
@@ -1142,21 +1209,15 @@ void CollectionScreen::checkIfGoalMet() {
     }
 
     this->updateGoals(outSets);
-    this->_cardsMatchingGoal = outSet;
 }
 
-void CollectionScreen::createGoal() {
-    CCLOG("CollectionScreen->createGoal");
-    auto visibleSize = Director::getInstance()->getVisibleSize();
+void CollectionScreen::createRandomGoal() {
+    CCLOG("CollectionScreen->createRandomGoal");
 
     // If we're replacing an old goal, remove it first.
     if (this->_goalSprite != nullptr) {
         this->_goalSprite->removeFromParentAndCleanup(true);
     }
-
-    // Create a random goal.
-    auto goalBar = this->_visibleNode->getChildByName(NODE_NAME_GOAL_BAR);
-    auto goalBarLabel = goalBar->getChildByName(NODE_NAME_GOAL_BAR_LABEL);
 
     // Only use goal types that are visible.
     std::vector<GoalType> visibleGoalTypes;
@@ -1166,24 +1227,34 @@ void CollectionScreen::createGoal() {
         }
     }
 
-    //auto randomChoice = RandomHelper::random_int(0, RAND_MAX) % visibleGoalTypes.size();
-    //this->_activeGoal = visibleGoalTypes[randomChoice];
-    this->_activeGoal = GoalType::EACH_COLOR_2;
-    auto goal = Sprite::create(GOAL_TYPE_METADATA_MAP.at(this->_activeGoal).file);
+    // Create a random goal.
+    auto randomChoice = RandomHelper::random_int(0, RAND_MAX) % visibleGoalTypes.size();
+    this->setActiveGoal(visibleGoalTypes[randomChoice]);
+}
+
+void CollectionScreen::setActiveGoal(GoalType goal) {
+    CCLOG("CollectionScreen->setActiveGoal");
+    auto visibleSize = Director::getInstance()->getVisibleSize();
+
+    auto goalBar = this->_visibleNode->getChildByName(NODE_NAME_GOAL_BAR);
+    auto goalBarLabel = goalBar->getChildByName(NODE_NAME_GOAL_BAR_LABEL);
+
+    this->_activeGoal = goal;
+    auto goalSprite = Sprite::create(GOAL_TYPE_METADATA_MAP.at(this->_activeGoal).file);
     auto goalWidth = (visibleSize.width / 2.0f) -
-        // Left and right margins and padding to the left of the goal.
-        (64.0f + 48.0f + 32.0f) -
-        // Space occupied by goal bar label
-        goalBarLabel->getContentSize().width * goalBarLabel->getScaleX();
-    auto goalScale = goalWidth / goal->getContentSize().width;
-    goal->setPosition(
+                     // Left and right margins and padding to the left of the goal.
+                     (64.0f + 48.0f + 32.0f) -
+                     // Space occupied by goal bar label
+                     goalBarLabel->getContentSize().width * goalBarLabel->getScaleX();
+    auto goalScale = goalWidth / goalSprite->getContentSize().width;
+    goalSprite->setPosition(
         64.0f + goalBarLabel->getContentSize().width + 32.0f,
         16.0f
     );
-    goal->setAnchorPoint(Vec2(0.0f, 0.0f));
-    goal->setScale(goalScale);
-    goalBar->addChild(goal, 1);
-    this->_goalSprite = goal;
+    goalSprite->setAnchorPoint(Vec2(0.0f, 0.0f));
+    goalSprite->setScale(goalScale);
+    goalBar->addChild(goalSprite, 1);
+    this->_goalSprite = goalSprite;
 
     // Invalidate.
     this->checkIfGoalMet();
@@ -1597,6 +1668,8 @@ void CollectionScreen::updateGoals(
             if (box.containsPoint(position)) {
                 goalBarHighlight->setVisible(true);
                 return true;
+            } else {
+                return false;
             }
         };
 
@@ -1604,7 +1677,8 @@ void CollectionScreen::updateGoals(
             auto position = goalBar->getParent()->convertTouchToNodeSpace(touch);
             auto box = goalBar->getBoundingBox();
             if (box.containsPoint(position)) {
-                this->_cardsMatchingGoal = goalSets.at(goal);
+                this->_cardsMatchingSelectedGoal = goalSets.at(goal);
+                this->_selectedGoal = goal;
                 this->highlightCardsMatchingGoal();
             }
             goalBarHighlight->setVisible(false);
@@ -1628,7 +1702,7 @@ void CollectionScreen::highlightCardsMatchingGoal() {
         }
     }
 
-    for (const auto& card : this->_cardsMatchingGoal) {
+    for (const auto& card : this->_cardsMatchingSelectedGoal) {
         auto tintTo = TintTo::create(0.25f, Color3B::GREEN);
         card.lock()->sprite->runAction(tintTo);
     }
@@ -1641,7 +1715,7 @@ std::string CollectionScreen::serialize() {
     document.SetObject();
     Document::AllocatorType& allocator = document.GetAllocator();
 
-    // Incoming card queue.
+    // Incoming card queue (_incomingCardQueue).
     rapidjson::Value incomingCardQueue (kArrayType);
 
     auto incomingCardQueueCopy = this->_incomingCardQueue;
@@ -1674,12 +1748,6 @@ std::string CollectionScreen::serialize() {
             card.AddMember(
                 rapidjson::Value("event", allocator).Move(),
                 rapidjson::Value(event.c_str(), allocator).Move(),
-                allocator
-            );
-
-            card.AddMember(
-                rapidjson::Value("team", allocator).Move(),
-                rapidjson::Value(item.card->team).Move(),
                 allocator
             );
         } else {
@@ -1723,52 +1791,12 @@ std::string CollectionScreen::serialize() {
             rapidjson::Value(PlaybookEvent::eventToString(this->_activeCard->event).c_str(), allocator).Move(),
             allocator
         );
-
-        activeCard.AddMember(
-            rapidjson::Value("team", allocator).Move(),
-            rapidjson::Value(this->_activeCard->team).Move(),
-            allocator
-        );
     } else {
         activeCard.SetNull();
     }
     document.AddMember(rapidjson::Value("activeCard", allocator).Move(), activeCard, allocator);
 
-    // The active card scale (_activeCardOrigScale).
-    document.AddMember(
-        rapidjson::Value("activeCardOrigScale", allocator).Move(),
-        rapidjson::Value(this->_activeCardOrigScale).Move(),
-        allocator
-    );
-
-    // The active card position (_activeCardOrigPosition).
-    rapidjson::Value activeCardOrigPosition (kObjectType);
-
-    activeCardOrigPosition.AddMember(
-        rapidjson::Value("x", allocator).Move(),
-        rapidjson::Value(this->_activeCardOrigPosition.x).Move(),
-        allocator
-    );
-
-    activeCardOrigPosition.AddMember(
-        rapidjson::Value("y", allocator).Move(),
-        rapidjson::Value(this->_activeCardOrigPosition.y).Move(),
-        allocator
-    );
-
-    document.AddMember(
-        rapidjson::Value("activeCardOrigPosition", allocator).Move(),
-        activeCardOrigPosition, allocator
-    );
-
-    // The active card rotation (_activeCardOrigRotation).
-    document.AddMember(
-        rapidjson::Value("activeCardOrigRotation", allocator).Move(),
-        rapidjson::Value(this->_activeCardOrigRotation).Move(),
-        allocator
-    );
-
-    // The score.
+    // The score (_score).
     document.AddMember(
         rapidjson::Value("score", allocator).Move(),
         rapidjson::Value(this->_score).Move(),
@@ -1788,4 +1816,143 @@ void CollectionScreen::unserialize(const std::string& data) {
 
     Document document;
     document.Parse(data.c_str());
+
+    // Incoming card queue (_incomingCardQueue).
+    auto incomingCardQueueIterator = document.FindMember("incomingCardQueue");
+    if (incomingCardQueueIterator != document.MemberEnd()) {
+        rapidjson::Value& incomingCardQueue = incomingCardQueueIterator->value;
+        if (!incomingCardQueue.IsArray()) {
+            CCLOGWARN("CollectionScreen->unserialize: incomingCardQueue is not an array!");
+        } else {
+            for (const auto& item : incomingCardQueue.GetArray()) {
+                auto event = PlaybookEvent::stringToEvent(item.GetString());
+                this->_incomingCardQueue.push(event);
+            }
+        }
+    }
+
+    // Card slots (_cardSlots).
+    auto cardSlotsIterator = document.FindMember("cardSlots");
+    if (cardSlotsIterator != document.MemberEnd()) {
+        rapidjson::Value& cardSlots = cardSlotsIterator->value;
+        if (!cardSlots.IsArray()) {
+            CCLOGWARN("CollectionScreen->unserialize: cardSlots is not an array!");
+        } else {
+            auto cardSlotsArray = cardSlots.GetArray();
+            for (auto it = cardSlotsArray.Begin(); it != cardSlotsArray.End(); ++it) {
+                auto idx = it - cardSlotsArray.Begin();
+
+                if (!it->IsObject()) {
+                    CCLOGWARN("CollectionScreen->unserialize: cardSlots[] is not an object!");
+                    continue;
+                }
+
+                auto cardSlot = it->GetObject();
+                auto presentIterator = cardSlot.FindMember("present");
+
+                if (presentIterator == cardSlot.MemberEnd()) {
+                    CCLOGWARN("CollectionScreen->unserialize: cardSlots[].present doesn't exist!");
+                    continue;
+                }
+
+                if (!presentIterator->value.IsBool()) {
+                    CCLOGWARN("CollectionScreen->unserialize: cardSlots[].present is not a boolean!");
+                    continue;
+                }
+
+                // Sanity checks passed.
+                this->_cardSlots[idx].present = presentIterator->value.GetBool();
+
+                if (this->_cardSlots[idx].present) {
+                    auto cardIterator = cardSlot.FindMember("card");
+
+                    if (cardIterator == cardSlot.MemberEnd()) {
+                        CCLOGWARN("CollectionScreen->unserialize: cardSlots[].card doesn't exist!");
+                        continue;
+                    }
+
+                    if (!cardIterator->value.IsObject()) {
+                        CCLOGWARN("CollectionScreen->unserialize: cardSlots[].card is not an object!");
+                        continue;
+                    }
+
+                    auto cardObject = cardIterator->value.GetObject();
+                    auto eventIterator = cardObject.FindMember("event");
+
+                    if (eventIterator == cardObject.MemberEnd()) {
+                        CCLOGWARN("CollectionScreen->unserialize: cardSlots[].card.event doesn't exist!");
+                        continue;
+                    }
+
+                    if (!eventIterator->value.IsString()) {
+                        CCLOGWARN("CollectionScreen->unserialize: cardSlots[].card.event is not a string!");
+                        continue;
+                    }
+
+                    // Sanity checks passed.
+                    auto card = this->createCard(
+                        PlaybookEvent::stringToEvent(
+                            eventIterator->value.GetString()
+                        )
+                    );
+
+                    this->assignCardToSlot(card, idx);
+                }
+            }
+        }
+    }
+
+    // The active goal (_activeGoal).
+    auto activeGoalIterator = document.FindMember("activeGoal");
+    if (activeGoalIterator != document.MemberEnd()) {
+        if (!activeGoalIterator->value.IsInt()) {
+            CCLOGWARN("CollectionScreen->unserialize: activeGoal is not an integer!");
+        } else {
+            this->setActiveGoal((GoalType) activeGoalIterator->value.GetInt());
+        }
+    }
+
+    // The active state (_isCardActive).
+    auto isCardActiveIterator = document.FindMember("isCardActive");
+    if (isCardActiveIterator != document.MemberEnd()) {
+        if (!isCardActiveIterator->value.IsBool()) {
+            CCLOGWARN("CollectionScreen->unserialize: isCardActive is not a boolean!");
+        } else {
+            this->_isCardActive = isCardActiveIterator->value.GetBool();
+        }
+    }
+
+    // The active card (_activeCard).
+    if (this->_isCardActive) {
+        auto activeCardIterator = document.FindMember("activeCard");
+        if (activeCardIterator != document.MemberEnd()) {
+            if (!activeCardIterator->value.IsObject()) {
+                CCLOGWARN("CollectionScreen->unserialize: activeCard is not an object!");
+            } else {
+                auto activeCardObject = activeCardIterator->value.GetObject();
+                auto eventIterator = activeCardObject.FindMember("event");
+                if (eventIterator == document.MemberEnd()) {
+                    CCLOGWARN("CollectionScreen->unserialize: activeCard.event doesn't exist!");
+                } else {
+                    if (!eventIterator->value.IsString()) {
+                        CCLOGWARN("CollectionScreen->unserialize: activeCard.event is not a string!");
+                    } else {
+                        this->receiveCard(
+                            PlaybookEvent::stringToEvent(eventIterator->value.GetString())
+                        );
+                    }
+                }
+            }
+        }
+    }
+
+    // The score (_score).
+    auto scoreIterator = document.FindMember("score");
+    if (scoreIterator != document.MemberEnd()) {
+        if (!scoreIterator->value.IsInt()) {
+            CCLOGWARN("CollectionScreen->unserialize: score is not an integer!");
+        } else {
+            this->updateScore(scoreIterator->value.GetInt(), false);
+        }
+    }
 }

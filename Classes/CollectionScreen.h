@@ -115,7 +115,8 @@ private:
 
     cocos2d::Sprite* _goalSprite;
     GoalType _activeGoal;
-    std::vector<std::weak_ptr<Card>> _cardsMatchingGoal;
+    GoalType _selectedGoal;
+    std::vector<std::weak_ptr<Card>> _cardsMatchingSelectedGoal;
 
     bool _isCardActive;
     std::shared_ptr<Card> _activeCard;
@@ -145,16 +146,18 @@ private:
     void stopDraggingActiveCard(cocos2d::Touch* touch);
     void discardCard(std::weak_ptr<Card> card);
     void scoreCardSet(GoalType goal, const std::vector<std::weak_ptr<Card>>& cardSet);
-    void updateScore(int score);
+    void updateScore(int score, bool withAnimation = true);
 
     float getCardScaleInSlot(cocos2d::Node* card);
     cocos2d::Vec2 getCardPositionForSlot(cocos2d::Node* cardNode, int slot);
     cocos2d::Rect getCardBoundingBoxForSlot(cocos2d::Node* cardNode, int slot);
     void drawBoundingBoxForSlot(cocos2d::Node* cardNode, int slot);
     int getNearestAvailableCardSlot(cocos2d::Node *card, const cocos2d::Vec2 &position);
+    void assignCardToSlot(std::shared_ptr<Card> card, int slot);
     void assignActiveCardToSlot(int slot);
 
-    void createGoal();
+    void createRandomGoal();
+    void setActiveGoal(GoalType goal);
     void checkIfGoalMet();
     bool cardSetMeetsGoal(const std::vector<std::weak_ptr<Card>>& cardSet,
                           GoalType goal,
