@@ -5,8 +5,6 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 
-import com.google.android.gms.gcm.GcmReceiver;
-
 public class SeatSelectActivity extends AppCompatActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -15,11 +13,8 @@ public class SeatSelectActivity extends AppCompatActivity {
 
 
         /********************************Test for GCM**************************************/
-        Intent intent = new Intent(this, RegistrationIntentService.class);
+        Intent intent = new Intent(this, GcmRegistrationIntentService.class);
         startService(intent);
-
-        Intent intent1 = new Intent(this, GcmReceiver.class);
-        startService(intent1);
         /********************************************************************************/
 
         Toolbar myToolbar = (Toolbar) findViewById(R.id.my_toolbar);

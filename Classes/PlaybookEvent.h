@@ -50,6 +50,16 @@ public:
     static EventType intToEvent(int event);
 
     static Team getTeam(EventType event);
+    static bool isOut(EventType event);
+    static bool isOnBase(EventType event);
+
+private:
+    static const std::unordered_map<std::string, EventType> STRING_EVENT_MAP;
+    static const std::unordered_map<EventType, std::string, EventTypeHash> EVENT_STRING_MAP;
+    static const std::vector<EventType> INT_TO_EVENT_MAP;
+    static const std::unordered_map<EventType, Team, EventTypeHash> EVENT_TEAM_MAP;
+    static const std::unordered_map<EventType, bool, EventTypeHash> EVENT_IS_OUT_MAP;
+    static const std::unordered_map<EventType, bool, EventTypeHash> EVENT_IS_ON_BASE_MAP;
 };
 
 #endif //PLAYBOOK_PLAYBOOK_EVENT_H

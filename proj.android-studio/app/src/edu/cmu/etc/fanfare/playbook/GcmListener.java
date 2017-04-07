@@ -1,47 +1,46 @@
 package edu.cmu.etc.fanfare.playbook;
 
-import android.app.Activity;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.media.RingtoneManager;
 import android.net.Uri;
-import android.os.Bundle;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
-import com.google.android.gms.gcm.GcmListenerService;
+import com.google.firebase.messaging.FirebaseMessagingService;
+import com.google.firebase.messaging.RemoteMessage;
 
-/**
- * Created by yqi1 on 3/13/2017.
- */
+import org.json.JSONArray;
+import org.json.JSONException;
 
-public class GcmListener extends GcmListenerService {
+import java.util.ArrayList;
+import java.util.Map;
+
+public class GcmListener extends FirebaseMessagingService {
 
     private static final String TAG = "MyGcmListenerService";
-    private Context context;
+    private static final int REQUEST_CODE_PREDICTION_SCORED = 0;
 
     /**
      * Called when message is received.
-     *
-     * @param from SenderID of the sender.
-     * @param data Data bundle containing message data as key/value pairs.
-     *             For Set of keys use data.keySet().
      */
     // [START receive_message]
     @Override
-    public void onMessageReceived(String from, Bundle data) {
-        String message = data.getString("message");
+    public void onMessageReceived(RemoteMessage remoteMessage) {
+        String from = remoteMessage.getFrom();
+        Map data = remoteMessage.getData();
+        String message = (String) data.get("message");
         Log.d(TAG, "From: " + from);
         Log.d(TAG, "Message: " + message);
-        context = this;
 
         if (from.startsWith("/topics/global")) {
             // message received from some topic.
             sendNotification(message);
+        } else if (from.startsWith("/topics/playsCreated")) {
+            handlePlaysCreated(message);
         } else {
-
             Log.d(TAG, "Not a topic message?");
             // normal downstream message.
         }
@@ -62,6 +61,46 @@ public class GcmListener extends GcmListenerService {
         // [END_EXCLUDE]
     }
     // [END receive_message]
+
+    private void handlePlaysCreated(String message) {
+        try {
+            ArrayList<Integer> correctPredictions = new ArrayList<>();
+            JSONArray playsArray = new JSONArray(message);
+            for (int i = 0; i < playsArray.length(); i++) {
+                int event = playsArray.getInt(i);
+                if (Cocos2dxBridge.getPredictionCount(event) > 0) {
+                    correctPredictions.add(event);
+                }
+            }
+
+            if (correctPredictions.size() > 0) {
+                Intent intent = new Intent(this, AppActivity.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                intent.putIntegerArrayListExtra(AppActivity.INTENT_EXTRA_PREDICTIONS_SCORED, correctPredictions);
+                PendingIntent pendingIntent = PendingIntent.getActivity(this,
+                        REQUEST_CODE_PREDICTION_SCORED, intent,
+                        PendingIntent.FLAG_ONE_SHOT);
+
+                Uri defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+                NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this)
+                        .setSmallIcon(R.drawable.ic_logo)
+                        .setContentTitle("Bravo!")
+                        .setContentText("You got a prediction right.")
+                        .setAutoCancel(true)
+                        .setSound(defaultSoundUri)
+                        .setPriority(NotificationCompat.PRIORITY_HIGH)
+                        .setContentIntent(pendingIntent);
+
+                NotificationManager notificationManager =
+                        (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+
+                notificationManager.notify(0 /* ID of notification */, notificationBuilder.build());
+            }
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
 
     /**
      * Create and show a simple notification containing the received GCM message.

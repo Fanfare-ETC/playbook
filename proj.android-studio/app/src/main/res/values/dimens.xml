@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="trophy_image_width">56dp</dimen>
+    <dimen name="leaderboard_margin">0dp</dimen>
+    <dimen name="trophy_margin_left">32dp</dimen>
+    <dimen name="trophy_margin_right">40dp</dimen>
+    <item name="trophy_guideline" format="float" type="dimen">0.25</item>
+</resources>

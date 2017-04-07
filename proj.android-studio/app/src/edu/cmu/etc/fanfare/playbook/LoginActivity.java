@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.app.NotificationCompat;
 import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
@@ -55,6 +54,10 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
                 startActivityForResult(signInIntent, RC_SIGN_IN);
             }
         });
+
+        // Set up Google Cloud Messaging.
+        Intent intent = new Intent(this, GcmRegistrationIntentService.class);
+        startService(intent);
     }
 
     @Override
@@ -83,6 +86,9 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
             if (acct != null) {
                 Cocos2dxBridge.setPlayerName(acct.getDisplayName());
                 Cocos2dxBridge.setPlayerID(acct.getId());
+                //insert player
+                BackgroundWorker backgroundWorker = new BackgroundWorker();
+                backgroundWorker.execute("section");
                 startActivity(new Intent(this, AppActivity.class));
                 finish();
             } else {

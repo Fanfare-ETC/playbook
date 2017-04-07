@@ -453,6 +453,12 @@ void Prediction::initEvents() {
 
                 if (box.containsPoint(localLocation) && !ballIsDragged) {
                     this->_state = SceneState::CONFIRMED;
+#if CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID
+                    for (const auto& pair : this->_predictionCounts) {
+                        JniHelper::callStaticVoidMethod("edu/cmu/etc/fanfare/playbook/Cocos2dxBridge", "addPrediction",
+                                                        static_cast<int>(pair.first), pair.second);
+                    }
+#endif
                 }
 
                 // When a ball is not dragged, we should re-show the continue banner.
@@ -610,6 +616,9 @@ void Prediction::handleClearPredictions(const rapidjson::Value::ConstMemberItera
 
     this->_score = 0;
     this->_state = SceneState::INITIAL;
+#if CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID
+    JniHelper::callStaticVoidMethod("edu/cmu/etc/fanfare/playbook/Cocos2dxBridge", "clearPredictions");
+#endif
 }
 
 void Prediction::reportScore(int score) {
