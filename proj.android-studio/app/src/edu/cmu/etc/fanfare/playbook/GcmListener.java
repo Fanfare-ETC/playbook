@@ -1,47 +1,39 @@
 package edu.cmu.etc.fanfare.playbook;
 
-import android.app.Activity;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.media.RingtoneManager;
 import android.net.Uri;
-import android.os.Bundle;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
-import com.google.android.gms.gcm.GcmListenerService;
+import com.google.firebase.messaging.FirebaseMessagingService;
+import com.google.firebase.messaging.RemoteMessage;
 
-import org.cocos2dx.lib.Cocos2dxBitmap;
 import org.json.JSONArray;
 import org.json.JSONException;
 
 import java.util.ArrayList;
-import java.util.List;
+import java.util.Map;
 
-/**
- * Created by yqi1 on 3/13/2017.
- */
-
-public class GcmListener extends GcmListenerService {
+public class GcmListener extends FirebaseMessagingService {
 
     private static final String TAG = "MyGcmListenerService";
-    private Context context;
+    private static final int REQUEST_CODE_PREDICTION_SCORED = 0;
 
     /**
      * Called when message is received.
-     *
-     * @param from SenderID of the sender.
-     * @param data Data bundle containing message data as key/value pairs.
-     *             For Set of keys use data.keySet().
      */
     // [START receive_message]
     @Override
-    public void onMessageReceived(String from, Bundle data) {
-        String message = data.getString("message");
-        context = this;
+    public void onMessageReceived(RemoteMessage remoteMessage) {
+        String from = remoteMessage.getFrom();
+        Map data = remoteMessage.getData();
+        String message = (String) data.get("message");
         Log.d(TAG, "From: " + from);
+        Log.d(TAG, "Message: " + message);
 
         if (from.startsWith("/topics/global")) {
             // message received from some topic.
@@ -72,21 +64,21 @@ public class GcmListener extends GcmListenerService {
 
     private void handlePlaysCreated(String message) {
         try {
-            Log.d(TAG, "Message: " + message);
-            boolean correctPrediction = false;
+            ArrayList<Integer> correctPredictions = new ArrayList<>();
             JSONArray playsArray = new JSONArray(message);
             for (int i = 0; i < playsArray.length(); i++) {
                 int event = playsArray.getInt(i);
                 if (Cocos2dxBridge.getPredictionCount(event) > 0) {
-                    correctPrediction = true;
+                    correctPredictions.add(event);
                 }
             }
 
-            if (correctPrediction) {
+            if (correctPredictions.size() > 0) {
                 Intent intent = new Intent(this, AppActivity.class);
                 intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                intent.putIntegerArrayListExtra(AppActivity.INTENT_EXTRA_PREDICTIONS_SCORED, correctPredictions);
                 PendingIntent pendingIntent = PendingIntent.getActivity(this,
-                        AppActivity.REQUEST_CODE_PREDICTION_SCORED, intent,
+                        REQUEST_CODE_PREDICTION_SCORED, intent,
                         PendingIntent.FLAG_ONE_SHOT);
 
                 Uri defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);

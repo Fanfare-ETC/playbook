@@ -56,14 +56,17 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Stack;
 
 public class AppActivity extends AppCompatActivity {
-    public static final int REQUEST_CODE_PREDICTION_SCORED = 0;
+    public static final String INTENT_EXTRA_PREDICTIONS_SCORED = "intentNotificationPredictionScored";
 
     private static final String TAG = "AppActivity";
     private static final String STATE_SELECTED_SECTION = "selected_section";
-    private final int DEFAULT_ITEM = 0;
+    private static final int DRAWER_PREDICTION_FRAGMENT = 0;
+    private static final int DEFAULT_ITEM = DRAWER_PREDICTION_FRAGMENT;
 
     private DrawerItem[] mMenuItems;
     private DrawerLayout mDrawerLayout;
@@ -145,7 +148,7 @@ public class AppActivity extends AppCompatActivity {
         // Create a new fragment based on selected position
         Fragment fragment;
         switch (position) {
-            case 0:
+            case DRAWER_PREDICTION_FRAGMENT:
                 fragment = new PredictionFragment();
                 break;
             case 1:
@@ -263,8 +266,10 @@ public class AppActivity extends AppCompatActivity {
             Intent intent = getIntent();
             Bundle extras = intent.getExtras();
             if (extras != null) {
-                mSection = Integer.parseInt(extras.getString("EXTRA_MESSAGE"));
-                Log.d(TAG, "Section in AppActivity: " + mSection);
+                ArrayList<Integer> predictionsScored = extras.getIntegerArrayList(INTENT_EXTRA_PREDICTIONS_SCORED);
+                if (predictionsScored != null) {
+                    Log.d(TAG, "predictionsScored: " + predictionsScored.toString());
+                }
             }
         }
 

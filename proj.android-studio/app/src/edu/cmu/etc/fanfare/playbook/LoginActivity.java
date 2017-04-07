@@ -56,7 +56,7 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
         });
 
         // Set up Google Cloud Messaging.
-        Intent intent = new Intent(this, RegistrationIntentService.class);
+        Intent intent = new Intent(this, GcmRegistrationIntentService.class);
         startService(intent);
     }
 
