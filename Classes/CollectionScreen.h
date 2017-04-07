@@ -69,6 +69,8 @@ private:
     };
 
     struct GoalMetadata {
+        std::string name;
+        std::string description;
         std::string file;
         int score;
         bool isHidden;
@@ -84,10 +86,16 @@ private:
     static const int NUM_SLOTS;
     static const std::unordered_map<GoalType, GoalMetadata, GoalTypeHash> GOAL_TYPE_METADATA_MAP;
 
-    const std::string NODE_NAME_GOAL_BAR = "goalBar";
-    const std::string NODE_NAME_GOAL_BAR_LABEL = "goalBarLabel";
+    const std::string NODE_NAME_HOLDER = "holder";
+    const std::string NODE_NAME_WHITE_BANNER = "whiteBanner";
     const std::string NODE_NAME_SCORE_BAR = "scoreBar";
     const std::string NODE_NAME_SCORE_BAR_SCORE_CARD = "scoreBarScoreCard";
+    const std::string NODE_NAME_GOAL_BAR = "goalBar";
+    const std::string NODE_NAME_GOAL_BAR_LABEL = "goalBarLabel";
+    const std::string NODE_NAME_GOALS_CONTAINER = "goalsContainer";
+    const std::string NODE_NAME_DRAG_TO_DISCARD = "dragToDiscard";
+    const std::string NODE_NAME_DRAG_TO_SCORE = "dragToScore";
+    const std::string NODE_NAME_DRAG_TO_SCORE_SHADOW_BOTTOM = "dragToScoreShadowBottom";
 
     cocos2d::Node* _visibleNode;
     PredictionWebSocket* _websocket;
@@ -121,6 +129,7 @@ private:
 
     void initEventsDragToDiscard();
     void initEventsDragToScore();
+    void invalidateDragToScore();
 
     void connectToServer();
     void disconnectFromServer();
@@ -150,6 +159,8 @@ private:
     bool cardSetMeetsGoal(const std::vector<std::weak_ptr<Card>>& cardSet,
                           GoalType goal,
                           std::vector<std::weak_ptr<Card>>& outSet);
+    void updateGoals(std::unordered_map<GoalType, std::vector<std::weak_ptr<Card>>, GoalTypeHash> goalSets);
+    void highlightCardsMatchingGoal();
 
     void restoreState();
     void saveState();
