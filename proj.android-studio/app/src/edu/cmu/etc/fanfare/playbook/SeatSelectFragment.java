@@ -1,11 +1,15 @@
 package edu.cmu.etc.fanfare.playbook;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -16,6 +20,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Spinner;
+import android.widget.TextView;
 
 import static android.content.Context.MODE_PRIVATE;
 
@@ -31,15 +36,44 @@ public class SeatSelectFragment extends Fragment implements AdapterView.OnItemSe
         super.onCreateView(inflater, container, savedInstanceState);
         final View view=inflater.inflate(R.layout.stadium_select_fragment, container, false);
 
-        AppActivity.sectionFlag = true;
-
         mStadiumMap = (ImageView) view.findViewById(R.id.stadium_map);
 
         final Spinner spinner = (Spinner)view.findViewById(R.id.sections_spinner);
         // Create an ArrayAdapter using the string array and a default spinner layout
-        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this.getContext(),
-                R.array.sections_array, android.R.layout.simple_spinner_item);
+       // ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this.getContext(),
+            //    R.array.sections_array, android.R.layout.simple_spinner_item);
         // Specify the layout to use when the list of choices appears
+
+        String [] items = new String[5];
+        items[0]="Select your section";
+        items[1]="Section 1";
+        items[2]="Section 2";
+        items[3]="Section 3";
+        items[4]="Section 4";
+
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this.getContext(), R.layout.new_spinner, items) {
+
+            public View getView(int position, View convertView, ViewGroup parent) {
+                View v = super.getView(position, convertView, parent);
+
+                Typeface externalFont = Typeface.createFromAsset(this.getContext().getAssets(), "fonts/nova1.ttf");
+                ((TextView) v).setTypeface(externalFont);
+
+                return v;
+            }
+
+
+            public View getDropDownView(int position,  View convertView,  ViewGroup parent) {
+                View v =super.getDropDownView(position, convertView, parent);
+
+                Typeface externalFont = Typeface.createFromAsset(this.getContext().getAssets(), "fonts/nova1.ttf");
+                ((TextView) v).setTypeface(externalFont);
+                v.setBackgroundColor(Color.GRAY);
+
+                return v;
+            }
+        };
+
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         // Apply the adapter to the spinner
         spinner.setAdapter(adapter);
@@ -67,20 +101,51 @@ public class SeatSelectFragment extends Fragment implements AdapterView.OnItemSe
                // BackgroundWorker backgroundWorker = new BackgroundWorker(section);
                 //backgroundWorker.execute("section");
 
-                SharedPreferences.Editor editor = v.getContext().getSharedPreferences("FANFARE_SHARED", MODE_PRIVATE).edit();
-                editor.putInt("section", section);
-                editor.apply();
+                //Show alert if no section is selected
+                if(section == 0){
+                    Log.i("Section", "Section not selected: " + section);
+                    AlertDialog.Builder builder = new AlertDialog.Builder(v.getContext());
+                    builder.setMessage("Please select a section!");
+                    builder.setCancelable(false);
 
-                Toolbar mToolbar = (Toolbar) getActivity().findViewById(R.id.my_toolbar);
-               // setSupportActionBar(mToolbar);
-                mToolbar.setTitle("Guide Your Runner");
+                    builder.setPositiveButton(
+                            "Go back",
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int id) {
+                                    dialog.cancel();
+                                }
+                            });
+/*
+                builder.setNegativeButton(
+                        "No",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                dialog.cancel();
+                            }
+                        });
+*/
+                    AlertDialog alert = builder.create();
+                    alert.show();
+                }
 
-                Fragment treasureHuntFragment = new TreasureHuntFragment();
 
-                FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
-                fragmentManager.beginTransaction()
-                        .replace(R.id.content_frame, treasureHuntFragment)
-                        .commit();
+                else {
+                    SharedPreferences.Editor editor = v.getContext().getSharedPreferences("FANFARE_SHARED", MODE_PRIVATE).edit();
+                    editor.putInt("section", section);
+                    editor.apply();
+
+                    AppActivity.sectionFlag = true;
+
+                    Toolbar mToolbar = (Toolbar) getActivity().findViewById(R.id.my_toolbar);
+                    // setSupportActionBar(mToolbar);
+                    mToolbar.setTitle("Guide Your Runner");
+
+                    Fragment treasureHuntFragment = new TreasureHuntFragment();
+
+                    FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
+                    fragmentManager.beginTransaction()
+                            .replace(R.id.content_frame, treasureHuntFragment)
+                            .commit();
 /*
                 FragmentTransaction ft = getFragmentManager().beginTransaction();
                 ft.replace(R.id.content_frame, treasureHuntFragment);
@@ -88,17 +153,20 @@ public class SeatSelectFragment extends Fragment implements AdapterView.OnItemSe
                 ft.addToBackStack(null);
                 ft.commit();
 */
-                //Intent intent = new Intent(v.getContext(), TreasureHuntFragment.class); //change to treasure hunt scene
-               Bundle extras = new Bundle();
-//save the section selected to shared preference
+                    //Intent intent = new Intent(v.getContext(), TreasureHuntFragment.class); //change to treasure hunt scene
+                    Bundle extras = new Bundle();
+                   //save the section selected to shared preference
 
 
-               // extras.putString("EXTRA_MESSAGE", Integer.toString(section));
-                //intent.putExtras(extras);
-                //intent.putExtra(EXTRA_MESSAGE, seatNo);
-                //intent.putExtra(EXTRA_COLOR, colorController);
-                //startActivity(intent);
-                //getActivity().finish();
+                    // extras.putString("EXTRA_MESSAGE", Integer.toString(section));
+                    //intent.putExtras(extras);
+                    //intent.putExtra(EXTRA_MESSAGE, seatNo);
+                    //intent.putExtra(EXTRA_COLOR, colorController);
+                    //startActivity(intent);
+                    //getActivity().finish();
+                }
+
+
             }
         });
 
@@ -175,6 +243,9 @@ public class SeatSelectFragment extends Fragment implements AdapterView.OnItemSe
                  section = 4;
                  mStadiumMap.setImageResource(R.drawable.stadium_map_4);
                  break;
+             default:
+                 section = 0;
+                 mStadiumMap.setImageResource(R.drawable.stadium_map);
          }
 
 
