@@ -6,14 +6,21 @@ import android.content.Context;
 import android.content.Intent;
 import android.media.RingtoneManager;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
+import com.koushikdutta.async.http.AsyncHttpClient;
+import com.koushikdutta.async.http.AsyncHttpPost;
+import com.koushikdutta.async.http.AsyncHttpResponse;
+import com.koushikdutta.async.http.body.AsyncHttpRequestBody;
+import com.koushikdutta.async.http.body.JSONObjectBody;
 
 import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.Map;
@@ -99,6 +106,25 @@ public class GcmListener extends FirebaseMessagingService {
                         (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
                 notificationManager.notify(0 /* ID of notification */, notificationBuilder.build());
+
+                // Update score on server.
+                Log.d(TAG, "Updating score on server...");
+                JSONObject jsonObj = new JSONObject();
+                jsonObj.put("cat", "predict");
+                jsonObj.put("predictScore", 4);
+                jsonObj.put("id", Cocos2dxBridge.getPlayerID());
+
+                String url = "http://" + BuildConfig.PLAYBOOK_SECTION_API_HOST + ":" +
+                        BuildConfig.PLAYBOOK_SECTION_API_PORT + "/updateScore";
+                AsyncHttpPost post = new AsyncHttpPost(url);
+                JSONObjectBody body = new JSONObjectBody(jsonObj);
+                post.setBody(body);
+                AsyncHttpClient.getDefaultInstance().executeString(post, new AsyncHttpClient.StringCallback() {
+                    @Override
+                    public void onCompleted(Exception e, AsyncHttpResponse source, String result) {
+                        Log.d(TAG, "Score updated.");
+                    }
+                });
             }
 
         } catch (JSONException e) {
@@ -131,6 +157,15 @@ public class GcmListener extends FirebaseMessagingService {
                 (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
         notificationManager.notify(0 /* ID of notification */, notificationBuilder.build());
+    }
+
+    private class PredictionCorrectWorker extends AsyncTask<String, Void, String> {
+        private PredictionCorrectWorker() {}
+
+        @Override
+        protected String doInBackground(String... params) {
+            return null;
+        }
     }
 
 }
