@@ -64,6 +64,10 @@ public class GcmListener extends FirebaseMessagingService {
 
     private void handlePlaysCreated(String message) {
         try {
+            if (AppActivity.isInForeground && AppActivity.selectedItem == AppActivity.DRAWER_PREDICTION_FRAGMENT) {
+                return;
+            }
+
             ArrayList<Integer> correctPredictions = new ArrayList<>();
             JSONArray playsArray = new JSONArray(message);
             for (int i = 0; i < playsArray.length(); i++) {
