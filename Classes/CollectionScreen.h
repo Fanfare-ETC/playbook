@@ -63,7 +63,15 @@ private:
         SAME_COLOR_4,
         SAME_COLOR_5,
         BASE_STEAL_RBI,
+        ON_BASE_STEAL_PICK_OFF,
+        FULL_HOUSE,
         UNKNOWN
+    };
+
+    struct GoalMetadata {
+        std::string file;
+        int score;
+        bool isHidden;
     };
 
     struct GoalTypeHash {
@@ -74,8 +82,7 @@ private:
     };
 
     static const int NUM_SLOTS;
-    static const std::unordered_map<GoalType, std::string, GoalTypeHash> GOAL_TYPE_FILE_MAP;
-    static const std::unordered_map<GoalType, int, GoalTypeHash> GOAL_TYPE_SCORE_MAP;
+    static const std::unordered_map<GoalType, GoalMetadata, GoalTypeHash> GOAL_TYPE_METADATA_MAP;
 
     const std::string NODE_NAME_GOAL_BAR = "goalBar";
     const std::string NODE_NAME_GOAL_BAR_LABEL = "goalBarLabel";
@@ -109,6 +116,8 @@ private:
     cocos2d::Vec2 _activeCardOrigPosition;
     float _activeCardOrigRotation;
     cocos2d::EventListener* _activeEventListener;
+
+    int _score;
 
     void initEventsDragToDiscard();
     void initEventsDragToScore();

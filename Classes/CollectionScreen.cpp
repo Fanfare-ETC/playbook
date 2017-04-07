@@ -44,38 +44,26 @@ USING_NS_CC;
 
 const int CollectionScreen::NUM_SLOTS = 5;
 
-const std::unordered_map<CollectionScreen::GoalType, std::string, CollectionScreen::GoalTypeHash> CollectionScreen::GOAL_TYPE_FILE_MAP = {
-    {GoalType::IDENTICAL_CARDS_3, "goal/goal1.png"},
-    {GoalType::IDENTICAL_CARDS_4, "goal/goal2.png"},
-    {GoalType::UNIQUE_OUT_CARDS_4, "goal/goal3.png"},
-    {GoalType::IDENTICAL_CARDS_5, "goal/goal4.png"},
-    {GoalType::WALK_OR_HIT_BY_PITCH_3, "goal/goal5.png"},
-    {GoalType::OUT_3, "goal/goal6.png"},
-    {GoalType::BASES_RBI_3, "goal/goal7.png"},
-    {GoalType::EACH_COLOR_2, "goal/goal8.png"},
-    {GoalType::SAME_COLOR_3, "goal/goal9.png"},
-    {GoalType::EACH_COLOR_1, "goal/goal11.png"},
-    {GoalType::UNIQUE_OUT_CARDS_3, "goal/goal12.png"},
-    {GoalType::SAME_COLOR_4, "goal/goal13.png"},
-    {GoalType::SAME_COLOR_5, "goal/goal14.png"},
-    {GoalType::BASE_STEAL_RBI, "goal/goal15.png"}
-};
-
-const std::unordered_map<CollectionScreen::GoalType, int, CollectionScreen::GoalTypeHash> CollectionScreen::GOAL_TYPE_SCORE_MAP = {
-    {GoalType::IDENTICAL_CARDS_3, 8},
-    {GoalType::IDENTICAL_CARDS_4, 12},
-    {GoalType::UNIQUE_OUT_CARDS_4, 12},
-    {GoalType::IDENTICAL_CARDS_5, 20},
-    {GoalType::WALK_OR_HIT_BY_PITCH_3, 8},
-    {GoalType::OUT_3, 6},
-    {GoalType::BASES_RBI_3, 12},
-    {GoalType::EACH_COLOR_2, 12},
-    {GoalType::SAME_COLOR_3, 8},
-    {GoalType::EACH_COLOR_1, 4},
-    {GoalType::UNIQUE_OUT_CARDS_3, 8},
-    {GoalType::SAME_COLOR_4, 12},
-    {GoalType::SAME_COLOR_5, 20},
-    {GoalType::BASE_STEAL_RBI, 8}
+const std::unordered_map<
+    CollectionScreen::GoalType,
+    CollectionScreen::GoalMetadata,
+    CollectionScreen::GoalTypeHash> CollectionScreen::GOAL_TYPE_METADATA_MAP = {
+    {GoalType::IDENTICAL_CARDS_3, { "goal/goal1.png", 8, true }},
+    {GoalType::IDENTICAL_CARDS_4, { "goal/goal2.png", 12, false }},
+    {GoalType::UNIQUE_OUT_CARDS_4, { "goal/goal3.png", 12, false }},
+    {GoalType::IDENTICAL_CARDS_5, { "goal/goal4.png", 20, false }},
+    {GoalType::WALK_OR_HIT_BY_PITCH_3, { "goal/goal5.png", 8, true }},
+    {GoalType::OUT_3, { "goal/goal6.png", 6, false }},
+    {GoalType::BASES_RBI_3, { "goal/goal7.png", 12, false }},
+    {GoalType::EACH_COLOR_2, { "goal/goal8.png", 12, false }},
+    {GoalType::SAME_COLOR_3, { "goal/goal9.png", 8, true }},
+    {GoalType::EACH_COLOR_1, { "goal/goal11.png", 4, true }},
+    {GoalType::UNIQUE_OUT_CARDS_3, { "goal/goal12.png", 8, false }},
+    {GoalType::SAME_COLOR_4, { "goal/goal13.png", 12, false }},
+    {GoalType::SAME_COLOR_5, { "goal/goal14.png", 20, false }},
+    {GoalType::BASE_STEAL_RBI, { "goal/goal15.png", 8, false }},
+    {GoalType::ON_BASE_STEAL_PICK_OFF, { "", 8, true }},
+    {GoalType::FULL_HOUSE, { "", 16, true }}
 };
 
 CollectionScreen::Card::Card(PlaybookEvent::Team team, PlaybookEvent::EventType event,
@@ -825,10 +813,11 @@ void CollectionScreen::scoreCardSet(GoalType goal, const std::vector<std::weak_p
     });
 
     // Send score to server.
-    this->reportScore(GOAL_TYPE_SCORE_MAP.at(goal));
+    this->reportScore(GOAL_TYPE_METADATA_MAP.at(goal).score);
 
     // Update score on UI.
-    this->updateScore(GOAL_TYPE_SCORE_MAP.at(goal));
+    this->_score += GOAL_TYPE_METADATA_MAP.at(goal).score;
+    this->updateScore(this->_score);
 
     // We need to delay the execution of this so that animation completes.
     auto delayTime = DelayTime::create(0.25f);
@@ -1013,13 +1002,13 @@ void CollectionScreen::checkIfGoalMet() {
         }
     );
 
+    std::for_each(cardSet.begin(), cardSet.end(), [](std::weak_ptr<Card> card) {
+        auto tintTo = TintTo::create(0.0f, Color3B::WHITE);
+        card.lock()->sprite->runAction(tintTo);
+    });
+
     std::vector<std::weak_ptr<Card>> outSet;
     if (this->cardSetMeetsGoal(cardSet, this->_activeGoal, outSet)) {
-        std::for_each(cardSet.begin(), cardSet.end(), [](std::weak_ptr<Card> card) {
-           auto tintTo = TintTo::create(0.0f, Color3B::WHITE);
-            card.lock()->sprite->runAction(tintTo);
-        });
-
         std::for_each(outSet.begin(), outSet.end(), [](std::weak_ptr<Card> card) {
             auto tintTo = TintTo::create(0.25f, Color3B::GREEN);
             card.lock()->sprite->runAction(tintTo);
@@ -1043,8 +1032,18 @@ void CollectionScreen::createGoal() {
     auto goalBar = this->_visibleNode->getChildByName(NODE_NAME_GOAL_BAR);
     auto goalBarLabel = goalBar->getChildByName(NODE_NAME_GOAL_BAR_LABEL);
 
-    this->_activeGoal = static_cast<GoalType>(RandomHelper::random_int(0, RAND_MAX) % GoalType::UNKNOWN);
-    auto goal = Sprite::create(CollectionScreen::GOAL_TYPE_FILE_MAP.at(this->_activeGoal));
+    // Only use goal types that are visible.
+    std::vector<GoalType> visibleGoalTypes;
+    for (auto pair : GOAL_TYPE_METADATA_MAP) {
+        if (!pair.second.isHidden) {
+            visibleGoalTypes.push_back(pair.first);
+        }
+    }
+
+    //auto randomChoice = RandomHelper::random_int(0, RAND_MAX) % visibleGoalTypes.size();
+    //this->_activeGoal = visibleGoalTypes[randomChoice];
+    this->_activeGoal = GoalType::UNIQUE_OUT_CARDS_4;
+    auto goal = Sprite::create(GOAL_TYPE_METADATA_MAP.at(this->_activeGoal).file);
     auto goalWidth = (visibleSize.width / 2.0f) -
         // Left and right margins and padding to the left of the goal.
         (64.0f + 48.0f + 32.0f) -
@@ -1069,11 +1068,9 @@ bool CollectionScreen::cardSetMeetsGoal(const std::vector<std::weak_ptr<Card>>& 
                                         std::vector<std::weak_ptr<Card>>& outSet) {
     CCLOG("CollectionScreen->cardSetMeetsGoal");
 
-    auto isBase = [](std::weak_ptr<Card> weakCard) {
+    auto isOnBase = [](std::weak_ptr<Card> weakCard) {
         auto card = weakCard.lock();
-        return card->event == PlaybookEvent::EventType::SINGLE ||
-               card->event == PlaybookEvent::EventType::DOUBLE ||
-               card->event == PlaybookEvent::EventType::TRIPLE;
+        return PlaybookEvent::isOnBase(card->event);
     };
 
     auto isBlue = [](std::weak_ptr<Card> card) {
@@ -1082,6 +1079,10 @@ bool CollectionScreen::cardSetMeetsGoal(const std::vector<std::weak_ptr<Card>>& 
 
     auto isRed = [](std::weak_ptr<Card> card) {
         return card.lock()->team == PlaybookEvent::Team::BATTING;
+    };
+
+    auto isSteal = [](std::weak_ptr<Card> card) {
+        return card.lock()->event == PlaybookEvent::EventType::STEAL;
     };
 
     auto numBlues = std::count_if(cardSet.begin(), cardSet.end(), isBlue);
@@ -1098,21 +1099,17 @@ bool CollectionScreen::cardSetMeetsGoal(const std::vector<std::weak_ptr<Card>>& 
 
     switch (goal) {
         case GoalType::BASE_STEAL_RBI: {
-            auto isSteal = [](std::weak_ptr<Card> card) {
-                return card.lock()->event == PlaybookEvent::EventType::STEAL;
-            };
-
             auto isRBI = [](std::weak_ptr<Card> card) {
                 return card.lock()->event == PlaybookEvent::EventType::RUN_SCORED;
             };
 
-            auto hasBase = std::any_of(cardSet.begin(), cardSet.end(), isBase);
+            auto hasBase = std::any_of(cardSet.begin(), cardSet.end(), isOnBase);
             auto hasSteal = std::any_of(cardSet.begin(), cardSet.end(), isSteal);
             auto hasRBI = std::any_of(cardSet.begin(), cardSet.end(), isRBI);
 
             // Collect matching cards.
             if (hasBase) {
-                auto baseIterator = std::find_if(cardSet.begin(), cardSet.end(), isBase);
+                auto baseIterator = std::find_if(cardSet.begin(), cardSet.end(), isOnBase);
                 outSet.push_back(*baseIterator);
             }
 
@@ -1130,10 +1127,10 @@ bool CollectionScreen::cardSetMeetsGoal(const std::vector<std::weak_ptr<Card>>& 
         }
 
         case GoalType::BASES_RBI_3: {
-            auto satisfied = std::count_if(cardSet.begin(), cardSet.end(), isBase) >= 3;
+            auto satisfied = std::count_if(cardSet.begin(), cardSet.end(), isOnBase) >= 3;
             if (satisfied) {
                 std::vector<std::weak_ptr<Card>> temp;
-                std::copy_if(cardSet.begin(), cardSet.end(), std::back_inserter(temp), isBase);
+                std::copy_if(cardSet.begin(), cardSet.end(), std::back_inserter(temp), isOnBase);
                 std::copy_n(temp.begin(), 3, std::back_inserter(outSet));
             }
             return satisfied;
@@ -1314,9 +1311,109 @@ bool CollectionScreen::cardSetMeetsGoal(const std::vector<std::weak_ptr<Card>>& 
             return satisfied;
         }
 
-        // TODO: Not implemented yet
-        case GoalType::UNIQUE_OUT_CARDS_3:
-        case GoalType::UNIQUE_OUT_CARDS_4:
+        case GoalType::UNIQUE_OUT_CARDS_3: {
+            std::vector<std::weak_ptr<Card>> filteredCards;
+            std::copy_if(
+                cardSet.begin(), cardSet.end(), std::back_inserter(filteredCards),
+                [](std::weak_ptr<Card> card) {
+                    return PlaybookEvent::isOut(card.lock()->event);
+                }
+            );
+
+            // Remove non-unique items.
+            auto end = std::unique(
+                filteredCards.begin(), filteredCards.end(),
+                [](std::weak_ptr<Card> card1, std::weak_ptr<Card> card2) {
+                    return card1.lock()->event == card2.lock()->event;
+                }
+            );
+
+            // Remove items past the new end range.
+            std::copy(filteredCards.begin(), end, std::back_inserter(outSet));
+            if (outSet.size() == 3) {
+                return true;
+            } else {
+                outSet.clear();
+                return false;
+            }
+        }
+
+        case GoalType::UNIQUE_OUT_CARDS_4: {
+            std::vector<std::weak_ptr<Card>> filteredCards;
+            std::copy_if(
+                cardSet.begin(), cardSet.end(), std::back_inserter(filteredCards),
+                [](std::weak_ptr<Card> card) {
+                    return PlaybookEvent::isOut(card.lock()->event);
+                }
+            );
+
+            // Remove non-unique items.
+            auto end = std::unique(
+                filteredCards.begin(), filteredCards.end(),
+                [](std::weak_ptr<Card> card1, std::weak_ptr<Card> card2) {
+                    return card1.lock()->event == card2.lock()->event;
+                }
+            );
+
+            // Remove items past the new end range.
+            std::copy(filteredCards.begin(), end, std::back_inserter(outSet));
+            if (outSet.size() == 4) {
+                return true;
+            } else {
+                outSet.clear();
+                return false;
+            }
+        }
+
+        case GoalType::ON_BASE_STEAL_PICK_OFF: {
+            auto isPickOff = [](std::weak_ptr<Card> card) {
+                return card.lock()->event == PlaybookEvent::EventType::PICK_OFF;
+            };
+
+            auto hasBase = std::any_of(cardSet.begin(), cardSet.end(), isOnBase);
+            auto hasSteal = std::any_of(cardSet.begin(), cardSet.end(), isSteal);
+            auto hasPickOff = std::any_of(cardSet.begin(), cardSet.end(), isPickOff);
+
+            // Collect matching cards.
+            if (hasBase) {
+                auto baseIterator = std::find_if(cardSet.begin(), cardSet.end(), isOnBase);
+                outSet.push_back(*baseIterator);
+            }
+
+            if (hasSteal) {
+                auto stealIterator = std::find_if(cardSet.begin(), cardSet.end(), isSteal);
+                outSet.push_back(*stealIterator);
+            }
+
+            if (hasPickOff) {
+                auto pickOffIterator = std::find_if(cardSet.begin(), cardSet.end(), isPickOff);
+                outSet.push_back(*pickOffIterator);
+            }
+
+            return hasBase && hasSteal && hasPickOff;
+        }
+
+        case GoalType::FULL_HOUSE: {
+            // XXX: Assumption here is that we will only have 5 cards in hand.
+            auto hasPair = false;
+            auto hasTriple = false;
+
+            for (const auto& pair : cardCounts) {
+                if (pair.second == 2) {
+                    hasPair = true;
+                } else if (pair.second == 3) {
+                    hasTriple = true;
+                }
+            }
+
+            if (hasPair && hasTriple) {
+                std::copy(cardSet.begin(), cardSet.end(), std::back_inserter(outSet));
+                return true;
+            } else {
+                return false;
+            }
+        }
+
         default: {
             return false;
         }
