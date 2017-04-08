@@ -374,7 +374,7 @@ public class TreasureHuntFragment extends Fragment implements View.OnClickListen
                                                 //create a new plusten
                                                 ConstraintLayout layout=(ConstraintLayout)view.findViewById(R.id.treasurehunt_layout);
                                                 int[] location = new int[2];
-                                                int w_id = getResources().getIdentifier("plusten_w", "drawable", getActivity().getPackageName());
+                                                int w_id = R.drawable.plusten_w;
 
                                                 ImageView new_plusten= new ImageView(getContext());
                                                 new_plusten.setImageResource(w_id);
@@ -430,7 +430,7 @@ public class TreasureHuntFragment extends Fragment implements View.OnClickListen
                                                 //create a new plusten
                                                 ConstraintLayout layout=(ConstraintLayout)view.findViewById(R.id.treasurehunt_layout);
                                                 int[] location = new int[2];
-                                                int w_id = getResources().getIdentifier("plusten_c", "drawable", getActivity().getPackageName());
+                                                int w_id = R.drawable.plusten_c;
 
                                                 ImageView new_plusten= new ImageView(getContext());
                                                 new_plusten.setImageResource(w_id);
@@ -487,7 +487,7 @@ public class TreasureHuntFragment extends Fragment implements View.OnClickListen
                                                 //create a new plusten
                                                 ConstraintLayout layout=(ConstraintLayout)view.findViewById(R.id.treasurehunt_layout);
                                                 int[] location = new int[2];
-                                                int w_id = getResources().getIdentifier("plusten_p", "drawable", getActivity().getPackageName());
+                                                int w_id = R.drawable.plusten_p;
 
                                                 ImageView new_plusten= new ImageView(getContext());
                                                 new_plusten.setImageResource(w_id);
@@ -547,7 +547,7 @@ public class TreasureHuntFragment extends Fragment implements View.OnClickListen
         //define all common animations
 
          layout=(ConstraintLayout)view.findViewById(R.id.treasurehunt_layout);
-         id = getResources().getIdentifier("plusone", "drawable", getActivity().getPackageName());
+         id = R.drawable.plusone;
 
         return view;
 
