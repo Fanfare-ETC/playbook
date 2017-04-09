@@ -7,6 +7,15 @@
     android:background="@drawable/selection_bgd"
     android:orientation="vertical">
 
+    <android.support.constraint.Guideline
+        android:id="@+id/guideline"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.5"
+        tools:layout_editor_absoluteY="0dp"
+        tools:layout_editor_absoluteX="375dp" />
+
     <Button
         android:id="@+id/section1"
         android:layout_width="114dp"
@@ -26,9 +35,10 @@
         android:background="@null"
         android:rotation="43"
         app:layout_constraintLeft_toLeftOf="@+id/stadium_map"
+        app:layout_constraintRight_toLeftOf="@+id/guideline"
         app:layout_constraintTop_toTopOf="parent"
         android:layout_marginStart="8dp"
-        android:layout_marginLeft="8dp"
+        android:layout_marginLeft="40dp"
         android:layout_marginTop="212dp" />
 
     <Button
@@ -38,9 +48,11 @@
         android:background="@null"
         android:rotation="-43"
         app:layout_constraintRight_toRightOf="@+id/stadium_map"
+        app:layout_constraintLeft_toRightOf="@+id/guideline"
         app:layout_constraintTop_toTopOf="parent"
         android:layout_marginStart="8dp"
-        android:layout_marginLeft="8dp"
+        android:layout_marginLeft="0dp"
+        android:layout_marginRight="40dp"
         android:layout_marginTop="212dp" />
 
     <Button
