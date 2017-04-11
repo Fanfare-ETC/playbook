@@ -26,7 +26,7 @@
         app:layout_constraintTop_toTopOf="parent"
         android:layout_marginStart="8dp"
         android:layout_marginLeft="8dp"
-        android:layout_marginTop="148dp" />
+        android:layout_marginTop="120dp" />
 
     <Button
         android:id="@+id/section2"
@@ -65,7 +65,8 @@
         app:layout_constraintTop_toTopOf="parent"
         android:layout_marginStart="8dp"
         android:layout_marginLeft="8dp"
-        android:layout_marginTop="148dp" />
+        android:layout_marginRight="8dp"
+        android:layout_marginTop="120dp" />
 
     <ImageView
         android:id="@+id/stadium_map"

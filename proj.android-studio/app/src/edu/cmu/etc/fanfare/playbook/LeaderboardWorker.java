@@ -25,6 +25,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 import static android.R.attr.id;
+import static android.R.attr.text;
 import static edu.cmu.etc.fanfare.playbook.R.styleable.View;
 
 /**
@@ -283,16 +284,37 @@ public class LeaderboardWorker extends AsyncTask<String,Void,String> {
 
                     TextView b1 = new TextView(activity.getContext());
                     String name = json_data.getString("UserName");
-                    b1.setText(name);
+                    if(name.length() > 13){
+                        b1.setTextSize(12);
+                    }
+                    else {
+                        b1.setTextSize(20);
+                    }
+                    if(name.length() > 30){
+                        b1.setText(name.substring(0,23));
+                    }
+                    else {
+                        b1.setText(name);
+                    }
                     b1.setPadding(10, 0, 10, 0);
                     b1.setTextColor(Color.WHITE);
                     b1.setTypeface(externalFont);
-                    b1.setTextSize(20);
-                    b1.setGravity(Gravity.LEFT);
+
+                    b1.setGravity(Gravity.LEFT|Gravity.CENTER);
                     b1.setLayoutParams(params1);
                     tr.addView(b1);
 
                     TextView b2 = new TextView(activity.getContext());
+                    int textSize = 24;
+                    if((json_data.getInt("PredictionScore") > 999) | (json_data.getInt("CollectionScore") > 999) | (json_data.getInt("Total") > 999)){
+                        if((json_data.getInt("PredictionScore") > 9999) | (json_data.getInt("CollectionScore") > 9999) | (json_data.getInt("Total") > 9999)){
+                            textSize = 12;
+                        }
+                        else{
+                            textSize = 16;
+                        }
+
+                    }
                     String prediction = String.valueOf(json_data.getInt("PredictionScore"));
                     b2.setText(prediction);
                     if (flag == 1)
@@ -300,8 +322,11 @@ public class LeaderboardWorker extends AsyncTask<String,Void,String> {
                     else
                         b2.setTextColor(Color.WHITE);
                     b2.setTypeface(externalFont);
-                    b2.setPadding(35, 0, 6, 0);
-                    b2.setTextSize(24);
+                    b2.setPadding(28, 0, 16, 0);
+
+                        b2.setTextSize(textSize);
+
+
                     b2.setGravity(Gravity.RIGHT | Gravity.CENTER);
                     b2.setLayoutParams(params2);
                     tr.addView(b2);
@@ -314,8 +339,10 @@ public class LeaderboardWorker extends AsyncTask<String,Void,String> {
                     else
                         b3.setTextColor(Color.WHITE);
                     b3.setTypeface(externalFont);
-                    b3.setPadding(30, 0, 6, 0);
-                    b3.setTextSize(24);
+                    b3.setPadding(20, 0, 6, 0);
+
+                        b3.setTextSize(textSize);
+
                     b3.setGravity(Gravity.RIGHT | Gravity.CENTER);
                     b3.setLayoutParams(params2);
                     tr.addView(b3);
@@ -323,9 +350,11 @@ public class LeaderboardWorker extends AsyncTask<String,Void,String> {
                     TextView b4 = new TextView(activity.getContext());
                     String total = String.valueOf(json_data.getInt("Total"));
                     b4.setText(total);
-                    b4.setPadding(30, 0, 12, 0);
+                    b4.setPadding(20, 0, 8, 0);
                     b4.setTypeface(externalFont);
-                    b4.setTextSize(24);
+
+                        b4.setTextSize(textSize);
+
                     b4.setGravity(Gravity.RIGHT | Gravity.CENTER);
                     if (flag == 0)
                         b4.setTextColor(Color.parseColor("#FFB84D"));
