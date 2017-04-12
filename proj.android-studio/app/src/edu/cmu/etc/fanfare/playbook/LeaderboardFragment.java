@@ -19,7 +19,7 @@ import static android.content.Context.MODE_PRIVATE;
  * Created by yqi1 on 3/24/2017.
  */
 
-public class LeaderboardFragment extends Fragment {
+public class LeaderboardFragment extends PlaybookFragment {
 
     LeaderboardFragment currActivity = this;
     ImageView sortTotal;

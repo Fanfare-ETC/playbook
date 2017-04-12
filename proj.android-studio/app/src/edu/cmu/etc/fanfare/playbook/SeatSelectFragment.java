@@ -25,7 +25,7 @@ import android.widget.TextView;
 import static android.content.Context.MODE_PRIVATE;
 
 
-public class SeatSelectFragment extends Fragment implements AdapterView.OnItemSelectedListener {
+public class SeatSelectFragment extends PlaybookFragment implements AdapterView.OnItemSelectedListener {
     public static int section = 0;
     private ImageView mStadiumMap;
     private ImageView arrow;

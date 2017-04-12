@@ -11,7 +11,7 @@ import android.view.ViewGroup;
  * Created by yqi1 on 4/4/2017.
  */
 
-public class TrophyFragment extends Fragment {
+public class TrophyFragment extends PlaybookFragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,

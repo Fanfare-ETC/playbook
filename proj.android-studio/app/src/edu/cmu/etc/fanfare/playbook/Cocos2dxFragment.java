@@ -33,7 +33,7 @@ import javax.microedition.khronos.egl.EGLDisplay;
 
 import static android.content.Context.DEVICE_POLICY_SERVICE;
 
-public abstract class Cocos2dxFragment extends Fragment implements Cocos2dxHelper.Cocos2dxHelperListener {
+public abstract class Cocos2dxFragment extends PlaybookFragment implements Cocos2dxHelper.Cocos2dxHelperListener {
     // ===========================================================
     // Constants
     // ===========================================================

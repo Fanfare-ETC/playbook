@@ -37,7 +37,7 @@ import java.util.Random;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
-public class TreasureHuntFragment extends Fragment implements View.OnClickListener{
+public class TreasureHuntFragment extends PlaybookFragment implements View.OnClickListener{
 
     public static int section;
     public static View view;

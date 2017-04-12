@@ -15,7 +15,6 @@ import com.google.firebase.messaging.RemoteMessage;
 import com.koushikdutta.async.http.AsyncHttpClient;
 import com.koushikdutta.async.http.AsyncHttpPost;
 import com.koushikdutta.async.http.AsyncHttpResponse;
-import com.koushikdutta.async.http.body.AsyncHttpRequestBody;
 import com.koushikdutta.async.http.body.JSONObjectBody;
 
 import org.json.JSONArray;
@@ -71,7 +70,7 @@ public class GcmListener extends FirebaseMessagingService {
 
     private void handlePlaysCreated(String message) {
         try {
-            if (AppActivity.isInForeground && AppActivity.selectedItem == AppActivity.DRAWER_PREDICTION_FRAGMENT) {
+            if (AppActivity.isInForeground && AppActivity.selectedItem == AppActivity.DRAWER_ITEM_PREDICTION) {
                 return;
             }
 
