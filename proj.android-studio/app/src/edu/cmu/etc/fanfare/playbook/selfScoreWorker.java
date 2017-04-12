@@ -141,34 +141,65 @@ public class selfScoreWorker extends AsyncTask<String,Void,String> {
 
                 Typeface externalFont = Typeface.createFromAsset(activity.getContext().getAssets(), "SCOREBOARD.ttf");
 
+                int textSize = 40;
+                if((jo.getInt("PredictionScore") > 999) | (jo.getInt("CollectionScore") > 999) | (jo.getInt("Total") > 999)){
+                    if((jo.getInt("PredictionScore") > 9999) | (jo.getInt("CollectionScore") > 9999) | (jo.getInt("Total") > 9999)){
+                        textSize = 20;
+                    }
+                    else{
+                        textSize = 30;
+                    }
+
+                }
                 TextView b2 = new TextView(activity.getContext());
                 String prediction = String.valueOf(jo.getInt("PredictionScore"));
-                b2.setText(prediction);
+                if(jo.getInt("PredictionScore") < 10){
+                    b2.setText("0" + prediction);
+                }
+                else{
+                    b2.setText(prediction);
+                }
                 b2.setTextColor(Color.WHITE);
                 b2.setTypeface(externalFont);
                 b2.setPadding(35, 10, 10, 0);
-                b2.setTextSize(40);
+
+                    b2.setTextSize(textSize);
+
                 b2.setGravity(Gravity.RIGHT | Gravity.CENTER);
                 b2.setLayoutParams(params2);
                 tr.addView(b2);
 
                 TextView b3 = new TextView(activity.getContext());
                 String collection = String.valueOf(jo.getInt("CollectionScore"));
-                b3.setText(collection);
+                if(jo.getInt("CollectionScore") < 10){
+                    b3.setText("0" + collection);
+                }
+                else{
+                    b3.setText(prediction);
+                }
                 b3.setTextColor(Color.WHITE);
                 b3.setTypeface(externalFont);
                 b3.setPadding(35, 10, 10, 0);
-                b3.setTextSize(40);
+
+                    b3.setTextSize(textSize);
+
                 b3.setGravity(Gravity.RIGHT | Gravity.CENTER);
                 b3.setLayoutParams(params2);
                 tr.addView(b3);
 
                 TextView b4 = new TextView(activity.getContext());
                 String total = String.valueOf(jo.getInt("Total"));
-                b4.setText(total);
+                if(jo.getInt("Total") < 10){
+                    b4.setText("0" + total);
+                }
+                else{
+                    b4.setText(total);
+                }
                 b4.setPadding(35, 10, 10, 0);
                 b4.setTypeface(externalFont);
-                b4.setTextSize(40);
+
+                    b4.setTextSize(textSize);
+
                 b4.setGravity(Gravity.RIGHT | Gravity.CENTER);
                 b4.setTextColor(Color.WHITE);
                 b4.setLayoutParams(params2);
