@@ -71,17 +71,17 @@ public class AppActivity extends AppCompatActivity {
     public static final String INTENT_EXTRA_PREDICTIONS_SCORED = "intentNotificationPredictionScored";
 
     public static final int DRAWER_ITEM_PREDICTION = 0;
-    public static final int DRAWER_ITEM_LEADERBOARD = 1;
-    public static final int DRAWER_ITEM_COLLECTION = 2;
-    public static final int DRAWER_ITEM_TROPHY = 3;
-    public static final int DRAWER_ITEM_TREASURE_HUNT = 4;
+    public static final int DRAWER_ITEM_COLLECTION = 1;
+    public static final int DRAWER_ITEM_TREASURE_HUNT = 2;
+    public static final int DRAWER_ITEM_LEADERBOARD = 3;
+    public static final int DRAWER_ITEM_TROPHY = 4;
 
     private static final int FRAGMENT_PREDICTION = 0;
-    private static final int FRAGMENT_LEADERBOARD = 1;
-    private static final int FRAGMENT_COLLECTION = 2;
-    private static final int FRAGMENT_TROPHY = 3;
-    private static final int FRAGMENT_SEAT_SELECT = 4;
-    private static final int FRAGMENT_TREASURE_HUNT = 5;
+    private static final int FRAGMENT_COLLECTION = 1;
+    private static final int FRAGMENT_TREASURE_HUNT = 2;
+    private static final int FRAGMENT_LEADERBOARD = 3;
+    private static final int FRAGMENT_TROPHY = 4;
+    private static final int FRAGMENT_SEAT_SELECT = 5;
 
     private static final String TAG = "AppActivity";
     private static final String STATE_SELECTED_SECTION = "selected_section";
