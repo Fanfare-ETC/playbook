@@ -2,24 +2,24 @@
 <resources>
     <string-array name="menu_items">
         <item>Prediction</item>
-        <item>Leaderboard</item>
         <item>Collection</item>
-        <item>Trophies</item>
         <item>Guide Your Runner</item>
+        <item>Leaderboard</item>
+        <item>Trophy Case</item>
     </string-array>
     <array name="menu_item_icons">
         <item>@drawable/ic_betting_board</item>
-        <item>@drawable/ic_section_score</item>
         <item>@drawable/ic_catch_the_play_game</item>
-        <item>@drawable/ic_section_score</item>
-        <item>@drawable/ic_golf_course_black_60dp</item>
+        <item>@drawable/menu_icon_hotcold</item>
+        <item>@drawable/menu_icon_leaderboard</item>
+        <item>@drawable/menu_icon_trophies</item>
     </array>
     <array name="menu_item_fragment_title">
         <item>Place Your Bets</item>
-        <item>Section Score</item>
         <item>Collect Sets</item>
-        <item>Trophy Case</item>
         <item>Guide Your Runner</item>
+        <item>Leaderboard</item>
+        <item>Trophy Case</item>
         <item>Select Section</item>
     </array>
     <array name="menu_item_fragment_color">
