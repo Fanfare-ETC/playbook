@@ -1,5 +1,10 @@
 package edu.cmu.etc.fanfare.playbook;
 
+import android.app.Activity;
+import android.app.Dialog;
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -10,6 +15,7 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.app.NotificationCompat;
 import android.util.Log;
 import android.util.SparseArray;
 import android.view.LayoutInflater;
@@ -25,7 +31,11 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Queue;
 
 public class PredictionFragment extends PlaybookFragment {
     private static final String TAG = PredictionFragment.class.getSimpleName();
@@ -36,11 +46,13 @@ public class PredictionFragment extends PlaybookFragment {
     private static final int MIN_WEB_VIEW_VERSION = 42;
 
     private static final SparseArray<String> PLAYBOOK_EVENTS = new SparseArray<String>();
+    private static final Map<String, Integer> PREDICTION_SCORE_VALUES = new HashMap<>();
 
     private boolean mWebViewIsCompatible = false;
     private WebView mWebView;
     private JSONObject mGameState;
     private boolean mIsRunning;
+    private Queue<JSONObject> mPendingEvents = new LinkedList<>();
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -87,6 +99,30 @@ public class PredictionFragment extends PlaybookFragment {
         PLAYBOOK_EVENTS.append(21, "MOST_IN_RIGHT_OUTFIELD");
         PLAYBOOK_EVENTS.append(22, "MOST_IN_INFIELD");
         PLAYBOOK_EVENTS.append(23, "UNKNOWN");
+        
+        PREDICTION_SCORE_VALUES.put(PLAYBOOK_EVENTS.valueAt(0), 4);
+        PREDICTION_SCORE_VALUES.put(PLAYBOOK_EVENTS.valueAt(1), 4);
+        PREDICTION_SCORE_VALUES.put(PLAYBOOK_EVENTS.valueAt(2), 2);
+        PREDICTION_SCORE_VALUES.put(PLAYBOOK_EVENTS.valueAt(3), 1400);
+        PREDICTION_SCORE_VALUES.put(PLAYBOOK_EVENTS.valueAt(4), 20);
+        PREDICTION_SCORE_VALUES.put(PLAYBOOK_EVENTS.valueAt(5), 2);
+        PREDICTION_SCORE_VALUES.put(PLAYBOOK_EVENTS.valueAt(6), 5);
+        PREDICTION_SCORE_VALUES.put(PLAYBOOK_EVENTS.valueAt(7), 7);
+        PREDICTION_SCORE_VALUES.put(PLAYBOOK_EVENTS.valueAt(8), 3);
+        PREDICTION_SCORE_VALUES.put(PLAYBOOK_EVENTS.valueAt(9), 10);
+        PREDICTION_SCORE_VALUES.put(PLAYBOOK_EVENTS.valueAt(10), 2);
+        PREDICTION_SCORE_VALUES.put(PLAYBOOK_EVENTS.valueAt(11), 2);
+        PREDICTION_SCORE_VALUES.put(PLAYBOOK_EVENTS.valueAt(12), 10);
+        PREDICTION_SCORE_VALUES.put(PLAYBOOK_EVENTS.valueAt(13), 2);
+        PREDICTION_SCORE_VALUES.put(PLAYBOOK_EVENTS.valueAt(14), 2);
+        PREDICTION_SCORE_VALUES.put(PLAYBOOK_EVENTS.valueAt(15), 3);
+        PREDICTION_SCORE_VALUES.put(PLAYBOOK_EVENTS.valueAt(16), 5);
+        PREDICTION_SCORE_VALUES.put(PLAYBOOK_EVENTS.valueAt(17), 20);
+        PREDICTION_SCORE_VALUES.put(PLAYBOOK_EVENTS.valueAt(18), 2);
+        PREDICTION_SCORE_VALUES.put(PLAYBOOK_EVENTS.valueAt(19), 2);
+        PREDICTION_SCORE_VALUES.put(PLAYBOOK_EVENTS.valueAt(20), 2);
+        PREDICTION_SCORE_VALUES.put(PLAYBOOK_EVENTS.valueAt(21), 2);
+        PREDICTION_SCORE_VALUES.put(PLAYBOOK_EVENTS.valueAt(22), 2);
 
         // Mark ourselves as running.
         mIsRunning = true;
@@ -125,16 +161,18 @@ public class PredictionFragment extends PlaybookFragment {
     }
 
     @Override
-    public void onWebSocketMessageReceived(JSONObject s) {
-        super.onWebSocketMessageReceived(s);
+    public void onWebSocketMessageReceived(Activity context, JSONObject s) {
+        super.onWebSocketMessageReceived(context, s);
         try {
             if (!mIsRunning) {
                 if (s.has("event")) {
                     String event = s.getString("event");
                     if (event.equals("server:playsCreated")) {
-                        handlePlaysCreated(s);
+                        handlePlaysCreated(context, s);
                     }
                 }
+                Log.d(TAG, "Received event while fragment is not attached, adding to queue");
+                mPendingEvents.add(s);
             }
         } catch (JSONException e) {
             e.printStackTrace();
@@ -143,14 +181,15 @@ public class PredictionFragment extends PlaybookFragment {
 
     private JSONObject createInitialGameState() throws JSONException {
         JSONObject state = new JSONObject();
-        JSONArray ballsSelectedTarget = new JSONArray();
+        JSONArray balls = new JSONArray();
         for (int i = 0; i < 5; i++) {
-            ballsSelectedTarget.put(null);
+            JSONObject ball = new JSONObject();
+            ball.put("selectedTarget", null);
         }
 
         state.put("stage", "INITIAL");
-        state.put("predictionCounts", new JSONObject());
-        state.put("ballsSelectedTarget", ballsSelectedTarget);
+        state.put("score", 0);
+        state.put("balls", balls);
         return state;
     }
 
@@ -238,16 +277,17 @@ public class PredictionFragment extends PlaybookFragment {
         String quoted = JSONObject.quote(jsonObject.toString());
         StringBuilder builder = new StringBuilder();
         String js = builder
-                .append("const event = new MessageEvent('message', { data: JSON.parse(")
+                .append("window.dispatchEvent(\n")
+                .append("new MessageEvent('message', { data: JSON.parse(")
                 .append(quoted)
-                .append(") });\n")
-                .append("window.dispatchEvent(event);\n")
+                .append(") })\n")
+                .append(");")
                 .toString();
         Log.d(TAG, js);
         mWebView.evaluateJavascript(js, null);
     }
 
-    private void handlePlaysCreated(JSONObject s) throws JSONException {
+    private void handlePlaysCreated(final Activity context, JSONObject s) throws JSONException {
         JSONArray data = s.getJSONArray("data");
         List<String> events = new ArrayList<>();
         for (int i = 0; i < data.length(); i++) {
@@ -256,29 +296,40 @@ public class PredictionFragment extends PlaybookFragment {
 
         // Add it to the game state.
         Log.d(TAG, "Creating plays: " + events.toString());
+        JSONArray balls = mGameState.getJSONArray("balls");
         for (String event : events) {
-            makePrediction(event);
+            for (int i = 0; i < balls.length(); i++) {
+                JSONObject ball = balls.getJSONObject(i);
+                String selectedTarget = ball.getString("selectedTarget");
+                if (selectedTarget != null && event.equals(selectedTarget)) {
+                    showCorrectDialog(context);
+                }
+            }
         }
     }
 
-    private void makePrediction(String event) {
-        try {
-            if (!mGameState.has("predictionCounts")) {
-                mGameState.put("predictionCounts", new JSONObject());
-            }
+    private void showCorrectDialog(final Activity context) {
+        final Intent intent = new Intent(context, AppActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        intent.putExtra(AppActivity.INTENT_EXTRA_DRAWER_ITEM, AppActivity.DRAWER_ITEM_PREDICTION);
 
-            JSONObject predictionCounts = mGameState.getJSONObject("predictionCounts");
-            if (predictionCounts.has(event)) {
-                int count = predictionCounts.getInt(event);
-                predictionCounts.put(event, count + 1);
-            } else {
-                predictionCounts.put(event, 1);
+        context.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                AlertDialog dialog = new AlertDialog.Builder(context)
+                        .setTitle("Bravo!")
+                        .setMessage("You got a prediction right.")
+                        .setCancelable(false)
+                        .setPositiveButton("Check it out!", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                context.startActivity(intent);
+                            }
+                        })
+                        .create();
+                dialog.show();
             }
-
-            // Find the
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
+        });
     }
 
     private class PlaybookWebChromeClient extends WebChromeClient {
@@ -329,6 +380,16 @@ public class PredictionFragment extends PlaybookFragment {
                         jsonObject.put("action", "RESTORE_GAME_STATE");
                         jsonObject.put("payload", mGameState.toString());
                         PredictionFragment.this.sendMessage(jsonObject);
+
+                        // Send down any pending events that were received when we weren't in
+                        // the foreground.
+                        while (!mPendingEvents.isEmpty()) {
+                            jsonObject = new JSONObject();
+                            jsonObject.put("action", "HANDLE_MESSAGE");
+                            jsonObject.put("payload", mPendingEvents.poll());
+                            PredictionFragment.this.sendMessage(jsonObject);
+                        }
+
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }

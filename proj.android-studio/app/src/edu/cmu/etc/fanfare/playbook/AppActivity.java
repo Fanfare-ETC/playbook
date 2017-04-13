@@ -69,6 +69,7 @@ import java.util.Stack;
 
 public class AppActivity extends AppCompatActivity {
     public static final String INTENT_EXTRA_PREDICTIONS_SCORED = "intentNotificationPredictionScored";
+    public static final String INTENT_EXTRA_DRAWER_ITEM = "intentExtraDrawerItem";
 
     public static final int DRAWER_ITEM_PREDICTION = 0;
     public static final int DRAWER_ITEM_LEADERBOARD = 1;
@@ -263,6 +264,11 @@ public class AppActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    public void onNewIntent(Intent intent) {
+        selectItem(intent.getIntExtra(INTENT_EXTRA_DRAWER_ITEM, DEFAULT_ITEM));
+    }
+
     private class DrawerItemClickListener implements ListView.OnItemClickListener {
         @Override
         public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -449,7 +455,7 @@ public class AppActivity extends AppCompatActivity {
                 Log.d(TAG, jsonObject.getString("event"));
                 for (int i = 0; i < mFragments.size(); i++) {
                     PlaybookFragment fragment = mFragments.valueAt(i);
-                    fragment.onWebSocketMessageReceived(jsonObject);
+                    fragment.onWebSocketMessageReceived(AppActivity.this, jsonObject);
                 }
             } catch (JSONException e) {
                 e.printStackTrace();
