@@ -26,6 +26,8 @@ import android.webkit.JavascriptInterface;
 import android.webkit.WebChromeClient;
 import android.webkit.WebView;
 
+import com.google.android.gms.common.api.GoogleApiClient;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -357,6 +359,17 @@ public class PredictionFragment extends PlaybookFragment {
         public String getAPIUrl() {
             return "ws://" + BuildConfig.PLAYBOOK_API_HOST + ":" +
                     BuildConfig.PLAYBOOK_API_PORT;
+        }
+
+        @JavascriptInterface
+        public String getSectionAPIUrl() {
+            return "http://" + BuildConfig.PLAYBOOK_SECTION_API_HOST + ":" +
+                    BuildConfig.PLAYBOOK_SECTION_API_PORT;
+        }
+
+        @JavascriptInterface
+        public String getPlayerID() {
+            return Cocos2dxBridge.getPlayerID();
         }
 
         @JavascriptInterface
