@@ -97,10 +97,11 @@ public class PredictionFragment extends PlaybookFragment {
         PLAYBOOK_EVENTS.append(17, "TRIPLE");
         PLAYBOOK_EVENTS.append(18, "BATTER_COUNT_4");
         PLAYBOOK_EVENTS.append(19, "BATTER_COUNT_5");
-        PLAYBOOK_EVENTS.append(20, "MOST_IN_LEFT_OUTFIELD");
-        PLAYBOOK_EVENTS.append(21, "MOST_IN_RIGHT_OUTFIELD");
-        PLAYBOOK_EVENTS.append(22, "MOST_IN_INFIELD");
-        PLAYBOOK_EVENTS.append(23, "UNKNOWN");
+        PLAYBOOK_EVENTS.append(20, "MOST_FIELDED_BY_LEFT");
+        PLAYBOOK_EVENTS.append(21, "MOST_FIELDED_BY_RIGHT");
+        PLAYBOOK_EVENTS.append(22, "MOST_FIELDED_BY_INFIELDERS");
+        PLAYBOOK_EVENTS.append(23, "MOST_FIELDED_BY_CENTER");
+        PLAYBOOK_EVENTS.append(24, "UNKNOWN");
         
         PREDICTION_SCORE_VALUES.put(PLAYBOOK_EVENTS.valueAt(0), 4);
         PREDICTION_SCORE_VALUES.put(PLAYBOOK_EVENTS.valueAt(1), 4);
@@ -125,6 +126,7 @@ public class PredictionFragment extends PlaybookFragment {
         PREDICTION_SCORE_VALUES.put(PLAYBOOK_EVENTS.valueAt(20), 2);
         PREDICTION_SCORE_VALUES.put(PLAYBOOK_EVENTS.valueAt(21), 2);
         PREDICTION_SCORE_VALUES.put(PLAYBOOK_EVENTS.valueAt(22), 2);
+        PREDICTION_SCORE_VALUES.put(PLAYBOOK_EVENTS.valueAt(23), 2);
 
         // Mark ourselves as running.
         mIsRunning = true;
