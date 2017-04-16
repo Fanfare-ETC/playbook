@@ -63,8 +63,6 @@ import org.json.JSONObject;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Stack;
 
 public class AppActivity extends AppCompatActivity {
@@ -240,8 +238,7 @@ public class AppActivity extends AppCompatActivity {
         if (id == R.id.action_about) {
             return true;
         } else if (id == R.id.action_debug) {
-
-            Cocos2dxBridge.loadScene("SectionSelection");
+            return true;
         }
 
         return super.onOptionsItemSelected(item);
@@ -343,7 +340,7 @@ public class AppActivity extends AppCompatActivity {
                 break;
             case DRAWER_ITEM_LEADERBOARD:
                 Log.i("test", "Entering new collection fragment");
-                fragment = new testCollectionFragment();  //for test js collection
+                fragment = new CollectionFragment();  //for test js collection
                 break;
             case DRAWER_ITEM_TREASURE_HUNT:
                 if(!sectionFlag){

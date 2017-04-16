@@ -78,9 +78,10 @@ public class GcmListener extends FirebaseMessagingService {
             JSONArray playsArray = new JSONArray(message);
             for (int i = 0; i < playsArray.length(); i++) {
                 int event = playsArray.getInt(i);
-                if (Cocos2dxBridge.getPredictionCount(event) > 0) {
-                    correctPredictions.add(event);
-                }
+                // TODO: Make this work with the new WebGL implementation
+                //if (Cocos2dxBridge.getPredictionCount(event) > 0) {
+                //    correctPredictions.add(event);
+                //}
             }
 
             if (correctPredictions.size() > 0) {
@@ -111,7 +112,7 @@ public class GcmListener extends FirebaseMessagingService {
                     Log.d(TAG, "Updating score on server...");
                     JSONObject jsonObj = new JSONObject();
                     jsonObj.put("cat", "predict");
-                    jsonObj.put("predictScore", Cocos2dxBridge.getPredictionScoreForEvent(event));
+                    //jsonObj.put("predictScore", Cocos2dxBridge.getPredictionScoreForEvent(event));
                     jsonObj.put("id", Cocos2dxBridge.getPlayerID());
 
                     String url = "http://" + BuildConfig.PLAYBOOK_SECTION_API_HOST + ":" +

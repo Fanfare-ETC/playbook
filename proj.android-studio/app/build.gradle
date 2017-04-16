@@ -1,3 +1,4 @@
+import org.gradle.internal.os.OperatingSystem;
 apply plugin: 'com.android.application'
 
 android {
@@ -23,20 +24,6 @@ android {
         buildConfigField 'String', 'PLAYBOOK_LEADERC_APP', '"leaderboardC"'
         buildConfigField 'String', 'PLAYBOOK_SELF_APP', '"selfScore"'
         buildConfigField 'String', 'PLAYBOOK_TROPHY_APP', '"myTrophy"'
-
-        externalNativeBuild {
-            ndkBuild {
-                arguments '-j' + Runtime.runtime.availableProcessors()
-                cppFlags '-frtti',
-                        '-DCC_ENABLE_CHIPMUNK_INTEGRATION=1',
-                        '-std=c++11',
-                        '-fsigned-char'
-            }
-        }
-
-        ndk {
-            abiFilters 'x86', 'armeabi'
-        }
     }
 
     sourceSets.main {
@@ -68,18 +55,6 @@ android {
     }
 
     buildTypes {
-        debug {
-            externalNativeBuild {
-                ndkBuild {
-                    cppFlags '-DCOCOS2D_DEBUG=1',
-                            '-DPLAYBOOK_API_HOST=10.0.2.2',
-                            '-DPLAYBOOK_API_PORT=9001',
-                            '-DPLAYBOOK_SECTION_API_HOST=10.0.2.2',
-                            '-DPLAYBOOK_SECTION_API_PORT=9002'
-                }
-            }
-        }
-
         staging {
             buildConfigField 'String', 'PLAYBOOK_TREASUREHUNT_API_HOST', '"staging.fanfare.wong.place"'
             buildConfigField 'Integer', 'PLAYBOOK_TREASUREHUNT_API_PORT', '9000'
@@ -92,20 +67,6 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             if (project.hasProperty('RELEASE_STORE_FILE')) {
                 signingConfig signingConfigs.staging
-            }
-
-            externalNativeBuild {
-                ndkBuild {
-                    cppFlags '-DNDEBUG',
-                            '-DPLAYBOOK_API_HOST=staging.fanfare.wong.place',
-                            '-DPLAYBOOK_API_PORT=9001',
-                            '-DPLAYBOOK_SECTION_API_HOST=staging.fanfare.wong.place',
-                            '-DPLAYBOOK_SECTION_API_PORT=9002'
-                }
-            }
-
-            ndk {
-                abiFilters 'x86', 'armeabi'
             }
         }
 
@@ -122,33 +83,12 @@ android {
             if (project.hasProperty('RELEASE_STORE_FILE')) {
                 signingConfig signingConfigs.release
             }
-
-            externalNativeBuild {
-                ndkBuild {
-                    cppFlags '-DNDEBUG',
-                            '-DPLAYBOOK_API_HOST=fanfare.wong.place',
-                            '-DPLAYBOOK_API_PORT=9001',
-                            '-DPLAYBOOK_SECTION_API_HOST=fanfare.wong.place',
-                            '-DPLAYBOOK_SECTION_API_PORT=9002'
-                }
-            }
-
-            ndk {
-                abiFilters 'x86', 'armeabi'
-            }
-        }
-    }
-
-    externalNativeBuild {
-        ndkBuild {
-            path 'jni/Android.mk'
         }
     }
 }
 
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
-    compile project(':libcocos2dx')
     compile 'com.android.support:support-v4:25.3.1'
     compile 'com.android.support:appcompat-v7:25.3.1'
     compile 'com.google.android.gms:play-services-auth:9.6.0'
@@ -159,15 +99,42 @@ dependencies {
 
 }
 
+task npmInstall(type: Exec) {
+    workingDir '../../webgl'
+    if (OperatingSystem.current().isWindows()) {
+        executable 'npm.cmd'
+    } else {
+        executable 'npm'
+    }
+    args 'install'
+    inputs.dir '../../webgl/package.json'
+    outputs.dir '../../webgl/node_modules'
+}
+
+task webpackBuild(type: Exec) {
+    workingDir '../../webgl'
+    if (OperatingSystem.current().isWindows()) {
+        executable 'npm.cmd'
+    } else {
+        executable 'npm'
+    }
+    args 'run', 'build'
+    inputs.dir '../../webgl'
+    outputs.dir '../../webgl/public'
+    dependsOn npmInstall
+}
+
+task webpackSync(type: Sync) {
+    from '../../webgl/public'
+    into 'assets'
+    dependsOn webpackBuild
+}
+
 task cleanAssets(type: Delete) {
     delete 'assets'
 }
-task copyAssets(type: Copy) {
-    from '../../Resources'
-    into 'assets'
-}
 
 clean.dependsOn cleanAssets
-preBuild.dependsOn copyAssets
+preBuild.dependsOn webpackSync
 
 apply plugin: 'com.google.gms.google-services'
