@@ -231,6 +231,9 @@ class GameState {
     this._cardCounts = {};
 
     /** @type {string} */
+    this._goal = null;
+
+    /** @type {string} */
     //this._stage = GameStages.INITIAL; //? Do we need it here?
 
     /** @type {Array<Card>} */
@@ -238,6 +241,9 @@ class GameState {
 
     /** @type {Array<Card>} */
     this.incomingCards = new Array();
+
+    /** @type {Array<CardSlot>} */
+    this.cardSlots = new Array();
 
     /** @type {number} */
     this.score = 0;
@@ -326,6 +332,7 @@ const connection = new WebSocket(PlaybookCollectionBridge.getAPIUrl());
 const renderer = PIXI.autoDetectRenderer(1080, 1920, { resolution: window.devicePixelRatio });
 const stage = new PIXI.Container();
 const state = new GameState();
+//const _tray = new PIXI.Sprite(null);
 
 /**
  * Card.
@@ -347,8 +354,8 @@ class Card {
     /** @type {PIXI.Point?} */
     this.dragOrigPosition = null;
 
-    /** @type {FieldOverlayArea?} */
-    this.dragTarget = null; //either discard or score
+    /** @type {number} */
+    this.dragTarget = -1; //card slot (0-4) discard (6) or score (7)
 
     /** @type {bool} */
     this.isAnimating = false;
@@ -405,6 +412,116 @@ class Card {
   }
 }
 
+/** 
+ *Card slots
+ */
+class CardSlot {
+  constructor(){
+    /** @type {Card} */
+    this.card = null;
+
+    /** @type {bool} */
+    this.present = false;
+  }
+}
+
+/**
+ * Sets up events for a card.
+ * @param {Card} card
+ * @param {CardSlot} cardSlot
+ * @param {FieldOverlay} fieldOverlay
+ */
+function initCardEvents(card, cardSlot, fieldOverlay) {
+  card.sprite.interactive = true;
+  card.sprite.hitArea = new PIXI.Circle(0, 0, card.sprite.texture.width / 2);
+
+  // Listen for changes to state.
+ /* state.emitter.on(state.EVENT_STAGE_CHANGED, function (value) {
+    if (value === GameStages.CONFIRMED) {
+      card.sprite.interactive = false;
+      card.sprite.tint = 0x999999;
+    } else {
+      card.sprite.interactive = true;
+      card.sprite.tint = 0xffffff;
+    }
+  });
+*/
+  const onTouchStart = function (e) {
+    // Don't allow interaction if card is being animated.
+    if (card.isAnimating) { return; }
+
+    card.isBeingDragged = true;
+    card.dragPointerId = e.data.identifier;
+    card.dragOffset = e.data.getLocalPosition(card.sprite);
+    card.dragOffset.x *= card.sprite.scale.x;
+    card.dragOffset.y *= card.sprite.scale.y;
+    card.dragOrigPosition = new PIXI.Point(
+      card.sprite.position.x,
+      card.sprite.position.y
+    );
+  };
+
+  const onTouchMove = function (e) {
+    if (card.isBeingDragged &&
+        card.dragPointerId === e.data.identifier) {
+      card.sprite.position.set(
+        e.data.global.x - card.dragOffset.x,
+        e.data.global.y - card.dragOffset.y
+      );
+
+      // Check if we're above score or discard buttons.
+      card.dragTarget = getTargetByPoint(card, new PIXI.Point(
+        e.data.global.x,
+        e.data.global.y
+      ));
+
+      // Re-render the scene.
+      renderer.isDirty = true;
+    }
+  };
+
+  const onTouchEnd = function (e) {
+    // Don't allow interaction if card is being animated.
+    if (card.isAnimating || !card.isBeingDragged) { return; }
+    card.isBeingDragged = false;
+
+    // If there's a drag target, move the card there.
+    // If discard: destroy the card
+    // If score: add the score
+    if (card.dragTarget == 0) {
+      card.moveTo(card.dragTarget);
+      //destroy card
+    } else if (card.dragTarget == 1) {
+      card.moveTo(createCard.dragTarget);
+      //add score
+    } else {
+      card.moveToOrigPosition();
+    }
+
+  };
+
+  card.sprite
+    .on('touchstart', onTouchStart)
+    .on('touchmove', onTouchMove)
+    .on('touchend', onTouchEnd)
+    .on('touchendoutside', onTouchEnd)
+    .on('touchcancel', onTouchEnd);
+}
+
+function getTargetByPoint(card, position){
+  const local = this.toLocal(point);
+  if (stage.getChildByName('discard').hitArea.contains(local.x, local.y)){
+    return 6; //discard
+  }
+  else if (stage.getChildByName('scoreButton').hitArea.contains(local.x, local.y)){
+    return 7; //calculate score
+  }
+  else if (stage.getChildByName('tray').hitArea.contains(local.x, local.y)){
+    //change slot
+    return getNearestSlot(card, position);
+  } 
+}
+
 /**
  * Returns the world space position for a ball slot.
  * @param {PIXI.Texture} cardTexture
@@ -443,6 +560,7 @@ function createRandomGoal(goalContainer) {
     .map(goal => GoalTypesMetadata[goal]);
   //console.log(visibleGoals);
   const randomChoice = Math.floor((Math.random() * visibleGoals.length));
+  stage._goal = visibleGoals[randomChoice];
   setActiveGoal(visibleGoals[randomChoice], goalContainer);
 
 }
@@ -512,6 +630,12 @@ function createCard(play){
   card.anchor.set(0.5, 0.5);
   card.rotation = PIXI.DEG_TO_RAD * (Math.floor(Math.random() * 10) + -5);
   card.zOrder = 2;
+
+  const cardObj = new Card();
+  cardObj.sprite = card;
+  state.cards.push(card);
+
+  initCardEvents(card, )
   stage.addChild(card);
 }
 /**
@@ -547,13 +671,87 @@ function configureWebSocket(connection) {
   });
 };
 
-function getBallPositionForSlot(ballTexture, ballSlot, i) {
-  const ballScale = ballSlot.texture.height / ballTexture.height / 1.5;
-  return ballSlot.toGlobal(new PIXI.Point(
-    120 + ballTexture.width * i * ballScale,
-    ballSlot.texture.height / 2
+function getCardPositionForSlot(cardTexture, i) {
+  const cardScale = getCardScaleInSlot(cardTexture);
+  const scaledWidth = cardTexture.width * cardScale;
+  const scaledHeight = cardTexture.height * cardScale;
+  const traySprite = stage.getChildByName('tray');
+  return traySprite.toGlobal(new PIXI.Point(
+    48.0 + (i * 24.0) + // Left margin and slot margins
+            (i + 0.5) * scaledWidth, // Space occupied by slot,
+        48.0 + (scaledHeight * 0.5)
   ));
 };
+
+function getCardScaleInSlot(cardTexture) {
+  const cardHolderWidth = (window.innerWidth - (48.0 * 2) - ((5/*NUM_SLOTS*/ - 1) * 24.0)) / 5.0;
+  return cardHolderWidth / cardTexture.width;
+
+}
+
+function getNearestSlot(card, position){
+  const slot = -1;
+  const smallestDistance = Number.MAX_VALUE;
+  state.cardSlots.forEach((cardSlot, i) => {
+    if(!cardSlot.present){
+      const slotPosition = getCardPositionForSlot(card.sprite.texture, i);
+      const distance = distance(slotPosition, position);
+      if(distance < smallestDistance){
+        slot = i;
+        smallestDistance = distance;
+      }
+    }
+  });
+  return slot;
+
+}
+
+function distance(p1, p2){
+  const disx = Math.pow(p1.x - p2.x, 2);
+  const disy = Math.pow(p1.y - p2.y, 2);
+  return (Math.sqrt(disx + disy));
+
+}
+
+/**
+ * Initializes events for the score.
+ * @param {PIXI.Text} scoreText
+ */
+function initScoreEvents(scoreText) {
+  state.emitter.on(state.EVENT_SCORE_CHANGED, function (score) {
+    scoreText.text = ('000000' + score).substr(-3);
+    renderer.isDirty = true;
+  });
+}
+
+/**
+ * Report a scoring event to the server.
+ * @param {number} score
+ */
+function reportScore(score) {
+  const request = new XMLHttpRequest();
+  request.open('POST', `${PlaybookBridge.getSectionAPIUrl()}/updateScore`);
+  request.setRequestHeader('Content-Type', 'application/json');
+  request.send(JSON.stringify({
+    cat: 'collect',
+    collectScore: score,
+    id: PlaybookBridge.getPlayerID()
+  }));
+}
+
+/**
+ * Update trophy case to the server.
+ * @param {string} 
+ */
+function updateTrophy(goal) {
+  const request = new XMLHttpRequest();
+  request.open('POST', `${PlaybookBridge.getSectionAPIUrl()}/updateTrophy`);
+  request.setRequestHeader('Content-Type', 'application/json');
+  request.send(JSON.stringify({
+    userId: PlaybookBridge.getPlayerID(),
+    trophyId: GoalTypesMetadata[goal].serverId
+  }));
+}
 
 function setup() {
 
@@ -585,6 +783,7 @@ function setup() {
   tray.position.set(0, window.innerHeight - trayHeight);
   tray.scale.set(trayScale, trayScale);
   tray.zOrder = 2;
+  //_tray = tray;
   stage.addChild(tray);
 
  //Add top shadow
@@ -656,6 +855,7 @@ function setup() {
     //this.text.style.fontWeight = 'bold';
     scoreText.style.fontSize = 36.0;
     //this.text.style.align = 'center';
+    initScoreEvents(scoreText);
     shadow.addChild(scoreText);
 
   //Add bottom shadow
