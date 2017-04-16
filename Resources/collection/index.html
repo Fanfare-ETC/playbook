@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no" />
+    <style>
+      @font-face {
+        font-family: 'proxima-nova-excn';
+        src: url('resources/proxima-nova-excn-black.woff2');
+        font-variant: normal;
+        font-weight: 900;
+        font-style: normal;
+      }
+       @font-face {
+        font-family: 'SCOREBOARD';
+        src: url('resources/SCOREBOARD.woff2');
+        font-variant: normal;
+        font-weight: normal;
+        font-style: normal;
+      }
+
+      body {
+        background: #000;
+        margin: 0;
+        padding: 0;
+      }
+
+      .webfont-loading-hack-proxima-nova-excn {
+        font-family: 'proxima-nova-excn';
+        position: absolute;
+      }
+
+      .webfont-loading-hack-SCOREBOARD {
+        font-family: 'SCOREBOARD';
+        position: absolute;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="webfont-loading-hack-proxima-nova-excn">X</div>
+    <div class="webfont-loading-hack-SCOREBOARD">X</div>
+    <script src="collection.js"></script>
+  </body>
+</html>

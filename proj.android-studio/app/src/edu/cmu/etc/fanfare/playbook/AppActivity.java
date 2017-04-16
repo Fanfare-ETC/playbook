@@ -337,10 +337,13 @@ public class AppActivity extends AppCompatActivity {
         PlaybookFragment fragment;
         switch (position) {
             case DRAWER_ITEM_PREDICTION:
-            case DRAWER_ITEM_LEADERBOARD:
             case DRAWER_ITEM_COLLECTION:
             case DRAWER_ITEM_TROPHY:
                 fragment = mFragments.get(position);
+                break;
+            case DRAWER_ITEM_LEADERBOARD:
+                Log.i("test", "Entering new collection fragment");
+                fragment = new testCollectionFragment();  //for test js collection
                 break;
             case DRAWER_ITEM_TREASURE_HUNT:
                 if(!sectionFlag){
