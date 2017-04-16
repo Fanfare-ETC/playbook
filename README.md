@@ -26,7 +26,7 @@ Requirements:
 
 - [Android Studio and SDK](https://developer.android.com/studio/index.html)
 - [Android NDK](https://developer.android.com/ndk/index.html)
-- [cocos2d-x](http://www.cocos2d-x.org/) (included in repository)
+- [Node.js](https://nodejs.org/)
 
 The exact requirements may vary across different platforms.
 
