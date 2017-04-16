@@ -690,8 +690,8 @@ function getCardScaleInSlot(cardTexture) {
 }
 
 function getNearestSlot(card, position){
-  const slot = -1;
-  const smallestDistance = Number.MAX_VALUE;
+  let slot = -1;
+  let smallestDistance = Number.MAX_VALUE;
   state.cardSlots.forEach((cardSlot, i) => {
     if(!cardSlot.present){
       const slotPosition = getCardPositionForSlot(card.sprite.texture, i);
