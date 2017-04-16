@@ -6,7 +6,9 @@ import EventEmitter from 'eventemitter3';
 import PlaybookEvents,
   { FriendlyNames as PlaybookEventsFriendlyNames, 
   Teams as PlaybookEventsTeams,
-  StringMap as PlaybookEventsStringMap} from './lib/PlaybookEvents';
+  StringMap as PlaybookEventsStringMap,
+  IsOut as PlaybookEventsIsOut,
+  IsOnBase as PlaybookEventsIsOnBase} from './lib/PlaybookEvents';
 
 // The Playbook Bridge is supplied via addJavaScriptInterface() on the Java
 // side of the code. In the absence of that, we need to mock one.
@@ -390,8 +392,21 @@ class Card {
    * @param {PIXI.Sprite} cardSlot
    * @param {number} slot
    */
-  moveToSlot(cardSlot, slot) {
-    this._moveToWithAnimation(getCardSlotPosition(this.sprite.texture, cardSlot, slot));
+  moveToSlot(slot) {
+    this._moveToWithAnimation(getCardSlotPosition(this.sprite.texture, slot));
+  }
+
+  moveTo(target){
+    if(target == 6){ //discard
+      this._moveToWithAnimation(stage.getChildByName('discard').position);
+    }
+    else if (target == 7){
+      this._moveToWithAnimation(stage.getChildByName('scoreButton').position);
+    }
+    else{
+      moveToSlot(target);
+    }
+    
   }
 
   /**
@@ -488,6 +503,7 @@ function initCardEvents(card, cardSlot, fieldOverlay) {
     // If there's a drag target, move the card there.
     // If discard: destroy the card
     // If score: add the score
+    // If slot number: move to a slot
     if (card.dragTarget == 0) {
       card.moveTo(card.dragTarget);
       //destroy card
@@ -528,8 +544,8 @@ function getTargetByPoint(card, position){
  * @param {PIXI.Sprite} cardSlot
  * @param {Number} i
  */
-function getCardSlotPositionFor(cardTexture, cardSlot, i) {
-  const cardScale = cardSlot.texture.height / cardTexture.height / 1.5;
+function getCardSlotPositionFor(cardTexture, i) {
+  const cardScale = stage.getChildByName['tray'].sprite.texture.height / cardTexture.height / 1.5;
   return cardSlot.toGlobal(new PIXI.Point(
     120 + cardTexture.width * i * cardScale,
     cardSlot.texture.height / 2
