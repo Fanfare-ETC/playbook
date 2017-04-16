@@ -1,10 +1,6 @@
 package edu.cmu.etc.fanfare.playbook;
 
 import android.app.Activity;
-import android.app.Dialog;
-import android.app.Notification;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -15,7 +11,6 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
-import android.support.v7.app.NotificationCompat;
 import android.util.Log;
 import android.util.SparseArray;
 import android.view.LayoutInflater;
@@ -31,10 +26,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Queue;
 
 public class PredictionFragment extends PlaybookFragment {
@@ -46,13 +39,14 @@ public class PredictionFragment extends PlaybookFragment {
     private static final int MIN_WEB_VIEW_VERSION = 42;
 
     private static final SparseArray<String> PLAYBOOK_EVENTS = new SparseArray<String>();
-    private static final Map<String, Integer> PREDICTION_SCORE_VALUES = new HashMap<>();
 
     private boolean mWebViewIsCompatible = false;
     private WebView mWebView;
     private JSONObject mGameState;
     private boolean mIsRunning;
     private Queue<JSONObject> mPendingEvents = new LinkedList<>();
+
+    private AlertDialog mCorrectDialog;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -95,34 +89,11 @@ public class PredictionFragment extends PlaybookFragment {
         PLAYBOOK_EVENTS.append(17, "TRIPLE");
         PLAYBOOK_EVENTS.append(18, "BATTER_COUNT_4");
         PLAYBOOK_EVENTS.append(19, "BATTER_COUNT_5");
-        PLAYBOOK_EVENTS.append(20, "MOST_IN_LEFT_OUTFIELD");
-        PLAYBOOK_EVENTS.append(21, "MOST_IN_RIGHT_OUTFIELD");
-        PLAYBOOK_EVENTS.append(22, "MOST_IN_INFIELD");
-        PLAYBOOK_EVENTS.append(23, "UNKNOWN");
-        
-        PREDICTION_SCORE_VALUES.put(PLAYBOOK_EVENTS.valueAt(0), 4);
-        PREDICTION_SCORE_VALUES.put(PLAYBOOK_EVENTS.valueAt(1), 4);
-        PREDICTION_SCORE_VALUES.put(PLAYBOOK_EVENTS.valueAt(2), 2);
-        PREDICTION_SCORE_VALUES.put(PLAYBOOK_EVENTS.valueAt(3), 1400);
-        PREDICTION_SCORE_VALUES.put(PLAYBOOK_EVENTS.valueAt(4), 20);
-        PREDICTION_SCORE_VALUES.put(PLAYBOOK_EVENTS.valueAt(5), 2);
-        PREDICTION_SCORE_VALUES.put(PLAYBOOK_EVENTS.valueAt(6), 5);
-        PREDICTION_SCORE_VALUES.put(PLAYBOOK_EVENTS.valueAt(7), 7);
-        PREDICTION_SCORE_VALUES.put(PLAYBOOK_EVENTS.valueAt(8), 3);
-        PREDICTION_SCORE_VALUES.put(PLAYBOOK_EVENTS.valueAt(9), 10);
-        PREDICTION_SCORE_VALUES.put(PLAYBOOK_EVENTS.valueAt(10), 2);
-        PREDICTION_SCORE_VALUES.put(PLAYBOOK_EVENTS.valueAt(11), 2);
-        PREDICTION_SCORE_VALUES.put(PLAYBOOK_EVENTS.valueAt(12), 10);
-        PREDICTION_SCORE_VALUES.put(PLAYBOOK_EVENTS.valueAt(13), 2);
-        PREDICTION_SCORE_VALUES.put(PLAYBOOK_EVENTS.valueAt(14), 2);
-        PREDICTION_SCORE_VALUES.put(PLAYBOOK_EVENTS.valueAt(15), 3);
-        PREDICTION_SCORE_VALUES.put(PLAYBOOK_EVENTS.valueAt(16), 5);
-        PREDICTION_SCORE_VALUES.put(PLAYBOOK_EVENTS.valueAt(17), 20);
-        PREDICTION_SCORE_VALUES.put(PLAYBOOK_EVENTS.valueAt(18), 2);
-        PREDICTION_SCORE_VALUES.put(PLAYBOOK_EVENTS.valueAt(19), 2);
-        PREDICTION_SCORE_VALUES.put(PLAYBOOK_EVENTS.valueAt(20), 2);
-        PREDICTION_SCORE_VALUES.put(PLAYBOOK_EVENTS.valueAt(21), 2);
-        PREDICTION_SCORE_VALUES.put(PLAYBOOK_EVENTS.valueAt(22), 2);
+        PLAYBOOK_EVENTS.append(20, "MOST_FIELDED_BY_LEFT");
+        PLAYBOOK_EVENTS.append(21, "MOST_FIELDED_BY_RIGHT");
+        PLAYBOOK_EVENTS.append(22, "MOST_FIELDED_BY_INFIELDERS");
+        PLAYBOOK_EVENTS.append(23, "MOST_FIELDED_BY_CENTER");
+        PLAYBOOK_EVENTS.append(24, "UNKNOWN");
 
         // Mark ourselves as running.
         mIsRunning = true;
@@ -316,18 +287,24 @@ public class PredictionFragment extends PlaybookFragment {
         context.runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                AlertDialog dialog = new AlertDialog.Builder(context)
-                        .setTitle("Bravo!")
-                        .setMessage("You got a prediction right.")
-                        .setCancelable(false)
-                        .setPositiveButton("Check it out!", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                context.startActivity(intent);
-                            }
-                        })
-                        .create();
-                dialog.show();
+                if (mCorrectDialog == null) {
+                    mCorrectDialog = new AlertDialog.Builder(context)
+                            .setTitle("Bravo!")
+                            .setMessage("You got a prediction right.")
+                            .setCancelable(false)
+                            .setPositiveButton("Check it out!", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    dialog.dismiss();
+                                    context.startActivity(intent);
+                                }
+                            })
+                            .create();
+                }
+
+                if (!mCorrectDialog.isShowing()) {
+                    mCorrectDialog.show();
+                }
             }
         });
     }
@@ -357,6 +334,17 @@ public class PredictionFragment extends PlaybookFragment {
         public String getAPIUrl() {
             return "ws://" + BuildConfig.PLAYBOOK_API_HOST + ":" +
                     BuildConfig.PLAYBOOK_API_PORT;
+        }
+
+        @JavascriptInterface
+        public String getSectionAPIUrl() {
+            return "http://" + BuildConfig.PLAYBOOK_SECTION_API_HOST + ":" +
+                    BuildConfig.PLAYBOOK_SECTION_API_PORT;
+        }
+
+        @JavascriptInterface
+        public String getPlayerID() {
+            return Cocos2dxBridge.getPlayerID();
         }
 
         @JavascriptInterface
