@@ -46,7 +46,7 @@ public class CollectionFragment extends PlaybookFragment {
     private static final int MIN_WEB_VIEW_VERSION = 42;
     private boolean mWebViewIsCompatible = false;
     private WebView mWebView;
-    private JSONObject mGameState = new JSONObject();
+    private JSONObject mGameState;
     private Queue<JSONObject> mPendingEvents = new LinkedList<>();
 
 
@@ -224,6 +224,11 @@ public class CollectionFragment extends PlaybookFragment {
     }
 
     private void handlePlaysCreated(final Activity context, JSONObject s) throws JSONException {
+        // If mGameState is null, we are not even in the app, so ignore.
+        if (mGameState == null) {
+            return;
+        }
+
         JSONArray data = s.getJSONArray("data");
         List<String> events = new ArrayList<>();
         for (int i = 0; i < data.length(); i++) {

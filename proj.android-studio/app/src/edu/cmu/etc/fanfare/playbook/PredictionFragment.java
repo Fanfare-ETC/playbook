@@ -259,6 +259,11 @@ public class PredictionFragment extends PlaybookFragment {
     }
 
     private void handlePlaysCreated(final Activity context, JSONObject s) throws JSONException {
+        // If mGameState is null, we are not even in the app, so ignore.
+        if (mGameState == null) {
+            return;
+        }
+
         JSONArray data = s.getJSONArray("data");
         List<String> events = new ArrayList<>();
         for (int i = 0; i < data.length(); i++) {
