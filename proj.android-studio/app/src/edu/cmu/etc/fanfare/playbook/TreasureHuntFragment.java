@@ -1,32 +1,24 @@
 package edu.cmu.etc.fanfare.playbook;
 
-import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Typeface;
-import android.media.Image;
 import android.os.Bundle;
 import android.os.CountDownTimer;
-import android.os.Handler;
 import android.support.constraint.ConstraintLayout;
-import android.support.v4.app.Fragment;
-import android.support.v7.app.AlertDialog;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
-import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -35,12 +27,14 @@ import com.koushikdutta.async.http.WebSocket;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.w3c.dom.Text;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Random;
-import java.util.StringTokenizer;
 import java.util.Vector;
 
-public class TreasureHuntFragment extends PlaybookFragment implements View.OnClickListener{
+public class TreasureHuntFragment extends PlaybookFragment implements View.OnClickListener,View.OnTouchListener{
 
     public static int section;
     public static View view;
@@ -224,26 +218,32 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
         TextView warmer_text = (TextView) view.findViewById(R.id.warmer_text);
         Typeface tf = Typeface.createFromAsset(getActivity().getAssets(), "fonts/nova2.ttf");
         warmer_text.setTypeface(tf);
+        warmer_text.setTextSize(24);
         warmer_text.setText("Getting\nWarmer!");
 
         TextView colder_text = (TextView) view.findViewById(R.id.colder_text);
         colder_text .setTypeface(tf);
+        colder_text.setTextSize(24);
         colder_text .setText("Getting\nColder!");
 
-        TextView plant_text = (TextView) view.findViewById(R.id.plant_text);
+        TextView plant_text = (TextView) view.findViewById(R.id.marker_text);
         plant_text .setTypeface(tf);
+        plant_text.setTextSize(24);
         plant_text .setText("Drop the\nMarker!");
+
+        //TextView aggregate_text=(TextView) view.findViewById(R.id.aggregate_text);
+       // aggregate_text.setBackgroundColor(getResources().getColor(R.color.primary));
 
         ImageView WarmerView= (ImageView)view.findViewById(R.id.warmer);
         WarmerView.setOnClickListener(this);
         ImageView ColderView= (ImageView)view.findViewById(R.id.colder);
         ColderView.setOnClickListener(this);
-        ImageView PlantView= (ImageView)view.findViewById(R.id.plant);
+        ImageView PlantView= (ImageView)view.findViewById(R.id.marker);
         PlantView.setOnClickListener(this);
         ImageView MapView= (ImageView)view.findViewById(R.id.map);
         MapView.setOnClickListener(this);
         ImageView agg= (ImageView)view.findViewById(R.id.aggregate);
-        agg.setOnClickListener(this);
+        agg.setOnTouchListener(this);
 
        //timerHandler.postDelayed(timerRunnable,0);
 
@@ -258,7 +258,7 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
                 LinesView linesView = (LinesView) view.findViewById(R.id.linesView);
                 linesView.setWarmerView(view.findViewById(R.id.warmer));
                 linesView.setColderView(view.findViewById(R.id.colder));
-                linesView.setPlantView(view.findViewById(R.id.plant));
+                linesView.setPlantView(view.findViewById(R.id.marker));
                 linesView.invalidate();
             }
         });
@@ -277,7 +277,6 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
                         webSocket.setStringCallback(new WebSocket.StringCallback() {
                             public void onStringAvailable(String s) {
                                 if (s != null) {
-
                                     Log.d("signal",s);
                                     if(s.equals("start"))
                                     {
@@ -386,11 +385,14 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
                                                     layout.addView(plustens.get(j));
                                                     anim_plustens.get(j).start();
                                                 }
-
-                                                TextView text = (TextView) view.findViewById(R.id.text_aggregate);
+                                                /*
+                                                TextView text = (TextView) view.findViewById(R.id.aggregate_text);
+                                                text.setBackgroundColor(getResources().getColor(R.color.primary));
                                                 Typeface tf = Typeface.createFromAsset(getActivity().getAssets(), "fonts/nova2.ttf");
                                                 text.setTypeface(tf);
-                                                text.setText("  Your Section Says : WARMER");
+                                                text.setTextSize(30);
+                                                text.setText("   Your Section Says : WARMER");
+                                                */
                                             }
                                         });
                                     }
@@ -447,10 +449,14 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
                                                     layout.addView(plustens.get(j));
                                                     anim_plustens.get(j).start();
                                                 }
-                                                TextView text = (TextView) view.findViewById(R.id.text_aggregate);
+                                                /*
+                                                TextView text = (TextView) view.findViewById(R.id.aggregate_text);
+                                                text.setBackgroundColor(getResources().getColor(R.color.primary));
                                                 Typeface tf = Typeface.createFromAsset(getActivity().getAssets(), "fonts/nova2.ttf");
                                                 text.setTypeface(tf);
-                                                text.setText("  Your Section Says : COLDER");
+                                                text.setTextSize(30);
+                                                text.setText("   Your Section Says : COLDER");
+                                                */
                                             }
                                         });
 
@@ -508,10 +514,7 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
                                                     layout.addView(plustens.get(j));
                                                     anim_plustens.get(j).start();
                                                 }
-                                                TextView text = (TextView) view.findViewById(R.id.text_aggregate);
-                                                Typeface tf = Typeface.createFromAsset(getActivity().getAssets(), "fonts/nova2.ttf");
-                                                text.setTypeface(tf);
-                                                text.setText("  Your Section Says : PLANT");
+
                                             }
                                         });
 
@@ -520,8 +523,36 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
                                     {
                                         //display winner
                                     }
-                                    else{}
-
+                                    else {
+                                        //moving the section aggregate text display logic to here
+                                        if (treasurehunt_live) {
+                                            // tokenise wanderer side aggregate
+                                            final int w, m, c;
+                                            final List<String> num = Arrays.asList(s.split(","));
+                                            //if(num.size()!=12) {w=0;m=0;c=0;}
+                                            w = Integer.valueOf(num.get(section));
+                                            m = Integer.valueOf(num.get(section + 4));
+                                            c = Integer.valueOf(num.get(section + 8));
+                                            Log.d("wagg", Integer.toString(w) + " " + Integer.toString(m) + " " + Integer.toString(c));
+                                            getActivity().runOnUiThread(new Runnable() {
+                                                @Override
+                                                public void run() {
+                                                    TextView text = (TextView) view.findViewById(R.id.aggregate_text);
+                                                    text.setBackgroundColor(getResources().getColor(R.color.primary));
+                                                    Typeface tf = Typeface.createFromAsset(getActivity().getAssets(), "fonts/nova2.ttf");
+                                                    text.setTypeface(tf);
+                                                    text.setTextSize(30);
+                                                    if (w > m && w > c)
+                                                        text.setText("   Your Section Says : WARMER!");
+                                                    else if (m > w && m > c)
+                                                        text.setText("   Your Section Says : DROP!");
+                                                    else if (c > w && c > m)
+                                                        text.setText("   Your Section Says : COLDER!");
+                                                    else text.setText("   Your Section Says :");
+                                                }
+                                            });
+                                        }
+                                    }
                                 }
                             }
                         });
@@ -596,7 +627,7 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
                 blink_plusone_c.setDuration(500);
                 blink_plusone_c.start();
                 break;
-            case R.id.plant:
+            case R.id.marker:
 
                 try {
                     obj.put("section", section);
@@ -627,15 +658,10 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
                 flip_map.setDuration(500);
                 flip_map.start();
                 break;
-            case R.id.aggregate:
-
-                Log.d("here","touched aggreagte");
-                Log.d("here",Float.toString(v.getX()) + "  "+Float.toString(v.getY()));
-                break;
         }
     }
         if(treasurehunt_live) {
-            Log.d("sending",obj.toString());
+            //Log.d("sending",obj.toString());
             AsyncHttpClient.getDefaultInstance().websocket(mEndpoint, "my-protocol", new AsyncHttpClient.WebSocketConnectCallback() {
                 @Override
                 public void onCompleted(Exception ex, WebSocket webSocket) {
@@ -650,5 +676,66 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
         }
 
     }
+public boolean onTouch(View v, MotionEvent event)
+{
+    final JSONObject obj = new JSONObject();
+    if(treasurehunt_live) {
+        switch (v.getId()) {
+            case R.id.aggregate:
+                if(event.getAction() == MotionEvent.ACTION_DOWN) {
+                    float width = v.getWidth();
+                    float tx = event.getX();//-values[0];
+                    float ty = event.getY();//-values[1];
+                    if (tx <= width / 3) {
 
+                        try {
+                            obj.put("section", section);
+                            obj.put("selection", 0);
+                            obj.put("method", "post");
+
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    } else if (tx >= width / 3 && tx <= width * 2 / 3) {
+
+                        try {
+                            obj.put("section", section);
+                            obj.put("selection", 2);
+                            obj.put("method", "post");
+
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    } else if (tx >= 2 * width / 3 && tx <= width) {
+                        try {
+                            obj.put("section", section);
+                            obj.put("selection", 1);
+                            obj.put("method", "post");
+
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+
+                    }
+
+                    AsyncHttpClient.getDefaultInstance().websocket(mEndpoint, "my-protocol", new AsyncHttpClient.WebSocketConnectCallback() {
+                        @Override
+                        public void onCompleted(Exception ex, WebSocket webSocket) {
+                            if (ex != null) {
+                                ex.printStackTrace();
+                                return;
+                            }
+                            webSocket.send(obj.toString());
+
+                        }
+                    });
+                }
+                break;
+        }
+    }
+    if(treasurehunt_live) {
+
+    }
+    return true;
+}
 }

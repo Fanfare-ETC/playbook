@@ -127,7 +127,7 @@
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/map"
-        app:layout_constraintVertical_bias="0.0"
+        app:layout_constraintVertical_bias="0.533"
         app:srcCompat="@drawable/aggregate" />
 
     <ImageView
@@ -148,7 +148,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintHorizontal_bias="0.264"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toLeftOf="@+id/plant"
+        app:layout_constraintRight_toLeftOf="@+id/marker"
         app:layout_constraintTop_toBottomOf="@+id/aggregate"
         app:layout_constraintVertical_bias="0.0"
         app:srcCompat="@drawable/warmer" />
@@ -181,7 +181,7 @@
         android:visibility="visible"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintHorizontal_bias="0.85"
-        app:layout_constraintLeft_toRightOf="@+id/plant"
+        app:layout_constraintLeft_toRightOf="@+id/marker"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/aggregate"
         app:layout_constraintVertical_bias="0.0"
@@ -203,7 +203,7 @@
         app:layout_constraintTop_toTopOf="@+id/colder" />
 
     <ImageView
-        android:id="@+id/plant"
+        android:id="@+id/marker"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="8dp"
@@ -221,14 +221,14 @@
         app:srcCompat="@drawable/plant" />
 
     <TextView
-        android:id="@+id/plant_text"
+        android:id="@+id/marker_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Drop the\nmarker"
-        app:layout_constraintBottom_toBottomOf="@+id/plant"
-        app:layout_constraintLeft_toLeftOf="@+id/plant"
-        app:layout_constraintRight_toRightOf="@+id/plant"
-        app:layout_constraintTop_toTopOf="@+id/plant"/>
+        app:layout_constraintBottom_toBottomOf="@+id/marker"
+        app:layout_constraintLeft_toLeftOf="@+id/marker"
+        app:layout_constraintRight_toRightOf="@+id/marker"
+        app:layout_constraintTop_toTopOf="@+id/marker" />
 
     <ImageView
         android:id="@+id/translucentlayer"
@@ -271,27 +271,25 @@
         app:layout_constraintVertical_bias="0.0" />
 
     <TextView
-        android:id="@+id/text_aggregate"
-        android:layout_width="0dp"
+        android:id="@+id/aggregate_text"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
+        android:layout_marginBottom="0dp"
         android:layout_marginEnd="32dp"
-        android:layout_marginLeft="32dp"
-        android:layout_marginRight="32dp"
+        android:layout_marginLeft="0dp"
+        android:layout_marginRight="0dp"
         android:layout_marginStart="32dp"
+        android:layout_marginTop="0dp"
         android:ems="10"
         android:inputType="textPersonName"
-        android:textAlignment="center"
-        android:textAllCaps="false"
         android:textAppearance="@style/TextAppearance.AppCompat"
-        android:textColor="@color/common_google_signin_btn_text_light_default"
-        android:textSize="24sp"
-        app:layout_constraintBottom_toBottomOf="@+id/aggregate"
-        app:layout_constraintHorizontal_bias="1.0"
+        android:visibility="visible"
+        app:layout_constraintBottom_toTopOf="@+id/aggregate"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/aggregate"
-        app:layout_constraintVertical_bias="0.0" />
+        app:layout_constraintTop_toBottomOf="@+id/map"
+        app:layout_constraintVertical_bias="0.459" />
 
     <TextView
         android:id="@+id/timer"
