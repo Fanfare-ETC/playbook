@@ -1207,7 +1207,7 @@ function setup() {
   oddsTab.position.set(window.innerWidth - oddsTab.width, ballSlot.position.y - oddsTab.height);
   stage.addChild(oddsTab);
 
-  const oddsTabLabel = new PIXI.Text('Odds'.toUpperCase());
+  const oddsTabLabel = new PIXI.Text('Payouts'.toUpperCase());
   const oddsTabLabelFontSize = 32.0;
   const oddsTabLabelScale = ((oddsTab.height / 2 - 8.0) / oddsTabLabelFontSize) * (1 / oddsTabScale);
   oddsTabLabel.style.fill = 0xffffff;
