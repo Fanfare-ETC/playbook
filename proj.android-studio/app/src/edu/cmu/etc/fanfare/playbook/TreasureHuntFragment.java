@@ -8,6 +8,7 @@ import android.content.SharedPreferences;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Typeface;
 import android.media.Image;
 import android.os.Bundle;
 import android.os.CountDownTimer;
@@ -220,6 +221,18 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
                 marker3.setVisibility(View.VISIBLE);
                 break;
         }*/
+        TextView warmer_text = (TextView) view.findViewById(R.id.warmer_text);
+        Typeface tf = Typeface.createFromAsset(getActivity().getAssets(), "fonts/nova2.ttf");
+        warmer_text.setTypeface(tf);
+        warmer_text.setText("Getting\nWarmer!");
+
+        TextView colder_text = (TextView) view.findViewById(R.id.colder_text);
+        colder_text .setTypeface(tf);
+        colder_text .setText("Getting\nColder!");
+
+        TextView plant_text = (TextView) view.findViewById(R.id.plant_text);
+        plant_text .setTypeface(tf);
+        plant_text .setText("Drop the\nMarker!");
 
         ImageView WarmerView= (ImageView)view.findViewById(R.id.warmer);
         WarmerView.setOnClickListener(this);
@@ -231,7 +244,6 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
         MapView.setOnClickListener(this);
         ImageView agg= (ImageView)view.findViewById(R.id.aggregate);
         agg.setOnClickListener(this);
-
 
        //timerHandler.postDelayed(timerRunnable,0);
 
@@ -376,7 +388,9 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
                                                 }
 
                                                 TextView text = (TextView) view.findViewById(R.id.text_aggregate);
-                                                text.setText("Your Section Says : WARMER");
+                                                Typeface tf = Typeface.createFromAsset(getActivity().getAssets(), "fonts/nova2.ttf");
+                                                text.setTypeface(tf);
+                                                text.setText("  Your Section Says : WARMER");
                                             }
                                         });
                                     }
@@ -434,7 +448,9 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
                                                     anim_plustens.get(j).start();
                                                 }
                                                 TextView text = (TextView) view.findViewById(R.id.text_aggregate);
-                                                text.setText("Your Section Says : COLDER");
+                                                Typeface tf = Typeface.createFromAsset(getActivity().getAssets(), "fonts/nova2.ttf");
+                                                text.setTypeface(tf);
+                                                text.setText("  Your Section Says : COLDER");
                                             }
                                         });
 
@@ -493,7 +509,9 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
                                                     anim_plustens.get(j).start();
                                                 }
                                                 TextView text = (TextView) view.findViewById(R.id.text_aggregate);
-                                                text.setText("Your Section Says : PLANT");
+                                                Typeface tf = Typeface.createFromAsset(getActivity().getAssets(), "fonts/nova2.ttf");
+                                                text.setTypeface(tf);
+                                                text.setText("  Your Section Says : PLANT");
                                             }
                                         });
 
@@ -610,8 +628,9 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
                 flip_map.start();
                 break;
             case R.id.aggregate:
-                Log.d("here","touched aggreagte");
 
+                Log.d("here","touched aggreagte");
+                Log.d("here",Float.toString(v.getX()) + "  "+Float.toString(v.getY()));
                 break;
         }
     }
