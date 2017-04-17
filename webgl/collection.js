@@ -6,7 +6,9 @@ import EventEmitter from 'eventemitter3';
 import PlaybookEvents,
   { FriendlyNames as PlaybookEventsFriendlyNames, 
   Teams as PlaybookEventsTeams,
-  StringMap as PlaybookEventsStringMap} from './lib/PlaybookEvents';
+  StringMap as PlaybookEventsStringMap,
+  IsOut as PlaybookEventsIsOut,
+  IsOnBase as PlaybookEventsIsOnBase} from './lib/PlaybookEvents';
 
 // The Playbook Bridge is supplied via addJavaScriptInterface() on the Java
 // side of the code. In the absence of that, we need to mock one.
@@ -245,6 +247,9 @@ class GameState {
     /** @type {Array<CardSlot>} */
     this.cardSlots = new Array();
 
+    /** @type {Array<GoalSet>} */
+    this.goalsets = new Array();
+
     /** @type {number} */
     this.score = 0;
 
@@ -342,6 +347,9 @@ class Card {
     /** @type {PIXI.Sprite?} */
     this.sprite = null;
 
+     /** @type {string} */
+    this.name = null;
+
     /** @type {bool} */
     this.isBeingDragged = false;
 
@@ -359,6 +367,9 @@ class Card {
 
     /** @type {bool} */
     this.isAnimating = false;
+
+    /** @type {bool} */
+    this.isActive = true;
 
     /** @type {FieldOverlayArea?} */
     this.selectedTarget = null; //only score
@@ -390,8 +401,29 @@ class Card {
    * @param {PIXI.Sprite} cardSlot
    * @param {number} slot
    */
-  moveToSlot(cardSlot, slot) {
-    this._moveToWithAnimation(getCardSlotPosition(this.sprite.texture, cardSlot, slot));
+  moveToSlot(slot) {
+    this._moveToWithAnimation(getCardSlotPosition(this.sprite.texture, slot));
+  }
+
+  moveTo(target){
+    if(target == 6){ //discard
+      this._moveToWithAnimation(stage.getChildByName('discard').position);
+    }
+    else if (target == 7){ //score cards
+      this._moveToWithAnimation(stage.getChildByName('scoreButton').position);
+    }
+    else{
+      moveToSlot(target);
+    }
+    
+  }
+
+  assignToSlot(slot){
+    state.cardSlots[slot].card = this;
+    state.cardSlots[slot].present = true;
+    this.isActive = false;
+    checkIfGoalMet();
+
   }
 
   /**
@@ -399,7 +431,7 @@ class Card {
    * @param {FieldOverlayArea} area
    * @param {bool} withAnimation
    */
-  moveToField(area, withAnimation = true) {
+ /* moveToField(area, withAnimation = true) {
     let center = area.parent.toGlobal(area.getCentroid());
 
     // Determine if we need to run an animation.
@@ -409,7 +441,7 @@ class Card {
       this.sprite.position.set(center.x, center.y);
       renderer.isDirty = true;
     }
-  }
+  }*/
 }
 
 /** 
@@ -431,7 +463,7 @@ class CardSlot {
  * @param {CardSlot} cardSlot
  * @param {FieldOverlay} fieldOverlay
  */
-function initCardEvents(card, cardSlot, fieldOverlay) {
+function initCardEvents(card) {
   card.sprite.interactive = true;
   card.sprite.hitArea = new PIXI.Circle(0, 0, card.sprite.texture.width / 2);
 
@@ -488,16 +520,28 @@ function initCardEvents(card, cardSlot, fieldOverlay) {
     // If there's a drag target, move the card there.
     // If discard: destroy the card
     // If score: add the score
-    if (card.dragTarget == 0) {
+    // If slot number: move to a slot
+    if (card.dragTarget == 6) {
       card.moveTo(card.dragTarget);
-      //destroy card
-    } else if (card.dragTarget == 1) {
+      stage.removeChild(card);//destroy card
+    } else if (card.dragTarget == 7) {
       card.moveTo(createCard.dragTarget);
       //add score
+    } else if ((card.dragTarget > 0) && (card.dragTarget < 6)){
+      if(state.cardSlots[card.dragTarget].present == false){
+        card.moveTo(card.dragTarget); 
+        if(card.isActive == true){
+          card.assignToSlot(card.dragTarget);
+        }
+        
+      } else {
+        card.moveToOrigPosition();
+      } 
+
+      
     } else {
       card.moveToOrigPosition();
     }
-
   };
 
   card.sprite
@@ -508,15 +552,286 @@ function initCardEvents(card, cardSlot, fieldOverlay) {
     .on('touchcancel', onTouchEnd);
 }
 
+/**
+ * GoalSet
+ */
+class GoalSet {
+  constructor() {
+    /** @type {Array<Card>} */
+    this.cards = new Array();
+
+     /** @type {string} */
+    this.type = null;
+  }
+}
+
+function checkIfGoalMet() {
+  let cardSet = new Array();
+  let matchSet = new GoalSet();
+  state.cardSlots.filter(slot => slot.present)
+  .forEach(card => {
+    cardSet.push(card);
+  });
+  
+  Object.keys(GoalTypesMetadata)
+    .filter(goal => GoalTypesMetadata[goal].isHidden)
+    .forEach(goal => {
+      const cardSet = cardSetMeetsGoal(cardSet, goal);
+      if (cardSet.length > 0){
+        matchSet.cards = cardSet;
+        matchSet.type = goal;
+        state.goalsets.push(matchSet);
+      }
+    });
+    cardSet = cardSetMeetsGoal(cardSet, state._goal);
+    if(cardSet.length > 0){
+       matchSet.cards = cardSet;
+       matchSet.type = goal;
+       state.goalsets.push(matchSet);
+    }
+
+}
+
+class CardCount {
+  constructor() {
+     /** @type {string} */
+    this.cardName = null;
+
+     /** @type {number} */
+    this.count = 0;
+  }
+}
+
+function cardSetMeetsGoal(cardset, goal){
+
+  const numOnBase = cardset.filter(card => PlaybookEventsIsOnBase[card.name]).length;
+  const numOut = cardset.filter(card => (PlaybookEventsIsOut[card.name]
+   && !(card.name === 'TRIPLE_PLAY') && !(card.name === 'DOUBLE_PLAY'))).length;
+  const numRed = cardset.filter(card => (PlaybookEventsTeams[card.name] === 'BATTING')).length;
+  const numBlue = cardset.filter(card => (PlaybookEventsTeams[card.name] === 'FIELDING')).length;
+  const numRBI = cardset.filter(card => (card.name === 'RUN_SCORED')).length;
+  const numSteal = cardset.filter(card => (card.name === 'STEAL')).length;
+  const numPickOff= cardset.filter(card => (card.name === 'PICK_OFF')).length;
+  const numDoublePlay= cardset.filter(card => (card.name === 'DOUBLE_PLAY')).length;
+  const numTriplePlay= cardset.filter(card => (card.name === 'TRIPLE_PLAY')).length;
+
+  let cardCounts = new Array();
+  cardset.forEach(cardIt => {
+    let cardCount = new CardCount();
+    cardCount.cardName = cardIt.name;
+    cardset.forEach(card => {
+      if(cardIt.name === card.name){
+        cardCount.count++;
+      }
+    })
+    cardCounts.push(cardCount);
+  });
+
+  let cardsMetGoal = new Array();
+
+  switch (goal) {
+    case GoalTypes.BASE_STEAL_RBI: {
+      if ((numOnBase > 0) && (numRBI > 0) && (numSteal > 0)){
+        const cardOnBase = cardset.find(card => PlaybookEventsIsOnBase[card.name]);
+        const cardSteal = cardset.find(card => (card.name === 'STEAL'));
+        const cardRBI = cardset.find(card => (card.name === 'RUN_SCORED'));
+        cardsMetGoal.push(cardOnBase);
+        cardsMetGoal.push(cardRBI);
+        cardsMetGoal.push(cardSteal);
+        return cardsMetGoal;
+      
+      }
+    }
+    case GoalTypes.BASES_RBI_3: {
+      if (numOnBase >= 3) {
+        return cardset.filter(card => PlaybookEventsIsOnBase[card.name]);
+      }
+    }
+    case GoalTypes.EACH_COLOR_1: {
+      if ((numBlue >= 1) && (numRed >= 1)){
+        const cardRed = cardset.find(card => (PlaybookEventsTeams[card.name] === 'BATTING')).length;
+        const cardBlue = cardset.find(card => (PlaybookEventsTeams[card.name] === 'FIELDING')).length;
+        cardsMetGoal.push(cardBlue);
+        cardsMetGoal.push(cardRed);
+        return cardsMetGoal;
+      }
+    }
+    case GoalTypes.EACH_COLOR_2: {
+        if ((numBlue >= 1) && (numRed >= 1)){
+        cardset.filter(card => (PlaybookEventsTeams[card.name] === 'BATTING'))
+        .forEach((card, i) => {
+          if(i < 2){
+            cardsMetGoal.push(card);
+          }
+        });
+
+        cardset.filter(card => (PlaybookEventsTeams[card.name] === 'FIELDING'))
+        .forEach((card, i) => {
+          if(i < 2){
+            cardsMetGoal.push(card);
+          }
+        });
+  
+        return cardsMetGoal;
+      }
+    }
+    case GoalTypes.FULL_HOUSE: {
+      const cardCount2 = cardCounts.find(cardCount => (cardCount.count == 2));
+      const cardCount3 = cardCounts.find(cardCount => (cardCount.count == 3));
+      if(!(cardCount2 === undefined) && !(cardCount3 === undefined) 
+      && !(cardCount2.name === cardCount3.name)){
+        return cardset;
+      }
+    }
+    case GoalTypes.IDENTICAL_CARDS_3: {
+      const cardCount3 = cardCounts.find(cardCount => (cardCount.count == 3));
+      if(!(cardCount3 === undefined)){
+        let i = 0;
+        cardset.forEach(card => {
+          if((card.name === cardCount3.name) && (i < 3)){
+            cardsMetGoal.push(card);
+            i++;
+          }
+        });
+        return cardsMetGoal;
+      }
+    }
+    case GoalTypes.IDENTICAL_CARDS_4: {
+      const cardCount4 = cardCounts.find(cardCount => (cardCount.count == 4));
+      if(!(cardCount4 === undefined)){
+        let i = 0;
+        cardset.forEach(card => {
+          if((card.name === cardCount3.name) && (i < 4)){
+            cardsMetGoal.push(card);
+            i++;
+          }
+        });
+        return cardsMetGoal;
+      }
+    }
+    case GoalTypes.IDENTICAL_CARDS_5: {
+      const cardCount5 = cardCounts.find(cardCount => (cardCount.count == 5));
+      if(!(cardCount5 === undefined)){
+        return cardset;
+     }
+    }
+    case GoalTypes.ON_BASE_STEAL_PICK_OFF: {
+       if ((numOnBase > 0) && (numPickOff > 0) && (numSteal > 0)){
+        const cardOnBase = cardset.find(card => PlaybookEventsIsOnBase[card.name]);
+        const cardSteal = cardset.find(card => (card.name === 'STEAL'));
+        const cardPickOff = cardset.find(card => (card.name === 'PICK_OFF'));
+        cardsMetGoal.push(cardOnBase);
+        cardsMetGoal.push(cardPickOff);
+        cardsMetGoal.push(cardSteal);
+        return cardsMetGoal;
+      
+      }
+    }
+    case GoalTypes.OUT_3: { //I think should be exactly 3 outs, so 2 double plays can't satisfy 
+      const totalOuts = numOut + numDoublePlay * 2 + numTriplePlay * 3;
+      if (totalOuts >= 3){
+        if (numTriplePlay > 0){
+          return cardset.find(card => (card.name === 'TRIPLE_PLAY'));
+        }
+        else if (numDoublePlay > 0){
+          const cardDoublePlay = cardset.find(card => (card.name === 'DOUBLE_PLAY'));
+          const cardOut = cardset.find(card => PlaybookEventsIsOut[card.name]);
+          cardsMetGoal.push(cardDoublePlay);
+          cardsMetGoal.push(cardOut);
+          return cardsMetGoal;
+        }
+        else {
+          return cardset.filter(card => PlaybookEventsIsOut[card.name])
+          .slice(0, 3);
+        
+        }
+      }
+    }
+
+    case GoalTypes.SAME_COLOR_3: {
+      if((numBlue >= 3) || (numRed >=3)){
+        if(numRed >= 3){
+          return cardset.filter(card => (PlaybookEventsTeams[card.name] === 'BATTING'))
+          .slice(0, 3);
+        }
+        else if((numBlue >= 3)){
+          return cardset.filter(card => (PlaybookEventsTeams[card.name] === 'FIELDING'))
+          .slice(0, 3);
+        }
+      }
+    }
+    case GoalTypes.SAME_COLOR_4: {
+      if((numBlue >= 4) || (numRed >=4)){
+        if(numRed >= 4){
+          return cardset.filter(card => (PlaybookEventsTeams[card.name] === 'BATTING'))
+          .slice(0, 4);
+        }
+        else if((numBlue >= 4)){
+          return cardset.filter(card => (PlaybookEventsTeams[card.name] === 'FIELDING'))
+          .slice(0, 4);
+        }
+      }
+    }
+    case GoalTypes.SAME_COLOR_5: {
+      if((numBlue == 5) || (numRed ==5)){
+        return cardset;
+      }
+    }
+    case GoalTypes.UNIQUE_OUT_CARDS_3: {
+      let cardArray = new Array();
+      const outCards = cardset.filter(card => PlaybookEventsIsOut[card.name]);
+      cardArray = outCards;
+      outCards.forEach(cardIt => {
+        outCards.forEach(card => {
+          if (cardIt.name === card.name){
+            cardArray.splice(cardArray.indexOf(card), 1);
+          }
+        });
+      });
+      if (cardArray.length >= 3){
+        return cardArray.slice(0, 3);
+      }
+     
+      
+    }
+    case GoalTypes.UNIQUE_OUT_CARDS_4: {
+      let cardArray = new Array();
+      const outCards = cardset.filter(card => PlaybookEventsIsOut[card.name]);
+      cardArray = outCards;
+      outCards.forEach(cardIt => {
+        outCards.forEach(card => {
+          if (cardIt.name === card.name){
+            cardArray.splice(cardArray.indexOf(card), 1);
+          }
+        });
+      });
+      if (cardArray.length >= 4){
+        return cardArray.slice(0, 4);
+      }
+    }
+    case GoalTypes.WALK_OR_HIT_BY_PITCH_3: {
+      const walkOrHitList = cardset.filter(card =>
+      ((card.name === 'WALK') || (card.name === 'HIT_BY_PITCH')));
+      if(walkOrHitList.length >= 3){
+        return walkOrHitList.slice(0, 3);
+      }
+
+    }
+  }
+}
+
 function getTargetByPoint(card, position){
-  const local = this.toLocal(point);
-  if (stage.getChildByName('discard').hitArea.contains(local.x, local.y)){
+  //const local = card.toLocal(position);
+  if (stage.getChildByName('discard').getBounds().contains(position)){
+    console.log("discard");
     return 6; //discard
   }
-  else if (stage.getChildByName('scoreButton').hitArea.contains(local.x, local.y)){
+  else if (stage.getChildByName('scoreButton').getBounds().contains(position)){
+    console.log("score");
     return 7; //calculate score
   }
-  else if (stage.getChildByName('tray').hitArea.contains(local.x, local.y)){
+  else if (stage.getChildByName('tray').getBounds().contains(position)){
+    console.log("slot");
     //change slot
     return getNearestSlot(card, position);
   } 
@@ -528,11 +843,11 @@ function getTargetByPoint(card, position){
  * @param {PIXI.Sprite} cardSlot
  * @param {Number} i
  */
-function getCardSlotPositionFor(cardTexture, cardSlot, i) {
-  const cardScale = cardSlot.texture.height / cardTexture.height / 1.5;
-  return cardSlot.toGlobal(new PIXI.Point(
+function getCardSlotPositionFor(cardTexture, i) {
+  const cardScale = stage.getChildByName['tray'].sprite.texture.height / cardTexture.height / 1.5;
+  return stage.getChildByName['tray'].toGlobal(new PIXI.Point(
     120 + cardTexture.width * i * cardScale,
-    cardSlot.texture.height / 2
+    stage.getChildByName['tray'].sprite.texture.height / 2
   ));
 };
 
@@ -633,9 +948,10 @@ function createCard(play){
 
   const cardObj = new Card();
   cardObj.sprite = card;
+  cardObj.name = play;
   state.cards.push(card);
 
-  initCardEvents(card, )
+  initCardEvents(cardObj);
   stage.addChild(card);
 }
 /**

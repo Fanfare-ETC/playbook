@@ -154,5 +154,63 @@ const Teams = {
   [PlaybookEvents.UNKNOWN]: 'NONE'
 };
 
+/** @type {Object.<string, boolean>} */
+const IsOut = {
+  [PlaybookEvents.NO_RUNS]: false,
+  [PlaybookEvents.RUN_SCORED]: false,
+  [PlaybookEvents.FLY_OUT]: true,
+  [PlaybookEvents.TRIPLE_PLAY]: true, 
+  [PlaybookEvents.DOUBLE_PLAY]: true, 
+  [PlaybookEvents.GROUND_OUT]: true,
+  [PlaybookEvents.STEAL]: false,
+  [PlaybookEvents.PICK_OFF]: true,
+  [PlaybookEvents.WALK]: false,
+  [PlaybookEvents.BLOCKED_RUN]: true,
+  [PlaybookEvents.STRIKEOUT]: true,
+  [PlaybookEvents.HIT_BY_PITCH]: false,
+  [PlaybookEvents.HOME_RUN]: false,
+  [PlaybookEvents.PITCH_COUNT_16]: false,
+  [PlaybookEvents.PITCH_COUNT_17]: false,
+  [PlaybookEvents.SINGLE]: false,
+  [PlaybookEvents.DOUBLE]: false,
+  [PlaybookEvents.TRIPLE]: false,
+  [PlaybookEvents.BATTER_COUNT_4]: false,
+  [PlaybookEvents.BATTER_COUNT_5]: false,
+  [PlaybookEvents.MOST_FIELDED_BY_LEFT]: false,
+  [PlaybookEvents.MOST_FIELDED_BY_RIGHT]: false,
+  [PlaybookEvents.MOST_FIELDED_BY_INFIELDERS]: false,
+  [PlaybookEvents.MOST_FIELDED_BY_CENTER]: false,
+  [PlaybookEvents.UNKNOWN]: false
+};
+
+/** @type {Object.<string, boolean>} */
+const IsOnBase = {
+  [PlaybookEvents.NO_RUNS]: false,
+  [PlaybookEvents.RUN_SCORED]: false,
+  [PlaybookEvents.FLY_OUT]: false,
+  [PlaybookEvents.TRIPLE_PLAY]: false,
+  [PlaybookEvents.DOUBLE_PLAY]: false,
+  [PlaybookEvents.GROUND_OUT]: false,
+  [PlaybookEvents.STEAL]: false,
+  [PlaybookEvents.PICK_OFF]: false,
+  [PlaybookEvents.WALK]: true,
+  [PlaybookEvents.BLOCKED_RUN]: false,
+  [PlaybookEvents.STRIKEOUT]: false,
+  [PlaybookEvents.HIT_BY_PITCH]: true,
+  [PlaybookEvents.HOME_RUN]: true,
+  [PlaybookEvents.PITCH_COUNT_16]: false,
+  [PlaybookEvents.PITCH_COUNT_17]: false,
+  [PlaybookEvents.SINGLE]: true,
+  [PlaybookEvents.DOUBLE]: true,
+  [PlaybookEvents.TRIPLE]: true,
+  [PlaybookEvents.BATTER_COUNT_4]: false,
+  [PlaybookEvents.BATTER_COUNT_5]: false,
+  [PlaybookEvents.MOST_FIELDED_BY_LEFT]: false,
+  [PlaybookEvents.MOST_FIELDED_BY_RIGHT]: false,
+  [PlaybookEvents.MOST_FIELDED_BY_INFIELDERS]: false,
+  [PlaybookEvents.MOST_FIELDED_BY_CENTER]: false,
+  [PlaybookEvents.UNKNOWN]: false
+};
+
 export default PlaybookEvents;
-export { FriendlyNames, Teams, StringMap };
+export { FriendlyNames, Teams, StringMap, IsOut, IsOnBase };
