@@ -821,14 +821,17 @@ function cardSetMeetsGoal(cardset, goal){
 }
 
 function getTargetByPoint(card, position){
-  const local = this.toLocal(point);
-  if (stage.getChildByName('discard').hitArea.contains(local.x, local.y)){
+  //const local = card.toLocal(position);
+  if (stage.getChildByName('discard').getBounds().contains(position)){
+    console.log("discard");
     return 6; //discard
   }
-  else if (stage.getChildByName('scoreButton').hitArea.contains(local.x, local.y)){
+  else if (stage.getChildByName('scoreButton').getBounds().contains(position)){
+    console.log("score");
     return 7; //calculate score
   }
-  else if (stage.getChildByName('tray').hitArea.contains(local.x, local.y)){
+  else if (stage.getChildByName('tray').getBounds().contains(position)){
+    console.log("slot");
     //change slot
     return getNearestSlot(card, position);
   } 
