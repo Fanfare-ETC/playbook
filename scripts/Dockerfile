@@ -4,12 +4,13 @@ MAINTAINER Wong Yong Jie <yjwong92@gmail.com>
 # Download system pre-requisites
 RUN apt update && \
     apt install -y --no-install-recommends \
-    git ca-certificates curl unzip default-jdk build-essential file
+    git ca-certificates curl unzip default-jdk file
+
+# Download Node.js.
+RUN curl -sL https://deb.nodesource.com/setup_6.x | bash -
+RUN apt install -y --no-install-recommends nodejs
 
 # Download Android dependencies
-RUN curl -sL -o android-ndk.zip https://dl.google.com/android/repository/android-ndk-r14-linux-x86_64.zip && \
-    unzip android-ndk.zip && \
-    rm android-ndk.zip
 RUN curl -sL -o android-sdk.zip https://dl.google.com/android/repository/tools_r25.2.3-linux.zip && \
     unzip android-sdk.zip -d /android-sdk && \
     rm android-sdk.zip

@@ -32,7 +32,6 @@ import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -42,6 +41,7 @@ import android.support.v7.widget.AppCompatTextView;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.util.Log;
+import android.util.SparseArray;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -55,23 +55,39 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.koushikdutta.async.http.AsyncHttpClient;
+import com.koushikdutta.async.http.WebSocket;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Stack;
 
 public class AppActivity extends AppCompatActivity {
     public static final String INTENT_EXTRA_PREDICTIONS_SCORED = "intentNotificationPredictionScored";
+    public static final String INTENT_EXTRA_DRAWER_ITEM = "intentExtraDrawerItem";
 
-    public static final int DRAWER_PREDICTION_FRAGMENT = 0;
-    public static final int DRAWER_LEADERBOARD_FRAGMENT = 1;
-    public static final int DRAWER_COLLECTION_FRAGMENT = 2;
-    public static final int DRAWER_TROPHY_FRAGMENT = 3;
-    public static final int DRAWER_TREASURE_HUNT_FRAGMENT = 4;
+    public static final int DRAWER_ITEM_PREDICTION = 0;
+    public static final int DRAWER_ITEM_COLLECTION = 1;
+    public static final int DRAWER_ITEM_TREASURE_HUNT = 2;
+    public static final int DRAWER_ITEM_LEADERBOARD = 3;
+    public static final int DRAWER_ITEM_TROPHY = 4;
+
+    private static final int FRAGMENT_PREDICTION = 0;
+    private static final int FRAGMENT_COLLECTION = 1;
+    private static final int FRAGMENT_TREASURE_HUNT = 2;
+    private static final int FRAGMENT_LEADERBOARD = 3;
+    private static final int FRAGMENT_TROPHY = 4;
+    private static final int FRAGMENT_SEAT_SELECT = 5;
 
     private static final String TAG = "AppActivity";
     private static final String STATE_SELECTED_SECTION = "selected_section";
-    private static final int DEFAULT_ITEM = DRAWER_PREDICTION_FRAGMENT;
+    private static final int DEFAULT_ITEM = FRAGMENT_PREDICTION;
+    private static final String PLAYBOOK_API_URL = "ws://" +
+            BuildConfig.PLAYBOOK_API_HOST + ":" +
+            BuildConfig.PLAYBOOK_API_PORT;
 
     private DrawerItem[] mMenuItems;
     private DrawerLayout mDrawerLayout;
@@ -82,185 +98,12 @@ public class AppActivity extends AppCompatActivity {
     private OutlinedTextView mToolbarTextView;
     private Stack<Integer> mBackStack = new Stack<>();
     private int mLastSelectedItem = DEFAULT_ITEM;
+    private SparseArray<PlaybookFragment> mFragments = new SparseArray<>();
 
     private int mSection = -1;
     public static boolean isInForeground = false;
     public static boolean sectionFlag = false;
     public static int selectedItem = -1;
-
-    private class DrawerItemClickListener implements ListView.OnItemClickListener {
-        @Override
-        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-            selectItem(position);
-        }
-    }
-
-    private class DrawerItem {
-        String text;
-        Drawable icon;
-        String fragmentTitle;
-        int fragmentColor;
-        int fragmentColorDark;
-        int titleTextColor;
-    }
-
-    private class DrawerItemAdapter extends ArrayAdapter<DrawerItem> {
-        private ViewHolder mHolder;
-
-        DrawerItemAdapter(Context context, int resource, DrawerItem[] objects) {
-            super(context, resource, objects);
-        }
-
-        private class ViewHolder {
-            private TextView mTextView;
-        }
-
-        @NonNull
-        public View getView(int position, View convertView, @NonNull ViewGroup parent) {
-            if (convertView == null) {
-                convertView = LayoutInflater.from(AppActivity.this)
-                    .inflate(R.layout.drawer_list_item, parent, false);
-
-                mHolder = new ViewHolder();
-                mHolder.mTextView = (TextView) convertView.findViewById(R.id.text);
-
-                convertView.setTag(mHolder);
-            } else {
-                mHolder = (ViewHolder) convertView.getTag();
-            }
-
-            DrawerItem item = getItem(position);
-            if (item != null) {
-                mHolder.mTextView.setText(item.text);
-                mHolder.mTextView.setCompoundDrawablesRelativeWithIntrinsicBounds(null, item.icon, null, null);
-
-                ColorStateList stateList;
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    stateList = getResources().getColorStateList(R.color.drawer_list_item_selector, getTheme());
-                    mHolder.mTextView.setCompoundDrawableTintList(stateList);
-                }
-
-            }
-
-            return convertView;
-        }
-    }
-
-    private void selectItem(int position) {
-        selectItem(position, true);
-    }
-
-    /** Swaps fragments in the main content view */
-    private void selectItem(int position, boolean addToBackStack) {
-        // Create a new fragment based on selected position
-        Fragment fragment;
-        switch (position) {
-            case DRAWER_PREDICTION_FRAGMENT:
-                fragment = new PredictionFragment();
-                break;
-            case DRAWER_LEADERBOARD_FRAGMENT:
-                //fragment = new SectionScoreFragment();
-                fragment = new LeaderboardFragment();
-                break;
-            case DRAWER_COLLECTION_FRAGMENT:
-                fragment = new CollectionFragment();
-                break;
-            case DRAWER_TROPHY_FRAGMENT:
-                fragment = new TrophyFragment();
-                break;
-            case DRAWER_TREASURE_HUNT_FRAGMENT:
-                if(sectionFlag == false){
-                    fragment = new SeatSelectFragment();
-                    //sectionFlag = true;
-                }
-                else {
-                    fragment = new TreasureHuntFragment();
-                }
-                Log.i("sectionFlag", Boolean.toString(sectionFlag));
-                break;
-            default:
-                fragment = new PredictionFragment();
-        };
-
-        // Insert the fragment by replacing any existing fragment
-        FragmentManager fragmentManager = getSupportFragmentManager();
-        fragmentManager.beginTransaction()
-                .replace(R.id.content_frame, fragment)
-                .commit();
-
-        // Add the previous selection to the stack.
-        if (addToBackStack) {
-            mBackStack.push(mLastSelectedItem);
-            mLastSelectedItem = position;
-        }
-
-        // Close the drawer
-        selectedItem = position;
-        mDrawerLayout.closeDrawer(mDrawerList);
-        updateUIForItem(position);
-    }
-
-    private void updateUIForItem(int position) {
-        // Highlight the selected item in the drawer.
-        mDrawerList.setItemChecked(position, true);
-
-        // Set the name in the action bar.
-        // We can't use mToolbar here: https://code.google.com/p/android/issues/detail?id=77763
-        DrawerItem[] drawerItems = getDrawerItems();
-        getSupportActionBar().setTitle(drawerItems[position].fragmentTitle);
-
-        // Change color.
-        mToolbar.setBackgroundColor(drawerItems[position].fragmentColor);
-        mToolbar.setTitleTextColor(drawerItems[position].titleTextColor);
-        mToolbarTextView.setInnerStrokeColor(drawerItems[position].fragmentColor);
-        mToolbarTextView.setOuterStrokeColor(drawerItems[position].titleTextColor);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            Window window = getWindow();
-            window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
-            window.setStatusBarColor(drawerItems[position].fragmentColorDark);
-        }
-    }
-
-    public DrawerItem[] getDrawerItems() {
-        String[] menuItems = getResources().getStringArray(R.array.menu_items);
-        TypedArray menuItemIcons = getResources().obtainTypedArray(R.array.menu_item_icons);
-        String[] menuItemFragmentTitle = getResources().getStringArray(R.array.menu_item_fragment_title);
-        TypedArray menuItemFragmentColor = getResources().obtainTypedArray(R.array.menu_item_fragment_color);
-        TypedArray menuItemFragmentColorDark = getResources().obtainTypedArray(R.array.menu_item_fragment_color_dark);
-        TypedArray menuItemTitleTextColor = getResources().obtainTypedArray(R.array.menu_item_title_text_color);
-        DrawerItem[] drawerItems = new DrawerItem[menuItems.length];
-
-        for (int i = 0; i < menuItems.length; i++) {
-            DrawerItem drawerItem = new DrawerItem();
-            drawerItem.text = menuItems[i];
-            drawerItem.icon = menuItemIcons.getDrawable(i);
-
-            if((sectionFlag == false) && (i == menuItems.length - 1)){
-                Log.i("section", "Section selection fragment");
-                drawerItem.fragmentTitle = menuItemFragmentTitle[i+1];
-                //sectionFlag = true;
-            }
-            else{
-                Log.i("section", "treasure hunt fragment");
-                drawerItem.fragmentTitle = menuItemFragmentTitle[i];
-            }
-
-            drawerItem.fragmentColor = menuItemFragmentColor.getColor(i, ContextCompat.getColor(this, R.color.primary));
-            drawerItem.fragmentColorDark = menuItemFragmentColorDark.getColor(i, ContextCompat.getColor(this, R.color.primary_dark));
-
-            // Resolve attr values through the theme.
-            TypedValue typedValue = new TypedValue();
-            getTheme().resolveAttribute(menuItemTitleTextColor.peekValue(i).data, typedValue, true);
-            TypedArray arr = obtainStyledAttributes(typedValue.data, new int[]{ menuItemTitleTextColor.peekValue(i).data });
-            drawerItem.titleTextColor = arr.getColor(0, -1);
-            arr.recycle();
-
-            drawerItems[i] = drawerItem;
-        }
-
-        menuItemIcons.recycle();
-        return drawerItems;
-    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -344,8 +187,19 @@ public class AppActivity extends AppCompatActivity {
             Log.e(TAG, e.toString());
         }
 
+        // Create the fragments.
+        mFragments.put(FRAGMENT_PREDICTION, new PredictionFragment());
+        mFragments.put(FRAGMENT_LEADERBOARD, new LeaderboardFragment());
+        mFragments.put(FRAGMENT_COLLECTION, new CollectionFragment());
+        mFragments.put(FRAGMENT_TROPHY, new TrophyFragment());
+        mFragments.put(FRAGMENT_SEAT_SELECT, new SeatSelectFragment());
+        mFragments.put(FRAGMENT_TREASURE_HUNT, new TreasureHuntFragment());
+
         // Set the home screen
         selectItem(DEFAULT_ITEM);
+
+        // Initialize WebSocket connection.
+        AsyncHttpClient.getDefaultInstance().websocket(PLAYBOOK_API_URL, null, new WebSocketHandler());
     }
 
     @Override
@@ -384,8 +238,7 @@ public class AppActivity extends AppCompatActivity {
         if (id == R.id.action_about) {
             return true;
         } else if (id == R.id.action_debug) {
-
-            Cocos2dxBridge.loadScene("SectionSelection");
+            return true;
         }
 
         return super.onOptionsItemSelected(item);
@@ -405,6 +258,208 @@ public class AppActivity extends AppCompatActivity {
             selectItem(lastItem, false);
         } else {
             super.onBackPressed();
+        }
+    }
+
+    @Override
+    public void onNewIntent(Intent intent) {
+        selectItem(intent.getIntExtra(INTENT_EXTRA_DRAWER_ITEM, DEFAULT_ITEM));
+    }
+
+    private class DrawerItemClickListener implements ListView.OnItemClickListener {
+        @Override
+        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+            selectItem(position);
+        }
+    }
+
+    private class DrawerItem {
+        String text;
+        Drawable icon;
+        String fragmentTitle;
+        int fragmentColor;
+        int fragmentColorDark;
+        int titleTextColor;
+    }
+
+    private class DrawerItemAdapter extends ArrayAdapter<DrawerItem> {
+        private ViewHolder mHolder;
+
+        DrawerItemAdapter(Context context, int resource, DrawerItem[] objects) {
+            super(context, resource, objects);
+        }
+
+        private class ViewHolder {
+            private TextView mTextView;
+        }
+
+        @NonNull
+        public View getView(int position, View convertView, @NonNull ViewGroup parent) {
+            if (convertView == null) {
+                convertView = LayoutInflater.from(AppActivity.this)
+                        .inflate(R.layout.drawer_list_item, parent, false);
+
+                mHolder = new ViewHolder();
+                mHolder.mTextView = (TextView) convertView.findViewById(R.id.text);
+
+                convertView.setTag(mHolder);
+            } else {
+                mHolder = (ViewHolder) convertView.getTag();
+            }
+
+            DrawerItem item = getItem(position);
+            if (item != null) {
+                mHolder.mTextView.setText(item.text);
+                mHolder.mTextView.setCompoundDrawablesRelativeWithIntrinsicBounds(null, item.icon, null, null);
+
+                ColorStateList stateList;
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    stateList = getResources().getColorStateList(R.color.drawer_list_item_selector, getTheme());
+                    mHolder.mTextView.setCompoundDrawableTintList(stateList);
+                }
+
+            }
+
+            return convertView;
+        }
+    }
+
+    private void selectItem(int position) {
+        selectItem(position, true);
+    }
+
+    /** Swaps fragments in the main content view */
+    private void selectItem(int position, boolean addToBackStack) {
+        // Create a new fragment based on selected position
+        PlaybookFragment fragment;
+        switch (position) {
+            case DRAWER_ITEM_PREDICTION:
+            case DRAWER_ITEM_COLLECTION:
+            case DRAWER_ITEM_TROPHY:
+                fragment = mFragments.get(position);
+                break;
+            case DRAWER_ITEM_LEADERBOARD:
+                Log.i("test", "Entering new collection fragment");
+                fragment = new CollectionFragment();  //for test js collection
+                break;
+            case DRAWER_ITEM_TREASURE_HUNT:
+                if(!sectionFlag){
+                    fragment = mFragments.get(FRAGMENT_SEAT_SELECT);
+                    //sectionFlag = true;
+                }
+                else {
+                    fragment = mFragments.get(FRAGMENT_TREASURE_HUNT);
+                }
+                Log.i("sectionFlag", Boolean.toString(sectionFlag));
+                break;
+            default:
+                fragment = mFragments.get(DEFAULT_ITEM);
+        };
+
+        // Insert the fragment by replacing any existing fragment
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        fragmentManager.beginTransaction()
+                .replace(R.id.content_frame, fragment)
+                .commit();
+
+        // Add the previous selection to the stack.
+        if (addToBackStack) {
+            mBackStack.push(mLastSelectedItem);
+            mLastSelectedItem = position;
+        }
+
+        // Close the drawer
+        selectedItem = position;
+        mDrawerLayout.closeDrawer(mDrawerList);
+        updateUIForItem(position);
+    }
+
+    private void updateUIForItem(int position) {
+        // Highlight the selected item in the drawer.
+        mDrawerList.setItemChecked(position, true);
+
+        // Set the name in the action bar.
+        // We can't use mToolbar here: https://code.google.com/p/android/issues/detail?id=77763
+        DrawerItem[] drawerItems = getDrawerItems();
+        getSupportActionBar().setTitle(drawerItems[position].fragmentTitle);
+
+        // Change color.
+        mToolbar.setBackgroundColor(drawerItems[position].fragmentColor);
+        mToolbar.setTitleTextColor(drawerItems[position].titleTextColor);
+        mToolbarTextView.setInnerStrokeColor(drawerItems[position].fragmentColor);
+        mToolbarTextView.setOuterStrokeColor(drawerItems[position].titleTextColor);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            Window window = getWindow();
+            window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+            window.setStatusBarColor(drawerItems[position].fragmentColorDark);
+        }
+    }
+
+    public DrawerItem[] getDrawerItems() {
+        String[] menuItems = getResources().getStringArray(R.array.menu_items);
+        TypedArray menuItemIcons = getResources().obtainTypedArray(R.array.menu_item_icons);
+        String[] menuItemFragmentTitle = getResources().getStringArray(R.array.menu_item_fragment_title);
+        TypedArray menuItemFragmentColor = getResources().obtainTypedArray(R.array.menu_item_fragment_color);
+        TypedArray menuItemFragmentColorDark = getResources().obtainTypedArray(R.array.menu_item_fragment_color_dark);
+        TypedArray menuItemTitleTextColor = getResources().obtainTypedArray(R.array.menu_item_title_text_color);
+        DrawerItem[] drawerItems = new DrawerItem[menuItems.length];
+
+        for (int i = 0; i < menuItems.length; i++) {
+            DrawerItem drawerItem = new DrawerItem();
+            drawerItem.text = menuItems[i];
+            drawerItem.icon = menuItemIcons.getDrawable(i);
+
+            if((sectionFlag == false) && (i == menuItems.length - 1)){
+                Log.i("section", "Section selection fragment");
+                drawerItem.fragmentTitle = menuItemFragmentTitle[i+1];
+                //sectionFlag = true;
+            }
+            else{
+                Log.i("section", "treasure hunt fragment");
+                drawerItem.fragmentTitle = menuItemFragmentTitle[i];
+            }
+
+            drawerItem.fragmentColor = menuItemFragmentColor.getColor(i, ContextCompat.getColor(this, R.color.primary));
+            drawerItem.fragmentColorDark = menuItemFragmentColorDark.getColor(i, ContextCompat.getColor(this, R.color.primary_dark));
+
+            // Resolve attr values through the theme.
+            TypedValue typedValue = new TypedValue();
+            getTheme().resolveAttribute(menuItemTitleTextColor.peekValue(i).data, typedValue, true);
+            TypedArray arr = obtainStyledAttributes(typedValue.data, new int[]{ menuItemTitleTextColor.peekValue(i).data });
+            drawerItem.titleTextColor = arr.getColor(0, -1);
+            arr.recycle();
+
+            drawerItems[i] = drawerItem;
+        }
+
+        menuItemIcons.recycle();
+        return drawerItems;
+    }
+
+    private class WebSocketHandler implements AsyncHttpClient.WebSocketConnectCallback, WebSocket.StringCallback {
+        @Override
+        public void onCompleted(Exception e, WebSocket webSocket) {
+            if (e != null) {
+                e.printStackTrace();
+                return;
+            }
+
+            Log.d(TAG, "Connected to WebSocket server at " + PLAYBOOK_API_URL);
+            webSocket.setStringCallback(this);
+        }
+
+        @Override
+        public void onStringAvailable(String s) {
+            try {
+                JSONObject jsonObject = new JSONObject(s);
+                Log.d(TAG, jsonObject.getString("event"));
+                for (int i = 0; i < mFragments.size(); i++) {
+                    PlaybookFragment fragment = mFragments.valueAt(i);
+                    fragment.onWebSocketMessageReceived(AppActivity.this, jsonObject);
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
         }
     }
 }
