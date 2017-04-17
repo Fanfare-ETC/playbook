@@ -4,60 +4,60 @@
     android:installLocation="auto">
 
     <uses-feature android:glEsVersion="0x00020000" />
-    <uses-permission android:name="android.permission.INTERNET"/>
+
+    <uses-permission android:name="android.permission.INTERNET" />
 
     <application
-        android:label="@string/app_name"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
         android:theme="@style/AppTheme">
-        
+
         <!-- Tell Cocos2dxActivity the name of our .so -->
-        <meta-data android:name="android.app.lib_name"
-                   android:value="MyGame" />
+        <meta-data
+            android:name="android.app.lib_name"
+            android:value="MyGame" />
 
         <service
-            android:name="edu.cmu.etc.fanfare.playbook.GcmListener"
-            android:exported="false" >
+            android:name=".GcmListener"
+            android:exported="false">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>
         </service>
         <service
-            android:name="edu.cmu.etc.fanfare.playbook.GcmIdListenerService"
+            android:name=".GcmIdListenerService"
             android:exported="false">
             <intent-filter>
                 <action android:name="com.google.firebase.INSTANCE_ID_EVENT" />
             </intent-filter>
         </service>
         <service
-            android:name="edu.cmu.etc.fanfare.playbook.GcmRegistrationIntentService"
-            android:exported="false">
-        </service>
+            android:name=".GcmRegistrationIntentService"
+            android:exported="false" />
 
         <activity
-            android:name="edu.cmu.etc.fanfare.playbook.LoginActivity"
-            android:screenOrientation="userPortrait"
+            android:name=".LoginActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
-            android:label="@string/app_name">
+            android:label="@string/app_name"
+            android:screenOrientation="userPortrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
-        <activity android:name=".AppActivity"
-            android:screenOrientation="userPortrait"
+        <activity
+            android:name=".AppActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
-            android:label="@string/app_name">
-        </activity>
-
-        <activity android:name=".SeatSelectActivity"
-            android:screenOrientation="userPortrait"
+            android:label="@string/app_name"
+            android:screenOrientation="userPortrait" />
+        <activity
+            android:name=".SeatSelectActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
-            android:label="@string/app_name">
-        </activity>
+            android:label="@string/app_name"
+            android:screenOrientation="userPortrait" />
+
     </application>
-    
+
 </manifest>

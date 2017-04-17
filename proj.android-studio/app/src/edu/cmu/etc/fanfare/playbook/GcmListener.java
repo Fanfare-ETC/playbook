@@ -12,22 +12,13 @@ import android.util.Log;
 
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
-import com.koushikdutta.async.http.AsyncHttpClient;
-import com.koushikdutta.async.http.AsyncHttpPost;
-import com.koushikdutta.async.http.AsyncHttpResponse;
-import com.koushikdutta.async.http.body.JSONObjectBody;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.util.ArrayList;
 import java.util.Map;
 
 public class GcmListener extends FirebaseMessagingService {
 
-    private static final String TAG = "MyGcmListenerService";
-    private static final int REQUEST_CODE_PREDICTION_SCORED = 0;
+    private static final String TAG = GcmListener.class.getSimpleName();
+    private static final int REQUEST_CODE_PLAYS_CREATED = 0;
 
     /**
      * Called when message is received.
@@ -69,69 +60,34 @@ public class GcmListener extends FirebaseMessagingService {
     // [END receive_message]
 
     private void handlePlaysCreated(String message) {
-        try {
-            if (AppActivity.isInForeground && AppActivity.selectedItem == AppActivity.DRAWER_ITEM_PREDICTION) {
-                return;
-            }
-
-            ArrayList<Integer> correctPredictions = new ArrayList<>();
-            JSONArray playsArray = new JSONArray(message);
-            for (int i = 0; i < playsArray.length(); i++) {
-                int event = playsArray.getInt(i);
-                // TODO: Make this work with the new WebGL implementation
-                //if (Cocos2dxBridge.getPredictionCount(event) > 0) {
-                //    correctPredictions.add(event);
-                //}
-            }
-
-            if (correctPredictions.size() > 0) {
-                Intent intent = new Intent(this, AppActivity.class);
-                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                intent.putIntegerArrayListExtra(AppActivity.INTENT_EXTRA_PREDICTIONS_SCORED, correctPredictions);
-                PendingIntent pendingIntent = PendingIntent.getActivity(this,
-                        REQUEST_CODE_PREDICTION_SCORED, intent,
-                        PendingIntent.FLAG_ONE_SHOT);
-
-                Uri defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
-                NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this)
-                        .setSmallIcon(R.drawable.ic_logo)
-                        .setContentTitle("Bravo!")
-                        .setContentText("You got a prediction right.")
-                        .setAutoCancel(true)
-                        .setSound(defaultSoundUri)
-                        .setPriority(NotificationCompat.PRIORITY_HIGH)
-                        .setContentIntent(pendingIntent);
-
-                NotificationManager notificationManager =
-                        (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-
-                notificationManager.notify(0 /* ID of notification */, notificationBuilder.build());
-
-                // Update score on server.
-                for (int event : correctPredictions) {
-                    Log.d(TAG, "Updating score on server...");
-                    JSONObject jsonObj = new JSONObject();
-                    jsonObj.put("cat", "predict");
-                    //jsonObj.put("predictScore", Cocos2dxBridge.getPredictionScoreForEvent(event));
-                    jsonObj.put("id", Cocos2dxBridge.getPlayerID());
-
-                    String url = "http://" + BuildConfig.PLAYBOOK_SECTION_API_HOST + ":" +
-                            BuildConfig.PLAYBOOK_SECTION_API_PORT + "/updateScore";
-                    AsyncHttpPost post = new AsyncHttpPost(url);
-                    JSONObjectBody body = new JSONObjectBody(jsonObj);
-                    post.setBody(body);
-                    AsyncHttpClient.getDefaultInstance().executeString(post, new AsyncHttpClient.StringCallback() {
-                        @Override
-                        public void onCompleted(Exception e, AsyncHttpResponse source, String result) {
-                            Log.d(TAG, "Score updated.");
-                        }
-                    });
-                }
-            }
-
-        } catch (JSONException e) {
-            e.printStackTrace();
+        if (AppActivity.isInForeground && AppActivity.selectedItem == AppActivity.DRAWER_ITEM_PREDICTION) {
+            return;
         }
+
+        // Show a notification for the play created.
+        Log.d(TAG, "handlePlaysCreated");
+        Intent intent = new Intent(this, AppActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        intent.putExtra(AppActivity.INTENT_EXTRA_GCM_PLAYS_CREATED, message);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this,
+                REQUEST_CODE_PLAYS_CREATED, intent,
+                PendingIntent.FLAG_ONE_SHOT);
+
+        Uri defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+        NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this)
+                .setSmallIcon(R.drawable.ic_logo)
+                .setContentTitle("Something interesting happened!")
+                .setContentText("Check to see if you got a prediction right.")
+                .setAutoCancel(true)
+                .setSound(defaultSoundUri)
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setContentIntent(pendingIntent);
+
+        NotificationManager notificationManager =
+                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+
+        notificationManager.notify(0 /* ID of notification */, notificationBuilder.build());
+
     }
 
     /**

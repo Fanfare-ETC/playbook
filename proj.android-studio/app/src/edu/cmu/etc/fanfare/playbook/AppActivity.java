@@ -66,8 +66,8 @@ import java.util.ArrayList;
 import java.util.Stack;
 
 public class AppActivity extends AppCompatActivity {
-    public static final String INTENT_EXTRA_PREDICTIONS_SCORED = "intentNotificationPredictionScored";
     public static final String INTENT_EXTRA_DRAWER_ITEM = "intentExtraDrawerItem";
+    public static final String INTENT_EXTRA_GCM_PLAYS_CREATED = "intentExtraGcmPlaysCreated";
 
     public static final int DRAWER_ITEM_PREDICTION = 0;
     public static final int DRAWER_ITEM_COLLECTION = 1;
@@ -113,15 +113,6 @@ public class AppActivity extends AppCompatActivity {
         // Get the section ID
         if (savedInstanceState != null) {
             mSection = savedInstanceState.getInt(STATE_SELECTED_SECTION);
-        } else {
-            Intent intent = getIntent();
-            Bundle extras = intent.getExtras();
-            if (extras != null) {
-                ArrayList<Integer> predictionsScored = extras.getIntegerArrayList(INTENT_EXTRA_PREDICTIONS_SCORED);
-                if (predictionsScored != null) {
-                    Log.d(TAG, "predictionsScored: " + predictionsScored.toString());
-                }
-            }
         }
 
         mToolbar = (Toolbar) findViewById(R.id.my_toolbar);
@@ -199,7 +190,15 @@ public class AppActivity extends AppCompatActivity {
         selectItem(DEFAULT_ITEM);
 
         // Initialize WebSocket connection.
-        AsyncHttpClient.getDefaultInstance().websocket(PLAYBOOK_API_URL, null, new WebSocketHandler());
+        WebSocketHandler webSocketHandler = new WebSocketHandler();
+        Intent intent = getIntent();
+        if (intent.hasExtra(INTENT_EXTRA_GCM_PLAYS_CREATED)) {
+            String message = intent.getStringExtra(INTENT_EXTRA_GCM_PLAYS_CREATED);
+            Log.d(TAG, message);
+            webSocketHandler.onStringAvailable(message);
+        }
+
+        AsyncHttpClient.getDefaultInstance().websocket(PLAYBOOK_API_URL, null, webSocketHandler);
     }
 
     @Override
@@ -340,7 +339,8 @@ public class AppActivity extends AppCompatActivity {
                 break;
             case DRAWER_ITEM_LEADERBOARD:
                 Log.i("test", "Entering new collection fragment");
-                fragment = new CollectionFragment();  //for test js collection
+                //fragment = new CollectionFragment();  //for test js collection
+                fragment = mFragments.get(position);
                 break;
             case DRAWER_ITEM_TREASURE_HUNT:
                 if(!sectionFlag){
