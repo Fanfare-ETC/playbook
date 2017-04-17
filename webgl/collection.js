@@ -344,6 +344,9 @@ class Card {
     /** @type {PIXI.Sprite?} */
     this.sprite = null;
 
+     /** @type {string} */
+    this.name = null;
+
     /** @type {bool} */
     this.isBeingDragged = false;
 
@@ -361,6 +364,9 @@ class Card {
 
     /** @type {bool} */
     this.isAnimating = false;
+
+    /** @type {bool} */
+    this.isActive = true;
 
     /** @type {FieldOverlayArea?} */
     this.selectedTarget = null; //only score
@@ -400,7 +406,7 @@ class Card {
     if(target == 6){ //discard
       this._moveToWithAnimation(stage.getChildByName('discard').position);
     }
-    else if (target == 7){
+    else if (target == 7){ //score cards
       this._moveToWithAnimation(stage.getChildByName('scoreButton').position);
     }
     else{
@@ -409,12 +415,18 @@ class Card {
     
   }
 
+  assignToSlot(slot){
+    state.cardSlots[slot].card = this;
+    state.cardSlots[slot].present = true;
+
+  }
+
   /**
    * Moves this ball to the field.
    * @param {FieldOverlayArea} area
    * @param {bool} withAnimation
    */
-  moveToField(area, withAnimation = true) {
+ /* moveToField(area, withAnimation = true) {
     let center = area.parent.toGlobal(area.getCentroid());
 
     // Determine if we need to run an animation.
@@ -424,7 +436,7 @@ class Card {
       this.sprite.position.set(center.x, center.y);
       renderer.isDirty = true;
     }
-  }
+  }*/
 }
 
 /** 
@@ -504,16 +516,27 @@ function initCardEvents(card, cardSlot, fieldOverlay) {
     // If discard: destroy the card
     // If score: add the score
     // If slot number: move to a slot
-    if (card.dragTarget == 0) {
+    if (card.dragTarget == 6) {
       card.moveTo(card.dragTarget);
-      //destroy card
-    } else if (card.dragTarget == 1) {
+      stage.removeChild(card);//destroy card
+    } else if (card.dragTarget == 7) {
       card.moveTo(createCard.dragTarget);
       //add score
+    } else if ((card.dragTarget > 0) && (card.dragTarget < 6)){
+      if(state.cardSlots[card.dragTarget].present == false){
+        card.moveTo(card.dragTarget); 
+        if(card.isActive == true){
+          card.assignToSlot(card.dragTarget);
+        }
+        
+      } else {
+        card.moveToOrigPosition();
+      } 
+
+      
     } else {
       card.moveToOrigPosition();
     }
-
   };
 
   card.sprite
@@ -649,6 +672,7 @@ function createCard(play){
 
   const cardObj = new Card();
   cardObj.sprite = card;
+  cardObj.name = play;
   state.cards.push(card);
 
   initCardEvents(card, )
