@@ -646,7 +646,18 @@ function initCardEvents(card) {
 
       // Tint card red when in the discard zone.
       const discard = stage.getChildByName('discard');
-      card.sprite.tint = (card.dragTarget === discard) ? 0xff0000 : 0xffffff;
+      if (card.dragTarget === discard) {
+        card.sprite.tint = 0xff0000;
+      } else {
+        if (!state.cardsMatchingSelectedGoal ||
+            state.cardsMatchingSelectedGoal.indexOf(card) < 0) {
+          card.sprite.tint = 0xffffff;
+        } else {
+          // TODO: Is there a better way to manage this?
+          // We're setting this in two places... which means potential for errors.
+          card.sprite.tint = 0x00ff00;
+        }
+      }
 
       // Re-render the scene.
       renderer.isDirty = true;
@@ -852,10 +863,12 @@ function highlightCardsMatchingGoal() {
     .map(slot => slot.card.sprite)
     .forEach(sprite => sprite.tint = 0xffffff);
 
-  state.cardsMatchingSelectedGoal.forEach(card => {
-    const tintTo = new PIXI.action.TintTo(0x00ff00, 0.25);
-    PIXI.actionManager.runAction(card.sprite, tintTo);
-  });
+  if (state.selectedGoal && state.cardsMatchingSelectedGoal) {
+    state.cardsMatchingSelectedGoal.forEach(card => {
+      const tintTo = new PIXI.action.TintTo(0x00ff00, 0.25);
+      PIXI.actionManager.runAction(card.sprite, tintTo);
+    });
+  }
 }
 
 /**
@@ -949,32 +962,18 @@ function cardSetMeetsGoal(cardSet, goal) {
       break;
     }
     case GoalTypes.EACH_COLOR_1: {
-      if ((numBlue >= 1) && (numRed >= 1)) {
-        const cardRed = cardSet.find(card => (PlaybookEventsTeams[card.play] === 'BATTING')).length;
-        const cardBlue = cardSet.find(card => (PlaybookEventsTeams[card.play] === 'FIELDING')).length;
-        cardsMetGoal.push(cardBlue);
-        cardsMetGoal.push(cardRed);
-        return cardsMetGoal;
+      if (numBlue >= 1 && numRed >= 1) {
+        const cardRed = cardSet.find(card => PlaybookEventsTeams[card.play] === 'BATTING');
+        const cardBlue = cardSet.find(card => PlaybookEventsTeams[card.play] === 'FIELDING');
+        return [ cardRed, cardBlue ];
       }
       break;
     }
     case GoalTypes.EACH_COLOR_2: {
-      if ((numBlue >= 1) && (numRed >= 1)) {
-        cardSet.filter(card => (PlaybookEventsTeams[card.play] === 'BATTING'))
-          .forEach((card, i) => {
-            if (i < 2) {
-              cardsMetGoal.push(card);
-            }
-          });
-
-        cardSet.filter(card => (PlaybookEventsTeams[card.play] === 'FIELDING'))
-          .forEach((card, i) => {
-            if (i < 2) {
-              cardsMetGoal.push(card);
-            }
-          });
-
-        return cardsMetGoal;
+      if (numBlue >= 2 && numRed >= 2) {
+        const redCards = cardSet.filter(card => PlaybookEventsTeams[card.play] === 'BATTING').slice(0, 2);
+        const blueCards = cardSet.filter(card => PlaybookEventsTeams[card.play] === 'FIELDING').slice(0, 2);
+        return [...redCards, ...blueCards];
       }
       break;
     }
@@ -989,16 +988,16 @@ function cardSetMeetsGoal(cardSet, goal) {
       break;
     }
     case GoalTypes.IDENTICAL_CARDS_3: {
-      const plays = Object.keys(cardCounts).filter(play => cardCounts[play] === 3);
+      const plays = Object.keys(cardCounts).filter(play => cardCounts[play] >= 3);
       if (plays.length > 0) {
-        return cardSet.filter(card => card.play === plays[0]);
+        return cardSet.filter(card => card.play === plays[0]).slice(0, 3);
       }
       break;
     }
     case GoalTypes.IDENTICAL_CARDS_4: {
-      const plays = Object.keys(cardCounts).filter(play => cardCounts[play] === 4);
+      const plays = Object.keys(cardCounts).filter(play => cardCounts[play] >= 4);
       if (plays.length > 0) {
-        return cardSet.filter(card => card.play === plays[0]);
+        return cardSet.filter(card => card.play === plays[0]).slice(0, 4);
       }
       break;
     }
@@ -1251,9 +1250,7 @@ function initGoalEvents(goalSprite) {
  */
 function initSelectedGoalEvent() {
   state.emitter.on(state.EVENT_SELECTED_GOAL_CHANGED, function (goal) {
-    if (state.selectedGoal && state.cardsMatchingSelectedGoal) {
-      highlightCardsMatchingGoal();
-    }
+    highlightCardsMatchingGoal();
   });
 }
 
@@ -1479,7 +1476,7 @@ function distance(p1, p2) {
  */
 function initScoreEvents(scoreText) {
   state.emitter.on(state.EVENT_SCORE_CHANGED, function (score, oldScore) {
-    scoreText.text = ('000000' + score).substr(-3);
+    scoreText.text = ('000000' + score).substr(-Math.max(score.toString().length, 3));
 
     if (oldScore !== null) {
       const origScale = scoreText.scale.x;
