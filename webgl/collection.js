@@ -420,7 +420,7 @@ class GameState {
       createRandomGoal();
     } else {
       restoredState.cardSlots.forEach((slot, index) => {
-        this.cardSlots[index].present = slot.present;
+        this._cardSlots[index].present = slot.present;
         if (slot.present) {
           const card = createCard(slot.card.play, false, index);
           Object.assign(card, slot.card);
@@ -429,15 +429,20 @@ class GameState {
           this._cardSlots[index].card = card;
         }
       });
-      this.goal = restoredState.goal;
-      this.score = restoredState.score;
-
-      // This comes before the latter.
-      this.cardsMatchingSelectedGoal = restoredState.cardsMatchingSelectedGoal ?
+      this._goal = restoredState.goal;
+      this._score = restoredState.score;
+      this._selectedGoal = restoredState.selectedGoal;
+      this._cardsMatchingSelectedGoal = restoredState.cardsMatchingSelectedGoal ?
         restoredState.cardsMatchingSelectedGoal.map(cardId => {
           return this.cardSlots[cardId].card;
         }) : null;
-      this.selectedGoal = restoredState.selectedGoal;
+
+      // Trigger initial updates.
+      this.emitter.emit(this.EVENT_CARD_SLOTS_CHANGED, this._cardSlots, null);
+      this.emitter.emit(this.EVENT_GOAL_CHANGED, this._goal, null);
+      this.emitter.emit(this.EVENT_SCORE_CHANGED, this._score, null);
+      this.emitter.emit(this.EVENT_SELECTED_GOAL_CHANGED, this._selectedGoal, null);
+      this.emitter.emit(this.EVENT_CARDS_MATCHING_SELECTED_GOAL_CHANGED, this._cardsMatchingSelectedGoal, null);
     }
   }
 }
@@ -667,8 +672,8 @@ function initCardEvents(card) {
         card.moveToOrigPosition();
       }
     } else if (card.dragTarget >= 0 && card.dragTarget < 6) {
-      if (card.isActive && card.dragTarget !== null && !state.cardSlots[card.dragTarget].present) {
-        assignActiveCardToSlot(card.dragTarget);
+      if (card.dragTarget !== null && !state.cardSlots[card.dragTarget].present) {
+        assignCardToSlot(card, card.dragTarget);
       } else {
         card.moveToOrigPosition();
       }
@@ -1121,20 +1126,30 @@ function cardSetMeetsGoal(cardSet, goal) {
 }
 
 /**
- * Assigns the active card to a specific slot.
+ * Assigns the card to a specific slot.
+ * @param {Card} card
  * @param {number} slot
  */
-function assignActiveCardToSlot(slot) {
+function assignCardToSlot(card, slot) {
+  // Check if card exists in existing slot.
+  const existingSlot = state.cardSlots.filter(slot => slot.present)
+    .find(slot => slot.card === card);
+  if (existingSlot !== undefined) {
+    existingSlot.present = false;
+    existingSlot.card = null;
+  }
+
   // Copy card into slot list.
-  state.cardSlots[slot].card = state.activeCard;
+  state.cardSlots[slot].card = card;
   state.cardSlots[slot].present = true;
-  state.cardSlots = state.cardSlots.slice();
   state.activeCard = null;
 
-  const card = state.cardSlots[slot].card;
   card.moveToSlot(slot);
   card.isActive = false;
   state.isCardActive = false;
+
+  // Trigger an update.
+  state.cardSlots = state.cardSlots.slice();
 
   // Check if the set of cards meet the goal.
   checkIfGoalMet();
