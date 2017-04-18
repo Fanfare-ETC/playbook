@@ -25,9 +25,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.ArrayList;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Queue;
 
 /**
@@ -39,7 +37,6 @@ public class CollectionFragment extends PlaybookFragment {
     private static final String TAG = CollectionFragment.class.getSimpleName();
     private static final String WEB_VIEW_PACKAGE_NAME = "com.google.android.webview";
     private static final String WEB_VIEW_PACKAGE_NAME_ALT = "com.android.webview";
-    private static final SparseArray<String> PLAYBOOK_EVENTS = new SparseArray<String>();
 
     private boolean mIsRunning;
     // WebView 42 is the minimum that supports ES6 classes.
@@ -49,6 +46,26 @@ public class CollectionFragment extends PlaybookFragment {
     private JSONObject mGameState;
     private Queue<JSONObject> mPendingEvents = new LinkedList<>();
 
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        // We use SharedPreference because the savedInstanceState doesn't work
+        // if the fragment doesn't have an ID.
+        try {
+            SharedPreferences prefs = getContext().getSharedPreferences("collection", Context.MODE_PRIVATE);
+            String gameState = prefs.getString("gameState", null);
+            if (gameState != null) {
+                Log.d(TAG, "Restoring game state from bundle: " + gameState);
+                mGameState = new JSONObject(gameState);
+            } else {
+                Log.d(TAG, "Game state doesn't exist, creating initial state");
+                mGameState = createInitialGameState();
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -57,37 +74,11 @@ public class CollectionFragment extends PlaybookFragment {
         checkWebViewVersion();
         mIsRunning = true;
 
-        // Populate the events.
-        PLAYBOOK_EVENTS.append(0, "SHUTOUT_INNING");
-        PLAYBOOK_EVENTS.append(1, "RUN_SCORED");
-        PLAYBOOK_EVENTS.append(2, "FLY_OUT");
-        PLAYBOOK_EVENTS.append(3, "TRIPLE_PLAY");
-        PLAYBOOK_EVENTS.append(4, "DOUBLE_PLAY");
-        PLAYBOOK_EVENTS.append(5, "GROUND_OUT");
-        PLAYBOOK_EVENTS.append(6, "STEAL");
-        PLAYBOOK_EVENTS.append(7, "PICK_OFF");
-        PLAYBOOK_EVENTS.append(8, "WALK");
-        PLAYBOOK_EVENTS.append(9, "BLOCKED_RUN");
-        PLAYBOOK_EVENTS.append(10, "STRIKEOUT");
-        PLAYBOOK_EVENTS.append(11, "HIT_BY_PITCH");
-        PLAYBOOK_EVENTS.append(12, "HOME_RUN");
-        PLAYBOOK_EVENTS.append(13, "PITCH_COUNT_16");
-        PLAYBOOK_EVENTS.append(14, "PITCH_COUNT_17");
-        PLAYBOOK_EVENTS.append(15, "SINGLE");
-        PLAYBOOK_EVENTS.append(16, "DOUBLE");
-        PLAYBOOK_EVENTS.append(17, "TRIPLE");
-        PLAYBOOK_EVENTS.append(18, "BATTER_COUNT_4");
-        PLAYBOOK_EVENTS.append(19, "BATTER_COUNT_5");
-        PLAYBOOK_EVENTS.append(20, "MOST_IN_LEFT_OUTFIELD");
-        PLAYBOOK_EVENTS.append(21, "MOST_IN_RIGHT_OUTFIELD");
-        PLAYBOOK_EVENTS.append(22, "MOST_IN_INFIELD");
-        PLAYBOOK_EVENTS.append(23, "UNKNOWN");
-
         if (mWebViewIsCompatible) {
             WebView.setWebContentsDebuggingEnabled(true);
             mWebView.getSettings().setJavaScriptEnabled(true);
             mWebView.getSettings().setAllowFileAccessFromFileURLs(true);
-            mWebView.addJavascriptInterface(new CollectionFragment.JavaScriptInterface(), "PlaybookCollectionBridge");
+            mWebView.addJavascriptInterface(new CollectionFragment.JavaScriptInterface(), "PlaybookBridge");
             mWebView.setWebChromeClient(new CollectionFragment.PlaybookWebChromeClient());
             mWebView.loadUrl("file:///android_asset/collection/index.html");
             Log.i(TAG, "url loaded");
@@ -110,24 +101,30 @@ public class CollectionFragment extends PlaybookFragment {
         mWebView.destroy();
     }
 
-
     @Override
     public void onWebSocketMessageReceived(Activity context, JSONObject s) {
         super.onWebSocketMessageReceived(context, s);
-        try {
-            if (!mIsRunning) {
-                if (s.has("event")) {
-                    String event = s.getString("event");
-                    if (event.equals("server:playsCreated")) {
-                        handlePlaysCreated(context, s);
-                    }
-                }
-                Log.d(TAG, "Received event while fragment is not attached, adding to queue");
-                mPendingEvents.add(s);
-            }
-        } catch (JSONException e) {
-            e.printStackTrace();
+        if (!mIsRunning) {
+            Log.d(TAG, "Received event while fragment is not attached, adding to queue");
+            mPendingEvents.add(s);
         }
+    }
+
+    private JSONObject createInitialGameState() throws JSONException {
+        JSONObject state = new JSONObject();
+        JSONArray cardSlots = new JSONArray();
+        for (int i = 0; i < 5; i++) {
+            JSONObject slot = new JSONObject();
+            slot.put("present", false);
+            slot.put("card", JSONObject.NULL);
+            cardSlots.put(slot);
+        }
+
+        state.put("cardSlots", cardSlots);
+        state.put("goal", JSONObject.NULL);
+        state.put("score", 0);
+        state.put("selectedGoal", JSONObject.NULL);
+        return state;
     }
 
     private Integer getWebViewMajorVersion() {
@@ -223,56 +220,6 @@ public class CollectionFragment extends PlaybookFragment {
         mWebView.evaluateJavascript(js, null);
     }
 
-    private void handlePlaysCreated(final Activity context, JSONObject s) throws JSONException {
-        // If mGameState is null, we are not even in the app, so ignore.
-        if (mGameState == null) {
-            return;
-        }
-
-        JSONArray data = s.getJSONArray("data");
-        List<String> events = new ArrayList<>();
-        for (int i = 0; i < data.length(); i++) {
-            events.add(PLAYBOOK_EVENTS.valueAt(data.getInt(i)));
-        }
-
-        // Add it to the game state.
-        Log.d(TAG, "Creating plays: " + events.toString());
-        JSONArray cards = mGameState.getJSONArray("cards");
-        for (String event : events) {
-            for (int i = 0; i < cards.length(); i++) {
-                //JSONObject card = cards.getJSONObject(i);
-                //String selectedTarget = card.getString("selectedTarget");
-                //if (selectedTarget != null && event.equals(selectedTarget)) {
-                    showCorrectDialog(context);
-                //}
-            }
-        }
-    }
-
-    private void showCorrectDialog(final Activity context) {
-        final Intent intent = new Intent(context, AppActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        intent.putExtra(AppActivity.INTENT_EXTRA_DRAWER_ITEM, AppActivity.DRAWER_ITEM_PREDICTION);
-
-        context.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                AlertDialog dialog = new AlertDialog.Builder(context)
-                        .setTitle("Bravo!")
-                        .setMessage("You got a new card.")
-                        .setCancelable(false)
-                        .setPositiveButton("Check it out!", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                context.startActivity(intent);
-                            }
-                        })
-                        .create();
-                dialog.show();
-            }
-        });
-    }
-
     private class PlaybookWebChromeClient extends WebChromeClient {
         @Override
         public boolean onConsoleMessage(ConsoleMessage cm) {
@@ -298,6 +245,17 @@ public class CollectionFragment extends PlaybookFragment {
         public String getAPIUrl() {
             return "ws://" + BuildConfig.PLAYBOOK_API_HOST + ":" +
                     BuildConfig.PLAYBOOK_API_PORT;
+        }
+
+        @JavascriptInterface
+        public String getSectionAPIUrl() {
+            return "http://" + BuildConfig.PLAYBOOK_SECTION_API_HOST + ":" +
+                    BuildConfig.PLAYBOOK_SECTION_API_PORT;
+        }
+
+        @JavascriptInterface
+        public String getPlayerID() {
+            return Cocos2dxBridge.getPlayerID();
         }
 
         @JavascriptInterface
