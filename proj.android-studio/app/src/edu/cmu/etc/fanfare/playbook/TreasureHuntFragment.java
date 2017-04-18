@@ -1,32 +1,24 @@
 package edu.cmu.etc.fanfare.playbook;
 
-import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Typeface;
-import android.media.Image;
 import android.os.Bundle;
 import android.os.CountDownTimer;
-import android.os.Handler;
 import android.support.constraint.ConstraintLayout;
-import android.support.v4.app.Fragment;
-import android.support.v7.app.AlertDialog;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
-import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -35,16 +27,21 @@ import com.koushikdutta.async.http.WebSocket;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.w3c.dom.Text;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Random;
-import java.util.StringTokenizer;
 import java.util.Vector;
 
-public class TreasureHuntFragment extends PlaybookFragment implements View.OnClickListener{
+public class TreasureHuntFragment extends PlaybookFragment implements View.OnClickListener,View.OnTouchListener{
 
     public static int section;
     public static View view;
     private static boolean treasurehunt_live=false;
+    private static boolean flag1correct=false;
+    private static boolean flag2correct=false;
+    private static boolean flag3correct=false;
     private ConstraintLayout layout;
     private int id;
 
@@ -56,51 +53,109 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
      * A custom view to draw lines between the runner and the individual
      * buttons on screen.
      */
+    public static class Connect1 extends View {
+        public Connect1(Context context) {
+            super(context);
+        }
 
+        public Connect1(Context context, AttributeSet attributeSet) {
+            super(context, attributeSet);
+        }
+
+        public void onDraw(Canvas canvas) {
+            super.onDraw(canvas);
+            int mColor = Color.rgb(255, 255, 255);
+            Paint mPaint = new Paint();
+            mPaint.setColor(mColor);
+            mPaint.setAntiAlias(true);
+            mPaint.setStrokeWidth(10);
+            mPaint.setStyle(Paint.Style.STROKE);
+            int[] loc0 = new int[2];
+            int[] loc1 = new int[2];
+            int[] canvasloc = new int[2];
+            this.getLocationInWindow(canvasloc);
+            ImageView v0 = (ImageView) view.findViewById(R.id.v0);
+            ImageView v5 = (ImageView) view.findViewById(R.id.v5);
+            ImageView v2 =(ImageView)view.findViewById(R.id.v2);
+            ImageView v3 =(ImageView)view.findViewById(R.id.v3);
+            ImageView v4 =(ImageView)view.findViewById(R.id.v4);
+            ImageView v1 =(ImageView)view.findViewById(R.id.v1);
+
+            if (flag1correct)
+            {
+                v0.getLocationInWindow(loc0);
+                loc0[0] -= canvasloc[0];
+                loc0[1] -= canvasloc[1];
+                canvas.drawCircle(loc0[0], loc0[1], 15, mPaint);
+                v5.getLocationInWindow(loc1);
+                loc1[0] -= canvasloc[0];
+                loc1[1] -= canvasloc[1];
+                canvas.drawLine(loc0[0], loc0[1], loc1[0], loc1[1], mPaint);
+            }
+            if(flag2correct)
+            {
+                    v3.getLocationInWindow(loc0);
+                    loc0[0] -= canvasloc[0];
+                    loc0[1] -= canvasloc[1];
+                    canvas.drawCircle(loc0[0],loc0[1],15,mPaint);
+
+                    v2.getLocationInWindow(loc1);
+                    loc1[0] -= canvasloc[0];
+                    loc1[1] -= canvasloc[1];
+                    canvas.drawLine(loc0[0], loc0[1], loc1[0], loc1[1], mPaint);
+
+                    v4.getLocationInWindow(loc1);
+                    loc1[0] -= canvasloc[0];
+                    loc1[1] -= canvasloc[1];
+                    canvas.drawLine(loc0[0], loc0[1], loc1[0], loc1[1], mPaint);
+
+                    v5.getLocationInWindow(loc0);
+                    loc0[0] -= canvasloc[0];
+                    loc0[1] -= canvasloc[1];
+                    canvas.drawLine(loc0[0], loc0[1], loc1[0], loc1[1], mPaint);
+            }
+
+            if(flag3correct) {
+
+                        v1.getLocationInWindow(loc0);
+                        loc0[0] -= canvasloc[0];
+                        loc0[1] -= canvasloc[1];
+                        canvas.drawCircle(loc0[0],loc0[1],15,mPaint);
+
+                        v2.getLocationInWindow(loc1);
+                        loc1[0] -= canvasloc[0];
+                        loc1[1] -= canvasloc[1];
+                        canvas.drawLine(loc0[0], loc0[1], loc1[0], loc1[1], mPaint);
+
+                        v0.getLocationInWindow(loc1);
+                        loc1[0] -= canvasloc[0];
+                        loc1[1] -= canvasloc[1];
+                        canvas.drawLine(loc0[0], loc0[1], loc1[0], loc1[1], mPaint);
+            }
+                    if(!flag1correct || !flag2correct || !flag3correct)
+                    invalidate();
+
+            }
+
+
+    }
     public static class LinesView extends View {
-
-        private final int mWarmerColor = Color.rgb(192, 55, 41);
-        private final int mColderColor = Color.rgb(30, 48, 98);
-        private final int mPlantColor = Color.rgb(255, 195, 13);
-
-        private final Paint mWarmerPaint = new Paint();
-        private final Paint mColderPaint = new Paint();
-        private final Paint mPlantPaint = new Paint();
 
         private View mWarmerView;
         private View mColderView;
-        private View mPlantView;
+        private View mMarkerView;
 
         public static int[] warmerLocation = new int[2];
         public static int[] colderLocation = new int[2];
-        public static int[] plantLocation = new int[2];
+        public static int[] markerLocation = new int[2];
         public static int[] canvasLocation = new int[2];
 
         public LinesView(Context context) {
             super(context);
-            initPaints();
         }
 
         public LinesView(Context context, AttributeSet attributeSet) {
             super(context, attributeSet);
-            initPaints();
-        }
-
-        private void initPaints() {
-            mWarmerPaint.setColor(mWarmerColor);
-            mColderPaint.setColor(mColderColor);
-            mPlantPaint.setColor(mPlantColor);
-
-            // Make use of display metrics to scale the stroke width appropriately.
-            DisplayMetrics metrics = getResources().getDisplayMetrics();
-            float strokeWidth = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 6.0f, metrics);
-            mWarmerPaint.setStrokeWidth(strokeWidth);
-            mColderPaint.setStrokeWidth(strokeWidth);
-            mPlantPaint.setStrokeWidth(strokeWidth);
-
-            mWarmerPaint.setAntiAlias(true);
-            mColderPaint.setAntiAlias(true);
-            mPlantPaint.setAntiAlias(true);
         }
 
         public void setWarmerView(View warmerView) {
@@ -111,8 +166,8 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
             mColderView = colderView;
         }
 
-        public void setPlantView(View plantView) {
-            mPlantView = plantView;
+        public void setMarkerView(View markerView) {
+            mMarkerView = markerView;
         }
 
         @Override
@@ -121,15 +176,14 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
 
             // Draw lines only when everything is set up.
             if ( mWarmerView == null || mColderView == null ||
-                    mPlantView == null) {
+                    mMarkerView == null) {
                 return;
             }
-
 
            // mRunnerView.getLocationInWindow(runnerLocation);
             mWarmerView.getLocationInWindow(warmerLocation);
             mColderView.getLocationInWindow(colderLocation);
-            mPlantView.getLocationInWindow(plantLocation);
+            mMarkerView.getLocationInWindow(markerLocation);
             this.getLocationInWindow(canvasLocation);
 
             // Compute the midpoints of these locations.
@@ -137,41 +191,62 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
             warmerLocation[1] = warmerLocation[1] + mWarmerView.getHeight() / 2 - canvasLocation[1];
             colderLocation[0] = colderLocation[0] + mColderView.getWidth() / 2 - canvasLocation[0];
             colderLocation[1] = colderLocation[1] + mColderView.getHeight() / 2 - canvasLocation[1];
-            plantLocation[0] = plantLocation[0] + mPlantView.getWidth() / 2 - canvasLocation[0];
-            plantLocation[1] = plantLocation[1] + mPlantView.getHeight() / 2 - canvasLocation[1];
+            markerLocation[0] = markerLocation[0] + mMarkerView.getWidth() / 2 - canvasLocation[0];
+            markerLocation[1] = markerLocation[1] + mMarkerView.getHeight() / 2 - canvasLocation[1];
 
-            /**
+            //draw the bird for start
+            Vector<ImageView> vertex= new Vector<ImageView>(6);
+            vertex.add((ImageView)view.findViewById(R.id.v0));
+            vertex.add((ImageView)view.findViewById(R.id.v1));
+            vertex.add((ImageView)view.findViewById(R.id.v2));
+            vertex.add((ImageView)view.findViewById(R.id.v3));
+            vertex.add((ImageView)view.findViewById(R.id.v4));
+            vertex.add((ImageView)view.findViewById(R.id.v5));
 
-            // Set up the paints and draw the lines.
-            canvas.drawLine(colderLocation[0], colderLocation[1], colderLocation[0], colderLocation[1]-400, mColderPaint);
-            canvas.drawLine(warmerLocation[0], warmerLocation[1],warmerLocation[0], warmerLocation[1]-400, mWarmerPaint);
-            canvas.drawLine(plantLocation[0], plantLocation[1], runnerLocation[0], runnerLocation[1], mPlantPaint);
+            int mColor = Color.rgb(255, 255, 255);
+            Paint mPaint = new Paint();
+            mPaint.setColor(mColor);
+            mPaint.setAntiAlias(true);
+            mPaint.setStrokeWidth(10);
+            mPaint.setStyle(Paint.Style.STROKE);
+            int[] loc0 = new int[2];
+            int[] loc1 = new int[2];
 
-            mWarmerPaint.setStrokeWidth(10);
-            mWarmerPaint.setStyle(Paint.Style.STROKE);
-            // draw a red bucket
-            canvas.drawLine(warmerLocation[0]-150, warmerLocation[1]-400, warmerLocation[0]+ 150, warmerLocation[1]-400, mWarmerPaint); //bottom horizontal
-            canvas.drawLine(warmerLocation[0]-150, warmerLocation[1]-400, warmerLocation[0]-150, warmerLocation[1]-600, mWarmerPaint); //left vertical
-            canvas.drawLine(warmerLocation[0]-150, warmerLocation[1]-600, warmerLocation[0]+150, warmerLocation[1]-600, mWarmerPaint); //top horizontal
-            canvas.drawLine( warmerLocation[0]+150, warmerLocation[1]-600, warmerLocation[0]+ 150, warmerLocation[1]-400, mWarmerPaint); //right horizontal
+            /*
+            for(int i =0;i<5;i++)
+            {
 
-            mColderPaint.setStrokeWidth(10);
-            mColderPaint.setStyle(Paint.Style.STROKE);
-            // draw a blue bucket
-            canvas.drawLine(colderLocation[0]-150, colderLocation[1]-400, colderLocation[0]+ 150, colderLocation[1]-400,mColderPaint); //bottom horizontal
-            canvas.drawLine(colderLocation[0]-150, colderLocation[1]-400, colderLocation[0]-150, colderLocation[1]-600, mColderPaint); //left vertical
-            canvas.drawLine(colderLocation[0]-150, colderLocation[1]-600, colderLocation[0]+150, colderLocation[1]-600, mColderPaint); //top horizontal
-            canvas.drawLine(colderLocation[0]+150, colderLocation[1]-600, colderLocation[0]+ 150, colderLocation[1]-400, mColderPaint); //right horizontal
+                vertex.get(i).getLocationInWindow(loc0);
+                vertex.get(i+1).getLocationInWindow(loc1);
+                loc0[0] -= canvasLocation[0];
+                loc0[1] -= canvasLocation[1];
+                loc1[0] -= canvasLocation[0];
+                loc1[1] -= canvasLocation[1];
+                canvas.drawLine(loc0[0], loc0[1], loc1[0], loc1[1], mPaint);
+            }
+            */
+            //draw a circle at 2,4,5 vertices
+            vertex.get(2).getLocationInWindow(loc0);
+            loc0[0] -= canvasLocation[0];
+            loc0[1] -= canvasLocation[1];
+            canvas.drawCircle(loc0[0],loc0[1],15,mPaint);
+            vertex.get(4).getLocationInWindow(loc0);
+            loc0[0] -= canvasLocation[0];
+            loc0[1] -= canvasLocation[1];
+            canvas.drawCircle(loc0[0],loc0[1],15,mPaint);
+            vertex.get(5).getLocationInWindow(loc0);
+            loc0[0] -= canvasLocation[0];
+            loc0[1] -= canvasLocation[1];
+            canvas.drawCircle(loc0[0],loc0[1],15,mPaint);
 
-            mPlantPaint.setStrokeWidth(10);
-            mPlantPaint.setStyle(Paint.Style.STROKE);
-            // draw a yellow bucket
-            runnerLocation[1] = runnerLocation[1] + 400;
-            canvas.drawLine(runnerLocation[0]-150, runnerLocation[1]-400, runnerLocation[0]+ 150, runnerLocation[1]-400,mPlantPaint); //bottom horizontal
-            canvas.drawLine(runnerLocation[0]-150, runnerLocation[1]-400, runnerLocation[0]-150, runnerLocation[1]-600, mPlantPaint); //left vertical
-            canvas.drawLine(runnerLocation[0]-150, runnerLocation[1]-600, runnerLocation[0]+150, runnerLocation[1]-600, mPlantPaint); //top horizontal
-            canvas.drawLine(runnerLocation[0]+150, runnerLocation[1]-600, runnerLocation[0]+ 150, runnerLocation[1]-400, mPlantPaint); //right horizontal
-          **/
+            //draw an ex at vertex 0
+            ImageView ex= (ImageView)view.findViewById(R.id.ex);
+            vertex.get(0).getLocationInWindow(loc0);
+            loc0[0] -= canvasLocation[0]+50;
+            loc0[1] -= canvasLocation[1]+50;
+            ex.setX(loc0[0]);
+            ex.setY(loc0[1]);
+
         }
     }
 
@@ -192,58 +267,37 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
 
         SharedPreferences settings = this.getContext().getSharedPreferences("FANFARE_SHARED", 0);
         section = settings.getInt("section", 0)-1;
-       /* ImageView marker0= (ImageView)view.findViewById(R.id.marker0);
-        ImageView marker1= (ImageView)view.findViewById(R.id.marker1);
-        ImageView marker2= (ImageView)view.findViewById(R.id.marker2);
-        ImageView marker3= (ImageView)view.findViewById(R.id.marker3);
-        switch(section) {
-            case 0:
-                marker0.setVisibility(View.VISIBLE);
-                marker1.setVisibility(View.INVISIBLE);
-                marker2.setVisibility(View.INVISIBLE);
-                marker3.setVisibility(View.INVISIBLE);
-                break;
-            case 1:
-                marker0.setVisibility(View.INVISIBLE);
-                marker1.setVisibility(View.VISIBLE);
-                marker2.setVisibility(View.INVISIBLE);
-                marker3.setVisibility(View.INVISIBLE);
-            case 2:
-                marker0.setVisibility(View.INVISIBLE);
-                marker1.setVisibility(View.INVISIBLE);
-                marker2.setVisibility(View.VISIBLE);
-                marker3.setVisibility(View.INVISIBLE);
-                break;
-            case 3:
-                marker0.setVisibility(View.INVISIBLE);
-                marker1.setVisibility(View.INVISIBLE);
-                marker2.setVisibility(View.INVISIBLE);
-                marker3.setVisibility(View.VISIBLE);
-                break;
-        }*/
+
+
         TextView warmer_text = (TextView) view.findViewById(R.id.warmer_text);
         Typeface tf = Typeface.createFromAsset(getActivity().getAssets(), "fonts/nova2.ttf");
         warmer_text.setTypeface(tf);
+        warmer_text.setTextSize(24);
         warmer_text.setText("Getting\nWarmer!");
 
         TextView colder_text = (TextView) view.findViewById(R.id.colder_text);
         colder_text .setTypeface(tf);
+        colder_text.setTextSize(24);
         colder_text .setText("Getting\nColder!");
 
-        TextView plant_text = (TextView) view.findViewById(R.id.plant_text);
+        TextView plant_text = (TextView) view.findViewById(R.id.marker_text);
         plant_text .setTypeface(tf);
+        plant_text.setTextSize(24);
         plant_text .setText("Drop the\nMarker!");
+
+        //TextView aggregate_text=(TextView) view.findViewById(R.id.aggregate_text);
+       // aggregate_text.setBackgroundColor(getResources().getColor(R.color.primary));
 
         ImageView WarmerView= (ImageView)view.findViewById(R.id.warmer);
         WarmerView.setOnClickListener(this);
         ImageView ColderView= (ImageView)view.findViewById(R.id.colder);
         ColderView.setOnClickListener(this);
-        ImageView PlantView= (ImageView)view.findViewById(R.id.plant);
+        ImageView PlantView= (ImageView)view.findViewById(R.id.marker);
         PlantView.setOnClickListener(this);
         ImageView MapView= (ImageView)view.findViewById(R.id.map);
         MapView.setOnClickListener(this);
         ImageView agg= (ImageView)view.findViewById(R.id.aggregate);
-        agg.setOnClickListener(this);
+        agg.setOnTouchListener(this);
 
        //timerHandler.postDelayed(timerRunnable,0);
 
@@ -258,14 +312,14 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
                 LinesView linesView = (LinesView) view.findViewById(R.id.linesView);
                 linesView.setWarmerView(view.findViewById(R.id.warmer));
                 linesView.setColderView(view.findViewById(R.id.colder));
-                linesView.setPlantView(view.findViewById(R.id.plant));
+                linesView.setMarkerView(view.findViewById(R.id.marker));
                 linesView.invalidate();
             }
         });
 
 
-        mEndpoint="ws://128.2.238.137:9000";
-        Log.d("url",mEndpoint);
+        //mEndpoint="ws://128.2.238.137:9000";
+        //Log.d("url",mEndpoint);
 
                 AsyncHttpClient.getDefaultInstance().websocket(mEndpoint, "my-protocol", new AsyncHttpClient.WebSocketConnectCallback() {
                     @Override
@@ -277,8 +331,6 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
                         webSocket.setStringCallback(new WebSocket.StringCallback() {
                             public void onStringAvailable(String s) {
                                 if (s != null) {
-
-                                    Log.d("signal",s);
                                     if(s.equals("start"))
                                     {
                                         if(!treasurehunt_live) {
@@ -315,8 +367,10 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
                                                     //((ViewGroup) namebar.getParent()).removeView(namebar);
                                                     ImageView translucent = (ImageView) view.findViewById(R.id.translucentlayer);
                                                     translucent.setVisibility(View.INVISIBLE);
+                                                    ImageView drawing= (ImageView)view.findViewById(R.id.drawing);
+                                                    drawing.setVisibility(View.INVISIBLE);
                                                     ObjectAnimator blink_trans = ObjectAnimator.ofFloat(tutorial, "alpha", 0.5f, 0.0f);
-                                                    blink_trans.setDuration(3000);
+                                                    blink_trans.setDuration(2000);
                                                     blink_trans.start();
                                                 }
                                             });
@@ -329,6 +383,14 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
                                         getActivity().runOnUiThread(new Runnable() {
                                             @Override
                                             public void run() {
+
+                                                ImageView MapView= (ImageView)view.findViewById(R.id.map);
+                                                ObjectAnimator flip_map = ObjectAnimator.ofFloat(MapView, "rotationY", 0, 90);
+                                                flip_map.setDuration(1000);
+                                                flip_map.start();
+
+                                                ImageView drawing= (ImageView)view.findViewById(R.id.drawing);
+                                                drawing.setVisibility(View.VISIBLE);
                                                 ImageView translucent = (ImageView) view.findViewById(R.id.translucentlayer);
                                                 translucent.setVisibility(View.VISIBLE);
                                             }
@@ -355,8 +417,8 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
                                                 section.getLocationInWindow(location);
 
                                                 Random generator = new Random();
-                                                int x = generator.nextInt(100)-80;
-                                                int y = generator.nextInt(100)-80 ;
+                                                int x = generator.nextInt(100)-70;
+                                                int y = generator.nextInt(100)-70 ;
 
                                                 new_plusten.setRotation(x*y);
                                                 new_plusten.setX(location[0]+x);
@@ -387,10 +449,6 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
                                                     anim_plustens.get(j).start();
                                                 }
 
-                                                TextView text = (TextView) view.findViewById(R.id.text_aggregate);
-                                                Typeface tf = Typeface.createFromAsset(getActivity().getAssets(), "fonts/nova2.ttf");
-                                                text.setTypeface(tf);
-                                                text.setText("  Your Section Says : WARMER");
                                             }
                                         });
                                     }
@@ -416,8 +474,8 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
                                                 section.getLocationOnScreen(location);
 
                                                 Random generator = new Random();
-                                                int x = generator.nextInt(100)-80;
-                                                int y = generator.nextInt(100)-80 ;
+                                                int x = generator.nextInt(100)-70;
+                                                int y = generator.nextInt(100)-70 ;
 
                                                 new_plusten.setRotation(x*y);
                                                 new_plusten.setX(location[0]+x);
@@ -447,10 +505,7 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
                                                     layout.addView(plustens.get(j));
                                                     anim_plustens.get(j).start();
                                                 }
-                                                TextView text = (TextView) view.findViewById(R.id.text_aggregate);
-                                                Typeface tf = Typeface.createFromAsset(getActivity().getAssets(), "fonts/nova2.ttf");
-                                                text.setTypeface(tf);
-                                                text.setText("  Your Section Says : COLDER");
+
                                             }
                                         });
 
@@ -477,8 +532,8 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
                                                 section.getLocationInWindow(location);
 
                                                 Random generator = new Random();
-                                                int x = generator.nextInt(100)-80;
-                                                int y = generator.nextInt(100)-80 ;
+                                                int x = generator.nextInt(100)-70;
+                                                int y = generator.nextInt(100)-70 ;
 
                                                 new_plusten.setRotation(x*y);
                                                 new_plusten.setX(location[0]+x);
@@ -508,10 +563,7 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
                                                     layout.addView(plustens.get(j));
                                                     anim_plustens.get(j).start();
                                                 }
-                                                TextView text = (TextView) view.findViewById(R.id.text_aggregate);
-                                                Typeface tf = Typeface.createFromAsset(getActivity().getAssets(), "fonts/nova2.ttf");
-                                                text.setTypeface(tf);
-                                                text.setText("  Your Section Says : PLANT");
+
                                             }
                                         });
 
@@ -520,8 +572,109 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
                                     {
                                         //display winner
                                     }
-                                    else{}
+                                    else if (s.equals("flag1correct"))
+                                    {
+                                        getActivity().runOnUiThread(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                if(treasurehunt_live) {
+                                                view.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+                                                    @Override
+                                                    public void onGlobalLayout() {
+                                                        // We only want to know that layout happened for the first time.
+                                                        view.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                                                        flag1correct=true;
+                                                        // Create a new view for the lines and draw them.
+                                                        Connect1 cv1 = (Connect1) view.findViewById(R.id.connectView1);
+                                                        cv1.invalidate();
+                                                    }
+                                                });
 
+                                                    ImageView v3 = ((ImageView) view.findViewById(R.id.v3));
+                                                    int[] loc0 = new int[2];
+                                                    int[] canvasLocation = new int[2];
+                                                    view.getLocationInWindow(canvasLocation);
+                                                    //draw an ex at vertex 3
+                                                    ImageView ex = (ImageView) view.findViewById(R.id.ex);
+                                                    v3.getLocationInWindow(loc0);
+                                                    loc0[0] -= canvasLocation[0] + 50;
+                                                    loc0[1] -= canvasLocation[1] + 50;
+                                                    ex.setX(loc0[0]);
+                                                    ex.setY(loc0[1]);
+                                                }
+
+                                            }
+                                        });
+                                    }
+                                    else if (s.equals("flag2correct"))
+                                    {
+                                        getActivity().runOnUiThread(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                if(treasurehunt_live) {
+                                                    flag2correct=true;
+                                                    ImageView v1 = ((ImageView) view.findViewById(R.id.v1));
+                                                    int[] loc0 = new int[2];
+                                                    int[] canvasLocation = new int[2];
+                                                    view.getLocationInWindow(canvasLocation);
+                                                    //draw an ex at vertex 3
+                                                    ImageView ex = (ImageView) view.findViewById(R.id.ex);
+                                                    v1.getLocationInWindow(loc0);
+                                                    loc0[0] -= canvasLocation[0] + 50;
+                                                    loc0[1] -= canvasLocation[1] + 50;
+                                                    ex.setX(loc0[0]);
+                                                    ex.setY(loc0[1]);
+                                                }
+
+                                            }
+                                        });
+
+                                    }
+                                    else if (s.equals("flag3correct"))
+                                    {
+                                        getActivity().runOnUiThread(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                if(treasurehunt_live) {
+                                                    flag3correct=true;
+                                                    //draw an ex at vertex 3
+                                                    ImageView ex = (ImageView) view.findViewById(R.id.ex);
+                                                    ex.setVisibility(View.INVISIBLE);
+                                                }
+
+                                            }
+                                        });
+                                    }
+                                    else {
+                                        //moving the section aggregate text display logic to here
+                                        if (treasurehunt_live) {
+                                            // tokenise wanderer side aggregate
+                                            final int w, m, c;
+                                            final List<String> num = Arrays.asList(s.split(","));
+                                            //if(num.size()!=12) {w=0;m=0;c=0;}
+                                            w = Integer.valueOf(num.get(section));
+                                            m = Integer.valueOf(num.get(section + 4));
+                                            c = Integer.valueOf(num.get(section + 8));
+                                            Log.d("waggregate", Integer.toString(w) + " " + Integer.toString(m) + " " + Integer.toString(c));
+                                            getActivity().runOnUiThread(new Runnable() {
+                                                @Override
+                                                public void run() {
+                                                    TextView text = (TextView) view.findViewById(R.id.aggregate_text);
+                                                    text.setBackgroundColor(getResources().getColor(R.color.primary));
+                                                    Typeface tf = Typeface.createFromAsset(getActivity().getAssets(), "fonts/nova2.ttf");
+                                                    text.setTypeface(tf);
+                                                    text.setTextSize(30);
+                                                    if (w > m && w > c)
+                                                        text.setText("   Your Section Says : WARMER!");
+                                                    else if (m > w && m > c)
+                                                        text.setText("   Your Section Says : DROP!");
+                                                    else if (c > w && c > m)
+                                                        text.setText("   Your Section Says : COLDER!");
+                                                    else text.setText("   Your Section Says :");
+                                                }
+                                            });
+                                        }
+                                    }
                                 }
                             }
                         });
@@ -596,7 +749,7 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
                 blink_plusone_c.setDuration(500);
                 blink_plusone_c.start();
                 break;
-            case R.id.plant:
+            case R.id.marker:
 
                 try {
                     obj.put("section", section);
@@ -610,32 +763,22 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
                 ImageView new_p = new ImageView(getContext());
                 new_p.setImageResource(id);
                 new_p.setVisibility(View.VISIBLE);
-                new_p.setX(LinesView.plantLocation[0]);
-                new_p.setY(LinesView.plantLocation[1]);
+                new_p.setX(LinesView.markerLocation[0]);
+                new_p.setY(LinesView.markerLocation[1]);
                 layout.addView(new_p);
 
-                ObjectAnimator anim_plusone_p = ObjectAnimator.ofFloat(new_p, "y", LinesView.plantLocation[1], LinesView.plantLocation[1] - 500);
+                ObjectAnimator anim_plusone_p = ObjectAnimator.ofFloat(new_p, "y", LinesView.markerLocation[1], LinesView.markerLocation[1] - 500);
                 anim_plusone_p.setDuration(500);
                 anim_plusone_p.start();
                 ObjectAnimator blink_plusone_p = ObjectAnimator.ofFloat(new_p, "alpha", 1.0f, 0.0f);
                 blink_plusone_p.setDuration(500);
                 blink_plusone_p.start();
                 break;
-            case R.id.map:
-                ImageView MapView= (ImageView)view.findViewById(R.id.map);
-                ObjectAnimator flip_map = ObjectAnimator.ofFloat(MapView, "rotationY", 0, 90);
-                flip_map.setDuration(500);
-                flip_map.start();
-                break;
-            case R.id.aggregate:
 
-                Log.d("here","touched aggreagte");
-                Log.d("here",Float.toString(v.getX()) + "  "+Float.toString(v.getY()));
-                break;
         }
     }
         if(treasurehunt_live) {
-            Log.d("sending",obj.toString());
+            //Log.d("sending",obj.toString());
             AsyncHttpClient.getDefaultInstance().websocket(mEndpoint, "my-protocol", new AsyncHttpClient.WebSocketConnectCallback() {
                 @Override
                 public void onCompleted(Exception ex, WebSocket webSocket) {
@@ -650,5 +793,66 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
         }
 
     }
+public boolean onTouch(View v, MotionEvent event)
+{
+    final JSONObject obj = new JSONObject();
+    if(treasurehunt_live) {
+        switch (v.getId()) {
+            case R.id.aggregate:
+                if(event.getAction() == MotionEvent.ACTION_DOWN) {
+                    float width = v.getWidth();
+                    float tx = event.getX();//-values[0];
+                    float ty = event.getY();//-values[1];
+                    if (tx <= width / 3) {
 
+                        try {
+                            obj.put("section", section);
+                            obj.put("selection", 0);
+                            obj.put("method", "post");
+
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    } else if (tx >= width / 3 && tx <= width * 2 / 3) {
+
+                        try {
+                            obj.put("section", section);
+                            obj.put("selection", 2);
+                            obj.put("method", "post");
+
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    } else if (tx >= 2 * width / 3 && tx <= width) {
+                        try {
+                            obj.put("section", section);
+                            obj.put("selection", 1);
+                            obj.put("method", "post");
+
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+
+                    }
+
+                    AsyncHttpClient.getDefaultInstance().websocket(mEndpoint, "my-protocol", new AsyncHttpClient.WebSocketConnectCallback() {
+                        @Override
+                        public void onCompleted(Exception ex, WebSocket webSocket) {
+                            if (ex != null) {
+                                ex.printStackTrace();
+                                return;
+                            }
+                            webSocket.send(obj.toString());
+
+                        }
+                    });
+                }
+                break;
+        }
+    }
+    if(treasurehunt_live) {
+
+    }
+    return true;
+}
 }
