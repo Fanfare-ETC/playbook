@@ -69,7 +69,7 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
             mPaint.setColor(mColor);
             mPaint.setAntiAlias(true);
             mPaint.setStrokeWidth(10);
-            mPaint.setStyle(Paint.Style.STROKE);
+            mPaint.setStyle(Paint.Style.FILL);
             int[] loc0 = new int[2];
             int[] loc1 = new int[2];
             int[] canvasloc = new int[2];
@@ -208,7 +208,7 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
             mPaint.setColor(mColor);
             mPaint.setAntiAlias(true);
             mPaint.setStrokeWidth(10);
-            mPaint.setStyle(Paint.Style.STROKE);
+            mPaint.setStyle(Paint.Style.FILL);
             int[] loc0 = new int[2];
             int[] loc1 = new int[2];
 
@@ -318,8 +318,8 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
         });
 
 
-        //mEndpoint="ws://128.2.238.137:9000";
-        //Log.d("url",mEndpoint);
+        mEndpoint="ws://128.2.238.137:9000";
+        Log.d("url",mEndpoint);
 
                 AsyncHttpClient.getDefaultInstance().websocket(mEndpoint, "my-protocol", new AsyncHttpClient.WebSocketConnectCallback() {
                     @Override
@@ -660,16 +660,24 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
                                                 @Override
                                                 public void run() {
                                                     TextView text = (TextView) view.findViewById(R.id.aggregate_text);
-                                                    text.setBackgroundColor(getResources().getColor(R.color.primary));
+
                                                     Typeface tf = Typeface.createFromAsset(getActivity().getAssets(), "fonts/nova2.ttf");
                                                     text.setTypeface(tf);
                                                     text.setTextSize(30);
-                                                    if (w > m && w > c)
+                                                    if (w > m && w > c) {
+                                                        text.setTextColor(Color.WHITE);
+                                                        text.setBackgroundColor(getResources().getColor(R.color.tertiary_dark));
                                                         text.setText("   Your Section Says : WARMER!");
-                                                    else if (m > w && m > c)
+                                                    }
+                                                    else if (m > w && m > c) {
+                                                        text.setBackgroundColor(getResources().getColor(R.color.primary));
                                                         text.setText("   Your Section Says : DROP!");
-                                                    else if (c > w && c > m)
+                                                    }
+                                                    else if (c > w && c > m) {
+                                                        text.setTextColor(Color.WHITE);
+                                                        text.setBackgroundColor(getResources().getColor(R.color.secondary));
                                                         text.setText("   Your Section Says : COLDER!");
+                                                    }
                                                     else text.setText("   Your Section Says :");
                                                 }
                                             });
@@ -803,6 +811,9 @@ public boolean onTouch(View v, MotionEvent event)
                     float width = v.getWidth();
                     float tx = event.getX();//-values[0];
                     float ty = event.getY();//-values[1];
+                    int[] values = new int[2];
+                    v.getLocationInWindow(values);
+                    Log.d("here",Integer.toString(values[0])+" "+Integer.toString(values[1]));
                     if (tx <= width / 3) {
 
                         try {
@@ -813,6 +824,7 @@ public boolean onTouch(View v, MotionEvent event)
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
+
                     } else if (tx >= width / 3 && tx <= width * 2 / 3) {
 
                         try {
@@ -846,6 +858,20 @@ public boolean onTouch(View v, MotionEvent event)
 
                         }
                     });
+                    //create a new plusone
+                    ImageView new_w = new ImageView(getContext());
+                    new_w.setImageResource(id);
+                    new_w.setVisibility(View.VISIBLE);
+                    new_w.setX(tx);
+                    new_w.setY(ty);
+                    layout.addView(new_w);
+
+                    ObjectAnimator anim_plusone_w = ObjectAnimator.ofFloat(new_w, "y", ty+values[1], ty+values[1] - 300);
+                    anim_plusone_w.setDuration(300);
+                    anim_plusone_w.start();
+                    ObjectAnimator blink_plusone_w = ObjectAnimator.ofFloat(new_w, "alpha", 1.0f, 0.0f);
+                    blink_plusone_w.setDuration(300);
+                    blink_plusone_w.start();
                 }
                 break;
         }
