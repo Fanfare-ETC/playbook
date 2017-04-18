@@ -49,7 +49,7 @@ if (!global.PlaybookBridge) {
      */
     notifyGameState: function (stateJSON) {
       console.log('Saving state: ', stateJSON);
-      localStorage.setItem('prediction', stateJSON);
+      localStorage.setItem('collection', stateJSON);
     },
 
     /**
@@ -57,11 +57,9 @@ if (!global.PlaybookBridge) {
      * This is a no-op for the mock bridge.
      */
     notifyLoaded: function () {
-      const restoredState = localStorage.getItem('prediction');
+      const restoredState = localStorage.getItem('collection');
       console.log('Loading state: ', restoredState);
-      if (restoredState != null) {
-        state.fromJSON(restoredState);
-      }
+      state.fromJSON(restoredState);
     }
   };
 } else {
@@ -228,9 +226,9 @@ const GoalTypesMetadata = {
 
 class GameState {
   constructor() {
+    this.EVENT_GOAL_CHANGED = 'goalChanged';
     this.EVENT_SCORE_CHANGED = 'scoreChanged';
-    //this.EVENT_STAGE_CHANGED = 'stageChanged';
-    //this.EVENT_PREDICTION_COUNTS_CHANGED = 'predictionCountsChanged';
+    this.EVENT_SELECTED_GOAL_CHANGED = 'selectedGoalChanged';
 
     /** @type {Card?} */
     this.activeCard = null;
@@ -239,7 +237,7 @@ class GameState {
     this.isCardActive = false;
 
     /** @type {string} */
-    this.goal = null;
+    this._goal = null;
 
     /** @type {Array.<Card>} */
     this.cards = new Array();
@@ -248,7 +246,7 @@ class GameState {
     this.incomingCards = new Array();
 
     /** @type {Array.<CardSlot>} */
-    this.cardSlots = new Array();
+    this._cardSlots = new Array();
 
     /** @type {Object.<string, Array.<Card>>} */
     this.goalSets = {};
@@ -257,13 +255,49 @@ class GameState {
     this.cardsMatchingSelectedGoal = null;
 
     /** @type {string?} */
-    this.selectedGoal = null;
+    this._selectedGoal = null;
 
     /** @type {number} */
     this._score = 0;
 
     /** @type {EventEmitter} */
     this.emitter = new EventEmitter();
+  }
+
+  /**
+   * @returns {string}
+   */
+  get goal() {
+    return this._goal;
+  }
+
+  /**
+   * @param {string} value
+   */
+  set goal(value) {
+    const oldValue = this._goal;
+    this._goal = value;
+    console.log('goal->', value);
+    this.emitter.emit(this.EVENT_GOAL_CHANGED, value, oldValue);
+    PlaybookBridge.notifyGameState(this.toJSON());
+  }
+
+  /**
+   * @returns {Array.<CardSlot>}
+   */
+  get cardSlots() {
+    return this._cardSlots;
+  }
+
+  /**
+   * @param {Array.<CardSlot>} value
+   */
+  set cardSlots(value) {
+    const oldValue = this._cardSlots;
+    this._cardSlots = value;
+    console.log('cardSlots->', value);
+    this.emitter.emit(this.EVENT_CARD_SLOTS_CHANGED, value, oldValue);
+    PlaybookBridge.notifyGameState(this.toJSON());
   }
 
   /**
@@ -285,12 +319,45 @@ class GameState {
   }
 
   /**
+   * @returns {string}
+   */
+  get selectedGoal() {
+    return this._selectedGoal;
+  }
+
+  /**
+   * @param {string} value
+   */
+  set selectedGoal(value) {
+    const oldValue = this._selectedGoal;
+    this._selectedGoal = value;
+    console.log('selectedGoal->', value);
+    this.emitter.emit(this.EVENT_SELECTED_GOAL_CHANGED, value, oldValue);
+    PlaybookBridge.notifyGameState(this.toJSON());
+  }
+
+  /**
    * Returns the game state as JSON.
    * @returns {string}
    */
   toJSON() {
+    // We need to remove the sprite because that can't be serialized.
+    const cardSlots = this.cardSlots.map(slot => {
+      return {
+        present: slot.present,
+        card: slot.present ? {
+          isActive: slot.card.isActive,
+          play: slot.card.play,
+          team: slot.card.team
+        } : null
+      }
+    });
+
     const savedState = {
-      score: this.score
+      goal: this.goal,
+      cardSlots: cardSlots,
+      score: this.score,
+      selectedGoal: this.selectedGoal
     };
 
     return JSON.stringify(savedState);
@@ -301,8 +368,31 @@ class GameState {
    * @param {string} state
    */
   fromJSON(state) {
+    console.log('fromJSON', state);
+
+    // Create empty card slots.
+    for (let i = 0; i < 5; i++) {
+      this.cardSlots[i] = new CardSlot();
+    }
+
     const restoredState = JSON.parse(state);
-    this.score = restoredState.score;
+    if (restoredState === null) {
+      createRandomGoal();
+    } else {
+      restoredState.cardSlots.forEach((slot, index) => {
+        this.cardSlots[index].present = slot.present;
+        if (slot.present) {
+          const card = createCard(slot.card.play, false, index);
+          Object.assign(card, slot.card);
+          initCardEvents(card);
+          card.moveToSlot(index);
+          this._cardSlots[index].card = card;
+        }
+      });
+      this.goal = restoredState.goal;
+      this.score = restoredState.score;
+      this.selectedGoal = restoredState.selectedGoal;
+    }
   }
 }
 
@@ -439,30 +529,6 @@ class Card {
     PIXI.actionManager.runAction(this.sprite, moveTo);
     PIXI.actionManager.runAction(this.sprite, sequence);
   }
-
-  assignToSlot(slot) {
-    state.cardSlots[slot].card = this;
-    state.cardSlots[slot].present = true;
-    this.isActive = false;
-    checkIfGoalMet();
-  }
-
-  /**
-   * Moves this ball to the field.
-   * @param {FieldOverlayArea} area
-   * @param {bool} withAnimation
-   */
-  /* moveToField(area, withAnimation = true) {
-     let center = area.parent.toGlobal(area.getCentroid());
-
-     // Determine if we need to run an animation.
-     if (withAnimation) {
-       this._moveToWithAnimation(center);
-     } else {
-       this.sprite.position.set(center.x, center.y);
-       renderer.isDirty = true;
-     }
-   }*/
 }
 
 /**
@@ -548,8 +614,11 @@ function initCardEvents(card) {
     if (card.dragTarget === stage.getChildByName('discard')) {
       discardCard(card);
     } else if (card.dragTarget === stage.getChildByName('scoreButton')) {
-      if (state.cardsMatchingSelectedGoal.indexOf(card) >= 0) {
+      if (state.cardsMatchingSelectedGoal &&
+          state.cardsMatchingSelectedGoal.indexOf(card) >= 0) {
         scoreCardSet(state.selectedGoal, state.cardsMatchingSelectedGoal);
+      } else {
+        card.moveToOrigPosition();
       }
     } else if (card.dragTarget >= 0 && card.dragTarget < 6) {
       if (card.isActive && !state.cardSlots[card.dragTarget].present) {
@@ -586,7 +655,9 @@ function scoreCardSet(goal, cardSet) {
       }
     });
 
-  // TODO: Send score to server.
+  // Send score and achievement to server.
+  reportScore(GoalTypesMetadata[goal].score);
+  reportGoal(goal);
 
   // Update score.
   state.score = state.score + GoalTypesMetadata[goal].score;
@@ -594,7 +665,7 @@ function scoreCardSet(goal, cardSet) {
   // We need to delay the execution of this so that animation completes.
   const delayTime = new PIXI.action.DelayTime(0.25);
   const callFunc = new PIXI.action.CallFunc(() => {
-    if (GoalTypesMetadata[goal].isHidden) {
+    if (!GoalTypesMetadata[goal].isHidden) {
       createRandomGoal(stage.getChildByName('goal'));
     } else {
       checkIfGoalMet();
@@ -622,6 +693,12 @@ function checkIfGoalMet() {
       }
     });
 
+  // Check the active goal.
+  const activeGoalCardSet = cardSetMeetsGoal(cardSet, state.goal);
+  if (activeGoalCardSet.length > 0) {
+    state.goalSets[state.goal] = activeGoalCardSet;
+  }
+
   updateGoals(state.goalSets);
 }
 
@@ -638,7 +715,6 @@ function updateGoals(goalSets) {
   goalsContainer.removeChildren();
 
   Object.keys(goalSets).map((goal, index) => {
-    console.log(goal);
     const description = GoalTypesMetadata[goal].description;
     const isHidden = GoalTypesMetadata[goal].isHidden;
     const barSpriteColor = isHidden ? 'Green' : 'Yellow';
@@ -803,8 +879,8 @@ function cardSetMeetsGoal(cardSet, goal) {
     case GoalTypes.BASE_STEAL_RBI: {
       if ((numOnBase > 0) && (numRBI > 0) && (numSteal > 0)) {
         const cardOnBase = cardSet.find(card => PlaybookEventsIsOnBase[card.play]);
-        const cardSteal = cardSet.find(card => (card.play === 'STEAL'));
-        const cardRBI = cardSet.find(card => (card.play === 'RUN_SCORED'));
+        const cardSteal = cardSet.find(card => card.play === PlaybookEvents.STEAL);
+        const cardRBI = cardSet.find(card => card.play === PlaybookEvents.RUN_SCORED);
         cardsMetGoal.push(cardOnBase);
         cardsMetGoal.push(cardRBI);
         cardsMetGoal.push(cardSteal);
@@ -941,7 +1017,7 @@ function cardSetMeetsGoal(cardSet, goal) {
       break;
     }
     case GoalTypes.SAME_COLOR_5: {
-      if ((numBlue == 5) || (numRed == 5)) {
+      if (numBlue === 5 || numRed === 5) {
         return cardSet;
       }
       break;
@@ -1005,6 +1081,7 @@ function assignActiveCardToSlot(slot) {
   // Copy card into slot list.
   state.cardSlots[slot].card = state.activeCard;
   state.cardSlots[slot].present = true;
+  state.cardSlots = state.cardSlots.slice();
   state.activeCard = null;
 
   const card = state.cardSlots[slot].card;
@@ -1040,6 +1117,9 @@ function discardCard(card) {
     slot.present = false;
     stage.removeChild(slot.card.sprite);
     slot.card = null;
+
+    // Notify listeners that the slots have been updated.
+    state.cardSlots = state.cardSlots.slice();
   }
 
   renderer.isDirty = true;
@@ -1097,20 +1177,24 @@ global.addEventListener('message', function (e) {
 });
 
 /**
- * Creates a random goal using the given goal sprite.
+ * Listens to changes on the goal state.
  * @param {PIXI.Sprite} goalSprite
  */
-function createRandomGoal(goalSprite) {
-  //remove existing goal
+function initGoalEvents(goalSprite) {
+  state.emitter.on(state.EVENT_GOAL_CHANGED, function (goal) {
+    setActiveGoal(GoalTypesMetadata[goal], goalSprite);
+  });
+}
 
-  //only set visible goals
+/**
+ * Creates a random goal.
+ */
+function createRandomGoal() {
+  // Only set visible goals.
   const visibleGoals = Object.keys(GoalTypesMetadata)
-    .filter(goal => !GoalTypesMetadata[goal].isHidden)
-    .map(goal => GoalTypesMetadata[goal]);
-  //console.log(visibleGoals);
+    .filter(goal => !GoalTypesMetadata[goal].isHidden);
   const randomChoice = Math.floor((Math.random() * visibleGoals.length));
   state.goal = visibleGoals[randomChoice];
-  setActiveGoal(visibleGoals[randomChoice], goalSprite);
 }
 
 /**
@@ -1156,6 +1240,8 @@ function handlePlaysCreated(events) {
  */
 function receiveCard(play) {
   const card = createCard(play);
+  if (!card) { return; }
+
   state.activeCard = card;
   state.isCardActive = true;
   card.isActive = true;
@@ -1180,9 +1266,11 @@ function receiveCard(play) {
 /**
  * Creates a card on the screen.
  * @param {string} play
+ * @param {boolean?} isActive
+ * @param {number?} slot
  * @returns {Card}
  */
-function createCard(play) {
+function createCard(play, isActive = true, slot) {
   const team = PlaybookEventsTeams[play];
   let teamString;
   switch (team) {
@@ -1200,10 +1288,17 @@ function createCard(play) {
   const cardTexture = PIXI.loader.resources[`resources/cards/Card-${teamString}${mapString}.jpg`].texture;
 
   const card = new PIXI.Sprite(cardTexture);
-  card.position.set(window.innerWidth / 2, window.innerHeight / 2);
-  card.scale.set(0, 0);
   card.anchor.set(0.5, 0.5);
-  card.rotation = PIXI.DEG_TO_RAD * (Math.floor(Math.random() * 10) + -5);
+  if (isActive) {
+    card.position.set(window.innerWidth / 2, window.innerHeight / 2);
+    card.scale.set(0, 0);
+    card.rotation = PIXI.DEG_TO_RAD * (Math.floor(Math.random() * 10) + -5);
+  } else {
+    const position = getCardPositionForSlot(cardTexture, slot);
+    const scale = getCardScaleInSlot(cardTexture);
+    card.position.set(position.x, position.y);
+    card.scale.set(scale, scale);
+  }
 
   const cardObj = new Card(team, play, card);
   cardObj.sprite = card;
@@ -1338,6 +1433,20 @@ function reportScore(score) {
     cat: 'collect',
     collectScore: score,
     id: PlaybookBridge.getPlayerID()
+  }));
+}
+
+/**
+ * Reports a trophy achievement to the server.
+ * @param {string} goal
+ */
+function reportGoal(goal) {
+  const request = new XMLHttpRequest();
+  request.open('POST', `${PlaybookBridge.getSectionAPIUrl()}/updateTrophy`);
+  request.setRequestHeader('Content-Type', 'application/json');
+  request.send(JSON.stringify({
+    trophyId: GoalTypesMetadata[goal].serverId,
+    userId: PlaybookBridge.getPlayerID()
   }));
 }
 
@@ -1486,16 +1595,16 @@ function setup() {
 
   // Add goal
   const goalTexture = PIXI.loader.resources['resources/goal/goal1.png'].texture;
-  const goal = new PIXI.Sprite(goalTexture);
-  const goalScale = (window.innerWidth / 2 - goalTextMetrics.width - 144 * contentScale) / goal.width;
-  goal.name = 'goal';
-  goal.scale.set(goalScale, goalScale);
-  goal.position.set(
+  const goalSprite = new PIXI.Sprite(goalTexture);
+  const goalScale = (window.innerWidth / 2 - goalTextMetrics.width - 144 * contentScale) / goalSprite.width;
+  goalSprite.name = 'goal';
+  goalSprite.scale.set(goalScale, goalScale);
+  goalSprite.position.set(
     goalBar.position.x + window.innerWidth / 2 - 64 * contentScale,
     goalBar.position.y + goalBar.height - 16 * contentScale
   );
-  goal.anchor.set(1.0, 1.0);
-  stage.addChild(goal);
+  goalSprite.anchor.set(1.0, 1.0);
+  stage.addChild(goalSprite);
 
   // Add banner on top
   const whiteBannerTexture = PIXI.loader.resources['resources/Prediction-Banner.png'].texture;
@@ -1540,12 +1649,7 @@ function setup() {
   stage.addChild(scoreButton);
 
   // Generate a random goal.
-  createRandomGoal(goal);
-
-  // Create the card slots.
-  for (let i = 0; i < 5; i++) {
-    state.cardSlots.push(new CardSlot());
-  }
+  initGoalEvents(goalSprite);
 
   /**
    * Begin the animation loop.
