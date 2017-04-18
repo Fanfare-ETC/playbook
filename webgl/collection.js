@@ -57,7 +57,22 @@ if (!global.PlaybookBridge) {
      * This is a no-op for the mock bridge.
      */
     notifyLoaded: function () {
-      const restoredState = localStorage.getItem('collection');
+      let restoredState = localStorage.getItem('collection');
+      if (restoredState === null) {
+        restoredState = JSON.stringify({
+          cardSlots: [
+            { present: false, card: null },
+            { present: false, card: null },
+            { present: false, card: null },
+            { present: false, card: null },
+            { present: false, card: null }
+          ],
+          goal: null,
+          score: 0,
+          selectedGoal: null
+        });
+      }
+
       console.log('Loading state: ', restoredState);
       state.fromJSON(restoredState);
     }
@@ -1161,28 +1176,17 @@ function getCardSlotPositionFor(cardTexture, i) {
   ));
 };
 
-// Receive messages from the hosting application.
-global.addEventListener('message', function (e) {
-  const message = e.data;
-  switch (message.action) {
-    case 'RESTORE_GAME_STATE':
-      console.log('Restoring state from hosting application: ');
-      state.fromJSON(message.payload);
-      break;
-    case 'HANDLE_MESSAGE':
-      console.log('Handling message from hosting application: ');
-      handleIncomingMessage(message.payload);
-      break;
-  }
-});
-
 /**
  * Listens to changes on the goal state.
  * @param {PIXI.Sprite} goalSprite
  */
 function initGoalEvents(goalSprite) {
   state.emitter.on(state.EVENT_GOAL_CHANGED, function (goal) {
-    setActiveGoal(GoalTypesMetadata[goal], goalSprite);
+    if (goal === null) {
+      createRandomGoal();
+    } else {
+      setActiveGoal(GoalTypesMetadata[goal], goalSprite);
+    }
   });
 }
 
