@@ -318,8 +318,8 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
         });
 
 
-        mEndpoint="ws://128.2.238.137:9000";
-        Log.d("url",mEndpoint);
+        //mEndpoint="ws://128.2.238.137:9000";
+        //Log.d("url",mEndpoint);
 
                 AsyncHttpClient.getDefaultInstance().websocket(mEndpoint, "my-protocol", new AsyncHttpClient.WebSocketConnectCallback() {
                     @Override
@@ -644,6 +644,10 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
 
                                             }
                                         });
+                                    }
+                                    else if (s.equals("flag1wrong")||s.equals("flag2wrong")||s.equals("flag3wrong"))
+                                    {
+                                        Log.d("wrong","wrong");
                                     }
                                     else {
                                         //moving the section aggregate text display logic to here
