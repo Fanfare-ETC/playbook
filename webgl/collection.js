@@ -244,6 +244,7 @@ class GameState {
     this.EVENT_GOAL_CHANGED = 'goalChanged';
     this.EVENT_SCORE_CHANGED = 'scoreChanged';
     this.EVENT_SELECTED_GOAL_CHANGED = 'selectedGoalChanged';
+    this.EVENT_CARDS_MATCHING_SELECTED_GOAL_CHANGED = 'cardsMatchingSelectedGoalChanged';
 
     /** @type {Card?} */
     this.activeCard = null;
@@ -267,7 +268,7 @@ class GameState {
     this.goalSets = {};
 
     /** @type {Array.<Card>?} */
-    this.cardsMatchingSelectedGoal = null;
+    this._cardsMatchingSelectedGoal = null;
 
     /** @type {string?} */
     this._selectedGoal = null;
@@ -352,6 +353,24 @@ class GameState {
   }
 
   /**
+   * @returns {Array.<Card>}
+   */
+  get cardsMatchingSelectedGoal() {
+    return this._cardsMatchingSelectedGoal;
+  }
+
+  /**
+   * @param {Array.<Card>} value
+   */
+  set cardsMatchingSelectedGoal(value) {
+    const oldValue = this._cardsMatchingSelectedGoal;
+    this._cardsMatchingSelectedGoal = value;
+    console.log('cardsMatchingSelectedGoal->', value);
+    this.emitter.emit(this.EVENT_CARDS_MATCHING_SELECTED_GOAL_CHANGED, value, oldValue);
+    PlaybookBridge.notifyGameState(this.toJSON());
+  }
+
+  /**
    * Returns the game state as JSON.
    * @returns {string}
    */
@@ -372,7 +391,13 @@ class GameState {
       goal: this.goal,
       cardSlots: cardSlots,
       score: this.score,
-      selectedGoal: this.selectedGoal
+      selectedGoal: this.selectedGoal,
+      cardsMatchingSelectedGoal: this.cardsMatchingSelectedGoal ?
+        this.cardsMatchingSelectedGoal.map(card => {
+          return this.cardSlots.findIndex(slot => {
+            return slot.card === card;
+          });
+        }) : null
     };
 
     return JSON.stringify(savedState);
@@ -406,6 +431,12 @@ class GameState {
       });
       this.goal = restoredState.goal;
       this.score = restoredState.score;
+
+      // This comes before the latter.
+      this.cardsMatchingSelectedGoal = restoredState.cardsMatchingSelectedGoal ?
+        restoredState.cardsMatchingSelectedGoal.map(cardId => {
+          return this.cardSlots[cardId].card;
+        }) : null;
       this.selectedGoal = restoredState.selectedGoal;
     }
   }
@@ -636,7 +667,7 @@ function initCardEvents(card) {
         card.moveToOrigPosition();
       }
     } else if (card.dragTarget >= 0 && card.dragTarget < 6) {
-      if (card.isActive && !state.cardSlots[card.dragTarget].present) {
+      if (card.isActive && card.dragTarget !== null && !state.cardSlots[card.dragTarget].present) {
         assignActiveCardToSlot(card.dragTarget);
       } else {
         card.moveToOrigPosition();
@@ -676,6 +707,8 @@ function scoreCardSet(goal, cardSet) {
 
   // Update score.
   state.score = state.score + GoalTypesMetadata[goal].score;
+  state.selectedGoal = null;
+  state.cardsMatchingSelectedGoal = null;
 
   // We need to delay the execution of this so that animation completes.
   const delayTime = new PIXI.action.DelayTime(0.25);
@@ -794,7 +827,6 @@ function initGoalBarEvents(goalBar, goal, matchingCards) {
     highlight.visible = false;
     state.cardsMatchingSelectedGoal = matchingCards;
     state.selectedGoal = goal;
-    highlightCardsMatchingGoal();
     renderer.isDirty = true;
   }
 
@@ -1186,6 +1218,17 @@ function initGoalEvents(goalSprite) {
       createRandomGoal();
     } else {
       setActiveGoal(GoalTypesMetadata[goal], goalSprite);
+    }
+  });
+}
+
+/**
+ * Listen to changes on the selected state.
+ */
+function initSelectedGoalEvent() {
+  state.emitter.on(state.EVENT_SELECTED_GOAL_CHANGED, function (goal) {
+    if (state.selectedGoal && state.cardsMatchingSelectedGoal) {
+      highlightCardsMatchingGoal();
     }
   });
 }
@@ -1654,6 +1697,7 @@ function setup() {
 
   // Generate a random goal.
   initGoalEvents(goalSprite);
+  initSelectedGoalEvent();
 
   /**
    * Begin the animation loop.
