@@ -1566,15 +1566,6 @@ function setup() {
   // Use the tray scale as a scaling baseline.
   contentScale = tray.scale.x;
 
-  // Add top shadow
-  const topShadowTexture = PIXI.loader.resources['resources/Collection-Shadow-Overturn.png'].texture;
-  const topShadowHeight = topShadowTexture.height * contentScale;
-  const topShadow = new PIXI.extras.TilingSprite(topShadowTexture, window.innerWidth, topShadowHeight);
-  topShadow.name = 'shadowTop';
-  topShadow.position.set(0, 48);
-  topShadow.tileScale.set(1.0, contentScale);
-  stage.addChild(topShadow);
-
   // Add score bar
   const scoreBarTexture = PIXI.loader.resources['resources/Collection-Bar-Gold-9x16.png'].texture;
   const scoreBarHeight = scoreBarTexture.height * contentScale;
@@ -1677,23 +1668,31 @@ function setup() {
   stage.addChild(goalSprite);
 
   // Add banner on top
-  const whiteBannerTexture = PIXI.loader.resources['resources/Prediction-Banner.png'].texture;
-  const whiteBanner = new PIXI.Sprite(whiteBannerTexture);
-  const whiteBannerScale = window.innerWidth / whiteBannerTexture.width;
-  const whiteBannerHeight = whiteBannerScale * whiteBannerTexture.height;
+  const whiteBanner = new PIXI.Graphics();
+  const whiteBannerHeight = 32.0 * contentScale;
+  whiteBanner.beginFill(0xffffff);
+  whiteBanner.drawRect(0, 0, window.innerWidth, whiteBannerHeight);
   whiteBanner.name = 'whiteBanner';
-  whiteBanner.scale.set(whiteBannerScale, whiteBannerScale);
   stage.addChild(whiteBanner);
 
-  //Add Drag to Discard Banner
-  const discardTexture = PIXI.loader.resources['resources/Collection-Banner-9x16.png'].texture;
-  const discard = new PIXI.extras.TilingSprite(discardTexture, window.innerWidth, 36);
-  //const discardScale = window.innerWidth;
+  // Add Drag to Discard Banner
+  const discard = new PIXI.Graphics();
   const discardHeight = 128.0 * contentScale;
+  discard.beginFill(0x002b65);
+  discard.drawRect(0, 0, window.innerWidth, discardHeight);
   discard.name = 'discard';
-  discard.position.set(0, whiteBannerHeight / 2);
-  discard.tileScale.set(1, 0.5);
+  discard.position.set(0.0, whiteBannerHeight);
   stage.addChild(discard);
+
+  // Add top shadow
+  const topShadowTexture = PIXI.loader.resources['resources/Collection-Shadow-Overturn.png'].texture;
+  const topShadowHeight = topShadowTexture.height * contentScale;
+  const topShadow = new PIXI.extras.TilingSprite(topShadowTexture, window.innerWidth, topShadowHeight);
+  topShadow.name = 'shadowTop';
+  topShadow.anchor.set(0.0, 0.0);
+  topShadow.position.set(0, whiteBannerHeight + discardHeight);
+  topShadow.tileScale.set(1.0, contentScale);
+  stage.addChild(topShadow);
 
   //Add discard label
   const discardText = new PIXI.Text();
