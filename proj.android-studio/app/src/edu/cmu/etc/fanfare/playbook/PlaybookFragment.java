@@ -1,7 +1,7 @@
 package edu.cmu.etc.fanfare.playbook;
 
 import android.app.Activity;
-import android.support.v4.app.Fragment;
+import android.app.Fragment;
 
 import org.json.JSONObject;
 

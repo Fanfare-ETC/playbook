@@ -1,6 +1,8 @@
 package edu.cmu.etc.fanfare.playbook;
 
 import android.app.Activity;
+import android.app.Dialog;
+import android.app.DialogFragment;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -8,9 +10,15 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
+import android.text.Spannable;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.style.ForegroundColorSpan;
 import android.util.Log;
 import android.util.SparseArray;
 import android.view.LayoutInflater;
@@ -20,6 +28,7 @@ import android.webkit.ConsoleMessage;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebChromeClient;
 import android.webkit.WebView;
+import android.widget.TextView;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -34,6 +43,10 @@ public class PredictionFragment extends PlaybookFragment {
     private static final String TAG = PredictionFragment.class.getSimpleName();
     private static final String WEB_VIEW_PACKAGE_NAME = "com.google.android.webview";
     private static final String WEB_VIEW_PACKAGE_NAME_ALT = "com.android.webview";
+
+    private static final String PREF_NAME = "prediction";
+    private static final String PREF_KEY_GAME_STATE = "gameState";
+    private static final String PREF_KEY_TUTORIAL_SHOWN = "tutorialShown";
 
     // WebView 42 is the minimum that supports ES6 classes.
     private static final int MIN_WEB_VIEW_VERSION = 42;
@@ -51,12 +64,12 @@ public class PredictionFragment extends PlaybookFragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        SharedPreferences prefs = getActivity().getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
 
         // We use SharedPreference because the savedInstanceState doesn't work
         // if the fragment doesn't have an ID.
         try {
-            SharedPreferences prefs = getContext().getSharedPreferences("prediction", Context.MODE_PRIVATE);
-            String gameState = prefs.getString("gameState", null);
+            String gameState = prefs.getString(PREF_KEY_GAME_STATE, null);
             if (gameState != null) {
                 Log.d(TAG, "Restoring game state from bundle: " + gameState);
                 mGameState = new JSONObject(gameState);
@@ -66,6 +79,13 @@ public class PredictionFragment extends PlaybookFragment {
             }
         } catch (JSONException e) {
             e.printStackTrace();
+        }
+
+        // Show tutorial for the first time.
+        boolean isTutorialShown = prefs.getBoolean(PREF_KEY_TUTORIAL_SHOWN, false);
+        if (!isTutorialShown) {
+            DialogFragment dialog = (DialogFragment) DialogFragment.instantiate(getActivity(), TutorialDialogFragment.class.getName());
+            dialog.show(getFragmentManager(), null);
         }
 
         // Populate the events.
@@ -102,7 +122,7 @@ public class PredictionFragment extends PlaybookFragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        mWebView = new WebView(getContext());
+        mWebView = new WebView(getActivity());
         checkWebViewVersion();
 
         if (mWebViewIsCompatible) {
@@ -122,8 +142,8 @@ public class PredictionFragment extends PlaybookFragment {
         super.onDetach();
 
         // Save game state to preferences.
-        SharedPreferences prefs = getContext().getSharedPreferences("prediction", Context.MODE_PRIVATE);
-        prefs.edit().putString("gameState", mGameState.toString()).apply();
+        SharedPreferences prefs = getActivity().getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+        prefs.edit().putString(PREF_KEY_GAME_STATE, mGameState.toString()).apply();
         Log.d(TAG, "Saved gameState to preferences");
 
         mIsRunning = false;
@@ -165,7 +185,7 @@ public class PredictionFragment extends PlaybookFragment {
     }
 
     private Integer getWebViewMajorVersion() {
-        PackageManager pm = getContext().getPackageManager();
+        PackageManager pm = getActivity().getPackageManager();
         PackageInfo info;
         try {
             info = pm.getPackageInfo(WEB_VIEW_PACKAGE_NAME, 0);
@@ -195,7 +215,7 @@ public class PredictionFragment extends PlaybookFragment {
     }
 
     private void showWebViewNotInstalledDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         builder.setMessage(R.string.prediction_web_view_not_installed)
             .setTitle(R.string.prediction_incompatible_device)
             .setPositiveButton(R.string.close, new DialogInterface.OnClickListener() {
@@ -215,7 +235,7 @@ public class PredictionFragment extends PlaybookFragment {
     }
 
     private void showWebViewNeedsUpdateDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         builder.setMessage(R.string.prediction_web_view_needs_update)
             .setTitle(R.string.prediction_update_web_view)
             .setPositiveButton(R.string.update, new DialogInterface.OnClickListener() {
@@ -312,6 +332,53 @@ public class PredictionFragment extends PlaybookFragment {
                 }
             }
         });
+    }
+
+    public static class TutorialDialogFragment extends DialogFragment {
+        private static final String TAG = TutorialDialogFragment.class.getSimpleName();
+
+        @Override
+        public Dialog onCreateDialog(Bundle savedInstanceState) {
+            LayoutInflater inflater = getActivity().getLayoutInflater();
+            View view = inflater.inflate(R.layout.prediction_fragment_tutorial_dialog, null);
+
+            // Set custom fonts for our dialog.
+            Typeface typeface = Typeface.createFromAsset(getActivity().getAssets(), "nova3.ttf");
+            TextView para1 = (TextView) view.findViewById(R.id.prediction_tutorial_para_1);
+            TextView para2 = (TextView) view.findViewById(R.id.prediction_tutorial_para_2);
+            TextView para3 = (TextView) view.findViewById(R.id.prediction_tutorial_para_3);
+            TextView para4 = (TextView) view.findViewById(R.id.prediction_tutorial_para_4);
+            para1.setLineSpacing(0, 1.25f);
+            para1.setTypeface(typeface);
+            para2.setLineSpacing(0, 1.25f);
+            para2.setTypeface(typeface);
+            para3.setLineSpacing(0, 1.25f);
+            para3.setTypeface(typeface);
+            para4.setLineSpacing(0, 1.25f);
+            para4.setTypeface(typeface);
+
+            // Append an arrow after the paragraph.
+            SpannableString lastPara = new SpannableString(para4.getText() + " \u22b2");
+            lastPara.setSpan(new ForegroundColorSpan(
+                    ContextCompat.getColor(getActivity(), R.color.primary)),
+                    para4.getText().length() + 1,
+                    para4.getText().length() + 2,
+                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+            );
+            para4.setText(lastPara, TextView.BufferType.SPANNABLE);
+
+            // Use the Builder class for convenient dialog construction
+            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+            builder.setView(view);
+            return builder.create();
+        }
+
+        @Override
+        public void onDismiss(DialogInterface dialog) {
+            super.onDismiss(dialog);
+            SharedPreferences prefs = getActivity().getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+            prefs.edit().putBoolean(PREF_KEY_TUTORIAL_SHOWN, true).apply();
+        }
     }
 
     private class PlaybookWebChromeClient extends WebChromeClient {
