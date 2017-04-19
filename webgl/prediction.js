@@ -415,7 +415,6 @@ class FieldOverlay extends PIXI.Sprite {
         const area = this.getAreaByName(name);
         const count = value[name];
         if (count > 1) {
-          const texture = PIXI.loader.resources[`resources/Item-Ball-x${count}.png`].texture;
           area.ballCountSprite.count = count;
           area.ballCountSprite.visible = true;
         } else {
@@ -553,7 +552,7 @@ class BallCountSprite extends PIXI.Sprite {
   /** @param {number} value */
   set count(value) {
     if (value > 1) {
-      const texture = PIXI.loader.resources[`resources/Item-Ball-x${value}.png`].texture;
+      const texture = PIXI.loader.resources['resources/prediction.json'].textures[`Item-Ball-x${value}.png`];
       this.texture = texture;
     } else {
       this.texture = null;
@@ -1150,7 +1149,7 @@ function setup() {
   stage.addChild(grass);
 
   // Add banner on top to screen.
-  const bannerTexture = PIXI.loader.resources['resources/Prediction-Banner.png'].texture
+  const bannerTexture = PIXI.loader.resources['resources/prediction.json'].textures['Prediction-Banner.png'];
   const banner = new PIXI.Sprite(bannerTexture);
   const bannerScale = window.innerWidth / bannerTexture.width;
   const bannerHeight = bannerScale * bannerTexture.height;
@@ -1158,7 +1157,7 @@ function setup() {
   stage.addChild(banner);
 
   // Add ball slot to screen.
-  const ballSlotTexture = PIXI.loader.resources['resources/Prediction-Holder-BallsSlot.png'].texture;
+  const ballSlotTexture = PIXI.loader.resources['resources/prediction.json'].textures['Prediction-Holder-BallsSlot.png'];
   const ballSlot = new PIXI.Sprite(ballSlotTexture);
   const ballSlotScale = window.innerWidth / ballSlotTexture.width;
   const ballSlotHeight = ballSlotScale * ballSlotTexture.height;
@@ -1182,43 +1181,8 @@ function setup() {
   fieldOverlay.anchor.set(0.5, 0.5);
   stage.addChild(fieldOverlay);
 
-  // Add balls to scene.
-  for (let i = 0; i < 5; i++) {
-    const ballTexture = PIXI.loader.resources['resources/Item-Ball.png'].texture;
-    const ballSprite = new PIXI.Sprite(ballTexture);
-    const ballScale = ballSlotHeight / ballTexture.height / 1.5;
-    const ballPosition = getBallPositionForSlot(ballTexture, ballSlot, i);
-    ballSprite.anchor.set(0.5, 0.5);
-    ballSprite.scale.set(ballScale, ballScale);
-    ballSprite.position.set(ballPosition.x, ballPosition.y);
-
-    const ball = new Ball();
-    ball.sprite = ballSprite;
-    state.balls.push(ball);
-
-    initBallEvents(ball, ballSlot, fieldOverlay);
-    stage.addChild(ballSprite);
-  }
-
-  // Add ball counts to overlay areas.
-  const ballCountSprites = createBallCountSprites(fieldOverlay, state.balls[0].sprite);
-  for (const sprite of ballCountSprites) {
-    stage.addChild(sprite);
-  }
-
-  // Add continue banner.
-  const continueBannerTexture = PIXI.loader.resources['resources/Prediction-Button-Continue.png'].texture;
-  const continueBanner = new PIXI.Sprite(continueBannerTexture);
-  const continueBannerScale = window.innerWidth / continueBannerTexture.width;
-  const continueBannerHeight = continueBannerTexture.height * continueBannerScale;
-  continueBanner.position.set(0, window.innerHeight - continueBannerHeight);
-  continueBanner.scale.set(continueBannerScale, continueBannerScale);
-  continueBanner.visible = false;
-  initContinueBannerEvents(continueBanner);
-  stage.addChild(continueBanner);
-
   // Add score tab.
-  const scoreTabTexture = PIXI.loader.resources['resources/Prediction-Scoretab.png'].texture;
+  const scoreTabTexture = PIXI.loader.resources['resources/prediction.json'].textures['Prediction-Scoretab.png'];
   const scoreTab = new PIXI.Sprite(scoreTabTexture);
   const scoreTabScale = ballSlot.height / scoreTabTexture.height;
   scoreTab.name = 'scoreTab';
@@ -1251,7 +1215,7 @@ function setup() {
   scoreTab.addChild(score);
 
   // Add payouts tab.
-  const payoutsTabTexture = PIXI.loader.resources['resources/Prediction-Oddstab.png'].texture;
+  const payoutsTabTexture = PIXI.loader.resources['resources/prediction.json'].textures['Prediction-Oddstab.png'];
   const payoutsTab = new PIXI.Sprite(payoutsTabTexture);
   const payoutsTabScale = ballSlot.height / payoutsTabTexture.height;
   payoutsTab.scale.set(payoutsTabScale, payoutsTabScale);
@@ -1283,6 +1247,41 @@ function setup() {
   );
   initPayoutsTabEvents(payoutsTab, payoutsTabLabel, fieldOverlay, grass);
   payoutsTab.addChild(payoutsTabArrow);
+
+  // Add balls to scene.
+  for (let i = 0; i < 5; i++) {
+    const ballTexture = PIXI.loader.resources['resources/prediction.json'].textures['Item-Ball.png'];
+    const ballSprite = new PIXI.Sprite(ballTexture);
+    const ballScale = ballSlotHeight / ballTexture.height / 1.5;
+    const ballPosition = getBallPositionForSlot(ballTexture, ballSlot, i);
+    ballSprite.anchor.set(0.5, 0.5);
+    ballSprite.scale.set(ballScale, ballScale);
+    ballSprite.position.set(ballPosition.x, ballPosition.y);
+
+    const ball = new Ball();
+    ball.sprite = ballSprite;
+    state.balls.push(ball);
+
+    initBallEvents(ball, ballSlot, fieldOverlay);
+    stage.addChild(ballSprite);
+  }
+
+  // Add ball counts to overlay areas.
+  const ballCountSprites = createBallCountSprites(fieldOverlay, state.balls[0].sprite);
+  for (const sprite of ballCountSprites) {
+    stage.addChild(sprite);
+  }
+
+  // Add continue banner.
+  const continueBannerTexture = PIXI.loader.resources['resources/prediction.json'].textures['Prediction-Button-Continue.png'];
+  const continueBanner = new PIXI.Sprite(continueBannerTexture);
+  const continueBannerScale = window.innerWidth / continueBannerTexture.width;
+  const continueBannerHeight = continueBannerTexture.height * continueBannerScale;
+  continueBanner.position.set(0, window.innerHeight - continueBannerHeight);
+  continueBanner.scale.set(continueBannerScale, continueBannerScale);
+  continueBanner.visible = false;
+  initContinueBannerEvents(continueBanner);
+  stage.addChild(continueBanner);
 
   /**
    * Begin the animation loop.
@@ -1319,19 +1318,10 @@ configureWebSocket(connection);
 
 // Load the sprites we need.
 PIXI.loader
+  .add('resources/prediction.json')
   .add('resources/Prediction-BG.jpg')
   .add('resources/Prediction-BG-Payout.jpg')
-  .add('resources/Prediction-Banner.png')
-  .add('resources/Prediction-Holder-BallsSlot.png')
-  .add('resources/Prediction-Button-Continue.png')
   .add('resources/Prediction-Overlay.png')
   .add('resources/Prediction-Overlay-Payout.png')
-  .add('resources/Prediction-Oddstab.png')
-  .add('resources/Prediction-Scoretab.png')
-  .add('resources/Item-Ball.png')
-  .add('resources/Item-Ball-x2.png')
-  .add('resources/Item-Ball-x3.png')
-  .add('resources/Item-Ball-x4.png')
-  .add('resources/Item-Ball-x5.png')
   .add('resources/Item-Ball-Rotated.png')
   .load(setup);

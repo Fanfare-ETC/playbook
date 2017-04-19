@@ -1,0 +1,100 @@
+{"frames": {
+
+"Item-Ball-x1.png":
+{
+	"frame": {"x":808,"y":0,"w":512,"h":512},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":512,"h":512},
+	"sourceSize": {"w":512,"h":512}
+},
+"Item-Ball-x2.png":
+{
+	"frame": {"x":512,"y":512,"w":512,"h":512},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":512,"h":512},
+	"sourceSize": {"w":512,"h":512}
+},
+"Item-Ball-x3.png":
+{
+	"frame": {"x":1536,"y":512,"w":512,"h":512},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":512,"h":512},
+	"sourceSize": {"w":512,"h":512}
+},
+"Item-Ball-x4.png":
+{
+	"frame": {"x":1024,"y":512,"w":512,"h":512},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":512,"h":512},
+	"sourceSize": {"w":512,"h":512}
+},
+"Item-Ball-x5.png":
+{
+	"frame": {"x":1320,"y":0,"w":512,"h":512},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":512,"h":512},
+	"sourceSize": {"w":512,"h":512}
+},
+"Item-Ball.png":
+{
+	"frame": {"x":0,"y":512,"w":512,"h":512},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":512,"h":512},
+	"sourceSize": {"w":512,"h":512}
+},
+"Prediction-Banner.png":
+{
+	"frame": {"x":0,"y":1024,"w":1440,"h":80},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":1440,"h":80},
+	"sourceSize": {"w":1440,"h":80}
+},
+"Prediction-Button-Continue.png":
+{
+	"frame": {"x":0,"y":1104,"w":1440,"h":160},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":1440,"h":160},
+	"sourceSize": {"w":1440,"h":160}
+},
+"Prediction-Holder-BallsSlot.png":
+{
+	"frame": {"x":0,"y":1264,"w":1440,"h":240},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":1440,"h":240},
+	"sourceSize": {"w":1440,"h":240}
+},
+"Prediction-Oddstab.png":
+{
+	"frame": {"x":404,"y":0,"w":404,"h":219},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":404,"h":219},
+	"sourceSize": {"w":404,"h":219}
+},
+"Prediction-Scoretab.png":
+{
+	"frame": {"x":0,"y":0,"w":404,"h":219},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":404,"h":219},
+	"sourceSize": {"w":404,"h":219}
+}},
+"meta": {
+	"app": "http://www.codeandweb.com/texturepacker",
+	"version": "1.0",
+	"image": "prediction.png",
+	"format": "RGBA8888",
+	"size": {"w":2048,"h":1504},
+	"scale": "1",
+	"smartupdate": "$TexturePacker:SmartUpdate:80b5a0753f8aa3b12bcf6e9aebbff195:68f98f98af5ee7d653afee20f9d35303:c2dafc9a2723fca7ffed9e1bdf9e070c$"
+}
+}
