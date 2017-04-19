@@ -395,6 +395,12 @@ class FieldOverlay extends PIXI.Sprite {
     const texture = PIXI.loader.resources['resources/Prediction-Overlay.png'].texture;
     super(texture);
 
+    /** @type {PIXI.Texture} */
+    this._defaultTexture = texture;
+
+    /** @type {PIXI.Texture} */
+    this._payoutsTexture = PIXI.loader.resources['resources/Prediction-Overlay-Payout.png'].texture;
+
     /** @type {Array.<Ball>} */
     this._balls = balls;
 
@@ -456,6 +462,28 @@ class FieldOverlay extends PIXI.Sprite {
 
   clearHighlightAreas() {
     this.children.forEach(child => child.clearHighlight());
+  }
+
+  /**
+   * Are we showing the payouts or the labels?
+   * @returns {boolean}
+   */
+  isShowingPayouts() {
+    return this.texture === this._payoutsTexture;
+  }
+
+  /**
+   * Toggles showing the payouts for the betting table.
+   */
+  showPayouts() {
+    this.texture = this._payoutsTexture;
+  }
+
+  /**
+   * Hides the payouts.
+   */
+  hidePayouts() {
+    this.texture = this._defaultTexture;
   }
 
   /**
@@ -821,6 +849,29 @@ function initScoreEvents(scoreText) {
 }
 
 /**
+ * Initializes events for the payouts tab.
+ * @param {PIXI.Sprite} payoutsTab
+ * @param {PIXI.Text} label
+ * @param {FieldOverlay} fieldOverlay
+ * @param {PIXI.Sprite} grassBackground
+ */
+function initPayoutsTabEvents(payoutsTab, label, fieldOverlay, grassBackground) {
+  payoutsTab.interactive = true;
+  payoutsTab.on('tap', () => {
+    if (fieldOverlay.isShowingPayouts()) {
+      label.text = 'Payouts'.toUpperCase();
+      grassBackground.texture = PIXI.loader.resources['resources/Prediction-BG.jpg'].texture;
+      fieldOverlay.hidePayouts();
+    } else {
+      label.text = 'Labels'.toUpperCase();
+      grassBackground.texture = PIXI.loader.resources['resources/Prediction-BG-Payout.jpg'].texture;
+      fieldOverlay.showPayouts();
+    }
+    renderer.isDirty = true;
+  });
+}
+
+/**
  * Initializes events for the prediction correct overlay.
  * @param {PredictionCorrectOverlay} overlay
  * @param {PIXI.Point} scoreTextPosition
@@ -953,21 +1004,21 @@ function createFieldOverlay(balls) {
       56.0, 692.0,
       12.0, 836.0
     ]),
-    [PlaybookEvents.NO_RUNS]: new PIXI.Polygon([
+    [PlaybookEvents.RUN_SCORED]: new PIXI.Polygon([
       726.0, 442.0,
       726.0, 696.0,
       916.0, 778.0,
       996.0, 966.0,
       1252.0, 966.0
     ]),
-    [PlaybookEvents.RUN_SCORED]: new PIXI.Polygon([
+    [PlaybookEvents.FLY_OUT]: new PIXI.Polygon([
       714.0, 442.0,
       188.0, 966.0,
       444.0, 966.0,
       524.0, 778.0,
       714.0, 696.0
     ]),
-    [PlaybookEvents.FLY_OUT]: new PIXI.Polygon([
+    [PlaybookEvents.NO_RUNS]: new PIXI.Polygon([
       714.0, 1526.0,
       714.0, 1250.0,
       520.0, 1168.0,
@@ -1092,7 +1143,7 @@ function undoPrediction(state, area, ball) {
 
 function setup() {
   // Add grass to screen.
-  const grassTexture = PIXI.loader.resources['resources/Prediction-BG-Grass.jpg'].texture;
+  const grassTexture = PIXI.loader.resources['resources/Prediction-BG.jpg'].texture;
   const grass = new PIXI.Sprite(grassTexture);
   grass.scale.x = window.innerWidth / grassTexture.width;
   grass.scale.y = window.innerHeight / grassTexture.height;
@@ -1199,38 +1250,39 @@ function setup() {
   initScoreEvents(score);
   scoreTab.addChild(score);
 
-  // Add odds tab.
-  const oddsTabTexture = PIXI.loader.resources['resources/Prediction-Oddstab.png'].texture;
-  const oddsTab = new PIXI.Sprite(oddsTabTexture);
-  const oddsTabScale = ballSlot.height / oddsTabTexture.height;
-  oddsTab.scale.set(oddsTabScale, oddsTabScale);
-  oddsTab.position.set(window.innerWidth - oddsTab.width, ballSlot.position.y - oddsTab.height);
-  stage.addChild(oddsTab);
+  // Add payouts tab.
+  const payoutsTabTexture = PIXI.loader.resources['resources/Prediction-Oddstab.png'].texture;
+  const payoutsTab = new PIXI.Sprite(payoutsTabTexture);
+  const payoutsTabScale = ballSlot.height / payoutsTabTexture.height;
+  payoutsTab.scale.set(payoutsTabScale, payoutsTabScale);
+  payoutsTab.position.set(window.innerWidth - payoutsTab.width, ballSlot.position.y - payoutsTab.height);
+  stage.addChild(payoutsTab);
 
-  const oddsTabLabel = new PIXI.Text('Payouts'.toUpperCase());
-  const oddsTabLabelFontSize = 32.0;
-  const oddsTabLabelScale = ((oddsTab.height / 2 - 8.0) / oddsTabLabelFontSize) * (1 / oddsTabScale);
-  oddsTabLabel.style.fill = 0xffffff;
-  oddsTabLabel.style.fontSize = oddsTabLabelFontSize;
-  oddsTabLabel.style.fontFamily = 'proxima-nova-excn';
-  oddsTabLabel.style.fontWeight = 900;
-  oddsTabLabel.anchor.set(1.0, 1.0);
-  oddsTabLabel.position.set((oddsTab.width - 16.0) * (1 / oddsTabScale), oddsTabTexture.height / 2);
-  oddsTabLabel.scale.set(oddsTabLabelScale, oddsTabLabelScale);
-  oddsTab.addChild(oddsTabLabel);
+  const payoutsTabLabel = new PIXI.Text('Payouts'.toUpperCase());
+  const payoutsTabFontSize = 32.0;
+  const payoutsTabLabelScale = ((payoutsTab.height / 2 - 8.0) / payoutsTabFontSize) * (1 / payoutsTabScale);
+  payoutsTabLabel.style.fill = 0xffffff;
+  payoutsTabLabel.style.fontSize = payoutsTabFontSize;
+  payoutsTabLabel.style.fontFamily = 'proxima-nova-excn';
+  payoutsTabLabel.style.fontWeight = 900;
+  payoutsTabLabel.anchor.set(1.0, 1.0);
+  payoutsTabLabel.position.set((payoutsTab.width - 16.0) * (1 / payoutsTabScale), payoutsTabTexture.height / 2);
+  payoutsTabLabel.scale.set(payoutsTabLabelScale, payoutsTabLabelScale);
+  payoutsTab.addChild(payoutsTabLabel);
 
-  const oddsTabArrow = new PIXI.Text('\u22b3');
-  const oddsTabArrowScale = oddsTabLabelScale;
-  oddsTabArrow.style.fill = 0xffffff;
-  oddsTabArrow.style.fontSize = 32.0;
-  oddsTabArrow.style.fontFamily = 'proxima-nova-excn';
-  oddsTabArrow.anchor.set(1.0, 0.0);
-  oddsTabArrow.scale.set(-oddsTabArrowScale, oddsTabArrowScale);
-  oddsTabArrow.position.set(
-    (oddsTab.width - 16.0) * (1 / oddsTabScale) - oddsTabArrow.width,
-    (oddsTabTexture.height / 2)
+  const payoutsTabArrow = new PIXI.Text('\u22b3');
+  const payoutsTabArrowScale = payoutsTabLabelScale;
+  payoutsTabArrow.style.fill = 0xffffff;
+  payoutsTabArrow.style.fontSize = 32.0;
+  payoutsTabArrow.style.fontFamily = 'proxima-nova-excn';
+  payoutsTabArrow.anchor.set(1.0, 0.0);
+  payoutsTabArrow.scale.set(-payoutsTabArrowScale, payoutsTabArrowScale);
+  payoutsTabArrow.position.set(
+    (payoutsTab.width - 16.0) * (1 / payoutsTabScale) - payoutsTabArrow.width,
+    (payoutsTabTexture.height / 2)
   );
-  oddsTab.addChild(oddsTabArrow);
+  initPayoutsTabEvents(payoutsTab, payoutsTabLabel, fieldOverlay, grass);
+  payoutsTab.addChild(payoutsTabArrow);
 
   /**
    * Begin the animation loop.
@@ -1267,11 +1319,13 @@ configureWebSocket(connection);
 
 // Load the sprites we need.
 PIXI.loader
-  .add('resources/Prediction-BG-Grass.jpg')
+  .add('resources/Prediction-BG.jpg')
+  .add('resources/Prediction-BG-Payout.jpg')
   .add('resources/Prediction-Banner.png')
   .add('resources/Prediction-Holder-BallsSlot.png')
   .add('resources/Prediction-Button-Continue.png')
   .add('resources/Prediction-Overlay.png')
+  .add('resources/Prediction-Overlay-Payout.png')
   .add('resources/Prediction-Oddstab.png')
   .add('resources/Prediction-Scoretab.png')
   .add('resources/Item-Ball.png')
