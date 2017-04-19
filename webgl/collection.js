@@ -1689,7 +1689,7 @@ function setup() {
   const discardTexture = PIXI.loader.resources['resources/Collection-Banner-9x16.png'].texture;
   const discard = new PIXI.extras.TilingSprite(discardTexture, window.innerWidth, 36);
   //const discardScale = window.innerWidth;
-  const discardHeight = 36.0;
+  const discardHeight = 128.0 * contentScale;
   discard.name = 'discard';
   discard.position.set(0, whiteBannerHeight / 2);
   discard.tileScale.set(1, 0.5);
