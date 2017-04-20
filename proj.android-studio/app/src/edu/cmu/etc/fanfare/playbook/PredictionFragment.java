@@ -15,15 +15,17 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
-import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.style.ForegroundColorSpan;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.SparseArray;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.webkit.ConsoleMessage;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebChromeClient;
@@ -335,12 +337,36 @@ public class PredictionFragment extends PlaybookFragment {
     }
 
     public static class TutorialDialogFragment extends DialogFragment {
-        private static final String TAG = TutorialDialogFragment.class.getSimpleName();
+        @Override
+        public void onStart() {
+            super.onStart();
+            if (getDialog() == null) {
+                return;
+            }
+
+            // This is in dp unit.
+            DisplayMetrics displayMetrics = getActivity().getResources().getDisplayMetrics();
+            float dpWidth = displayMetrics.widthPixels / displayMetrics.density;
+            float targetWidth = Math.min(382, dpWidth - 16);
+
+            // For some reason, Android doesn't honor layout parameters in the layout file.
+            getDialog().getWindow().setLayout(
+                    (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, targetWidth, getResources().getDisplayMetrics()),
+                    WindowManager.LayoutParams.WRAP_CONTENT
+            );
+            getDialog().getWindow().setBackgroundDrawable(null);
+        }
 
         @Override
         public Dialog onCreateDialog(Bundle savedInstanceState) {
             LayoutInflater inflater = getActivity().getLayoutInflater();
             View view = inflater.inflate(R.layout.prediction_fragment_tutorial_dialog, null);
+            view.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    TutorialDialogFragment.this.dismiss();
+                }
+            });
 
             // Set custom fonts for our dialog.
             Typeface typeface = Typeface.createFromAsset(getActivity().getAssets(), "nova3.ttf");
