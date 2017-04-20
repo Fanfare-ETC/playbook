@@ -17,6 +17,9 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
@@ -70,9 +73,14 @@ public class CollectionFragment extends WebViewFragment {
         // Show tutorial for the first time.
         boolean isTutorialShown = prefs.getBoolean(PREF_KEY_TUTORIAL_SHOWN, false);
         if (!isTutorialShown) {
-            DialogFragment dialog = (DialogFragment) DialogFragment.instantiate(getActivity(), TutorialDialogFragment.class.getName());
-            dialog.show(getFragmentManager(), null);
+            showTutorial();
         }
+
+        // Declare that we have an options menu.
+        setHasOptionsMenu(true);
+
+        // Mark ourselves as running.
+        mIsAttached = true;
     }
 
     @Override
@@ -98,6 +106,23 @@ public class CollectionFragment extends WebViewFragment {
         SharedPreferences prefs = getActivity().getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
         prefs.edit().putString(PREF_KEY_GAME_STATE, mGameState.toString()).apply();
         Log.d(TAG, "Saved gameState to preferences");
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+        inflater.inflate(R.menu.menu_collection, menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.menu_collection_tutorial:
+                showTutorial();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
     }
 
     @Override
@@ -138,6 +163,11 @@ public class CollectionFragment extends WebViewFragment {
                 .toString();
         Log.d(TAG, js);
         getWebView().evaluateJavascript(js, null);
+    }
+
+    private void showTutorial() {
+        DialogFragment dialog = (DialogFragment) DialogFragment.instantiate(getActivity(), TutorialDialogFragment.class.getName());
+        dialog.show(getFragmentManager(), null);
     }
 
     public static class TutorialDialogFragment extends DialogFragment {

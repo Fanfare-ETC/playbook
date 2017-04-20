@@ -19,6 +19,9 @@ import android.util.Log;
 import android.util.SparseArray;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
@@ -73,8 +76,7 @@ public class PredictionFragment extends WebViewFragment {
         // Show tutorial for the first time.
         boolean isTutorialShown = prefs.getBoolean(PREF_KEY_TUTORIAL_SHOWN, false);
         if (!isTutorialShown) {
-            DialogFragment dialog = (DialogFragment) DialogFragment.instantiate(getActivity(), TutorialDialogFragment.class.getName());
-            dialog.show(getFragmentManager(), null);
+            showTutorial();
         }
 
         // Populate the events.
@@ -104,6 +106,9 @@ public class PredictionFragment extends WebViewFragment {
         PLAYBOOK_EVENTS.append(23, "MOST_FIELDED_BY_CENTER");
         PLAYBOOK_EVENTS.append(24, "UNKNOWN");
 
+        // Declare that we have an options menu.
+        setHasOptionsMenu(true);
+
         // Mark ourselves as running.
         mIsAttached = true;
     }
@@ -131,6 +136,23 @@ public class PredictionFragment extends WebViewFragment {
         SharedPreferences prefs = getActivity().getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
         prefs.edit().putString(PREF_KEY_GAME_STATE, mGameState.toString()).apply();
         Log.d(TAG, "Saved gameState to preferences");
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+        inflater.inflate(R.menu.menu_prediction, menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.menu_prediction_tutorial:
+                showTutorial();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
     }
 
     @Override
@@ -234,6 +256,11 @@ public class PredictionFragment extends WebViewFragment {
                 }
             }
         });
+    }
+
+    private void showTutorial() {
+        DialogFragment dialog = (DialogFragment) DialogFragment.instantiate(getActivity(), TutorialDialogFragment.class.getName());
+        dialog.show(getFragmentManager(), null);
     }
 
     public static class TutorialDialogFragment extends DialogFragment {
