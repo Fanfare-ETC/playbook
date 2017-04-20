@@ -5,4 +5,5 @@
     <item name="tertiary" type="color">#c53626</item>
     <item name="tertiary_dark" type="color">#bf3626</item>
     <item name="accent" type="color">#8ebaf4</item>
+    <item name="secondary" type="color">#002b65</item>
 </resources>

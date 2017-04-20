@@ -82,7 +82,7 @@ public class trophyWorker extends AsyncTask<String,Void,String> {
             ViewHolder viewHolder;
             if (convertView == null) {
                 viewHolder = new ViewHolder();
-                LayoutInflater inflater = LayoutInflater.from(activity.getContext());
+                LayoutInflater inflater = LayoutInflater.from(activity.getActivity());
                 convertView = inflater.inflate(R.layout.trophy_list_item, parent, false);
                 viewHolder.mImage1 = (ImageView) convertView.findViewById(R.id.trophy1);
                 viewHolder.mImage2 = (ImageView) convertView.findViewById(R.id.trophy2);
@@ -122,10 +122,10 @@ public class trophyWorker extends AsyncTask<String,Void,String> {
                     bannerNameColor = 0x80620000;
             }
 
-            Typeface fontCat = Typeface.createFromAsset(activity.getContext().getAssets(), "fonts/rockb.ttf");
+            Typeface fontCat = Typeface.createFromAsset(activity.getActivity().getAssets(), "fonts/rockb.ttf");
 
             String colorString = "banner_"+trophyCat.color;
-            viewHolder.mBanner.setImageResource(getDrawable(activity.getContext(), colorString));
+            viewHolder.mBanner.setImageResource(getDrawable(activity.getActivity(), colorString));
             viewHolder.mBannerName.setTextColor(bannerNameColor);
             viewHolder.mBannerName.setText(trophyCat.category.toUpperCase());
             viewHolder.mBannerName.setTypeface(fontCat);
@@ -137,9 +137,10 @@ public class trophyWorker extends AsyncTask<String,Void,String> {
                 Log.i("TROPHY", "Player ID 1 is null");
                 viewHolder.mImage1.setImageResource(R.drawable.trophy_black);
             } else {
+
                 light = true;
                 Log.i("TROPHY", "Player ID 1 is: " + trophyCat.playerId1);
-                viewHolder.mImage1.setImageResource(getDrawable(activity.getContext(), trophyIndex1));
+                viewHolder.mImage1.setImageResource(getDrawable(activity.getActivity(), trophyIndex1));
             }
 
             String trophyIndex2 = "trophy"+Integer.toString(trophyCat.id2);
@@ -150,7 +151,7 @@ public class trophyWorker extends AsyncTask<String,Void,String> {
             } else {
                 light = true;
                 Log.i("TROPHY", "Player ID 3 is: " + trophyCat.playerId2);
-                viewHolder.mImage2.setImageResource(getDrawable(activity.getContext(), trophyIndex2));
+                viewHolder.mImage2.setImageResource(getDrawable(activity.getActivity(), trophyIndex2));
             }
 
             String trophyIndex3 = "trophy"+Integer.toString(trophyCat.id3);
@@ -161,7 +162,7 @@ public class trophyWorker extends AsyncTask<String,Void,String> {
             } else {
                 light = true;
                 Log.i("TROPHY", "Player ID 3 is: " + trophyCat.playerId3);
-                viewHolder.mImage3.setImageResource(getDrawable(activity.getContext(), trophyIndex3));
+                viewHolder.mImage3.setImageResource(getDrawable(activity.getActivity(), trophyIndex3));
             }
 
             if(light == true){
@@ -171,7 +172,7 @@ public class trophyWorker extends AsyncTask<String,Void,String> {
                 viewHolder.mLight.setImageResource(R.drawable.shadow_layer);
             }
 
-            Typeface nameFont = Typeface.createFromAsset(activity.getContext().getAssets(), "fonts/nova_excblack.otf");
+            Typeface nameFont = Typeface.createFromAsset(activity.getActivity().getAssets(), "fonts/nova_excblack.otf");
             int nameTextSize = 16;
 
             viewHolder.mName1.setTextColor(Color.BLACK);
@@ -198,7 +199,7 @@ public class trophyWorker extends AsyncTask<String,Void,String> {
             }
             viewHolder.mName3.setTextSize(nameTextSize);
 
-            Typeface descripFont = Typeface.createFromAsset(activity.getContext().getAssets(), "fonts/nova_excthin.otf");
+            Typeface descripFont = Typeface.createFromAsset(activity.getActivity().getAssets(), "fonts/nova_excthin.otf");
 
             viewHolder.mDescription1.setTextColor(Color.BLACK);
             viewHolder.mDescription1.setText(trophyCat.description1);
@@ -314,7 +315,7 @@ public class trophyWorker extends AsyncTask<String,Void,String> {
                     trophies.add(trophyCat);
                 }
 
-                TrophyAdapter trophyAdapter = new TrophyAdapter(activity.getContext(), R.layout.trophy_list_item, trophies);
+                TrophyAdapter trophyAdapter = new TrophyAdapter(activity.getActivity(), R.layout.trophy_list_item, trophies);
                 ListView listView = (ListView) activity.getView().findViewById(R.id.trophyList);
                 listView.setAdapter(trophyAdapter);
                 //listView.invalidate();

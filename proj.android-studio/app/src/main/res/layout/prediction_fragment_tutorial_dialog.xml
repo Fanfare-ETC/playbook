@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:orientation="vertical"
+              android:layout_width="wrap_content"
+              android:layout_height="match_parent"
+              android:maxWidth="328dp"
+              android:theme="@style/AppTheme.TutorialDialogTheme"
+              android:padding="16dp">
+
+    <TextView
+        style="@style/tutorialParagraphStyle"
+        android:id="@+id/prediction_tutorial_para_1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/prediction_tutorial_para_1"/>
+
+    <TextView
+        style="@style/tutorialParagraphStyle"
+        android:id="@+id/prediction_tutorial_para_2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/prediction_tutorial_para_2"/>
+
+    <TextView
+        style="@style/tutorialParagraphStyle"
+        android:id="@+id/prediction_tutorial_para_3"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/prediction_tutorial_para_3"/>
+
+    <TextView
+        style="@style/tutorialParagraphStyle"
+        android:id="@+id/prediction_tutorial_para_4"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:text="@string/prediction_tutorial_para_4"/>
+
+</LinearLayout>

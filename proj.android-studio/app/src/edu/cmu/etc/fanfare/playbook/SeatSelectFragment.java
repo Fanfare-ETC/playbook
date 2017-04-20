@@ -1,14 +1,12 @@
 package edu.cmu.etc.fanfare.playbook;
 
+import android.app.Fragment;
+import android.app.FragmentManager;
 import android.content.DialogInterface;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -51,7 +49,7 @@ public class SeatSelectFragment extends PlaybookFragment implements AdapterView.
         items[3]="Section 3";
         items[4]="Section 4";
 
-        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this.getContext(), R.layout.new_spinner, items) {
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this.getActivity(), R.layout.new_spinner, items) {
 
             public View getView(int position, View convertView, ViewGroup parent) {
                 View v = super.getView(position, convertView, parent);
@@ -87,7 +85,7 @@ public class SeatSelectFragment extends PlaybookFragment implements AdapterView.
         });
 
 //get the section selected last time from sharedpreference
-        SharedPreferences settings = this.getContext().getSharedPreferences("FANFARE_SHARED", 0);
+        SharedPreferences settings = this.getActivity().getSharedPreferences("FANFARE_SHARED", 0);
         section = settings.getInt("section", 0);
 
         Log.d("SharedPreference", "Section chosen last time: " + section);
@@ -142,7 +140,7 @@ public class SeatSelectFragment extends PlaybookFragment implements AdapterView.
 
                     Fragment treasureHuntFragment = new TreasureHuntFragment();
 
-                    FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
+                    FragmentManager fragmentManager = getActivity().getFragmentManager();
                     fragmentManager.beginTransaction()
                             .replace(R.id.content_frame, treasureHuntFragment)
                             .commit();

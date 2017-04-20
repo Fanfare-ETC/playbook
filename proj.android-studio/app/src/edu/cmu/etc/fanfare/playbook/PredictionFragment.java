@@ -1,25 +1,33 @@
 package edu.cmu.etc.fanfare.playbook;
 
 import android.app.Activity;
-import android.content.ActivityNotFoundException;
+import android.app.Dialog;
+import android.app.DialogFragment;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
-import android.net.Uri;
+import android.graphics.Typeface;
 import android.os.Bundle;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.style.ForegroundColorSpan;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.SparseArray;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.webkit.ConsoleMessage;
+import android.view.WindowManager;
 import android.webkit.JavascriptInterface;
-import android.webkit.WebChromeClient;
 import android.webkit.WebView;
+import android.widget.TextView;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -30,20 +38,17 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 
-public class PredictionFragment extends PlaybookFragment {
+public class PredictionFragment extends WebViewFragment {
     private static final String TAG = PredictionFragment.class.getSimpleName();
-    private static final String WEB_VIEW_PACKAGE_NAME = "com.google.android.webview";
-    private static final String WEB_VIEW_PACKAGE_NAME_ALT = "com.android.webview";
 
-    // WebView 42 is the minimum that supports ES6 classes.
-    private static final int MIN_WEB_VIEW_VERSION = 42;
+    private static final String PREF_NAME = "prediction";
+    private static final String PREF_KEY_GAME_STATE = "gameState";
+    private static final String PREF_KEY_TUTORIAL_SHOWN = "tutorialShown";
 
     private static final SparseArray<String> PLAYBOOK_EVENTS = new SparseArray<String>();
 
-    private boolean mWebViewIsCompatible = false;
-    private WebView mWebView;
     private JSONObject mGameState;
-    private boolean mIsRunning;
+    private boolean mIsAttached;
     private Queue<JSONObject> mPendingEvents = new LinkedList<>();
 
     private AlertDialog mCorrectDialog;
@@ -51,12 +56,12 @@ public class PredictionFragment extends PlaybookFragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        SharedPreferences prefs = getActivity().getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
 
         // We use SharedPreference because the savedInstanceState doesn't work
         // if the fragment doesn't have an ID.
         try {
-            SharedPreferences prefs = getContext().getSharedPreferences("prediction", Context.MODE_PRIVATE);
-            String gameState = prefs.getString("gameState", null);
+            String gameState = prefs.getString(PREF_KEY_GAME_STATE, null);
             if (gameState != null) {
                 Log.d(TAG, "Restoring game state from bundle: " + gameState);
                 mGameState = new JSONObject(gameState);
@@ -66,6 +71,12 @@ public class PredictionFragment extends PlaybookFragment {
             }
         } catch (JSONException e) {
             e.printStackTrace();
+        }
+
+        // Show tutorial for the first time.
+        boolean isTutorialShown = prefs.getBoolean(PREF_KEY_TUTORIAL_SHOWN, false);
+        if (!isTutorialShown) {
+            showTutorial();
         }
 
         // Populate the events.
@@ -95,47 +106,60 @@ public class PredictionFragment extends PlaybookFragment {
         PLAYBOOK_EVENTS.append(23, "MOST_FIELDED_BY_CENTER");
         PLAYBOOK_EVENTS.append(24, "UNKNOWN");
 
+        // Declare that we have an options menu.
+        setHasOptionsMenu(true);
+
         // Mark ourselves as running.
-        mIsRunning = true;
+        mIsAttached = true;
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        mWebView = new WebView(getContext());
-        checkWebViewVersion();
+        super.onCreateView(inflater, container, savedInstanceState);
+        WebView webView = getWebView();
 
-        if (mWebViewIsCompatible) {
-            WebView.setWebContentsDebuggingEnabled(true);
-            mWebView.getSettings().setJavaScriptEnabled(true);
-            mWebView.getSettings().setAllowFileAccessFromFileURLs(true);
-            mWebView.addJavascriptInterface(new JavaScriptInterface(), "PlaybookBridge");
-            mWebView.setWebChromeClient(new PlaybookWebChromeClient());
-            mWebView.loadUrl("file:///android_asset/prediction/index.html");
+        if (isWebViewCompatible()) {
+            webView.addJavascriptInterface(new JavaScriptInterface(), "PlaybookBridge");
+            webView.loadUrl("file:///android_asset/prediction/index.html");
         }
 
-        return mWebView;
+        return webView;
     }
 
     @Override
     public void onDetach() {
         super.onDetach();
+        mIsAttached = false;
 
         // Save game state to preferences.
-        SharedPreferences prefs = getContext().getSharedPreferences("prediction", Context.MODE_PRIVATE);
-        prefs.edit().putString("gameState", mGameState.toString()).apply();
+        SharedPreferences prefs = getActivity().getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+        prefs.edit().putString(PREF_KEY_GAME_STATE, mGameState.toString()).apply();
         Log.d(TAG, "Saved gameState to preferences");
+    }
 
-        mIsRunning = false;
-        mWebView.removeAllViews();
-        mWebView.destroy();
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+        inflater.inflate(R.menu.menu_prediction, menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.menu_prediction_tutorial:
+                showTutorial();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
     }
 
     @Override
     public void onWebSocketMessageReceived(Activity context, JSONObject s) {
         super.onWebSocketMessageReceived(context, s);
         try {
-            if (!mIsRunning) {
+            if (!mIsAttached) {
                 if (s.has("event")) {
                     String event = s.getString("event");
                     if (event.equals("server:playsCreated")) {
@@ -164,86 +188,6 @@ public class PredictionFragment extends PlaybookFragment {
         return state;
     }
 
-    private Integer getWebViewMajorVersion() {
-        PackageManager pm = getContext().getPackageManager();
-        PackageInfo info;
-        try {
-            info = pm.getPackageInfo(WEB_VIEW_PACKAGE_NAME, 0);
-        } catch (PackageManager.NameNotFoundException e1) {
-            try {
-                info = pm.getPackageInfo(WEB_VIEW_PACKAGE_NAME_ALT, 0);
-            } catch (PackageManager.NameNotFoundException e2) {
-                Log.e(TAG, "Android System WebView is not installed");
-                return null;
-            }
-        }
-
-        Log.d(TAG, "Android System WebView: version " + info.versionName);
-        String[] parts = info.versionName.split("\\.");
-        return Integer.parseInt(parts[0]);
-    }
-
-    private void checkWebViewVersion() {
-        Integer version = getWebViewMajorVersion();
-        if (version == null) {
-            showWebViewNotInstalledDialog();
-        } else if (version >= MIN_WEB_VIEW_VERSION) {
-            mWebViewIsCompatible = true;
-        } else {
-            showWebViewNeedsUpdateDialog();
-        }
-    }
-
-    private void showWebViewNotInstalledDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-        builder.setMessage(R.string.prediction_web_view_not_installed)
-            .setTitle(R.string.prediction_incompatible_device)
-            .setPositiveButton(R.string.close, new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    getActivity().finish();
-                }
-            })
-            .setOnDismissListener(new DialogInterface.OnDismissListener() {
-                @Override
-                public void onDismiss(DialogInterface dialog) {
-                    getActivity().finish();
-                }
-            });
-        AlertDialog dialog = builder.create();
-        dialog.show();
-    }
-
-    private void showWebViewNeedsUpdateDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-        builder.setMessage(R.string.prediction_web_view_needs_update)
-            .setTitle(R.string.prediction_update_web_view)
-            .setPositiveButton(R.string.update, new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    try {
-                        startActivity(new Intent(
-                                Intent.ACTION_VIEW,
-                                Uri.parse("market://details?id=" + WEB_VIEW_PACKAGE_NAME)
-                        ));
-                    } catch (ActivityNotFoundException e) {
-                        startActivity(new Intent(
-                                Intent.ACTION_VIEW,
-                                Uri.parse("https://play.google.com/store/apps/details?id=" + WEB_VIEW_PACKAGE_NAME)
-                        ));
-                    }
-                }
-            })
-            .setOnDismissListener(new DialogInterface.OnDismissListener() {
-                @Override
-                public void onDismiss(DialogInterface dialog) {
-                    getActivity().finish();
-                }
-            });
-        AlertDialog dialog = builder.create();
-        dialog.show();
-    }
-
     private void sendMessage(final JSONObject jsonObject) {
         String quoted = JSONObject.quote(jsonObject.toString());
         StringBuilder builder = new StringBuilder();
@@ -255,7 +199,7 @@ public class PredictionFragment extends PlaybookFragment {
                 .append(");")
                 .toString();
         Log.d(TAG, js);
-        mWebView.evaluateJavascript(js, null);
+        getWebView().evaluateJavascript(js, null);
     }
 
     private void handlePlaysCreated(final Activity context, JSONObject s) throws JSONException {
@@ -314,23 +258,79 @@ public class PredictionFragment extends PlaybookFragment {
         });
     }
 
-    private class PlaybookWebChromeClient extends WebChromeClient {
+    private void showTutorial() {
+        DialogFragment dialog = (DialogFragment) DialogFragment.instantiate(getActivity(), TutorialDialogFragment.class.getName());
+        dialog.show(getFragmentManager(), null);
+    }
+
+    public static class TutorialDialogFragment extends DialogFragment {
         @Override
-        public boolean onConsoleMessage(ConsoleMessage cm) {
-            switch (cm.messageLevel()) {
-                case DEBUG:
-                case LOG:
-                case TIP:
-                    Log.d(TAG, cm.sourceId() + ":" + cm.lineNumber() + " " + cm.message());
-                    break;
-                case WARNING:
-                    Log.w(TAG, cm.sourceId() + ":" + cm.lineNumber() + " " + cm.message());
-                    break;
-                case ERROR:
-                    Log.e(TAG, cm.sourceId() + ":" + cm.lineNumber() + " " + cm.message());
-                    break;
+        public void onStart() {
+            super.onStart();
+            if (getDialog() == null) {
+                return;
             }
-            return true;
+
+            // This is in dp unit.
+            DisplayMetrics displayMetrics = getActivity().getResources().getDisplayMetrics();
+            float dpWidth = displayMetrics.widthPixels / displayMetrics.density;
+            float targetWidth = Math.min(382, dpWidth - 16);
+
+            // For some reason, Android doesn't honor layout parameters in the layout file.
+            getDialog().getWindow().setLayout(
+                    (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, targetWidth, getResources().getDisplayMetrics()),
+                    WindowManager.LayoutParams.WRAP_CONTENT
+            );
+            getDialog().getWindow().setBackgroundDrawable(null);
+        }
+
+        @Override
+        public Dialog onCreateDialog(Bundle savedInstanceState) {
+            LayoutInflater inflater = getActivity().getLayoutInflater();
+            View view = inflater.inflate(R.layout.prediction_fragment_tutorial_dialog, null);
+            view.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    TutorialDialogFragment.this.dismiss();
+                }
+            });
+
+            // Set custom fonts for our dialog.
+            Typeface typeface = Typeface.createFromAsset(getActivity().getAssets(), "nova3.ttf");
+            TextView para1 = (TextView) view.findViewById(R.id.prediction_tutorial_para_1);
+            TextView para2 = (TextView) view.findViewById(R.id.prediction_tutorial_para_2);
+            TextView para3 = (TextView) view.findViewById(R.id.prediction_tutorial_para_3);
+            TextView para4 = (TextView) view.findViewById(R.id.prediction_tutorial_para_4);
+            para1.setLineSpacing(0, 1.25f);
+            para1.setTypeface(typeface);
+            para2.setLineSpacing(0, 1.25f);
+            para2.setTypeface(typeface);
+            para3.setLineSpacing(0, 1.25f);
+            para3.setTypeface(typeface);
+            para4.setLineSpacing(0, 1.25f);
+            para4.setTypeface(typeface);
+
+            // Append an arrow after the paragraph.
+            SpannableString lastPara = new SpannableString(para4.getText() + " \u22b2");
+            lastPara.setSpan(new ForegroundColorSpan(
+                    ContextCompat.getColor(getActivity(), R.color.primary)),
+                    para4.getText().length() + 1,
+                    para4.getText().length() + 2,
+                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+            );
+            para4.setText(lastPara, TextView.BufferType.SPANNABLE);
+
+            // Use the Builder class for convenient dialog construction
+            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+            builder.setView(view);
+            return builder.create();
+        }
+
+        @Override
+        public void onDismiss(DialogInterface dialog) {
+            super.onDismiss(dialog);
+            SharedPreferences prefs = getActivity().getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+            prefs.edit().putBoolean(PREF_KEY_TUTORIAL_SHOWN, true).apply();
         }
     }
 

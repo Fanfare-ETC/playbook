@@ -129,7 +129,7 @@
         app:layout_constraintVertical_bias="0.282" />
 
     <ImageView
-        android:id="@+id/warmer_section"
+        android:id="@+id/warmerSection"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:scaleType="fitCenter"
@@ -141,7 +141,7 @@
         app:layout_constraintVertical_bias="0.518" />
 
     <ImageView
-        android:id="@+id/colder_section"
+        android:id="@+id/colderSection"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:scaleType="fitXY"
@@ -153,7 +153,7 @@
         app:layout_constraintVertical_bias="0.499" />
 
     <ImageView
-        android:id="@+id/plant_section"
+        android:id="@+id/markerSection"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:scaleType="fitXY"
@@ -180,7 +180,7 @@
 
     <ImageView
         android:id="@+id/drawing"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:adjustViewBounds="true"
         android:cropToPadding="true"
@@ -204,7 +204,7 @@
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/map"
-        app:layout_constraintVertical_bias="0.533"
+        app:layout_constraintVertical_bias="0.191"
         app:srcCompat="@drawable/aggregate" />
 
     <ImageView
@@ -321,15 +321,17 @@
 
     <TextView
         android:id="@+id/aggregate_text"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
         android:layout_marginEnd="32dp"
-        android:layout_marginLeft="32dp"
-        android:layout_marginRight="32dp"
+        android:layout_marginLeft="0dp"
+        android:layout_marginRight="0dp"
         android:layout_marginStart="32dp"
+        android:layout_marginTop="8dp"
         android:ems="10"
         android:inputType="textPersonName"
-        android:textAppearance="@style/TextAppearance.AppCompat"
+        android:textAppearance="@style/TextAppearance.AppCompat.Display1"
         android:visibility="visible"
         app:layout_constraintBottom_toTopOf="@+id/aggregate"
         app:layout_constraintHorizontal_bias="0.0"
@@ -349,7 +351,7 @@
         app:layout_constraintTop_toTopOf="parent" />
     <view
         android:id="@+id/connectView1"
-        class="edu.cmu.etc.fanfare.playbook.TreasureHuntFragment$Connect1"
+        class="edu.cmu.etc.fanfare.playbook.TreasureHuntFragment$connectDots"
         android:layout_width="0dp"
         android:layout_height="0dp"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -405,6 +407,7 @@
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.0" />
+        app:layout_constraintVertical_bias="0.0"
+        app:srcCompat="@drawable/treasurehunt_tutorial" />
 
 </android.support.constraint.ConstraintLayout>
