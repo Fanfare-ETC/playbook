@@ -14,50 +14,214 @@
         android:id="@+id/guideline3"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        app:layout_constraintGuide_percent="@dimen/trophy_guideline" />
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent="@dimen/guideline3"
+        tools:layout_editor_absoluteY="136dp"
+        tools:layout_editor_absoluteX="0dp" />
 
     <ImageView
-        android:id="@+id/trophyShelf"
+        android:id="@+id/trophyBanner"
         android:layout_width="0dp"
-        android:layout_height="0dp"
+        android:layout_height="26dp"
         android:adjustViewBounds="true"
         android:cropToPadding="false"
-        android:src="@drawable/shelf1"
-        app:layout_constraintBottom_toBottomOf="parent"
+        android:scaleType="fitXY"
+        android:src="@drawable/banner_blue"
+        app:layout_constraintBottom_toTopOf="@+id/trophyBg"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <ImageView
-        android:id="@+id/trophyImage"
-        android:layout_width="56dp"
-        android:layout_height="56dp"
-        android:layout_marginLeft="@dimen/trophy_margin_left"
-        android:layout_marginTop="10dp"
-        android:layout_marginBottom="25dp"
-        android:src="@drawable/trophy1"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        android:layout_marginStart="32dp" />
-
     <TextView
-        android:id="@+id/trophyDescription"
+        android:id="@+id/bannerName"
         android:text="@string/app_name"
-        android:layout_height="56dp"
+        android:layout_height="0dp"
         android:layout_width="0dp"
         android:gravity="center"
-        android:layout_marginRight="@dimen/trophy_margin_right"
-        android:layout_marginTop="8dp"
-        android:layout_marginBottom="14dp"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/trophyBg"
+        app:layout_constraintLeft_toLeftOf="parent" />
+
+    <ImageView
+        android:id="@+id/trophyBg"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:adjustViewBounds="true"
+        android:cropToPadding="false"
+        android:scaleType="fitXY"
+        android:src="@drawable/trophy_shelf"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintLeft_toRightOf="@+id/guideline3"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/trophyBanner" />
+
+
+    <ImageView
+        android:id="@+id/trophyShadow"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="16dp"
+        android:adjustViewBounds="true"
+        android:src="@drawable/shadow_layer"
+        app:layout_constraintBottom_toBottomOf="@+id/trophy1"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/trophyBanner" />
+
+    <ImageView
+        android:id="@+id/trophy1"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:src="@drawable/trophy1"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/trophyBanner"
+        app:layout_constraintBottom_toTopOf="@+id/guideline3"
+        app:layout_constraintRight_toLeftOf="@+id/trophy2"
+        android:layout_marginLeft="@dimen/image_margin"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="8dp"
+        android:layout_marginRight="@dimen/image_margin1"
+        android:layout_marginStart="24dp"
+        android:layout_marginEnd="16dp" />
+
+    <ImageView
+        android:id="@+id/trophy2"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:src="@drawable/trophy1"
+        app:layout_constraintLeft_toRightOf="@+id/trophy1"
+        app:layout_constraintTop_toBottomOf="@+id/trophyBanner"
+        app:layout_constraintBottom_toTopOf="@+id/guideline3"
+        app:layout_constraintRight_toLeftOf="@+id/trophy3"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="8dp"
+        android:layout_marginLeft="0dp"
+        android:layout_marginRight="0dp" />
+
+    <ImageView
+        android:id="@+id/trophy3"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:src="@drawable/trophy1"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/trophyBanner"
+        app:layout_constraintBottom_toTopOf="@+id/guideline3"
+        app:layout_constraintLeft_toRightOf="@+id/trophy2"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="8dp"
+        android:layout_marginRight="@dimen/image_margin"
+        android:layout_marginLeft="@dimen/image_margin1"
+        app:layout_constraintVertical_bias="0.0"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="24dp" />
+
+    <TextView
+        android:id="@+id/trophyName1"
+        android:text="@string/app_name"
+        android:layout_height="0dp"
+        android:layout_width="0dp"
+        android:gravity="center"
+        android:layout_marginRight="10dp"
+        android:layout_marginTop="@dimen/text_margin"
+        android:layout_marginBottom="0dp"
+        app:layout_constraintRight_toLeftOf="@+id/trophyName2"
+        app:layout_constraintBottom_toTopOf="@+id/trophyDescrp1"
+        android:layout_marginLeft="20dp"
+        app:layout_constraintVertical_bias="0.509"
+        android:layout_marginStart="25dp"
+        android:layout_marginEnd="50dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/trophy1" />
+
+    <TextView
+        android:id="@+id/trophyDescrp1"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginBottom="0dp"
+        android:layout_marginEnd="50dp"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="10dp"
+        android:layout_marginStart="25dp"
+        android:layout_marginTop="0dp"
+        android:gravity="center"
+        android:text="@string/app_name"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@+id/trophyDescrp2"
+        app:layout_constraintTop_toBottomOf="@+id/trophyName1"
+        app:layout_constraintVertical_bias="0.509" />
+
+    <TextView
+        android:id="@+id/trophyName2"
+        android:text="@string/app_name"
+        android:layout_height="0dp"
+        android:layout_width="0dp"
+        android:gravity="center"
+        android:layout_marginRight="10dp"
+        android:layout_marginTop="@dimen/text_margin"
+        android:layout_marginBottom="0dp"
+        app:layout_constraintRight_toLeftOf="@+id/trophyName3"
+        app:layout_constraintBottom_toTopOf="@+id/trophyDescrp2"
         android:layout_marginLeft="10dp"
         app:layout_constraintVertical_bias="0.509"
         android:layout_marginStart="25dp"
-        android:layout_marginEnd="50dp" />
+        android:layout_marginEnd="50dp"
+        app:layout_constraintLeft_toRightOf="@+id/trophyName1"
+        app:layout_constraintTop_toBottomOf="@+id/trophy2" />
+
+    <TextView
+        android:id="@+id/trophyDescrp2"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginBottom="0dp"
+        android:layout_marginEnd="50dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:layout_marginStart="25dp"
+        android:layout_marginTop="0dp"
+        android:gravity="center"
+        android:text="@string/app_name"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toRightOf="@+id/trophyDescrp1"
+        app:layout_constraintRight_toLeftOf="@+id/trophyDescrp3"
+        app:layout_constraintTop_toBottomOf="@+id/trophyName2"
+        app:layout_constraintVertical_bias="0.509" />
+
+    <TextView
+        android:id="@+id/trophyName3"
+        android:text="@string/app_name"
+        android:layout_height="0dp"
+        android:layout_width="0dp"
+        android:gravity="center"
+        android:layout_marginRight="20dp"
+        android:layout_marginTop="@dimen/text_margin"
+        android:layout_marginBottom="0dp"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/trophyDescrp3"
+        app:layout_constraintVertical_bias="0.509"
+        android:layout_marginEnd="50dp"
+        app:layout_constraintLeft_toRightOf="@+id/trophyName2"
+        app:layout_constraintTop_toBottomOf="@+id/trophy3"
+        android:layout_marginLeft="10dp" />
+
+    <TextView
+        android:id="@+id/trophyDescrp3"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginBottom="0dp"
+        android:layout_marginEnd="50dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="20dp"
+        android:layout_marginStart="25dp"
+        android:layout_marginTop="0dp"
+        android:gravity="center"
+        android:text="@string/app_name"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toRightOf="@+id/trophyDescrp2"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/trophyName3"
+        app:layout_constraintVertical_bias="0.509" />
 
 </android.support.constraint.ConstraintLayout>

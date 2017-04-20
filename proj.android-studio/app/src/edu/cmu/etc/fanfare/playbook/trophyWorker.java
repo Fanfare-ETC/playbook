@@ -53,64 +53,171 @@ public class trophyWorker extends AsyncTask<String,Void,String> {
             BuildConfig.PLAYBOOK_SECTION_API_PORT + "/" +
             BuildConfig.PLAYBOOK_TROPHY_APP;
 
-    public class Trophy {
-        int id;
-        String description;
-        String playerId;
+    public class TrophyCat {
+        int id1, id2, id3;
+        String name1, name2, name3;
+        String description1, description2, description3;
+        String category;
+        String color;
+        String playerId1, playerId2, playerId3;
     }
 
-    public class TrophyAdapter extends ArrayAdapter<Trophy> {
+    public class TrophyAdapter extends ArrayAdapter<TrophyCat> {
         private class ViewHolder {
-            ImageView mImage;
-            TextView mDescription;
+            ImageView mImage1, mImage2, mImage3;
+            ImageView mBanner;
+            ImageView mLight;
+            TextView mBannerName;
+            TextView mName1, mName2, mName3;
+            TextView mDescription1, mDescription2, mDescription3;
         }
 
-        public TrophyAdapter(@NonNull Context context, @LayoutRes int resource, @NonNull List<Trophy> objects) {
+        public TrophyAdapter(@NonNull Context context, @LayoutRes int resource, @NonNull List<TrophyCat> objects) {
             super(context, resource, objects);
         }
 
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
-            Trophy trophy = getItem(position);
+            TrophyCat trophyCat = getItem(position);
             ViewHolder viewHolder;
             if (convertView == null) {
                 viewHolder = new ViewHolder();
                 LayoutInflater inflater = LayoutInflater.from(activity.getContext());
                 convertView = inflater.inflate(R.layout.trophy_list_item, parent, false);
-                viewHolder.mImage = (ImageView) convertView.findViewById(R.id.trophyImage);
-                viewHolder.mDescription = (TextView) convertView.findViewById(R.id.trophyDescription);
+                viewHolder.mImage1 = (ImageView) convertView.findViewById(R.id.trophy1);
+                viewHolder.mImage2 = (ImageView) convertView.findViewById(R.id.trophy2);
+                viewHolder.mImage3 = (ImageView) convertView.findViewById(R.id.trophy3);
+                viewHolder.mBanner = (ImageView) convertView.findViewById(R.id.trophyBanner);
+                viewHolder.mBannerName = (TextView) convertView.findViewById(R.id.bannerName);
+                viewHolder.mLight = (ImageView) convertView.findViewById(R.id.trophyShadow);
+                viewHolder.mName1 = (TextView) convertView.findViewById(R.id.trophyName1);
+                viewHolder.mName2 = (TextView) convertView.findViewById(R.id.trophyName2);
+                viewHolder.mName3 = (TextView) convertView.findViewById(R.id.trophyName3);
+                viewHolder.mDescription1 = (TextView) convertView.findViewById(R.id.trophyDescrp1);
+                viewHolder.mDescription2 = (TextView) convertView.findViewById(R.id.trophyDescrp2);
+                viewHolder.mDescription3 = (TextView) convertView.findViewById(R.id.trophyDescrp3);
                 convertView.setTag(viewHolder);
             } else {
                 viewHolder = (ViewHolder) convertView.getTag();
             }
 
-            // Populate data from trophy.
-            String trophyIndex = "trophy"+Integer.toString(trophy.id);
-            Log.i("TROPHY", "Trophy ID is: " + trophyIndex);
-            if (trophy.playerId == null) {
-                Log.i("TROPHY", "Player ID is null");
-                viewHolder.mImage.setImageResource(R.drawable.trophy_black);
+            // Populate data from trophyCat.
+
+            Integer bannerNameColor;
+            switch (trophyCat.color){
+                case "green":
+                case "gold":
+                case "blue":
+                case "red":
+                    bannerNameColor = Color.WHITE;
+                    break;
+                case "yellow":
+                    bannerNameColor = 0x80620000;
+                    break;
+                case "white":
+                    //bannerNameColor = 0x007F0000;
+                    bannerNameColor = 0x077D0700;
+                    break;
+                default:
+                    bannerNameColor = 0x80620000;
+            }
+
+            Typeface fontCat = Typeface.createFromAsset(activity.getContext().getAssets(), "fonts/rockb.ttf");
+
+            String colorString = "banner_"+trophyCat.color;
+            viewHolder.mBanner.setImageResource(getDrawable(activity.getContext(), colorString));
+            viewHolder.mBannerName.setTextColor(bannerNameColor);
+            viewHolder.mBannerName.setText(trophyCat.category.toUpperCase());
+            viewHolder.mBannerName.setTypeface(fontCat);
+
+            boolean light = false;
+            String trophyIndex1 = "trophy"+Integer.toString(trophyCat.id1);
+            Log.i("TROPHY", "Trophy1 ID is: " + trophyIndex1);
+            if (trophyCat.playerId1 == null) {
+                Log.i("TROPHY", "Player ID 1 is null");
+                viewHolder.mImage1.setImageResource(R.drawable.trophy_black);
             } else {
-                Log.i("TROPHY", "Player ID is: " + trophy.playerId);
-                viewHolder.mImage.setImageResource(getDrawable(activity.getContext(), trophyIndex));
+                light = true;
+                Log.i("TROPHY", "Player ID 1 is: " + trophyCat.playerId1);
+                viewHolder.mImage1.setImageResource(getDrawable(activity.getContext(), trophyIndex1));
             }
 
-            Typeface externalFont = Typeface.createFromAsset(activity.getContext().getAssets(), "fonts/nova1.ttf");
-
-            viewHolder.mDescription.setTextColor(Color.BLACK);
-            viewHolder.mDescription.setText(trophy.description);
-            viewHolder.mDescription.setTypeface(externalFont);
-            viewHolder.mDescription.setTextSize(11);
-
-
-            if(trophy.id <= 6){
-                convertView.setBackgroundColor(Color.argb(255, 0, 127, 0));
-                //convertView.setBackgroundResource(R.drawable.trophy_top);
+            String trophyIndex2 = "trophy"+Integer.toString(trophyCat.id2);
+            Log.i("TROPHY", "Trophy2 ID is: " + trophyIndex2);
+            if (trophyCat.playerId2 == null) {
+                Log.i("TROPHY", "Player ID 2 is null");
+                viewHolder.mImage2.setImageResource(R.drawable.trophy_black);
+            } else {
+                light = true;
+                Log.i("TROPHY", "Player ID 3 is: " + trophyCat.playerId2);
+                viewHolder.mImage2.setImageResource(getDrawable(activity.getContext(), trophyIndex2));
             }
-            else{
-                //convertView.setBackgroundColor(Color.argb(0, 0, 0, 0));
-                convertView.setBackground(null);
+
+            String trophyIndex3 = "trophy"+Integer.toString(trophyCat.id3);
+            Log.i("TROPHY", "Trophy3 ID is: " + trophyIndex3);
+            if (trophyCat.playerId3 == null) {
+                Log.i("TROPHY", "Player ID 3 is null");
+                viewHolder.mImage3.setImageResource(R.drawable.trophy_black);
+            } else {
+                light = true;
+                Log.i("TROPHY", "Player ID 3 is: " + trophyCat.playerId3);
+                viewHolder.mImage3.setImageResource(getDrawable(activity.getContext(), trophyIndex3));
             }
+
+            if(light == true){
+                viewHolder.mLight.setImageResource(R.drawable.light_layer);
+            }
+            else if(light == false){
+                viewHolder.mLight.setImageResource(R.drawable.shadow_layer);
+            }
+
+            Typeface nameFont = Typeface.createFromAsset(activity.getContext().getAssets(), "fonts/nova_excblack.otf");
+            int nameTextSize = 16;
+
+            viewHolder.mName1.setTextColor(Color.BLACK);
+            viewHolder.mName1.setText(trophyCat.name1.toUpperCase());
+            viewHolder.mName1.setTypeface(nameFont);
+            if(trophyCat.name1.length() >= 17){
+                nameTextSize = 12;
+            }
+            viewHolder.mName1.setTextSize(nameTextSize);
+
+            viewHolder.mName2.setTextColor(Color.BLACK);
+            viewHolder.mName2.setText(trophyCat.name2.toUpperCase());
+            viewHolder.mName2.setTypeface(nameFont);
+            if(trophyCat.name2.length() >= 17){
+                nameTextSize = 12;
+            }
+            viewHolder.mName2.setTextSize(nameTextSize);
+
+            viewHolder.mName3.setTextColor(Color.BLACK);
+            viewHolder.mName3.setText(trophyCat.name3.toUpperCase());
+            viewHolder.mName3.setTypeface(nameFont);
+            if(trophyCat.name3.length() >= 17){
+                nameTextSize = 12;
+            }
+            viewHolder.mName3.setTextSize(nameTextSize);
+
+            Typeface descripFont = Typeface.createFromAsset(activity.getContext().getAssets(), "fonts/nova_excthin.otf");
+
+            viewHolder.mDescription1.setTextColor(Color.BLACK);
+            viewHolder.mDescription1.setText(trophyCat.description1);
+            viewHolder.mDescription1.setTypeface(descripFont);
+            viewHolder.mDescription1.setTextSize(11);
+            viewHolder.mDescription1.setGravity(Gravity.TOP | Gravity.CENTER_HORIZONTAL);
+
+            viewHolder.mDescription2.setTextColor(Color.BLACK);
+            viewHolder.mDescription2.setText(trophyCat.description2);
+            viewHolder.mDescription2.setTypeface(descripFont);
+            viewHolder.mDescription2.setTextSize(11);
+            viewHolder.mDescription2.setGravity(Gravity.TOP | Gravity.CENTER_HORIZONTAL);
+
+            viewHolder.mDescription3.setTextColor(Color.BLACK);
+            viewHolder.mDescription3.setText(trophyCat.description3);
+            viewHolder.mDescription3.setTypeface(descripFont);
+            viewHolder.mDescription3.setTextSize(11);
+            viewHolder.mDescription3.setGravity(Gravity.TOP | Gravity.CENTER_HORIZONTAL);
+
             return convertView;
         }
     }
@@ -136,8 +243,8 @@ public class trophyWorker extends AsyncTask<String,Void,String> {
                 OutputStream outputStream = httpURLConnection.getOutputStream();
                 BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(outputStream, "UTF-8"));
                 JSONObject object = new JSONObject();
-                object.put("id", LoginActivity.acct.getId().toString());
-                //object.put("id", "1"); //for test purpose only
+                //object.put("id", LoginActivity.acct.getId().toString());
+                object.put("id", "1"); //for test purpose only
                 Log.d("acct_no", object.toString());
                 bufferedWriter.write(object.toString());
                 bufferedWriter.flush();
@@ -184,14 +291,27 @@ public class trophyWorker extends AsyncTask<String,Void,String> {
         if(result != null) {
             try {
                 jArray = new JSONArray(result);
-                List<Trophy> trophies = new ArrayList<Trophy>();
-                for (int i = 0; i < jArray.length(); i++) {
-                    JSONObject item = jArray.getJSONObject(i);
-                    Trophy trophy = new Trophy();
-                    trophy.id = item.getInt("trophyId");
-                    trophy.description = item.getString("description");
-                    trophy.playerId = item.isNull("playerId") ? null : item.getString("playerId");
-                    trophies.add(trophy);
+                List<TrophyCat> trophies = new ArrayList<TrophyCat>();
+                for (int i = 0; i < jArray.length() / 3; i++) {
+                    JSONObject item1 = jArray.getJSONObject(i*3);
+                    JSONObject item2 = jArray.getJSONObject(i*3+1);
+                    JSONObject item3 = jArray.getJSONObject(i*3+2);
+                    TrophyCat trophyCat = new TrophyCat();
+                    trophyCat.id1 = item1.getInt("trophyId");
+                    trophyCat.id2 = item2.getInt("trophyId");
+                    trophyCat.id3 = item3.getInt("trophyId");
+                    trophyCat.name1 = item1.getString("trophyName");
+                    trophyCat.name2 = item2.getString("trophyName");
+                    trophyCat.name3 = item3.getString("trophyName");
+                    trophyCat.description1 = item1.getString("description");
+                    trophyCat.description2 = item2.getString("description");
+                    trophyCat.description3 = item3.getString("description");
+                    trophyCat.category = item1.getString("category");
+                    trophyCat.color = item1.getString("color");
+                    trophyCat.playerId1 = item1.isNull("playerId") ? null : item1.getString("playerId");
+                    trophyCat.playerId2 = item2.isNull("playerId") ? null : item2.getString("playerId");
+                    trophyCat.playerId3 = item3.isNull("playerId") ? null : item3.getString("playerId");
+                    trophies.add(trophyCat);
                 }
 
                 TrophyAdapter trophyAdapter = new TrophyAdapter(activity.getContext(), R.layout.trophy_list_item, trophies);

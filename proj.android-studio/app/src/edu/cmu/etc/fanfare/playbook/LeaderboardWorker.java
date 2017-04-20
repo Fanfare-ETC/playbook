@@ -66,7 +66,9 @@ public class LeaderboardWorker extends AsyncTask<String,Void,String> {
                 //Log.v("sec",Integer.toString(section));
                 //String move = "2";
                 //URL url = new URL("http://10.0.2.2:9000/leaderboard");
+
                 URL url = new URL(urlStringLeader);
+                Log.i("TEST_URL", "String URL: " + url);
                 HttpURLConnection httpURLConnection = (HttpURLConnection)url.openConnection();
                 httpURLConnection.setRequestMethod("GET");
                 //httpURLConnection.setDoOutput(true);
@@ -197,9 +199,9 @@ public class LeaderboardWorker extends AsyncTask<String,Void,String> {
                 // bufferedWriter.close();
                 // outputStream.close();
                 int responseCode = httpURLConnection.getResponseCode();
+                Log.d("HTTP", "LeaderboardC Response code: " + responseCode);
                 if(responseCode != 200)
                     return null;
-                Log.d("HTTP", "LeaderboardC Response code: " + responseCode);
                 InputStream inputStream = httpURLConnection.getInputStream();
                 BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream,"iso-8859-1"));
                 /*StringBuilder sb = new StringBuilder();
@@ -305,7 +307,7 @@ public class LeaderboardWorker extends AsyncTask<String,Void,String> {
                     tr.addView(b1);
 
                     TextView b2 = new TextView(activity.getContext());
-                    int textSize = 24;
+                    int textSize = 20;
                     if((json_data.getInt("PredictionScore") > 999) | (json_data.getInt("CollectionScore") > 999) | (json_data.getInt("Total") > 999)){
                         if((json_data.getInt("PredictionScore") > 9999) | (json_data.getInt("CollectionScore") > 9999) | (json_data.getInt("Total") > 9999)){
                             textSize = 12;
@@ -318,12 +320,12 @@ public class LeaderboardWorker extends AsyncTask<String,Void,String> {
                     String prediction = String.valueOf(json_data.getInt("PredictionScore"));
                     b2.setText(prediction);
                     if (flag == 1)
-                        b2.setTextColor(Color.parseColor("#FFB84D"));
+                        b2.setTextColor(Color.parseColor("#FFC300"));
                     else
                         b2.setTextColor(Color.WHITE);
                     b2.setTypeface(externalFont);
-                    b2.setPadding(28, 0, 16, 0);
-
+                    b2.setPadding(28, 0, 20, 0);
+                                       //16
                         b2.setTextSize(textSize);
 
 
@@ -335,7 +337,7 @@ public class LeaderboardWorker extends AsyncTask<String,Void,String> {
                     String collection = String.valueOf(json_data.getInt("CollectionScore"));
                     b3.setText(collection);
                     if (flag == 2)
-                        b3.setTextColor(Color.parseColor("#FFB84D"));
+                        b3.setTextColor(Color.parseColor("#FFC300"));
                     else
                         b3.setTextColor(Color.WHITE);
                     b3.setTypeface(externalFont);
@@ -357,7 +359,7 @@ public class LeaderboardWorker extends AsyncTask<String,Void,String> {
 
                     b4.setGravity(Gravity.RIGHT | Gravity.CENTER);
                     if (flag == 0)
-                        b4.setTextColor(Color.parseColor("#FFB84D"));
+                        b4.setTextColor(Color.parseColor("#FFC300"));
                     else
                         b4.setTextColor(Color.WHITE);
                     b4.setLayoutParams(params2);
