@@ -53,7 +53,7 @@ public class CollectionFragment extends PlaybookFragment {
         // We use SharedPreference because the savedInstanceState doesn't work
         // if the fragment doesn't have an ID.
         try {
-            SharedPreferences prefs = getContext().getSharedPreferences("collection", Context.MODE_PRIVATE);
+            SharedPreferences prefs = getActivity().getSharedPreferences("collection", Context.MODE_PRIVATE);
             String gameState = prefs.getString("gameState", null);
             if (gameState != null) {
                 Log.d(TAG, "Restoring game state from bundle: " + gameState);
@@ -70,7 +70,7 @@ public class CollectionFragment extends PlaybookFragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        mWebView = new WebView(getContext());
+        mWebView = new WebView(getActivity());
         checkWebViewVersion();
         mIsRunning = true;
 
@@ -92,7 +92,7 @@ public class CollectionFragment extends PlaybookFragment {
         super.onDetach();
 
         // Save game state to preferences.
-        SharedPreferences prefs = getContext().getSharedPreferences("collection", Context.MODE_PRIVATE);
+        SharedPreferences prefs = getActivity().getSharedPreferences("collection", Context.MODE_PRIVATE);
         prefs.edit().putString("gameState", mGameState.toString()).apply();
         Log.d(TAG, "Saved gameState to preferences");
 
@@ -128,7 +128,7 @@ public class CollectionFragment extends PlaybookFragment {
     }
 
     private Integer getWebViewMajorVersion() {
-        PackageManager pm = getContext().getPackageManager();
+        PackageManager pm = getActivity().getPackageManager();
         PackageInfo info;
         try {
             info = pm.getPackageInfo(WEB_VIEW_PACKAGE_NAME, 0);
@@ -158,7 +158,7 @@ public class CollectionFragment extends PlaybookFragment {
     }
 
     private void showWebViewNeedsUpdateDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         builder.setMessage(R.string.prediction_web_view_needs_update)
                 .setTitle(R.string.prediction_update_web_view)
                 .setPositiveButton(R.string.update, new DialogInterface.OnClickListener() {
@@ -188,7 +188,7 @@ public class CollectionFragment extends PlaybookFragment {
     }
 
     private void showWebViewNotInstalledDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         builder.setMessage(R.string.prediction_web_view_not_installed)
                 .setTitle(R.string.prediction_incompatible_device)
                 .setPositiveButton(R.string.close, new DialogInterface.OnClickListener() {

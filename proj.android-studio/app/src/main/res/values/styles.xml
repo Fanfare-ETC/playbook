@@ -18,6 +18,7 @@
     </style>
 
     <style name="tutorialParagraphStyle" parent="TextAppearance.AppCompat">
+        <item name="android:background">@android:color/transparent</item>
         <item name="android:textSize">24sp</item>
         <item name="android:textAlignment">center</item>
         <item name="android:gravity">center</item>

@@ -271,7 +271,7 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
         }
 
 
-            SharedPreferences settings = this.getContext().getSharedPreferences("FANFARE_SHARED", 0);
+            SharedPreferences settings = this.getActivity().getSharedPreferences("FANFARE_SHARED", 0);
             section = settings.getInt("section", 0) - 1;
 
             layout = (ConstraintLayout) view.findViewById(R.id.treasurehunt_layout);
@@ -600,7 +600,7 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
     {
 
         int[] location = new int[2];
-        ImageView new_plusten= new ImageView(getContext());
+        ImageView new_plusten= new ImageView(getActivity());
         new_plusten.setImageResource(plustenId);
         new_plusten.setVisibility(View.VISIBLE);
         ImageView section = (ImageView) view.findViewById(sectionId);
@@ -644,7 +644,7 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
     }
     public void plusoneanimation(int[] position,int[] offset)
     {
-        ImageView newone = new ImageView(getContext());
+        ImageView newone = new ImageView(getActivity());
         newone.setImageResource(plusoneId);
         newone.setVisibility(View.VISIBLE);
         newone.setX(position[0]-offset[0]);
@@ -764,7 +764,7 @@ public boolean onTouch(View v, MotionEvent event)
                     clickpos[1]=(int)ty ;//- values[1];
 
                     plusoneanimation(clickpos,values);
-                    ImageView new_w = new ImageView(getContext());
+                    ImageView new_w = new ImageView(getActivity());
 
                 }
                 break;

@@ -121,7 +121,7 @@ public class selfScoreWorker extends AsyncTask<String,Void,String> {
                 TableLayout tv = (TableLayout) activity.getView().findViewById(R.id.selfboard);
                 tv.removeAllViewsInLayout();
 
-                TableRow tr = new TableRow(activity.getContext());
+                TableRow tr = new TableRow(activity.getActivity());
                     /*tr.setLayoutParams(new TableRow.LayoutParams(
                             TableRow.LayoutParams.MATCH_PARENT,
                             TableRow.LayoutParams.MATCH_PARENT));*/
@@ -139,7 +139,7 @@ public class selfScoreWorker extends AsyncTask<String,Void,String> {
                         ", Collection" + jo.getString("CollectionScore") +
                         ", Total" + jo.getString("Total"));
 
-                Typeface externalFont = Typeface.createFromAsset(activity.getContext().getAssets(), "SCOREBOARD.ttf");
+                Typeface externalFont = Typeface.createFromAsset(activity.getActivity().getAssets(), "SCOREBOARD.ttf");
 
                 int textSize = 40;
                 if((jo.getInt("PredictionScore") > 999) | (jo.getInt("CollectionScore") > 999) | (jo.getInt("Total") > 999)){
@@ -151,7 +151,7 @@ public class selfScoreWorker extends AsyncTask<String,Void,String> {
                     }
 
                 }
-                TextView b2 = new TextView(activity.getContext());
+                TextView b2 = new TextView(activity.getActivity());
                 String prediction = String.valueOf(jo.getInt("PredictionScore"));
                 if(jo.getInt("PredictionScore") < 10){
                     b2.setText("0" + prediction);
@@ -169,7 +169,7 @@ public class selfScoreWorker extends AsyncTask<String,Void,String> {
                 b2.setLayoutParams(params2);
                 tr.addView(b2);
 
-                TextView b3 = new TextView(activity.getContext());
+                TextView b3 = new TextView(activity.getActivity());
                 String collection = String.valueOf(jo.getInt("CollectionScore"));
                 if(jo.getInt("CollectionScore") < 10){
                     b3.setText("0" + collection);
@@ -187,7 +187,7 @@ public class selfScoreWorker extends AsyncTask<String,Void,String> {
                 b3.setLayoutParams(params2);
                 tr.addView(b3);
 
-                TextView b4 = new TextView(activity.getContext());
+                TextView b4 = new TextView(activity.getActivity());
                 String total = String.valueOf(jo.getInt("Total"));
                 if(jo.getInt("Total") < 10){
                     b4.setText("0" + total);

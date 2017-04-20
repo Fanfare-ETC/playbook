@@ -75,7 +75,7 @@ public class trophyWorker extends AsyncTask<String,Void,String> {
             ViewHolder viewHolder;
             if (convertView == null) {
                 viewHolder = new ViewHolder();
-                LayoutInflater inflater = LayoutInflater.from(activity.getContext());
+                LayoutInflater inflater = LayoutInflater.from(activity.getActivity());
                 convertView = inflater.inflate(R.layout.trophy_list_item, parent, false);
                 viewHolder.mImage = (ImageView) convertView.findViewById(R.id.trophyImage);
                 viewHolder.mDescription = (TextView) convertView.findViewById(R.id.trophyDescription);
@@ -92,10 +92,10 @@ public class trophyWorker extends AsyncTask<String,Void,String> {
                 viewHolder.mImage.setImageResource(R.drawable.trophy_black);
             } else {
                 Log.i("TROPHY", "Player ID is: " + trophy.playerId);
-                viewHolder.mImage.setImageResource(getDrawable(activity.getContext(), trophyIndex));
+                viewHolder.mImage.setImageResource(getDrawable(activity.getActivity(), trophyIndex));
             }
 
-            Typeface externalFont = Typeface.createFromAsset(activity.getContext().getAssets(), "fonts/nova1.ttf");
+            Typeface externalFont = Typeface.createFromAsset(activity.getActivity().getAssets(), "fonts/nova1.ttf");
 
             viewHolder.mDescription.setTextColor(Color.BLACK);
             viewHolder.mDescription.setText(trophy.description);
@@ -194,7 +194,7 @@ public class trophyWorker extends AsyncTask<String,Void,String> {
                     trophies.add(trophy);
                 }
 
-                TrophyAdapter trophyAdapter = new TrophyAdapter(activity.getContext(), R.layout.trophy_list_item, trophies);
+                TrophyAdapter trophyAdapter = new TrophyAdapter(activity.getActivity(), R.layout.trophy_list_item, trophies);
                 ListView listView = (ListView) activity.getView().findViewById(R.id.trophyList);
                 listView.setAdapter(trophyAdapter);
                 //listView.invalidate();
