@@ -129,7 +129,7 @@
         app:layout_constraintVertical_bias="0.282" />
 
     <ImageView
-        android:id="@+id/warmer_section"
+        android:id="@+id/warmerSection"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:scaleType="fitCenter"
@@ -141,7 +141,7 @@
         app:layout_constraintVertical_bias="0.518" />
 
     <ImageView
-        android:id="@+id/colder_section"
+        android:id="@+id/colderSection"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:scaleType="fitXY"
@@ -153,7 +153,7 @@
         app:layout_constraintVertical_bias="0.499" />
 
     <ImageView
-        android:id="@+id/plant_section"
+        android:id="@+id/markerSection"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:scaleType="fitXY"
@@ -351,7 +351,7 @@
         app:layout_constraintTop_toTopOf="parent" />
     <view
         android:id="@+id/connectView1"
-        class="edu.cmu.etc.fanfare.playbook.TreasureHuntFragment$Connect1"
+        class="edu.cmu.etc.fanfare.playbook.TreasureHuntFragment$connectDots"
         android:layout_width="0dp"
         android:layout_height="0dp"
         app:layout_constraintBottom_toBottomOf="parent"
