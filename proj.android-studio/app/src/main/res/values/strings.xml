@@ -1,5 +1,8 @@
 <resources>
     <string name="app_name">Fanfare Playbook</string>
+    <string name="skip">Skip</string>
+    <string name="next">Next</string>
+    <string name="welcome">Welcome!</string>
     <string name="drawer_open">Open</string>
     <string name="drawer_close">Close</string>
     <string name="close">Close</string>
@@ -47,5 +50,32 @@
     </string>
     <string name="collection_tutorial_para_4">
         You can hold 5 cards, so drag cards you don\'t want up to discard them.
+    </string>
+
+    <string name="onboarding_step_1_three_minigames">
+        <b>FANFARE</b> includes 3 minigames you can play at different times in-stadium:
+    </string>
+    <string name="onboarding_step_1_prediction">
+        <b>PREDICTION</b> is a guessing game for use between innings
+    </string>
+    <string name="onboarding_step_1_collection">
+        <b>COLLECTION</b> is a card collecting game for use during the inning
+    </string>
+    <string name="onboarding_step_1_hotcold">
+        <b>CONNECT THE DOTS</b> is an event the announcer will run once per game
+    </string>
+
+    <string name="onboarding_step_2_para_1">
+        Swap between the minigames any time by tapping the button in the corner to see
+        the sidebar menu.
+    </string>
+    <string name="onboarding_step_2_para_2">
+        The Leaderboard shows how your score compares to the top 10.
+    </string>
+    <string name="onboarding_step_2_para_3">
+        You can see goals you’ve earned here any time.
+    </string>
+    <string name="onboarding_step_2_para_4">
+        Done!
     </string>
 </resources>

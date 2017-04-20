@@ -25,6 +25,18 @@
         <item name="android:layout_marginBottom">16dp</item>
     </style>
 
+    <style name="onboardingTileStyle">
+        <item name="android:drawablePadding">12dp</item>
+        <item name="android:padding">12dp</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textSize">20sp</item>
+        <item name="android:textAppearance">?android:textAppearanceInverse</item>
+    </style>
+
+    <style name="onboardingParagraphStyle" parent="tutorialParagraphStyle">
+        <item name="android:textColor">@color/secondary</item>
+    </style>
+
     <style name="spinnerItemStyle" parent="android:Widget.TextView.SpinnerItem">
 
     </style>
