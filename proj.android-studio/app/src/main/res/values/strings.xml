@@ -22,4 +22,15 @@
     <string name="prediction_web_view_needs_update">
         This app won\'t work unless you update Android System WebView.
     </string>
+
+    <string name="prediction_tutorial_para_1">Play this game between half innings.</string>
+    <string name="prediction_tutorial_para_2">
+        Drag your baseballs to the field to predict the plays that will happen next half-inning.
+    </string>
+    <string name="prediction_tutorial_para_3">
+        Tap the payouts tab to see how many points each area pays out per ball.
+    </string>
+    <string name="prediction_tutorial_para_4">
+        Once the inning starts, you have 10 seconds to place your final balls.
+    </string>
 </resources>

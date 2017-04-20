@@ -73,7 +73,8 @@ public class OutlinedTextView extends AppCompatTextView {
         mPaint.setStyle(Paint.Style.STROKE);
         mPaint.setTextSize(getTextSize());
         mPaint.setTypeface(getTypeface());
-        mPaint.setStrokeJoin(Paint.Join.BEVEL);
+        mPaint.setStrokeJoin(Paint.Join.MITER);
+        mPaint.setStrokeMiter(2.0f);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             mPaint.setLetterSpacing(getLetterSpacing());
         }

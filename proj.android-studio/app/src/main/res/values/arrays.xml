@@ -3,7 +3,7 @@
     <string-array name="menu_items">
         <item>Prediction</item>
         <item>Collection</item>
-        <item>Guide Your Runner</item>
+        <item>Connect The Dots</item>
         <item>Leaderboard</item>
         <item>Trophy Case</item>
     </string-array>
@@ -17,7 +17,7 @@
     <array name="menu_item_fragment_title">
         <item>Place Your Bets</item>
         <item>Collect Sets</item>
-        <item>Guide Runner</item>
+        <item>Connect The Dots</item>
         <item>Leaderboard</item>
         <item>Trophy Case</item>
         <item>Select Section</item>

@@ -420,7 +420,7 @@ class GameState {
       createRandomGoal();
     } else {
       restoredState.cardSlots.forEach((slot, index) => {
-        this.cardSlots[index].present = slot.present;
+        this._cardSlots[index].present = slot.present;
         if (slot.present) {
           const card = createCard(slot.card.play, false, index);
           Object.assign(card, slot.card);
@@ -429,15 +429,20 @@ class GameState {
           this._cardSlots[index].card = card;
         }
       });
-      this.goal = restoredState.goal;
-      this.score = restoredState.score;
-
-      // This comes before the latter.
-      this.cardsMatchingSelectedGoal = restoredState.cardsMatchingSelectedGoal ?
+      this._goal = restoredState.goal;
+      this._score = restoredState.score;
+      this._selectedGoal = restoredState.selectedGoal;
+      this._cardsMatchingSelectedGoal = restoredState.cardsMatchingSelectedGoal ?
         restoredState.cardsMatchingSelectedGoal.map(cardId => {
           return this.cardSlots[cardId].card;
         }) : null;
-      this.selectedGoal = restoredState.selectedGoal;
+
+      // Trigger initial updates.
+      this.emitter.emit(this.EVENT_CARD_SLOTS_CHANGED, this._cardSlots, null);
+      this.emitter.emit(this.EVENT_GOAL_CHANGED, this._goal, null);
+      this.emitter.emit(this.EVENT_SCORE_CHANGED, this._score, null);
+      this.emitter.emit(this.EVENT_SELECTED_GOAL_CHANGED, this._selectedGoal, null);
+      this.emitter.emit(this.EVENT_CARDS_MATCHING_SELECTED_GOAL_CHANGED, this._cardsMatchingSelectedGoal, null);
     }
   }
 }
@@ -489,7 +494,7 @@ class Card {
     this.dragOrigScale = null;
 
     /** @type {number} */
-    this.dragTarget = -1; //card slot (0-4) discard (6) or score (7)
+    this.dragTarget = null; //card slot (0-4) discard (6) or score (7)
 
     /** @type {number} */
     this.isAnimating = false;
@@ -641,7 +646,18 @@ function initCardEvents(card) {
 
       // Tint card red when in the discard zone.
       const discard = stage.getChildByName('discard');
-      card.sprite.tint = (card.dragTarget === discard) ? 0xff0000 : 0xffffff;
+      if (card.dragTarget === discard) {
+        card.sprite.tint = 0xff0000;
+      } else {
+        if (!state.cardsMatchingSelectedGoal ||
+            state.cardsMatchingSelectedGoal.indexOf(card) < 0) {
+          card.sprite.tint = 0xffffff;
+        } else {
+          // TODO: Is there a better way to manage this?
+          // We're setting this in two places... which means potential for errors.
+          card.sprite.tint = 0x00ff00;
+        }
+      }
 
       // Re-render the scene.
       renderer.isDirty = true;
@@ -667,8 +683,8 @@ function initCardEvents(card) {
         card.moveToOrigPosition();
       }
     } else if (card.dragTarget >= 0 && card.dragTarget < 6) {
-      if (card.isActive && card.dragTarget !== null && !state.cardSlots[card.dragTarget].present) {
-        assignActiveCardToSlot(card.dragTarget);
+      if (card.dragTarget !== null && !state.cardSlots[card.dragTarget].present) {
+        assignCardToSlot(card, card.dragTarget);
       } else {
         card.moveToOrigPosition();
       }
@@ -747,6 +763,8 @@ function checkIfGoalMet() {
     state.goalSets[state.goal] = activeGoalCardSet;
   }
 
+  state.selectedGoal = null;
+  state.cardsMatchingSelectedGoal = null;
   updateGoals(state.goalSets);
 }
 
@@ -804,7 +822,7 @@ function updateGoals(goalSets) {
   });
 
   goalsContainer.position.set(0.0, window.innerHeight - tray.height - stageGoalBar.height - goalsContainerHeight);
-  invalidateDragToScore();
+  invalidateScoreButton();
 }
 
 /**
@@ -845,17 +863,19 @@ function highlightCardsMatchingGoal() {
     .map(slot => slot.card.sprite)
     .forEach(sprite => sprite.tint = 0xffffff);
 
-  state.cardsMatchingSelectedGoal.forEach(card => {
-    const tintTo = new PIXI.action.TintTo(0x00ff00, 0.25);
-    PIXI.actionManager.runAction(card.sprite, tintTo);
-  });
+  if (state.selectedGoal && state.cardsMatchingSelectedGoal) {
+    state.cardsMatchingSelectedGoal.forEach(card => {
+      const tintTo = new PIXI.action.TintTo(0x00ff00, 0.25);
+      PIXI.actionManager.runAction(card.sprite, tintTo);
+    });
+  }
 }
 
 /**
  * Invalidates the drag to score section.
  * This redraws the section to fit the button.
  */
-function invalidateDragToScore() {
+function invalidateScoreButton() {
   const goalsContainer = stage.getChildByName('goalsContainer');
 
   // Redraw the shadow.
@@ -942,32 +962,18 @@ function cardSetMeetsGoal(cardSet, goal) {
       break;
     }
     case GoalTypes.EACH_COLOR_1: {
-      if ((numBlue >= 1) && (numRed >= 1)) {
-        const cardRed = cardSet.find(card => (PlaybookEventsTeams[card.play] === 'BATTING')).length;
-        const cardBlue = cardSet.find(card => (PlaybookEventsTeams[card.play] === 'FIELDING')).length;
-        cardsMetGoal.push(cardBlue);
-        cardsMetGoal.push(cardRed);
-        return cardsMetGoal;
+      if (numBlue >= 1 && numRed >= 1) {
+        const cardRed = cardSet.find(card => PlaybookEventsTeams[card.play] === 'BATTING');
+        const cardBlue = cardSet.find(card => PlaybookEventsTeams[card.play] === 'FIELDING');
+        return [ cardRed, cardBlue ];
       }
       break;
     }
     case GoalTypes.EACH_COLOR_2: {
-      if ((numBlue >= 1) && (numRed >= 1)) {
-        cardSet.filter(card => (PlaybookEventsTeams[card.play] === 'BATTING'))
-          .forEach((card, i) => {
-            if (i < 2) {
-              cardsMetGoal.push(card);
-            }
-          });
-
-        cardSet.filter(card => (PlaybookEventsTeams[card.play] === 'FIELDING'))
-          .forEach((card, i) => {
-            if (i < 2) {
-              cardsMetGoal.push(card);
-            }
-          });
-
-        return cardsMetGoal;
+      if (numBlue >= 2 && numRed >= 2) {
+        const redCards = cardSet.filter(card => PlaybookEventsTeams[card.play] === 'BATTING').slice(0, 2);
+        const blueCards = cardSet.filter(card => PlaybookEventsTeams[card.play] === 'FIELDING').slice(0, 2);
+        return [...redCards, ...blueCards];
       }
       break;
     }
@@ -977,21 +983,21 @@ function cardSetMeetsGoal(cardSet, goal) {
       if (plays2 !== undefined && plays3 !== undefined && plays2 !== plays3) {
         const cards2 = cardSet.filter(card => card.play === plays2);
         const cards3 = cardSet.filter(card => card.play === plays3);
-        return [...card2, ...cards3];
+        return [...cards2, ...cards3];
       }
       break;
     }
     case GoalTypes.IDENTICAL_CARDS_3: {
-      const plays = Object.keys(cardCounts).filter(play => cardCounts[play] === 3);
+      const plays = Object.keys(cardCounts).filter(play => cardCounts[play] >= 3);
       if (plays.length > 0) {
-        return cardSet.filter(card => card.play === plays[0]);
+        return cardSet.filter(card => card.play === plays[0]).slice(0, 3);
       }
       break;
     }
     case GoalTypes.IDENTICAL_CARDS_4: {
-      const plays = Object.keys(cardCounts).filter(play => cardCounts[play] === 4);
+      const plays = Object.keys(cardCounts).filter(play => cardCounts[play] >= 4);
       if (plays.length > 0) {
-        return cardSet.filter(card => card.play === plays[0]);
+        return cardSet.filter(card => card.play === plays[0]).slice(0, 4);
       }
       break;
     }
@@ -1121,20 +1127,30 @@ function cardSetMeetsGoal(cardSet, goal) {
 }
 
 /**
- * Assigns the active card to a specific slot.
+ * Assigns the card to a specific slot.
+ * @param {Card} card
  * @param {number} slot
  */
-function assignActiveCardToSlot(slot) {
+function assignCardToSlot(card, slot) {
+  // Check if card exists in existing slot.
+  const existingSlot = state.cardSlots.filter(slot => slot.present)
+    .find(slot => slot.card === card);
+  if (existingSlot !== undefined) {
+    existingSlot.present = false;
+    existingSlot.card = null;
+  }
+
   // Copy card into slot list.
-  state.cardSlots[slot].card = state.activeCard;
+  state.cardSlots[slot].card = card;
   state.cardSlots[slot].present = true;
-  state.cardSlots = state.cardSlots.slice();
   state.activeCard = null;
 
-  const card = state.cardSlots[slot].card;
   card.moveToSlot(slot);
   card.isActive = false;
   state.isCardActive = false;
+
+  // Trigger an update.
+  state.cardSlots = state.cardSlots.slice();
 
   // Check if the set of cards meet the goal.
   checkIfGoalMet();
@@ -1145,12 +1161,7 @@ function assignActiveCardToSlot(slot) {
  * @param {Card} card
  */
 function discardCard(card) {
-  if (state.isCardActive) {
-    if (state.activeCard !== card) {
-      console.warn('A card is active, but card to be discarded is not the active card!');
-      return;
-    }
-
+  if (state.isCardActive && state.activeCard === card) {
     stage.removeChild(state.activeCard.sprite);
     state.activeCard = null;
     state.isCardActive = false;
@@ -1169,8 +1180,8 @@ function discardCard(card) {
     state.cardSlots = state.cardSlots.slice();
   }
 
-  renderer.isDirty = true;
   checkIfGoalMet();
+  renderer.isDirty = true;
 }
 
 /**
@@ -1209,6 +1220,18 @@ function getCardSlotPositionFor(cardTexture, i) {
 };
 
 /**
+ * Listens to button presses on drag set to score.
+ */
+function initScoreButtonEvents(scoreButton) {
+  scoreButton.interactive = true;
+  scoreButton.on('tap', () => {
+    if (state.selectedGoal && state.cardsMatchingSelectedGoal) {
+      scoreCardSet(state.selectedGoal, state.cardsMatchingSelectedGoal);
+    }
+  });
+}
+
+/**
  * Listens to changes on the goal state.
  * @param {PIXI.Sprite} goalSprite
  */
@@ -1227,9 +1250,7 @@ function initGoalEvents(goalSprite) {
  */
 function initSelectedGoalEvent() {
   state.emitter.on(state.EVENT_SELECTED_GOAL_CHANGED, function (goal) {
-    if (state.selectedGoal && state.cardsMatchingSelectedGoal) {
-      highlightCardsMatchingGoal();
-    }
+    highlightCardsMatchingGoal();
   });
 }
 
@@ -1454,17 +1475,19 @@ function distance(p1, p2) {
  * @param {PIXI.Text} scoreText
  */
 function initScoreEvents(scoreText) {
-  state.emitter.on(state.EVENT_SCORE_CHANGED, function (score) {
-    scoreText.text = ('000000' + score).substr(-3);
+  state.emitter.on(state.EVENT_SCORE_CHANGED, function (score, oldScore) {
+    scoreText.text = ('000000' + score).substr(-Math.max(score.toString().length, 3));
 
-    const origScale = scoreText.scale.x;
-    scoreText.scale.set(origScale * 3, origScale * 3);
-    scoreText.alpha = 0;
+    if (oldScore !== null) {
+      const origScale = scoreText.scale.x;
+      scoreText.scale.set(origScale * 3, origScale * 3);
+      scoreText.alpha = 0;
 
-    const scaleTo = new PIXI.action.ScaleTo(origScale, origScale, 0.5);
-    const fadeIn = new PIXI.action.FadeIn(0.5);
-    PIXI.actionManager.runAction(scoreText, scaleTo);
-    PIXI.actionManager.runAction(scoreText, fadeIn);
+      const scaleTo = new PIXI.action.ScaleTo(origScale, origScale, 0.5);
+      const fadeIn = new PIXI.action.FadeIn(0.5);
+      PIXI.actionManager.runAction(scoreText, scaleTo);
+      PIXI.actionManager.runAction(scoreText, fadeIn);
+    }
   });
 }
 
@@ -1542,15 +1565,6 @@ function setup() {
 
   // Use the tray scale as a scaling baseline.
   contentScale = tray.scale.x;
-
-  // Add top shadow
-  const topShadowTexture = PIXI.loader.resources['resources/Collection-Shadow-Overturn.png'].texture;
-  const topShadowHeight = topShadowTexture.height * contentScale;
-  const topShadow = new PIXI.extras.TilingSprite(topShadowTexture, window.innerWidth, topShadowHeight);
-  topShadow.name = 'shadowTop';
-  topShadow.position.set(0, 48);
-  topShadow.tileScale.set(1.0, contentScale);
-  stage.addChild(topShadow);
 
   // Add score bar
   const scoreBarTexture = PIXI.loader.resources['resources/Collection-Bar-Gold-9x16.png'].texture;
@@ -1654,23 +1668,31 @@ function setup() {
   stage.addChild(goalSprite);
 
   // Add banner on top
-  const whiteBannerTexture = PIXI.loader.resources['resources/Prediction-Banner.png'].texture;
-  const whiteBanner = new PIXI.Sprite(whiteBannerTexture);
-  const whiteBannerScale = window.innerWidth / whiteBannerTexture.width;
-  const whiteBannerHeight = whiteBannerScale * whiteBannerTexture.height;
+  const whiteBanner = new PIXI.Graphics();
+  const whiteBannerHeight = 32.0 * contentScale;
+  whiteBanner.beginFill(0xffffff);
+  whiteBanner.drawRect(0, 0, window.innerWidth, whiteBannerHeight);
   whiteBanner.name = 'whiteBanner';
-  whiteBanner.scale.set(whiteBannerScale, whiteBannerScale);
   stage.addChild(whiteBanner);
 
-  //Add Drag to Discard Banner
-  const discardTexture = PIXI.loader.resources['resources/Collection-Banner-9x16.png'].texture;
-  const discard = new PIXI.extras.TilingSprite(discardTexture, window.innerWidth, 36);
-  //const discardScale = window.innerWidth;
-  const discardHeight = 36.0;
+  // Add Drag to Discard Banner
+  const discard = new PIXI.Graphics();
+  const discardHeight = 128.0 * contentScale;
+  discard.beginFill(0x002b65);
+  discard.drawRect(0, 0, window.innerWidth, discardHeight);
   discard.name = 'discard';
-  discard.position.set(0, whiteBannerHeight / 2);
-  discard.tileScale.set(1, 0.5);
+  discard.position.set(0.0, whiteBannerHeight);
   stage.addChild(discard);
+
+  // Add top shadow
+  const topShadowTexture = PIXI.loader.resources['resources/Collection-Shadow-Overturn.png'].texture;
+  const topShadowHeight = topShadowTexture.height * contentScale;
+  const topShadow = new PIXI.extras.TilingSprite(topShadowTexture, window.innerWidth, topShadowHeight);
+  topShadow.name = 'shadowTop';
+  topShadow.anchor.set(0.0, 0.0);
+  topShadow.position.set(0, whiteBannerHeight + discardHeight);
+  topShadow.tileScale.set(1.0, contentScale);
+  stage.addChild(topShadow);
 
   //Add discard label
   const discardText = new PIXI.Text();
@@ -1694,6 +1716,8 @@ function setup() {
   scoreButton.name = 'scoreButton';
   scoreButton.anchor.set(0.5, 0.5);
   stage.addChild(scoreButton);
+  invalidateScoreButton();
+  initScoreButtonEvents(scoreButton);
 
   // Generate a random goal.
   initGoalEvents(goalSprite);
