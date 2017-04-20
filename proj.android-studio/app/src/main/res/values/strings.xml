@@ -14,12 +14,12 @@
         <item>Section 4</item>
     </string-array>
 
-    <string name="prediction_incompatible_device">Incompatible Device</string>
-    <string name="prediction_web_view_not_installed">
+    <string name="incompatible_device">Incompatible Device</string>
+    <string name="web_view_not_installed">
         This app won\'t work because your device doesn\'t have Android System WebView installed.
     </string>
-    <string name="prediction_update_web_view">Update Android System WebView</string>
-    <string name="prediction_web_view_needs_update">
+    <string name="update_web_view">Update Android System WebView</string>
+    <string name="web_view_needs_update">
         This app won\'t work unless you update Android System WebView.
     </string>
 
@@ -32,5 +32,19 @@
     </string>
     <string name="prediction_tutorial_para_4">
         Once the inning starts, you have 10 seconds to place your final balls.
+    </string>
+
+    <string name="collection_tutorial_para_1">
+        Use this screen between plays. After every play you\'ll get a card.
+    </string>
+    <string name="collection_tutorial_para_2">
+        Drag cards down to collect them. If your cards match your goal, tap the notification
+        bar to select them, then tap the star to score.
+    </string>
+    <string name="collection_tutorial_para_3">
+        Once per inning, you can change goals by tapping the trophy.
+    </string>
+    <string name="collection_tutorial_para_4">
+        You can hold 5 cards, so drag cards you don\'t want up to discard them.
     </string>
 </resources>

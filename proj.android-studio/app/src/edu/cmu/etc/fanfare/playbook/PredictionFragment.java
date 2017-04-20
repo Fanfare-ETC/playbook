@@ -58,7 +58,7 @@ public class PredictionFragment extends PlaybookFragment {
     private boolean mWebViewIsCompatible = false;
     private WebView mWebView;
     private JSONObject mGameState;
-    private boolean mIsRunning;
+    private boolean mIsAttached;
     private Queue<JSONObject> mPendingEvents = new LinkedList<>();
 
     private AlertDialog mCorrectDialog;
@@ -118,7 +118,7 @@ public class PredictionFragment extends PlaybookFragment {
         PLAYBOOK_EVENTS.append(24, "UNKNOWN");
 
         // Mark ourselves as running.
-        mIsRunning = true;
+        mIsAttached = true;
     }
 
     @Override
@@ -148,7 +148,7 @@ public class PredictionFragment extends PlaybookFragment {
         prefs.edit().putString(PREF_KEY_GAME_STATE, mGameState.toString()).apply();
         Log.d(TAG, "Saved gameState to preferences");
 
-        mIsRunning = false;
+        mIsAttached = false;
         mWebView.removeAllViews();
         mWebView.destroy();
     }
@@ -157,7 +157,7 @@ public class PredictionFragment extends PlaybookFragment {
     public void onWebSocketMessageReceived(Activity context, JSONObject s) {
         super.onWebSocketMessageReceived(context, s);
         try {
-            if (!mIsRunning) {
+            if (!mIsAttached) {
                 if (s.has("event")) {
                     String event = s.getString("event");
                     if (event.equals("server:playsCreated")) {
@@ -218,8 +218,8 @@ public class PredictionFragment extends PlaybookFragment {
 
     private void showWebViewNotInstalledDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-        builder.setMessage(R.string.prediction_web_view_not_installed)
-            .setTitle(R.string.prediction_incompatible_device)
+        builder.setMessage(R.string.web_view_not_installed)
+            .setTitle(R.string.incompatible_device)
             .setPositiveButton(R.string.close, new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
@@ -238,8 +238,8 @@ public class PredictionFragment extends PlaybookFragment {
 
     private void showWebViewNeedsUpdateDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-        builder.setMessage(R.string.prediction_web_view_needs_update)
-            .setTitle(R.string.prediction_update_web_view)
+        builder.setMessage(R.string.web_view_needs_update)
+            .setTitle(R.string.update_web_view)
             .setPositiveButton(R.string.update, new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
