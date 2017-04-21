@@ -4,8 +4,9 @@
     <dimen name="leaderboard_margin">30dp</dimen>
     <dimen name="trophy_margin_left">120dp</dimen>
     <dimen name="trophy_margin_right">128dp</dimen>
-    <dimen name="text_margin">10dp</dimen>
+    <dimen name="text_margin">20dp</dimen>
     <dimen name="image_margin">24dp</dimen>
     <dimen name="image_margin1">16dp</dimen>
-    <item name="guideline3" format="float" type="dimen">0.65</item>
+    <dimen name="shadow_margin">30dp</dimen>
+    <item name="guideline3" format="float" type="dimen">0.69</item>
 </resources>

@@ -112,17 +112,17 @@ public class trophyWorker extends AsyncTask<String,Void,String> {
                     bannerNameColor = Color.WHITE;
                     break;
                 case "yellow":
-                    bannerNameColor = 0x80620000;
+                    bannerNameColor = 0xFF806200;
                     break;
                 case "white":
                     //bannerNameColor = 0x007F0000;
-                    bannerNameColor = 0x077D0700;
+                    bannerNameColor = 0xFF007F00;
                     break;
                 default:
-                    bannerNameColor = 0x80620000;
+                    bannerNameColor = Color.BLACK;
             }
 
-            Typeface fontCat = Typeface.createFromAsset(activity.getActivity().getAssets(), "fonts/rockb.ttf");
+            Typeface fontCat = Typeface.createFromAsset(activity.getActivity().getAssets(), "rockb.ttf");
 
             String colorString = "banner_"+trophyCat.color;
             viewHolder.mBanner.setImageResource(getDrawable(activity.getActivity(), colorString));
@@ -172,7 +172,7 @@ public class trophyWorker extends AsyncTask<String,Void,String> {
                 viewHolder.mLight.setImageResource(R.drawable.shadow_layer);
             }
 
-            Typeface nameFont = Typeface.createFromAsset(activity.getActivity().getAssets(), "fonts/nova_excblack.otf");
+            Typeface nameFont = Typeface.createFromAsset(activity.getActivity().getAssets(), "nova_excblack.otf");
             int nameTextSize = 16;
 
             viewHolder.mName1.setTextColor(Color.BLACK);
@@ -195,28 +195,37 @@ public class trophyWorker extends AsyncTask<String,Void,String> {
             viewHolder.mName3.setText(trophyCat.name3.toUpperCase());
             viewHolder.mName3.setTypeface(nameFont);
             if(trophyCat.name3.length() >= 17){
-                nameTextSize = 12;
+                nameTextSize = 10;
             }
             viewHolder.mName3.setTextSize(nameTextSize);
 
-            Typeface descripFont = Typeface.createFromAsset(activity.getActivity().getAssets(), "fonts/nova_excthin.otf");
-
+            Typeface descripFont = Typeface.createFromAsset(activity.getActivity().getAssets(), "nova_excthin.otf");
+            int descripTextSize = 11;
             viewHolder.mDescription1.setTextColor(Color.BLACK);
             viewHolder.mDescription1.setText(trophyCat.description1);
             viewHolder.mDescription1.setTypeface(descripFont);
-            viewHolder.mDescription1.setTextSize(11);
+            if(trophyCat.description1.length() >= 63){
+                descripTextSize = 9;
+            }
+            viewHolder.mDescription1.setTextSize(descripTextSize);
             viewHolder.mDescription1.setGravity(Gravity.TOP | Gravity.CENTER_HORIZONTAL);
 
             viewHolder.mDescription2.setTextColor(Color.BLACK);
             viewHolder.mDescription2.setText(trophyCat.description2);
             viewHolder.mDescription2.setTypeface(descripFont);
-            viewHolder.mDescription2.setTextSize(11);
+            if(trophyCat.description2.length() >= 63){
+                descripTextSize = 9;
+            }
+            viewHolder.mDescription2.setTextSize(descripTextSize);
             viewHolder.mDescription2.setGravity(Gravity.TOP | Gravity.CENTER_HORIZONTAL);
 
             viewHolder.mDescription3.setTextColor(Color.BLACK);
             viewHolder.mDescription3.setText(trophyCat.description3);
             viewHolder.mDescription3.setTypeface(descripFont);
-            viewHolder.mDescription3.setTextSize(11);
+            if(trophyCat.description3.length() >= 63){
+                descripTextSize = 8;
+            }
+            viewHolder.mDescription3.setTextSize(descripTextSize);
             viewHolder.mDescription3.setGravity(Gravity.TOP | Gravity.CENTER_HORIZONTAL);
 
             return convertView;
@@ -235,6 +244,7 @@ public class trophyWorker extends AsyncTask<String,Void,String> {
         if (params[0].equals("trophy")) {
             try {
                 URL url = new URL(urlStringTrophy);
+                Log.i("Trophy URL", "String URL: " + "url");
                 HttpURLConnection httpURLConnection = (HttpURLConnection)url.openConnection();
                 httpURLConnection.setRequestMethod("POST");
                 httpURLConnection.setDoOutput(true);
@@ -244,8 +254,8 @@ public class trophyWorker extends AsyncTask<String,Void,String> {
                 OutputStream outputStream = httpURLConnection.getOutputStream();
                 BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(outputStream, "UTF-8"));
                 JSONObject object = new JSONObject();
-                //object.put("id", LoginActivity.acct.getId().toString());
-                object.put("id", "1"); //for test purpose only
+                object.put("id", LoginActivity.acct.getId().toString());
+                //object.put("id", "1"); //for test purpose only
                 Log.d("acct_no", object.toString());
                 bufferedWriter.write(object.toString());
                 bufferedWriter.flush();
