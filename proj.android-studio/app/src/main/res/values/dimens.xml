@@ -8,5 +8,13 @@
     <dimen name="image_margin">24dp</dimen>
     <dimen name="image_margin1">16dp</dimen>
     <dimen name="shadow_margin">16dp</dimen>
+    <dimen name="section_width2">129dp</dimen>
+    <dimen name="section_height2">69dp</dimen>
+    <dimen name="section_width1">114dp</dimen>
+    <dimen name="section_height1">64dp</dimen>
+    <dimen name="center_margin">32dp</dimen>
+    <dimen name="center_margin1">8dp</dimen>
+    <dimen name="top_margin">24dp</dimen>
+    <dimen name="continue_margin">0dp</dimen>
     <item name="guideline3" format="float" type="dimen">0.72</item>
 </resources>
