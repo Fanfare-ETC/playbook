@@ -246,10 +246,12 @@ const GoalTypesMetadata = {
 class GameState {
   constructor() {
     this.EVENT_ACTIVE_CARD_CHANGED = 'activeCardChanged';
+    this.EVENT_INCOMING_CARDS_CHANGED = 'incomingCardsChanged';
     this.EVENT_GOAL_CHANGED = 'goalChanged';
-    this.EVENT_SCORE_CHANGED = 'scoreChanged';
-    this.EVENT_SELECTED_GOAL_CHANGED = 'selectedGoalChanged';
+    this.EVENT_CARD_SLOTS_CHANGED = 'cardSlotsChanged';
     this.EVENT_CARDS_MATCHING_SELECTED_GOAL_CHANGED = 'cardsMatchingSelectedGoalChanged';
+    this.EVENT_SELECTED_GOAL_CHANGED = 'selectedGoalChanged';
+    this.EVENT_SCORE_CHANGED = 'scoreChanged';
 
     /** @type {EventEmitter} */
     this.emitter = new EventEmitter();
@@ -264,14 +266,14 @@ class GameState {
     /** @type {Card?} */
     this._activeCard = null;
 
+    /** @type {Array.<string>} */
+    this._incomingCards = new Array();
+
     /** @type {string} */
     this._goal = null;
 
     /** @type {Array.<Card>} */
     this.cards = new Array();
-
-    /** @type {Array.<Card>} */
-    this.incomingCards = new Array();
 
     /** @type {Array.<CardSlot>} */
     this._cardSlots = new Array();
@@ -312,6 +314,24 @@ class GameState {
   }
 
   /**
+   * @returns {Array.<string>}
+   */
+  get incomingCards() {
+    return this._incomingCards;
+  }
+
+  /**
+   * @param {Array.<string>} value
+   */
+  set incomingCards(value) {
+    const oldValue = this._incomingCards;
+    this._incomingCards = value;
+    console.log('incomingCards->', value);
+    this.emitter.emit(this.EVENT_INCOMING_CARDS_CHANGED, value, oldValue);
+    PlaybookBridge.notifyGameState(this.toJSON());
+  }
+
+  /**
    * @returns {string}
    */
   get goal() {
@@ -348,20 +368,20 @@ class GameState {
   }
 
   /**
-   * @returns {number}
+   * @returns {Array.<Card>}
    */
-  get score() {
-    return this._score;
+  get cardsMatchingSelectedGoal() {
+    return this._cardsMatchingSelectedGoal;
   }
 
   /**
-   * @param {number} value
+   * @param {Array.<Card>} value
    */
-  set score(value) {
-    const oldValue = this._score;
-    this._score = value;
-    console.log('score->', value);
-    this.emitter.emit(this.EVENT_SCORE_CHANGED, value, oldValue);
+  set cardsMatchingSelectedGoal(value) {
+    const oldValue = this._cardsMatchingSelectedGoal;
+    this._cardsMatchingSelectedGoal = value;
+    console.log('cardsMatchingSelectedGoal->', value);
+    this.emitter.emit(this.EVENT_CARDS_MATCHING_SELECTED_GOAL_CHANGED, value, oldValue);
     PlaybookBridge.notifyGameState(this.toJSON());
   }
 
@@ -384,20 +404,20 @@ class GameState {
   }
 
   /**
-   * @returns {Array.<Card>}
+   * @returns {number}
    */
-  get cardsMatchingSelectedGoal() {
-    return this._cardsMatchingSelectedGoal;
+  get score() {
+    return this._score;
   }
 
   /**
-   * @param {Array.<Card>} value
+   * @param {number} value
    */
-  set cardsMatchingSelectedGoal(value) {
-    const oldValue = this._cardsMatchingSelectedGoal;
-    this._cardsMatchingSelectedGoal = value;
-    console.log('cardsMatchingSelectedGoal->', value);
-    this.emitter.emit(this.EVENT_CARDS_MATCHING_SELECTED_GOAL_CHANGED, value, oldValue);
+  set score(value) {
+    const oldValue = this._score;
+    this._score = value;
+    console.log('score->', value);
+    this.emitter.emit(this.EVENT_SCORE_CHANGED, value, oldValue);
     PlaybookBridge.notifyGameState(this.toJSON());
   }
 
@@ -420,16 +440,17 @@ class GameState {
 
     const savedState = {
       activeCard: this.activeCard ? this.activeCard.play : null,
+      incomingCards: this.incomingCards,
       goal: this.goal,
       cardSlots: cardSlots,
-      score: this.score,
-      selectedGoal: this.selectedGoal,
       cardsMatchingSelectedGoal: this.cardsMatchingSelectedGoal ?
         this.cardsMatchingSelectedGoal.map(card => {
           return this.cardSlots.findIndex(slot => {
             return slot.card === card;
           });
-        }) : null
+        }) : null,
+      selectedGoal: this.selectedGoal,
+      score: this.score
     };
 
     return JSON.stringify(savedState);
@@ -464,19 +485,23 @@ class GameState {
         receiveCard(restoredState.activeCard);
       }
 
+      this._incomingCards = restoredState.incomingCards ? restoredState.incomingCards : [];
       this._goal = restoredState.goal;
-      this._score = restoredState.score;
-      this._selectedGoal = restoredState.selectedGoal;
       this._cardsMatchingSelectedGoal = restoredState.cardsMatchingSelectedGoal ?
         restoredState.cardsMatchingSelectedGoal.map(cardId => {
           return this.cardSlots[cardId].card;
         }) : null;
+      this._selectedGoal = restoredState.selectedGoal;
+      this._score = restoredState.score;
 
       // Trigger initial updates.
+      this.emitter.emit(this.EVENT_ACTIVE_CARD_CHANGED, this._activeCard, null);
+      this.emitter.emit(this.EVENT_INCOMING_CARDS_CHANGED, this._incomingCards, null);
       this.emitter.emit(this.EVENT_GOAL_CHANGED, this._goal, null);
-      this.emitter.emit(this.EVENT_SCORE_CHANGED, this._score, null);
-      this.emitter.emit(this.EVENT_SELECTED_GOAL_CHANGED, this._selectedGoal, null);
+      this.emitter.emit(this.EVENT_CARD_SLOTS_CHANGED, this._cardSlots, null);
       this.emitter.emit(this.EVENT_CARDS_MATCHING_SELECTED_GOAL_CHANGED, this._cardsMatchingSelectedGoal, null);
+      this.emitter.emit(this.EVENT_SELECTED_GOAL_CHANGED, this._selectedGoal, null);
+      this.emitter.emit(this.EVENT_SCORE_CHANGED, this._score, null);
     }
   }
 }
@@ -1320,6 +1345,7 @@ function handlePlaysCreated(events) {
   const plays = events.map(PlaybookEvents.getById);
   for (const play of plays) {
     state.incomingCards.push(play);
+    state.incomingCards = state.incomingCards.slice();
     renderer.isDirty = true;
   }
 }
@@ -1747,6 +1773,7 @@ function setup() {
     // Check if we have cards pending in the queue.
     if (state.activeCard === null && state.incomingCards.length > 0) {
       const play = state.incomingCards.pop();
+      state.incomingCards = state.incomingCards.slice();
       receiveCard(play);
     }
 
