@@ -245,6 +245,7 @@ const GoalTypesMetadata = {
 
 class GameState {
   constructor() {
+    this.EVENT_ACTIVE_CARD_CHANGED = 'activeCardChanged';
     this.EVENT_GOAL_CHANGED = 'goalChanged';
     this.EVENT_SCORE_CHANGED = 'scoreChanged';
     this.EVENT_SELECTED_GOAL_CHANGED = 'selectedGoalChanged';
@@ -261,10 +262,7 @@ class GameState {
    */
   reset(persist) {
     /** @type {Card?} */
-    this.activeCard = null;
-
-    /** @type {boolean} */
-    this.isCardActive = false;
+    this._activeCard = null;
 
     /** @type {string} */
     this._goal = null;
@@ -293,6 +291,24 @@ class GameState {
     if (persist) {
       PlaybookBridge.notifyGameState(this.toJSON());
     }
+  }
+
+  /**
+   * @returns {Card}
+   */
+  get activeCard() {
+    return this._activeCard;
+  }
+
+  /**
+   * @param {string} value
+   */
+  set activeCard(value) {
+    const oldValue = this._activeCard;
+    this._activeCard = value;
+    console.log('activeCard->', value);
+    this.emitter.emit(this.EVENT_ACTIVE_CARD_CHANGED, value, oldValue);
+    PlaybookBridge.notifyGameState(this.toJSON());
   }
 
   /**
@@ -403,6 +419,7 @@ class GameState {
     });
 
     const savedState = {
+      activeCard: this.activeCard ? this.activeCard.play : null,
       goal: this.goal,
       cardSlots: cardSlots,
       score: this.score,
@@ -442,6 +459,11 @@ class GameState {
           this._cardSlots[index].card = card;
         }
       });
+
+      if (restoredState.activeCard !== null) {
+        receiveCard(restoredState.activeCard);
+      }
+
       this._goal = restoredState.goal;
       this._score = restoredState.score;
       this._selectedGoal = restoredState.selectedGoal;
@@ -451,7 +473,6 @@ class GameState {
         }) : null;
 
       // Trigger initial updates.
-      this.emitter.emit(this.EVENT_CARD_SLOTS_CHANGED, this._cardSlots, null);
       this.emitter.emit(this.EVENT_GOAL_CHANGED, this._goal, null);
       this.emitter.emit(this.EVENT_SCORE_CHANGED, this._score, null);
       this.emitter.emit(this.EVENT_SELECTED_GOAL_CHANGED, this._selectedGoal, null);
@@ -467,7 +488,6 @@ const state = new GameState();
 
 // Content scale will be updated on first draw.
 let contentScale = null;
-//const _tray = new PIXI.Sprite(null);
 
 /**
  * Card.
@@ -506,7 +526,7 @@ class Card {
     /** @type {number?} */
     this.dragOrigScale = null;
 
-    /** @type {number} */
+    /** @type {PIXI.Sprite?} */
     this.dragTarget = null; //card slot (0-4) discard (6) or score (7)
 
     /** @type {number} */
@@ -1151,7 +1171,6 @@ function assignCardToSlot(card, slot) {
 
   card.moveToSlot(slot);
   card.isActive = false;
-  state.isCardActive = false;
 
   // Trigger an update.
   state.cardSlots = state.cardSlots.slice();
@@ -1165,10 +1184,9 @@ function assignCardToSlot(card, slot) {
  * @param {Card} card
  */
 function discardCard(card) {
-  if (state.isCardActive && state.activeCard === card) {
+  if (state.activeCard === card) {
     stage.removeChild(state.activeCard.sprite);
     state.activeCard = null;
-    state.isCardActive = false;
   } else {
     const slot = state.cardSlots.find(slot => slot.card === card);
     if (slot === undefined) {
@@ -1266,8 +1284,7 @@ function createRandomGoal() {
   const visibleGoals = Object.keys(GoalTypesMetadata)
     .filter(goal => !GoalTypesMetadata[goal].isHidden);
   const randomChoice = Math.floor((Math.random() * visibleGoals.length));
-  //state.goal = visibleGoals[randomChoice];
-  state.goal = GoalTypes.BASES_SEQ_3;
+  state.goal = visibleGoals[randomChoice];
 }
 
 /**
@@ -1316,7 +1333,6 @@ function receiveCard(play) {
   if (!card) { return; }
 
   state.activeCard = card;
-  state.isCardActive = true;
   card.isActive = true;
   const cardNode = card.sprite;
 
@@ -1547,16 +1563,6 @@ function setup() {
   bg.scale.y = window.innerHeight / bgTexture.height;
   stage.addChild(bg);
 
-  // Add banner on top to screen.
-  /*
-  const bannerTexture = PIXI.loader.resources['resources/Collection-Banner-9x16.png'].texture
-  const banner = new PIXI.Sprite(bannerTexture);
-  const bannerScale = window.innerWidth / bannerTexture.width;
-  const bannerHeight = bannerScale * bannerTexture.height;
-  banner.scale.set(bannerScale, bannerScale);
-  banner.zOrder = 1;
-  stage.addChild(banner);
-*/
   // Add card tray to screen.
   const trayTexture = PIXI.loader.resources['resources/Collection-Tray-9x16.png'].texture;
   const tray = new PIXI.Sprite(trayTexture);
@@ -1739,7 +1745,7 @@ function setup() {
     }
 
     // Check if we have cards pending in the queue.
-    if (!state.isCardActive && state.incomingCards.length > 0) {
+    if (state.activeCard === null && state.incomingCards.length > 0) {
       const play = state.incomingCards.pop();
       receiveCard(play);
     }
@@ -1769,7 +1775,6 @@ configureWebSocket(connection);
 // Load the sprites we need.
 PIXI.loader
   .add('resources/Collection-BG-Wood.jpg')
-  .add('resources/Collection-Banner-9x16.png')
   .add('resources/Collection-Tray-9x16.png')
   .add('resources/Collection-Star-9x16.png')
   .add('resources/Collection-Bar-Gold-9x16.png')
@@ -1777,7 +1782,6 @@ PIXI.loader
   .add('resources/Collection-Bar-Yellow-9x16.png')
   .add('resources/Collection-Shadow-9x16.png')
   .add('resources/Collection-Shadow-Overturn.png')
-  .add('resources/Prediction-Banner.png')
   .add('resources/trophy/trophy1.png')
   .add('resources/trophy/trophy2.png')
   .add('resources/trophy/trophy3.png')
