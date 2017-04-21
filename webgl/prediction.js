@@ -38,7 +38,7 @@ if (!global.PlaybookBridge) {
 
     /**
      * Notifies the hosting application of the new state of the game.
-     * This is a no-op for the mock bridge.
+     * This saves to localStorage in the mock bridge.
      * @type {string} stateJSON
      */
     notifyGameState: function (stateJSON) {
@@ -48,7 +48,7 @@ if (!global.PlaybookBridge) {
 
     /**
      * Notifies the hosting application that we have finished loading.
-     * This is a no-op for the mock bridge.
+     * This restores from localStorage in the mock bridge.
      */
     notifyLoaded: function () {
       const restoredState = localStorage.getItem('prediction');
@@ -56,6 +56,19 @@ if (!global.PlaybookBridge) {
       if (restoredState != null) {
         state.fromJSON(restoredState);
       }
+    },
+
+    /**
+     * Changes to the leaderboard screen.
+     * This is a no-op for the mock bridge.
+     */
+    goToLeaderboard: function () {},
+
+    /**
+     * Changes to the set collection screen.
+     */
+    goToCollection: function () {
+      window.location = window.location.href.replace('prediction', 'collection');
     }
   };
 } else {
@@ -234,6 +247,9 @@ const renderer = PIXI.autoDetectRenderer(1080, 1920, {
 });
 const stage = new PIXI.Container();
 const state = new GameState();
+
+// Content scale will be updated on first draw.
+let contentScale = null;
 
 /**
  * Sets up the renderer. Adjusts the renderer according to the size of the
@@ -842,7 +858,7 @@ function initBallEvents(ball, ballSlot, fieldOverlay) {
 
 /**
  * Initializes events for the continue banner.
- * @param {PIXI.Sprite} continueBanner
+ * @param {PIXI.Graphics} continueBanner
  */
 function initContinueBannerEvents(continueBanner) {
   state.emitter.on(state.EVENT_STAGE_CHANGED, function (stage) {
@@ -852,7 +868,18 @@ function initContinueBannerEvents(continueBanner) {
 
   continueBanner.interactive = true;
   continueBanner.on('tap', function () {
-    state.stage = GameStages.CONFIRMED;
+    PlaybookBridge.goToCollection();
+  });
+}
+
+/**
+ * Initializes events for the score tab.
+ * @param {PIXI.Sprite} scoreTab
+ */
+function initScoreTabEvents(scoreTab) {
+  scoreTab.interactive = true;
+  scoreTab.on('tap', () => {
+    PlaybookBridge.goToLeaderboard();
   });
 }
 
@@ -1186,6 +1213,9 @@ function setup() {
   ballSlot.scale.set(ballSlotScale, ballSlotScale);
   stage.addChild(ballSlot);
 
+  // Use the ball slot as the content scale factor.
+  contentScale = ballSlot.scale.x;
+
   // Add overlay to screen.
   const fieldOverlay = createFieldOverlay(state.balls);
   const fieldOverlayScaleX = window.innerWidth / fieldOverlay.texture.width;
@@ -1208,6 +1238,7 @@ function setup() {
   scoreTab.name = 'scoreTab';
   scoreTab.scale.set(scoreTabScale, scoreTabScale);
   scoreTab.position.set(0, ballSlot.position.y - scoreTab.height);
+  initScoreTabEvents(scoreTab);
   stage.addChild(scoreTab);
 
   const scoreTabLabel = new PIXI.Text('Score:'.toUpperCase());
@@ -1293,15 +1324,26 @@ function setup() {
   }
 
   // Add continue banner.
-  const continueBannerTexture = PIXI.loader.resources['resources/prediction.json'].textures['Prediction-Button-Continue.png'];
-  const continueBanner = new PIXI.Sprite(continueBannerTexture);
-  const continueBannerScale = window.innerWidth / continueBannerTexture.width;
-  const continueBannerHeight = continueBannerTexture.height * continueBannerScale;
-  continueBanner.position.set(0, window.innerHeight - continueBannerHeight);
-  continueBanner.scale.set(continueBannerScale, continueBannerScale);
+  const continueBanner = new PIXI.Graphics();
+  continueBanner.beginFill(0xc53626);
+  continueBanner.drawRect(0, 0, window.innerWidth, ballSlot.height);
+  continueBanner.endFill();
+  continueBanner.position.set(0, window.innerHeight - ballSlot.height);
   continueBanner.visible = false;
   initContinueBannerEvents(continueBanner);
   stage.addChild(continueBanner);
+
+  const continueBannerLabel = new PIXI.Text('Continue \u22b2'.toUpperCase());
+  continueBannerLabel.style.fontFamily = 'proxima-nova-excn';
+  continueBannerLabel.style.fontWeight = 900;
+  continueBannerLabel.style.fontSize = 104.0 * contentScale;
+  continueBannerLabel.style.fill = 0xffffff;
+  continueBannerLabel.anchor.set(1.0, 0.5);
+  continueBannerLabel.position.set(
+    window.innerWidth - (64.0 * contentScale),
+    continueBanner.height / 2
+  );
+  continueBanner.addChild(continueBannerLabel);
 
   /**
    * Begin the animation loop.
