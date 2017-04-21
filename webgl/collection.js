@@ -81,7 +81,13 @@ if (!global.PlaybookBridge) {
         state.reset(true);
         window.location = window.location;
       }
-    }
+    },
+
+    /**
+     * Changes to the trophy case.
+     * This is a no-op for the mock bridge.
+     */
+    goToTrophyCase: function () {},
   };
 } else {
   // Receive messages from the hosting application.
@@ -1283,6 +1289,11 @@ function initScoreButtonEvents(scoreButton) {
  * @param {PIXI.Sprite} goalSprite
  */
 function initGoalEvents(goalSprite) {
+  goalSprite.interactive = true;
+  goalSprite.on('tap', () => {
+    PlaybookBridge.goToTrophyCase();
+  });
+
   state.emitter.on(state.EVENT_GOAL_CHANGED, function (goal) {
     if (goal === null) {
       createRandomGoal();

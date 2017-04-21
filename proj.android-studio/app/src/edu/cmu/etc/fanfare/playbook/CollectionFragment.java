@@ -5,6 +5,7 @@ import android.app.Dialog;
 import android.app.DialogFragment;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Typeface;
 import android.os.Bundle;
@@ -295,6 +296,14 @@ public class CollectionFragment extends WebViewFragment {
                     }
                 }
             });
+        }
+
+        @JavascriptInterface
+        public void goToTrophyCase() {
+            Intent intent = new Intent(getActivity(), AppActivity.class);
+            intent.putExtra(AppActivity.INTENT_EXTRA_DRAWER_ITEM, DrawerItemAdapter.DRAWER_ITEM_TROPHY);
+            intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+            startActivity(intent);
         }
     }
 
