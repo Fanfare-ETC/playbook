@@ -1037,14 +1037,14 @@ function createFieldOverlay(balls) {
       524.0, 778.0,
       714.0, 696.0
     ]),
-    [PlaybookEvents.NO_RUNS]: new PIXI.Polygon([
+    [PlaybookEvents.GROUND_OUT]: new PIXI.Polygon([
       714.0, 1526.0,
       714.0, 1250.0,
       520.0, 1168.0,
       440.0, 978.0,
       188.0, 978.0
     ]),
-    [PlaybookEvents.GROUND_OUT]: new PIXI.Polygon([
+    [PlaybookEvents.NO_RUNS]: new PIXI.Polygon([
       726.0, 1526.0,
       1252.0, 978.0,
       1000.0, 978.0,
