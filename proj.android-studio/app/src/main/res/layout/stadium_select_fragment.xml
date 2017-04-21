@@ -14,72 +14,80 @@
         android:orientation="vertical"
         app:layout_constraintGuide_percent="0.5"
         tools:layout_editor_absoluteY="0dp"
-        tools:layout_editor_absoluteX="375dp" />
+        tools:layout_editor_absoluteX="180dp" />
 
     <Button
         android:id="@+id/section1"
-        android:layout_width="114dp"
-        android:layout_height="64dp"
+        android:layout_width="@dimen/section_width1"
+        android:layout_height="@dimen/section_height1"
         android:background="@null"
         android:rotation="58"
-        app:layout_constraintLeft_toLeftOf="@+id/stadium_map"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintRight_toLeftOf="@+id/guideline"
+        app:layout_constraintTop_toTopOf="@+id/stadium_map"
+        app:layout_constraintBottom_toTopOf="@+id/section2"
         android:layout_marginStart="8dp"
-        android:layout_marginLeft="8dp"
-        android:layout_marginTop="120dp" />
+        android:layout_marginTop="100dp"
+        android:layout_marginRight="@dimen/center_margin"
+        android:layout_marginBottom="0dp"/>
 
     <Button
         android:id="@+id/section2"
-        android:layout_width="129dp"
-        android:layout_height="69dp"
+        android:layout_width="@dimen/section_width2"
+        android:layout_height="@dimen/section_height2"
         android:background="@null"
         android:rotation="43"
-        app:layout_constraintLeft_toLeftOf="@+id/stadium_map"
         app:layout_constraintRight_toLeftOf="@+id/guideline"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/section1"
+        app:layout_constraintBottom_toBottomOf="@+id/stadium_map"
         android:layout_marginStart="8dp"
-        android:layout_marginLeft="40dp"
-        android:layout_marginTop="212dp" />
+        android:layout_marginRight="@dimen/center_margin1"
+        android:layout_marginTop="@dimen/top_margin"
+        android:layout_marginBottom="80dp"/>
 
     <Button
         android:id="@+id/section3"
-        android:layout_width="129dp"
-        android:layout_height="69dp"
+        android:layout_width="@dimen/section_width2"
+        android:layout_height="@dimen/section_height2"
         android:background="@null"
-        android:rotation="-43"
-        app:layout_constraintRight_toRightOf="@+id/stadium_map"
+        android:rotation="-58"
+        app:layout_constraintTop_toBottomOf="@+id/section4"
         app:layout_constraintLeft_toRightOf="@+id/guideline"
-        app:layout_constraintTop_toTopOf="parent"
-        android:layout_marginStart="8dp"
-        android:layout_marginLeft="0dp"
-        android:layout_marginRight="40dp"
-        android:layout_marginTop="212dp" />
+        app:layout_constraintBottom_toBottomOf="@+id/stadium_map"
+        android:layout_marginLeft="@dimen/center_margin1"
+        android:layout_marginTop="@dimen/top_margin"
+        android:layout_marginBottom="80dp"
+        android:layout_marginEnd="8dp" />
 
     <Button
         android:id="@+id/section4"
-        android:layout_width="114dp"
-        android:layout_height="64dp"
+        android:layout_width="@dimen/section_width1"
+        android:layout_height="@dimen/section_height1"
         android:background="@null"
-        android:rotation="-58"
-        app:layout_constraintRight_toRightOf="@+id/stadium_map"
-        app:layout_constraintTop_toTopOf="parent"
+        android:rotation="-43"
+        app:layout_constraintTop_toTopOf="@+id/stadium_map"
+        app:layout_constraintBottom_toTopOf="@+id/section3"
         android:layout_marginStart="8dp"
-        android:layout_marginLeft="8dp"
-        android:layout_marginRight="8dp"
-        android:layout_marginTop="120dp" />
+        android:layout_marginLeft="@dimen/center_margin"
+        android:layout_marginTop="100dp"
+        android:layout_marginEnd="40dp"
+        android:layout_marginBottom="0dp"
+        app:layout_constraintLeft_toRightOf="@+id/guideline" />
+
+
 
     <ImageView
         android:id="@+id/stadium_map"
-        android:layout_width="365dp"
-        android:layout_height="282dp"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
         android:layout_marginEnd="16dp"
         android:layout_marginStart="16dp"
-        android:layout_marginTop="18dp"
+        android:layout_marginTop="24dp"
+        android:layout_marginBottom="0dp"
         android:contentDescription="@string/app_name"
         android:paddingEnd="32dp"
         android:paddingStart="32dp"
-        android:scaleType="fitXY"
         app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/linear_spinner"
         app:layout_constraintHorizontal_bias="0.526"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
@@ -87,14 +95,21 @@
 
     <LinearLayout
 
-        android:layout_width="300dp"
-        android:layout_height="40dp"
+        android:id="@+id/linear_spinner"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="80dp"
+        android:layout_marginTop="0dp"
+        android:layout_marginLeft="48dp"
+        android:layout_marginRight="48dp"
         android:background="@drawable/spinner_design"
         android:orientation="horizontal"
         app:layout_constraintBottom_toTopOf="@+id/proceed"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/stadium_map">
+        app:layout_constraintTop_toBottomOf="@+id/stadium_map"
+        android:layout_marginStart="48dp"
+        android:layout_marginEnd="48dp">
 
 
         <Spinner
@@ -125,7 +140,7 @@
         android:id="@+id/proceed"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-
+        android:layout_marginTop="@dimen/continue_margin"
         android:background="@drawable/sect_continue"
         app:layout_constraintBottom_toBottomOf="parent"
 

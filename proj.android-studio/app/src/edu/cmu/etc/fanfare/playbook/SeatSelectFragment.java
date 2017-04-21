@@ -10,6 +10,7 @@ import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -56,6 +57,7 @@ public class SeatSelectFragment extends PlaybookFragment implements AdapterView.
 
                 Typeface externalFont = Typeface.createFromAsset(this.getContext().getAssets(), "fonts/nova1.ttf");
                 ((TextView) v).setTypeface(externalFont);
+                ((TextView) v).setGravity(Gravity.CENTER);
 
                 return v;
             }
@@ -66,6 +68,7 @@ public class SeatSelectFragment extends PlaybookFragment implements AdapterView.
 
                 Typeface externalFont = Typeface.createFromAsset(this.getContext().getAssets(), "fonts/nova1.ttf");
                 ((TextView) v).setTypeface(externalFont);
+                ((TextView) v).setGravity(Gravity.CENTER);
                 v.setBackgroundColor(Color.GRAY);
 
                 return v;
@@ -136,7 +139,7 @@ public class SeatSelectFragment extends PlaybookFragment implements AdapterView.
 
                     Toolbar mToolbar = (Toolbar) getActivity().findViewById(R.id.my_toolbar);
                     // setSupportActionBar(mToolbar);
-                    mToolbar.setTitle("Guide Your Runner");
+                    mToolbar.setTitle("CONNECT THE DOTS");
 
                     Fragment treasureHuntFragment = new TreasureHuntFragment();
 
