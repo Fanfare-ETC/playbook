@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <LinearLayout android:orientation="vertical"
+                  android:layout_width="match_parent"
+                  android:layout_height="wrap_content">
+        <TextView
+            android:id="@+id/onboarding_step_1_three_minigames"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="-8dp"
+            android:paddingLeft="16dp"
+            android:paddingRight="16dp"
+            android:background="@color/secondary"
+            android:gravity="center"
+            android:lineSpacingMultiplier="1.25"
+            android:text="@string/onboarding_step_1_three_minigames"
+            android:textSize="24sp"
+            android:textAppearance="?android:textAppearanceInverse"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="-32dp"
+            android:background="@drawable/onboarding_tile_predict"
+            android:orientation="horizontal">
+
+            <TextView
+                style="@style/onboardingTileStyle"
+                android:id="@+id/onboarding_step_1_prediction"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:drawableStart="@drawable/ic_betting_board_inverse"
+                android:text="@string/onboarding_step_1_prediction"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="-32dp"
+            android:background="@drawable/onboarding_tile_collect"
+            android:orientation="horizontal">
+            <TextView
+                style="@style/onboardingTileStyle"
+                android:id="@+id/onboarding_step_1_collection"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:drawableStart="@drawable/ic_catch_the_play_game_inverse"
+                android:text="@string/onboarding_step_1_collection"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="32dp"
+            android:background="@drawable/onboarding_tile_hotcold"
+            android:orientation="horizontal">
+            <TextView
+                style="@style/onboardingTileStyle"
+                android:id="@+id/onboarding_step_1_hotcold"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:drawableStart="@drawable/menu_icon_hotcold_inverse"
+                android:text="@string/onboarding_step_1_hotcold"/>
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>

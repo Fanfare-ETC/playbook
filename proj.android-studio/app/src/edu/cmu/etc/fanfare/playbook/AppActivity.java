@@ -1,39 +1,10 @@
-/****************************************************************************
-Copyright (c) 2015 Chukong Technologies Inc.
- 
-http://www.cocos2d-x.org
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.
-****************************************************************************/
 package edu.cmu.etc.fanfare.playbook;
 
 import android.app.FragmentManager;
-import android.content.Context;
 import android.content.Intent;
-import android.content.res.ColorStateList;
-import android.content.res.TypedArray;
 import android.graphics.Typeface;
-import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
@@ -42,18 +13,13 @@ import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.util.Log;
 import android.util.SparseArray;
-import android.util.TypedValue;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.ListView;
-import android.widget.TextView;
 
 import com.koushikdutta.async.http.AsyncHttpClient;
 import com.koushikdutta.async.http.WebSocket;
@@ -62,8 +28,9 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
 import java.util.Stack;
+
+import static edu.cmu.etc.fanfare.playbook.DrawerItemAdapter.getDrawerItems;
 
 public class AppActivity extends AppCompatActivity {
     public static final String INTENT_EXTRA_DRAWER_ITEM = "intentExtraDrawerItem";
@@ -89,7 +56,6 @@ public class AppActivity extends AppCompatActivity {
             BuildConfig.PLAYBOOK_API_HOST + ":" +
             BuildConfig.PLAYBOOK_API_PORT;
 
-    private DrawerItem[] mMenuItems;
     private DrawerLayout mDrawerLayout;
     private ListView mDrawerList;
     private ActionBarDrawerToggle mDrawerToggle;
@@ -118,12 +84,11 @@ public class AppActivity extends AppCompatActivity {
         mToolbar = (Toolbar) findViewById(R.id.my_toolbar);
         setSupportActionBar(mToolbar);
 
-        mMenuItems = getDrawerItems();
+        DrawerItemAdapter.DrawerItem[] menuItems = getDrawerItems(this);
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         mDrawerList = (ListView) findViewById(R.id.left_drawer);
         mDrawerToggle = new ActionBarDrawerToggle(this, mDrawerLayout, mToolbar,
                 R.string.drawer_open, R.string.drawer_close) {
-
             /** Called when a drawer has settled in a completely closed state. */
             public void onDrawerClosed(View view) {
                 super.onDrawerClosed(view);
@@ -140,7 +105,7 @@ public class AppActivity extends AppCompatActivity {
         // Setup the menu items
         // Set the adapter for the list view
         mDrawerList.setAdapter(new DrawerItemAdapter(this,
-                R.layout.drawer_list_item, mMenuItems));
+                R.layout.drawer_list_item, menuItems));
         // Set the list's click listener
         mDrawerList.setOnItemClickListener(new DrawerItemClickListener());
 
@@ -263,57 +228,6 @@ public class AppActivity extends AppCompatActivity {
         }
     }
 
-    private class DrawerItem {
-        String text;
-        Drawable icon;
-        String fragmentTitle;
-        int fragmentColor;
-        int fragmentColorDark;
-        int titleTextColor;
-    }
-
-    private class DrawerItemAdapter extends ArrayAdapter<DrawerItem> {
-        private ViewHolder mHolder;
-
-        DrawerItemAdapter(Context context, int resource, DrawerItem[] objects) {
-            super(context, resource, objects);
-        }
-
-        private class ViewHolder {
-            private TextView mTextView;
-        }
-
-        @NonNull
-        public View getView(int position, View convertView, @NonNull ViewGroup parent) {
-            if (convertView == null) {
-                convertView = LayoutInflater.from(AppActivity.this)
-                        .inflate(R.layout.drawer_list_item, parent, false);
-
-                mHolder = new ViewHolder();
-                mHolder.mTextView = (TextView) convertView.findViewById(R.id.text);
-
-                convertView.setTag(mHolder);
-            } else {
-                mHolder = (ViewHolder) convertView.getTag();
-            }
-
-            DrawerItem item = getItem(position);
-            if (item != null) {
-                mHolder.mTextView.setText(item.text);
-                mHolder.mTextView.setCompoundDrawablesRelativeWithIntrinsicBounds(null, item.icon, null, null);
-
-                ColorStateList stateList;
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    stateList = getResources().getColorStateList(R.color.drawer_list_item_selector, getTheme());
-                    mHolder.mTextView.setCompoundDrawableTintList(stateList);
-                }
-
-            }
-
-            return convertView;
-        }
-    }
-
     private void selectItem(int position) {
         selectItem(position, true);
     }
@@ -371,7 +285,7 @@ public class AppActivity extends AppCompatActivity {
 
         // Set the name in the action bar.
         // We can't use mToolbar here: https://code.google.com/p/android/issues/detail?id=77763
-        DrawerItem[] drawerItems = getDrawerItems();
+        DrawerItemAdapter.DrawerItem[] drawerItems = getDrawerItems(this);
         getSupportActionBar().setTitle(drawerItems[position].fragmentTitle);
 
         // Change color.
@@ -384,47 +298,6 @@ public class AppActivity extends AppCompatActivity {
             window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
             window.setStatusBarColor(drawerItems[position].fragmentColorDark);
         }
-    }
-
-    public DrawerItem[] getDrawerItems() {
-        String[] menuItems = getResources().getStringArray(R.array.menu_items);
-        TypedArray menuItemIcons = getResources().obtainTypedArray(R.array.menu_item_icons);
-        String[] menuItemFragmentTitle = getResources().getStringArray(R.array.menu_item_fragment_title);
-        TypedArray menuItemFragmentColor = getResources().obtainTypedArray(R.array.menu_item_fragment_color);
-        TypedArray menuItemFragmentColorDark = getResources().obtainTypedArray(R.array.menu_item_fragment_color_dark);
-        TypedArray menuItemTitleTextColor = getResources().obtainTypedArray(R.array.menu_item_title_text_color);
-        DrawerItem[] drawerItems = new DrawerItem[menuItems.length];
-
-        for (int i = 0; i < menuItems.length; i++) {
-            DrawerItem drawerItem = new DrawerItem();
-            drawerItem.text = menuItems[i];
-            drawerItem.icon = menuItemIcons.getDrawable(i);
-
-            if((sectionFlag == false) && (i == menuItems.length - 1)){
-                Log.i("section", "Section selection fragment");
-                drawerItem.fragmentTitle = menuItemFragmentTitle[i+1];
-                //sectionFlag = true;
-            }
-            else{
-                Log.i("section", "treasure hunt fragment");
-                drawerItem.fragmentTitle = menuItemFragmentTitle[i];
-            }
-
-            drawerItem.fragmentColor = menuItemFragmentColor.getColor(i, ContextCompat.getColor(this, R.color.primary));
-            drawerItem.fragmentColorDark = menuItemFragmentColorDark.getColor(i, ContextCompat.getColor(this, R.color.primary_dark));
-
-            // Resolve attr values through the theme.
-            TypedValue typedValue = new TypedValue();
-            getTheme().resolveAttribute(menuItemTitleTextColor.peekValue(i).data, typedValue, true);
-            TypedArray arr = obtainStyledAttributes(typedValue.data, new int[]{ menuItemTitleTextColor.peekValue(i).data });
-            drawerItem.titleTextColor = arr.getColor(0, -1);
-            arr.recycle();
-
-            drawerItems[i] = drawerItem;
-        }
-
-        menuItemIcons.recycle();
-        return drawerItems;
     }
 
     private class WebSocketHandler implements AsyncHttpClient.WebSocketConnectCallback, WebSocket.StringCallback {
