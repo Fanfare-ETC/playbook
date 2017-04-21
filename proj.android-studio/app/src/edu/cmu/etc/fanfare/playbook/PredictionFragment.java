@@ -389,5 +389,21 @@ public class PredictionFragment extends WebViewFragment {
                 }
             });
         }
+
+        @JavascriptInterface
+        public void goToLeaderboard() {
+            Intent intent = new Intent(getActivity(), AppActivity.class);
+            intent.putExtra(AppActivity.INTENT_EXTRA_DRAWER_ITEM, DrawerItemAdapter.DRAWER_ITEM_LEADERBOARD);
+            intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+            startActivity(intent);
+        }
+
+        @JavascriptInterface
+        public void goToCollection() {
+            Intent intent = new Intent(getActivity(), AppActivity.class);
+            intent.putExtra(AppActivity.INTENT_EXTRA_DRAWER_ITEM, DrawerItemAdapter.DRAWER_ITEM_COLLECTION);
+            intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+            startActivity(intent);
+        }
     }
 }
