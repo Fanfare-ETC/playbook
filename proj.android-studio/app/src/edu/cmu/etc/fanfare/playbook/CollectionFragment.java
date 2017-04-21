@@ -210,25 +210,22 @@ public class CollectionFragment extends WebViewFragment {
             TextView para1 = (TextView) view.findViewById(R.id.collection_tutorial_para_1);
             TextView para2 = (TextView) view.findViewById(R.id.collection_tutorial_para_2);
             TextView para3 = (TextView) view.findViewById(R.id.collection_tutorial_para_3);
-            TextView para4 = (TextView) view.findViewById(R.id.collection_tutorial_para_4);
             para1.setLineSpacing(0, 1.25f);
             para1.setTypeface(typeface);
             para2.setLineSpacing(0, 1.25f);
             para2.setTypeface(typeface);
             para3.setLineSpacing(0, 1.25f);
             para3.setTypeface(typeface);
-            para4.setLineSpacing(0, 1.25f);
-            para4.setTypeface(typeface);
 
             // Append an arrow after the paragraph.
-            SpannableString lastPara = new SpannableString(para4.getText() + " \u22b2");
+            SpannableString lastPara = new SpannableString(para3.getText() + " \u22b2");
             lastPara.setSpan(new ForegroundColorSpan(
                             ContextCompat.getColor(getActivity(), R.color.primary)),
-                    para4.getText().length() + 1,
-                    para4.getText().length() + 2,
+                    para3.getText().length() + 1,
+                    para3.getText().length() + 2,
                     Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
             );
-            para4.setText(lastPara, TextView.BufferType.SPANNABLE);
+            para3.setText(lastPara, TextView.BufferType.SPANNABLE);
 
             // Use the Builder class for convenient dialog construction
             AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
