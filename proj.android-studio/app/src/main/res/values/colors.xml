@@ -6,4 +6,5 @@
     <item name="tertiary_dark" type="color">#bf3626</item>
     <item name="accent" type="color">#8ebaf4</item>
     <item name="secondary" type="color">#002b65</item>
+    <item name="green" type="color">#007f00</item>
 </resources>

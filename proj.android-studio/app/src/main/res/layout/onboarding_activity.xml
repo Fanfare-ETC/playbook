@@ -11,6 +11,14 @@
                     android:layout_height="match_parent"
                     android:background="@drawable/selection_bgd">
 
+        <view
+            class="edu.cmu.etc.fanfare.playbook.OnboardingActivity$OverlayView"
+            android:id="@+id/onboarding_overlay"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="invisible"
+            android:translationZ="10dp" />
+
         <android.support.v7.widget.Toolbar
             android:id="@+id/onboarding_toolbar"
             android:layout_width="match_parent"

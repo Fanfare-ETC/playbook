@@ -61,8 +61,8 @@ public class GcmListener extends FirebaseMessagingService {
 
     private void handlePlaysCreated(String message) {
         if (AppActivity.isInForeground &&
-            AppActivity.selectedItem == AppActivity.DRAWER_ITEM_PREDICTION ||
-            AppActivity.selectedItem == AppActivity.DRAWER_ITEM_COLLECTION) {
+            AppActivity.selectedItem == DrawerItemAdapter.DRAWER_ITEM_PREDICTION ||
+            AppActivity.selectedItem == DrawerItemAdapter.DRAWER_ITEM_COLLECTION) {
             return;
         }
 
