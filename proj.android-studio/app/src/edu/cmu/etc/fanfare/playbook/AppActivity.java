@@ -30,17 +30,16 @@ import org.json.JSONObject;
 import java.lang.reflect.Field;
 import java.util.Stack;
 
+import static edu.cmu.etc.fanfare.playbook.DrawerItemAdapter.DRAWER_ITEM_COLLECTION;
+import static edu.cmu.etc.fanfare.playbook.DrawerItemAdapter.DRAWER_ITEM_LEADERBOARD;
+import static edu.cmu.etc.fanfare.playbook.DrawerItemAdapter.DRAWER_ITEM_PREDICTION;
+import static edu.cmu.etc.fanfare.playbook.DrawerItemAdapter.DRAWER_ITEM_TREASURE_HUNT;
+import static edu.cmu.etc.fanfare.playbook.DrawerItemAdapter.DRAWER_ITEM_TROPHY;
 import static edu.cmu.etc.fanfare.playbook.DrawerItemAdapter.getDrawerItems;
 
 public class AppActivity extends AppCompatActivity {
     public static final String INTENT_EXTRA_DRAWER_ITEM = "intentExtraDrawerItem";
     public static final String INTENT_EXTRA_GCM_PLAYS_CREATED = "intentExtraGcmPlaysCreated";
-
-    public static final int DRAWER_ITEM_PREDICTION = 0;
-    public static final int DRAWER_ITEM_COLLECTION = 1;
-    public static final int DRAWER_ITEM_TREASURE_HUNT = 2;
-    public static final int DRAWER_ITEM_LEADERBOARD = 3;
-    public static final int DRAWER_ITEM_TROPHY = 4;
 
     private static final int FRAGMENT_PREDICTION = 0;
     private static final int FRAGMENT_COLLECTION = 1;

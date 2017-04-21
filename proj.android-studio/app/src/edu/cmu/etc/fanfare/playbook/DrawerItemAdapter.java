@@ -16,7 +16,11 @@ import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
 class DrawerItemAdapter extends ArrayAdapter<DrawerItemAdapter.DrawerItem> {
-    private DrawerItemAdapter.ViewHolder mHolder;
+    static final int DRAWER_ITEM_PREDICTION = 0;
+    static final int DRAWER_ITEM_COLLECTION = 1;
+    static final int DRAWER_ITEM_TREASURE_HUNT = 2;
+    static final int DRAWER_ITEM_LEADERBOARD = 3;
+    static final int DRAWER_ITEM_TROPHY = 4;
 
     DrawerItemAdapter(Context context, int resource, DrawerItem[] objects) {
         super(context, resource, objects);
@@ -28,27 +32,28 @@ class DrawerItemAdapter extends ArrayAdapter<DrawerItemAdapter.DrawerItem> {
 
     @NonNull
     public View getView(int position, View convertView, @NonNull ViewGroup parent) {
+        ViewHolder viewHolder;
         if (convertView == null) {
             convertView = LayoutInflater.from(getContext())
                     .inflate(R.layout.drawer_list_item, parent, false);
 
-            mHolder = new DrawerItemAdapter.ViewHolder();
-            mHolder.mTextView = (TextView) convertView.findViewById(R.id.text);
+            viewHolder = new DrawerItemAdapter.ViewHolder();
+            viewHolder.mTextView = (TextView) convertView.findViewById(R.id.text);
 
-            convertView.setTag(mHolder);
+            convertView.setTag(viewHolder);
         } else {
-            mHolder = (DrawerItemAdapter.ViewHolder) convertView.getTag();
+            viewHolder = (DrawerItemAdapter.ViewHolder) convertView.getTag();
         }
 
         DrawerItem item = getItem(position);
         if (item != null) {
-            mHolder.mTextView.setText(item.text);
-            mHolder.mTextView.setCompoundDrawablesRelativeWithIntrinsicBounds(null, item.icon, null, null);
+            viewHolder.mTextView.setText(item.text);
+            viewHolder.mTextView.setCompoundDrawablesRelativeWithIntrinsicBounds(null, item.icon, null, null);
 
             ColorStateList stateList;
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 stateList = getContext().getResources().getColorStateList(R.color.drawer_list_item_selector, getContext().getTheme());
-                mHolder.mTextView.setCompoundDrawableTintList(stateList);
+                viewHolder.mTextView.setCompoundDrawableTintList(stateList);
             }
 
         }

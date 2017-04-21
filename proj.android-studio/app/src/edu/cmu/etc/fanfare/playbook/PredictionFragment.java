@@ -231,7 +231,7 @@ public class PredictionFragment extends WebViewFragment {
     private void showCorrectDialog(final Activity context) {
         final Intent intent = new Intent(context, AppActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        intent.putExtra(AppActivity.INTENT_EXTRA_DRAWER_ITEM, AppActivity.DRAWER_ITEM_PREDICTION);
+        intent.putExtra(AppActivity.INTENT_EXTRA_DRAWER_ITEM, DrawerItemAdapter.DRAWER_ITEM_PREDICTION);
 
         context.runOnUiThread(new Runnable() {
             @Override
