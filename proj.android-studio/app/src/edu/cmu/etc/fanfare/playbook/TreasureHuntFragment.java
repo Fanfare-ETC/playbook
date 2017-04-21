@@ -11,11 +11,15 @@ import android.graphics.Typeface;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
+import android.os.Vibrator;
 import android.support.constraint.ConstraintLayout;
 import android.support.v7.app.AlertDialog;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -35,6 +39,8 @@ import java.util.List;
 import java.util.Random;
 import java.util.Vector;
 
+import static android.content.Context.VIBRATOR_SERVICE;
+
 public class TreasureHuntFragment extends PlaybookFragment implements View.OnClickListener,View.OnTouchListener{
 
 
@@ -50,6 +56,9 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
     private int warmerSectionId,colderSectionId,markerSectionId;
     private ImageView warmerView,colderView,markerView;
     private boolean flag=false;
+    private Vibrator myVib;
+    private static boolean firstLoad=true;
+
 
     private  String mEndpoint = "ws://" +
             BuildConfig.PLAYBOOK_TREASUREHUNT_API_HOST + ":" +
@@ -240,6 +249,11 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
                     mMarkerView == null) {
                 return;
             }
+            int minwidth=(int)view.getWidth()/3;
+
+            mWarmerView.setMinimumWidth(minwidth);
+            mColderView.setMinimumWidth(minwidth);
+            mMarkerView.setMinimumWidth(minwidth);
 
             mWarmerView.getLocationInWindow(warmerLocation);
             mColderView.getLocationInWindow(colderLocation);
@@ -273,67 +287,95 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
                              Bundle savedInstanceState) {
         super.onCreateView(inflater, container, savedInstanceState);
         view=inflater.inflate(R.layout.treasurehunt_fragment, container, false);
-        ImageView translucent = (ImageView) view.findViewById(R.id.translucentlayer);
-        translucent.setVisibility(View.VISIBLE);
+        SharedPreferences settings = this.getActivity().getSharedPreferences("FANFARE_SHARED", 0);
+        section = settings.getInt("section", 0) - 1;
 
-            SharedPreferences settings = this.getActivity().getSharedPreferences("FANFARE_SHARED", 0);
-            section = settings.getInt("section", 0) - 1;
+        layout = (ConstraintLayout) view.findViewById(R.id.treasurehunt_layout);
+        plusoneId = R.drawable.plusone;
+        plustenWarmerId = R.drawable.plusten_w;
+        plustenColderId = R.drawable.plusten_c;
+        plustenMarkerId = R.drawable.plusten_m;
+        warmerSectionId = R.id.warmer;
+        colderSectionId = R.id.colder;
+        markerSectionId = R.id.marker;
 
-            layout = (ConstraintLayout) view.findViewById(R.id.treasurehunt_layout);
-            plusoneId = R.drawable.plusone;
-            plustenWarmerId = R.drawable.plusten_w;
-            plustenColderId = R.drawable.plusten_c;
-            plustenMarkerId = R.drawable.plusten_m;
-            warmerSectionId = R.id.warmer;
-            colderSectionId = R.id.colder;
-            markerSectionId = R.id.marker;
+        TextView warmer_text = (TextView) view.findViewById(R.id.warmer_text);
+        Typeface tf = Typeface.createFromAsset(getActivity().getAssets(), "fonts/nova2.ttf");
+        warmer_text.setTypeface(tf);
+        warmer_text.setTextSize(24);
+        warmer_text.setText("Getting\nWarmer!");
 
-            TextView warmer_text = (TextView) view.findViewById(R.id.warmer_text);
-            Typeface tf = Typeface.createFromAsset(getActivity().getAssets(), "fonts/nova2.ttf");
-            warmer_text.setTypeface(tf);
-            warmer_text.setTextSize(24);
-            warmer_text.setText("Getting\nWarmer!");
+        TextView colder_text = (TextView) view.findViewById(R.id.colder_text);
+        colder_text.setZ(0.0f);
+        colder_text.setTypeface(tf);
+        colder_text.setTextSize(24);
+        colder_text.setText("Getting\nColder!");
 
-            TextView colder_text = (TextView) view.findViewById(R.id.colder_text);
-            colder_text.setTypeface(tf);
-            colder_text.setTextSize(24);
-            colder_text.setText("Getting\nColder!");
+        TextView plant_text = (TextView) view.findViewById(R.id.marker_text);
+        plant_text.setTypeface(tf);
+        plant_text.setTextSize(24);
+        plant_text.setText("Drop\nMarker!");
 
-            TextView plant_text = (TextView) view.findViewById(R.id.marker_text);
-            plant_text.setTypeface(tf);
-            plant_text.setTextSize(24);
-            plant_text.setText("Drop the\nMarker!");
+        warmerView = (ImageView) view.findViewById(warmerSectionId);
+        warmerView.setOnClickListener(this);
+        colderView = (ImageView) view.findViewById(colderSectionId);
+        colderView.setOnClickListener(this);
+        markerView = (ImageView) view.findViewById(markerSectionId);
+        markerView.setOnClickListener(this);
 
-            warmerView = (ImageView) view.findViewById(warmerSectionId);
-            warmerView.setOnClickListener(this);
-            colderView = (ImageView) view.findViewById(colderSectionId);
-            colderView.setOnClickListener(this);
-            markerView = (ImageView) view.findViewById(markerSectionId);
-            markerView.setOnClickListener(this);
+        ImageView MapView = (ImageView) view.findViewById(R.id.map);
+        MapView.setOnClickListener(this);
+        ImageView agg = (ImageView) view.findViewById(R.id.aggregate);
+        agg.setOnTouchListener(this);
 
-            ImageView MapView = (ImageView) view.findViewById(R.id.map);
-            MapView.setOnClickListener(this);
-            ImageView agg = (ImageView) view.findViewById(R.id.aggregate);
-            agg.setOnTouchListener(this);
+        setHasOptionsMenu(true);
 
+        view.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                view.getViewTreeObserver().removeOnGlobalLayoutListener(this);
 
-            view.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
-                @Override
-                public void onGlobalLayout() {
-                    view.getViewTreeObserver().removeOnGlobalLayoutListener(this);
-
-                    LinesView linesView = (LinesView) view.findViewById(R.id.linesView);
-                    linesView.setWarmerView(warmerView);
-                    linesView.setColderView(colderView);
-                    linesView.setMarkerView(markerView);
-                    linesView.invalidate();
-                }
-            });
-
-        //mEndpoint="ws://128.2.238.137:9000";
+                LinesView linesView = (LinesView) view.findViewById(R.id.linesView);
+                linesView.setWarmerView(warmerView);
+                linesView.setColderView(colderView);
+                linesView.setMarkerView(markerView);
+                linesView.invalidate();
+            }
+        });
+        myVib = (Vibrator) getActivity().getSystemService(VIBRATOR_SERVICE);
+        mEndpoint="ws://128.2.238.137:9000";
         Future<WebSocket> webSocket= AsyncHttpClient.getDefaultInstance().websocket(mEndpoint, null, wsh);
 
         return view;
+
+    }
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+        inflater.inflate(R.menu.menu_collection, menu);
+    }
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.menu_collection_tutorial:
+                showTutorial();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+    void showTutorial()
+    {
+        ImageView tut = (ImageView) view.findViewById(R.id.treasurehunt_tutorial);
+        tut.setVisibility(View.VISIBLE);
+        tut.setZ(1.0f);
+        if(gameState.game_on)
+        {
+            tut.setImageResource(R.drawable.connectdots_tutorial_skippable);
+            tut.setOnClickListener(this);
+        }
+        else
+        {
+            tut.setImageResource(R.drawable.connectdots_tutorial_unskippable);
+        }
 
     }
     public View onResumeView(final LayoutInflater inflater, final ViewGroup container,
@@ -356,18 +398,36 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
         getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                if(gameState.game_on)
-                    startGame();
-                if(gameState.flag1)
-                    updateMarker_1();
-                if(gameState.flag2)
-                    updateMarker_2();
-                if(gameState.flag3)
-                    updateMarker_3();
                 if(gameState.game_off)
                     stopGame();
-                connectDots cd = (connectDots) view.findViewById(R.id.connectDots);
-                cd.invalidate();
+                else {
+                    if (gameState.flag1)
+                        updateMarker_1();
+                    if (gameState.flag2)
+                        updateMarker_2();
+                    if (gameState.flag3)
+                        updateMarker_3();
+                            else
+                            {
+                                if (!gameState.game_on && !gameState.game_off) {
+                                    showTutorial();
+
+                                }
+                                else {
+                                    if (gameState.game_on && (!gameState.flag1 && !gameState.flag2 && !gameState.flag3 && !gameState.game_off)) {
+                                        if(firstLoad) {
+                                            showTutorial();
+                                            firstLoad=false;
+                                        }
+                                        startGame();
+                                    }
+                                }
+
+                            }
+                }
+                    connectDots cd = (connectDots) view.findViewById(R.id.connectDots);
+                    cd.invalidate();
+
             }
         });
     }
@@ -425,59 +485,24 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
         ex.setX(loc0[0]);
         ex.setY(loc0[1]);
 
-        /*
-        //create a alert box with tutorial screen
-        final AlertDialog alertDialog = new AlertDialog.Builder(getActivity()).create();
-        alertDialog.setTitle("Tutorial");
-        //alertDialog.setContentView(view.findViewById(R.id.treasurehunt_tutorial));
-        //alertDialog.setView(view.findViewById(R.id.treasurehunt_tutorial));
-        if(gameState.game_live) {
-            Log.d("here","game live");
-            alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "Continue!",
-                    new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int which) {
-                            flag=true;
-                            dialog.cancel();
-                            ImageView translucent = (ImageView) view.findViewById(R.id.translucentlayer);
-                            translucent.setVisibility(View.INVISIBLE);
-                            final TextView text = (TextView) view.findViewById(R.id.timer);
-                            int mTimerColor = Color.rgb(0, 0, 0);
-                            text.setTextColor(mTimerColor);
-                            new CountDownTimer(5000, 1000) {
-
-                                public void onTick(long millisUntilFinished) {
-                                    long time = millisUntilFinished / 1000;
-                                    if (time == 1)
-                                        text.setText("GO!");
-                                    else
-                                        text.setText(" " + Long.toString(time - 1));
-                                }
-
-                                public void onFinish() {
-                                    text.setText("");
-                                }
-                            }.start();
-                        }
-                    });
-            if (!flag)alertDialog.show();
-        }
-        else {
-            alertDialog.show();
-        }*/
-
     }
     public void stopGame()
     {
-        /*ImageView MapView= (ImageView)view.findViewById(R.id.map);
-        ObjectAnimator flip_map = ObjectAnimator.ofFloat(MapView, "rotationY", 0, 90);
-        flip_map.setDuration(1000);
-        flip_map.start();*/
         ImageView ex = (ImageView) view.findViewById(R.id.ex);
         ex.setVisibility(View.INVISIBLE);
         ImageView drawing= (ImageView)view.findViewById(R.id.drawing);
         drawing.setVisibility(View.VISIBLE);
+        drawing.setZ(1.0f);
         ImageView translucent = (ImageView) view.findViewById(R.id.translucentlayer);
         translucent.setVisibility(View.VISIBLE);
+        TextView text = (TextView) view.findViewById(R.id.aggregate_text);
+        Typeface tf = Typeface.createFromAsset(getActivity().getAssets(), "fonts/nova2.ttf");
+        text.setZ(1.0f);
+        text.setTypeface(tf);
+        text.setTextSize(30);
+        text.setTextColor(Color.WHITE);
+        text.setBackgroundColor(getResources().getColor(R.color.green));
+        text.setText("      Hurray! Game Over!");
 
     }
     public void plustenaimation(Vector<ImageView> plustens,Vector<ObjectAnimator> anim_plustens,int plustenId,int sectionId)
@@ -555,54 +580,65 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
 
     }
     public void onClick(View v) {
+     if(gameState.game_on) {
+         final JSONObject obj = new JSONObject();
 
-        final JSONObject obj = new JSONObject();
+         switch (v.getId()) {
+             case R.id.treasurehunt_tutorial:
+                 myVib.vibrate(50);
+                 if (gameState.game_on) {
+                     ImageView tut = (ImageView) view.findViewById(R.id.treasurehunt_tutorial);
+                     tut.setVisibility(View.INVISIBLE);
+                 }
+                 break;
+             case R.id.warmer:
+                 myVib.vibrate(30);
+                 try {
+                     obj.put("selection", 0);
+                     obj.put("method", "post");
 
-        switch (v.getId()) {
-            case R.id.warmer:
-                try {
-                    obj.put("selection", 0);
-                    obj.put("method", "post");
+                 } catch (JSONException e) {
+                     e.printStackTrace();
+                 }
 
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
+                 plusoneanimation(LinesView.warmerLocation, LinesView.canvasLocation);
 
-                plusoneanimation(LinesView.warmerLocation,LinesView.canvasLocation);
+                 break;
+             case R.id.colder:
+                 myVib.vibrate(30);
+                 try {
+                     obj.put("selection", 1);
+                     obj.put("method", "post");
 
-                break;
-            case R.id.colder:
+                 } catch (JSONException e) {
+                     e.printStackTrace();
+                 }
+                 plusoneanimation(LinesView.colderLocation, LinesView.canvasLocation);
+                 break;
+             case R.id.marker:
+                 myVib.vibrate(30);
+                 try {
+                     obj.put("selection", 2);
+                     obj.put("method", "post");
 
-                try {
-                    obj.put("selection", 1);
-                    obj.put("method", "post");
+                 } catch (JSONException e) {
+                     e.printStackTrace();
+                 }
+                 plusoneanimation(LinesView.markerLocation, LinesView.canvasLocation);
+                 break;
 
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-                plusoneanimation(LinesView.colderLocation,LinesView.canvasLocation);
-                break;
-            case R.id.marker:
-
-                try {
-                    obj.put("selection", 2);
-                    obj.put("method", "post");
-
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-                plusoneanimation(LinesView.markerLocation,LinesView.canvasLocation);
-                break;
-
-        }
-        callbackWs[0].send(obj.toString());
-
+         }
+         callbackWs[0].send(obj.toString());
+     }
     }
 public boolean onTouch(View v, MotionEvent event)
 {
+    if(gameState.game_on) {
         switch (v.getId()) {
             case R.id.aggregate:
-                if(event.getAction() == MotionEvent.ACTION_DOWN) {
+                if (event.getAction() == MotionEvent.ACTION_DOWN) {
+
+                    myVib.vibrate(30);
 
                     float width = v.getWidth();
                     float tx = event.getX();
@@ -645,14 +681,15 @@ public boolean onTouch(View v, MotionEvent event)
                     callbackWs[0].send(obj.toString());
 
                     int[] clickpos = new int[2];
-                    clickpos[0]=(int)tx ;//- values[0];
-                    clickpos[1]=(int)ty ;//- values[1];
+                    clickpos[0] = (int) tx + 2 * (values[0]);
+                    clickpos[1] = (int) ty + 2 * (values[1]);
 
-                    plusoneanimation(clickpos,values);
+                    plusoneanimation(clickpos, values);
 
                 }
                 break;
         }
+    }
     return true;
 }
 
@@ -773,8 +810,10 @@ public boolean onTouch(View v, MotionEvent event)
                                         text.setTextColor(Color.WHITE);
                                         text.setBackgroundColor(getResources().getColor(R.color.secondary));
                                         text.setText("   Your Section Says : COLDER!");
-                                    } else
-                                        text.setText("   Your Section Says :");
+                                    } else {
+                                        text.setBackgroundColor(getResources().getColor(R.color.common_google_signin_btn_text_light_disabled));
+                                        text.setText(null);
+                                    }
                                 }
                             });
                         }
