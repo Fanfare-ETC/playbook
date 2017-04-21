@@ -144,10 +144,13 @@ public class CollectionFragment extends WebViewFragment {
             cardSlots.put(slot);
         }
 
-        state.put("cardSlots", cardSlots);
+        state.put("activeCard", JSONObject.NULL);
+        state.put("incomingCards", new JSONArray());
         state.put("goal", JSONObject.NULL);
-        state.put("score", 0);
+        state.put("cardSlots", cardSlots);
+        state.put("cardsMatchingSelectedGoal", new JSONArray());
         state.put("selectedGoal", JSONObject.NULL);
+        state.put("score", 0);
         return state;
     }
 
