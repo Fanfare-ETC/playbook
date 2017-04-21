@@ -295,10 +295,11 @@ function handlePlaysCreated(events) {
     const plays = events.map(PlaybookEvents.getById);
     for (const play of plays) {
       if (state.predictionCounts[play] !== undefined) {
-        state.score += ScoreValues[play] * state.predictionCounts[play];
-        reportScore(ScoreValues[play] * state.predictionCounts[play]);
+        const addedScore = ScoreValues[play] * state.predictionCounts[play];
+        state.score += addedScore;
+        reportScore(addedScore);
 
-        const overlay = new PredictionCorrectOverlay(play);
+        const overlay = new PredictionCorrectOverlay(play, addedScore);
         const scoreTab = stage.getChildByName('scoreTab');
         const scoreTabGlobalPosition = scoreTab.toGlobal(scoreTab.getChildByName('score').position);
         initPredictionCorrectOverlayEvents(overlay, scoreTabGlobalPosition);
@@ -349,8 +350,9 @@ function reportScore(score) {
 class PredictionCorrectOverlay extends PIXI.Container {
   /**
    * @param {string} event
+   * @param {number} addedScore
    */
-  constructor(event) {
+  constructor(event, addedScore) {
     super();
 
     /** @type {PIXI.Graphics} */
@@ -372,7 +374,7 @@ class PredictionCorrectOverlay extends PIXI.Container {
     this.text = new PIXI.Text();
     this.text.position.set(window.innerWidth / 2, window.innerHeight / 2);
     this.text.anchor.set(0.5, 0.5);
-    this.text.text = `Prediction correct:\n ${PlaybookEventsFriendlyNames[event]}\n\nYour score is: ${state.score}`;
+    this.text.text = `Prediction correct:\n ${PlaybookEventsFriendlyNames[event]}\n\nYou got ${addedScore} ${addedScore > 1 ? 'points' : 'point'}!`;
     this.text.style.fontFamily = 'proxima-nova';
     this.text.style.fontWeight = 'bold';
     this.text.style.fontSize = 24.0;
