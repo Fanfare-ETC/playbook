@@ -343,7 +343,7 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
             }
         });
         myVib = (Vibrator) getActivity().getSystemService(VIBRATOR_SERVICE);
-        mEndpoint="ws://128.2.238.137:9000";
+        //mEndpoint="ws://128.2.238.137:9000";
         Future<WebSocket> webSocket= AsyncHttpClient.getDefaultInstance().websocket(mEndpoint, null, wsh);
 
         return view;
