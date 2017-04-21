@@ -40,6 +40,8 @@ import static edu.cmu.etc.fanfare.playbook.DrawerItemAdapter.getDrawerItems;
 public class AppActivity extends AppCompatActivity {
     public static final String INTENT_EXTRA_DRAWER_ITEM = "intentExtraDrawerItem";
     public static final String INTENT_EXTRA_GCM_PLAYS_CREATED = "intentExtraGcmPlaysCreated";
+    public static final String INTENT_EXTRA_GCM_LOCK_PREDICTIONS = "intentExtraGcmLockPredictions";
+    public static final String INTENT_EXTRA_GCM_CLEAR_PREDICTIONS = "intentExtraGcmClearPredictions";
 
     private static final int FRAGMENT_PREDICTION = 0;
     private static final int FRAGMENT_COLLECTION = 1;
@@ -156,9 +158,19 @@ public class AppActivity extends AppCompatActivity {
         // Initialize WebSocket connection.
         WebSocketHandler webSocketHandler = new WebSocketHandler();
         Intent intent = getIntent();
+
         if (intent.hasExtra(INTENT_EXTRA_GCM_PLAYS_CREATED)) {
             String message = intent.getStringExtra(INTENT_EXTRA_GCM_PLAYS_CREATED);
-            Log.d(TAG, message);
+            webSocketHandler.onStringAvailable(message);
+        }
+
+        if (intent.hasExtra(INTENT_EXTRA_GCM_LOCK_PREDICTIONS)) {
+            String message = intent.getStringExtra(INTENT_EXTRA_GCM_LOCK_PREDICTIONS);
+            webSocketHandler.onStringAvailable(message);
+        }
+
+        if (intent.hasExtra(INTENT_EXTRA_GCM_CLEAR_PREDICTIONS)) {
+            String message = intent.getStringExtra(INTENT_EXTRA_GCM_CLEAR_PREDICTIONS);
             webSocketHandler.onStringAvailable(message);
         }
 

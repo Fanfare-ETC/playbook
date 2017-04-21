@@ -295,6 +295,9 @@ function handleIncomingMessage(message) {
     case 'server:playsCreated':
       handlePlaysCreated(message.data);
       break;
+    case 'server:lockPredictions':
+      handleLockPredictions(message.data);
+      break;
     case 'server:clearPredictions':
       handleClearPredictions();
       break;
@@ -325,6 +328,46 @@ function handlePlaysCreated(events) {
         navigator.vibrate(200);
       }
     }
+  }
+}
+
+/**
+ * Handle lock predictions event.
+ */
+function handleLockPredictions(data) {
+  const current = new Date();
+  const lockTime = new Date(data.lockTime);
+  const countdownBanner = stage.getChildByName('countdownBanner');
+
+  function showBanner() {
+    countdownBanner.visible = true;
+    const moveBy = new PIXI.action.MoveBy(0.0, countdownBanner.height, 0.25);
+    const fadeIn = new PIXI.action.FadeIn(0.25);
+    PIXI.actionManager.runAction(countdownBanner, moveBy);
+    PIXI.actionManager.runAction(countdownBanner, fadeIn);
+  }
+
+  function hideBanner() {
+    const moveBy = new PIXI.action.MoveBy(0.0, -countdownBanner.height, 0.25);
+    const fadeOut = new PIXI.action.FadeOut(0.25);
+    const callFunc = new PIXI.action.CallFunc(() => countdownBanner.visible = false, 0.25);
+    const sequence = new PIXI.action.Sequence([moveBy, callFunc]);
+    PIXI.actionManager.runAction(countdownBanner, moveBy);
+    PIXI.actionManager.runAction(countdownBanner, fadeOut);
+  }
+
+  function lockPredictions() {
+    state.stage = GameStages.CONFIRMED;
+  }
+
+  // If 10 seconds has elapsed, lock the prediction immediately.
+  // Otherwise, wait till the time has elapsed.
+  if (current - lockTime > 10000) {
+    lockPredictions();
+  } else {
+    setTimeout(lockPredictions, 10000 - (current - lockTime));
+    showBanner();
+    setTimeout(hideBanner, 3000);
   }
 }
 
@@ -862,7 +905,7 @@ function initBallEvents(ball, ballSlot, fieldOverlay) {
  */
 function initContinueBannerEvents(continueBanner) {
   state.emitter.on(state.EVENT_STAGE_CHANGED, function (stage) {
-    continueBanner.visible = stage === GameStages.CONTINUE;
+    continueBanner.visible = stage === GameStages.CONTINUE || GameStages.CONFIRMED;
     renderer.isDirty = true;
   });
 
@@ -1230,6 +1273,26 @@ function setup() {
   fieldOverlay.scale.set(fieldOverlayScale, fieldOverlayScale);
   fieldOverlay.anchor.set(0.5, 0.5);
   stage.addChild(fieldOverlay);
+
+  // Add lock countdown to screen.
+  const countdownBanner = new PIXI.Graphics();
+  const countdownBannerHeight = 128.0 * contentScale;
+  countdownBanner.beginFill(0x002b65);
+  countdownBanner.drawRect(0, 0, window.innerWidth, countdownBannerHeight);
+  countdownBanner.endFill();
+  countdownBanner.position.set(0, -countdownBannerHeight + bannerHeight / 2);
+  countdownBanner.name = 'countdownBanner';
+  countdownBanner.visible = false;
+  stage.addChild(countdownBanner);
+
+  const countdownBannerText = new PIXI.Text('10 seconds left to predict'.toUpperCase());
+  countdownBannerText.style.fontFamily = 'proxima-nova-excn';
+  countdownBannerText.style.fontSize = 104.0 * contentScale;
+  countdownBannerText.style.fill = 0xffffff;
+  const countdownBannerTextMetrics = PIXI.TextMetrics.measureText(countdownBannerText.text, countdownBannerText.style);
+  countdownBannerText.position.set(window.innerWidth / 2, countdownBannerTextMetrics.height / 2);
+  countdownBannerText.anchor.set(0.5, 0.5);
+  countdownBanner.addChild(countdownBannerText);
 
   // Add score tab.
   const scoreTabTexture = PIXI.loader.resources['resources/prediction.json'].textures['Prediction-Scoretab.png'];

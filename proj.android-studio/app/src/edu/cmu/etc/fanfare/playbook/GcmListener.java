@@ -16,9 +16,15 @@ import com.google.firebase.messaging.RemoteMessage;
 import java.util.Map;
 
 public class GcmListener extends FirebaseMessagingService {
-
     private static final String TAG = GcmListener.class.getSimpleName();
+
     private static final int REQUEST_CODE_PLAYS_CREATED = 0;
+    private static final int REQUEST_CODE_LOCK_PREDICTIONS = 1;
+    private static final int REQUEST_CODE_CLEAR_PREDICTIONS = 2;
+
+    private static final int NOTIFICATION_ID_PLAYS_CREATED = 0;
+    private static final int NOTIFICATION_ID_LOCK_PREDICTIONS = 1;
+    private static final int NOTIFICATION_ID_CLEAR_PREDICTIONS = 2;
 
     /**
      * Called when message is received.
@@ -37,6 +43,10 @@ public class GcmListener extends FirebaseMessagingService {
             sendNotification(message);
         } else if (from.startsWith("/topics/playsCreated")) {
             handlePlaysCreated(message);
+        } else if (from.startsWith("/topics/lockPredictions")) {
+            handleLockPredictions(message);
+        } else if (from.startsWith("/topics/clearPredictions")) {
+            handleClearPredictions(message);
         } else {
             Log.d(TAG, "Not a topic message?");
             // normal downstream message.
@@ -88,8 +98,75 @@ public class GcmListener extends FirebaseMessagingService {
         NotificationManager notificationManager =
                 (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
-        notificationManager.notify(0 /* ID of notification */, notificationBuilder.build());
+        notificationManager.notify(NOTIFICATION_ID_PLAYS_CREATED, notificationBuilder.build());
 
+    }
+
+    private void handleLockPredictions(String message) {
+        if (AppActivity.isInForeground &&
+                AppActivity.selectedItem == DrawerItemAdapter.DRAWER_ITEM_PREDICTION) {
+            return;
+        }
+
+        // Discard the message stuff has started.
+        Log.d(TAG, message);
+
+        // Show a notification that the predictions will be locked soon.
+        Log.d(TAG, "handleLockPredictions");
+        Intent intent = new Intent(this, AppActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        intent.putExtra(AppActivity.INTENT_EXTRA_DRAWER_ITEM, DrawerItemAdapter.DRAWER_ITEM_PREDICTION);
+        intent.putExtra(AppActivity.INTENT_EXTRA_GCM_LOCK_PREDICTIONS, message);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this,
+                REQUEST_CODE_LOCK_PREDICTIONS, intent,
+                PendingIntent.FLAG_ONE_SHOT);
+
+        Uri defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+        NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this)
+                .setSmallIcon(R.drawable.ic_logo)
+                .setContentTitle("Half-inning is starting soon")
+                .setContentText("Predictions will be locked in 10 seconds.")
+                .setAutoCancel(true)
+                .setSound(defaultSoundUri)
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setContentIntent(pendingIntent);
+
+        NotificationManager notificationManager =
+                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+
+        notificationManager.notify(NOTIFICATION_ID_LOCK_PREDICTIONS, notificationBuilder.build());
+    }
+
+    private void handleClearPredictions(String message) {
+        if (AppActivity.isInForeground &&
+            AppActivity.selectedItem == DrawerItemAdapter.DRAWER_ITEM_PREDICTION) {
+            return;
+        }
+
+        // Show a notification that the predictions have been cleared.
+        Log.d(TAG, "handleClearPredictions");
+        Intent intent = new Intent(this, AppActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        intent.putExtra(AppActivity.INTENT_EXTRA_DRAWER_ITEM, DrawerItemAdapter.DRAWER_ITEM_PREDICTION);
+        intent.putExtra(AppActivity.INTENT_EXTRA_GCM_CLEAR_PREDICTIONS, message);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this,
+                REQUEST_CODE_CLEAR_PREDICTIONS, intent,
+                PendingIntent.FLAG_ONE_SHOT);
+
+        Uri defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+        NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this)
+                .setSmallIcon(R.drawable.ic_logo)
+                .setContentTitle("Half-inning has ended")
+                .setContentText("Predictions have been cleared.")
+                .setAutoCancel(true)
+                .setSound(defaultSoundUri)
+                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                .setContentIntent(pendingIntent);
+
+        NotificationManager notificationManager =
+                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+
+        notificationManager.notify(NOTIFICATION_ID_CLEAR_PREDICTIONS, notificationBuilder.build());
     }
 
     /**
@@ -118,14 +195,4 @@ public class GcmListener extends FirebaseMessagingService {
 
         notificationManager.notify(0 /* ID of notification */, notificationBuilder.build());
     }
-
-    private class PredictionCorrectWorker extends AsyncTask<String, Void, String> {
-        private PredictionCorrectWorker() {}
-
-        @Override
-        protected String doInBackground(String... params) {
-            return null;
-        }
-    }
-
 }
