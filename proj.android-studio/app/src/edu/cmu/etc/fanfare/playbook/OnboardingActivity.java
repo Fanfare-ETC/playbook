@@ -208,9 +208,10 @@ public class OnboardingActivity extends AppCompatActivity {
         @Override
         public void onDraw(Canvas canvas) {
             // Circle the drawer toggle.
-            canvas.drawOval(
-                    mDrawerToggleRect.left, mDrawerToggleRect.top,
-                    mDrawerToggleRect.right, mDrawerToggleRect.bottom,
+            canvas.drawCircle(
+                    mDrawerToggleRect.centerX(),
+                    mDrawerToggleRect.centerY(),
+                    mDrawerToggleRect.width() / 2,
                     mPaint
             );
 
@@ -263,9 +264,10 @@ public class OnboardingActivity extends AppCompatActivity {
 
         private void createPaint() {
             mPaint = new Paint();
+            mPaint.setAntiAlias(true);
             mPaint.setStyle(Paint.Style.STROKE);
             mPaint.setColor(ContextCompat.getColor(getContext(), R.color.secondary));
-            mPaint.setStrokeWidth(12.0f);
+            mPaint.setStrokeWidth(3.0f * getResources().getDisplayMetrics().density);
         }
     }
 
@@ -429,11 +431,12 @@ public class OnboardingActivity extends AppCompatActivity {
         private Bitmap drawDrawerIntoBitmap() {
             ListView drawerList = makeDrawerList();
             int width = drawerList.getLayoutParams().width;
+            int height = (int) (768 * getResources().getDisplayMetrics().density);
 
             Rect rect = new Rect();
-            rect.set(0, 0, width, 2048);
+            rect.set(0, 0, width, height);
 
-            Bitmap bitmap = Bitmap.createBitmap(width, 2048, Bitmap.Config.ARGB_8888);
+            Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
             Canvas canvas = new Canvas(bitmap);
 
             int widthSpec = View.MeasureSpec.makeMeasureSpec(rect.width(), View.MeasureSpec.EXACTLY);
