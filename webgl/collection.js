@@ -74,7 +74,13 @@ if (!global.PlaybookBridge) {
       }
 
       console.log('Loading state: ', restoredState);
-      state.fromJSON(restoredState);
+      try {
+        state.fromJSON(restoredState);
+      } catch (e) {
+        console.error('Error restoring state due to exception: ', e);
+        state.reset(true);
+        window.location = window.location;
+      }
     }
   };
 } else {
@@ -84,7 +90,13 @@ if (!global.PlaybookBridge) {
     switch (message.action) {
       case 'RESTORE_GAME_STATE':
         console.log('Restoring state from hosting application: ');
-        state.fromJSON(message.payload);
+        try {
+          state.fromJSON(message.payload);
+        } catch (e) {
+          console.error('Error restoring state due to exception: ', e);
+          state.reset(true);
+          window.location = window.location;
+        }
         break;
       case 'HANDLE_MESSAGE':
         console.log('Handling message from hosting application: ');
@@ -95,22 +107,21 @@ if (!global.PlaybookBridge) {
 }
 
 const GoalTypes = {
-  IDENTICAL_CARDS_3: "IDENTICAL_CARDS_3",
-  IDENTICAL_CARDS_4: "IDENTICAL_CARDS_4",
-  IDENTICAL_CARDS_5: "IDENTICAL_CARDS_5",
-  UNIQUE_OUT_CARDS_3: "UNIQUE_OUT_CARDS_3",
-  UNIQUE_OUT_CARDS_4: "UNIQUE_OUT_CARDS_4",
-  WALK_OR_HIT_BY_PITCH_3: "WALK_OR_HIT_BY_PITCH_3",
-  OUT_3: "OUT_3",
-  BASES_RBI_3: "BASES_RBI_3",
-  EACH_COLOR_1: "EACH_COLOR_1",
   EACH_COLOR_2: "EACH_COLOR_2",
+  TWO_PAIRS: "TWO_PAIRS",
+  FULL_HOUSE: "FULL_HOUSE",
   SAME_COLOR_3: "SAME_COLOR_3",
   SAME_COLOR_4: "SAME_COLOR_4",
   SAME_COLOR_5: "SAME_COLOR_5",
-  BASE_STEAL_RBI: "BASE_STEAL_RBI",
-  ON_BASE_STEAL_PICK_OFF: "ON_BASE_STEAL_PICK_OFF",
-  FULL_HOUSE: "FULL_HOUSE",
+  IDENTICAL_CARDS_3: "IDENTICAL_CARDS_3",
+  IDENTICAL_CARDS_4: "IDENTICAL_CARDS_4",
+  IDENTICAL_CARDS_5: "IDENTICAL_CARDS_5",
+  OUT_3: "OUT_3",
+  UNIQUE_OUT_CARDS_3: "UNIQUE_OUT_CARDS_3",
+  UNIQUE_OUT_CARDS_4: "UNIQUE_OUT_CARDS_4",
+  BASES_3: "BASES_3",
+  BASES_RBI_4: "BASES_RBI_4",
+  BASES_SEQ_3: "BASES_SEQ_3",
   UNKNOWN: "UNKNOWN"
 };
 /*
@@ -125,117 +136,110 @@ Object.keys(GoalTypesMetadata)
 std::find_if()
 */
 const GoalTypesMetadata = {
-  [GoalTypes.IDENTICAL_CARDS_3]: {
-    description: "3 IDENTICAL CARDS",
-    file: "goal/goal1.png",
-    score: 8,
-    isHidden: true,
-    serverId: 1
-  },
-  [GoalTypes.IDENTICAL_CARDS_4]: {
-    description: "4 IDENTICAL CARDS",
-    file: "goal/goal2.png",
-    score: 12,
-    isHidden: false,
-    serverId: 9
-  },
-  [GoalTypes.UNIQUE_OUT_CARDS_4]: {
-    description: "4 DIFFERENT OUT CARDS",
-    file: "goal/goal3.png",
-    score: 12,
-    isHidden: false,
-    serverId: 17
-  },
-  [GoalTypes.IDENTICAL_CARDS_5]: {
-    description: "5 IDENTICAL CARDS",
-    file: "goal/goal4.png",
-    score: 20,
-    isHidden: false,
-    serverId: 13
-  },
-  [GoalTypes.WALK_OR_HIT_BY_PITCH_3]: {
-    description: "3 OF WALK OR HIT BY PITCH",
-    file: "goal/goal5.png",
-    score: 8,
-    isHidden: true,
-    serverId: 4
-  },
-  [GoalTypes.OUT_3]: {
-    description: "SET SHOWS 3 OUTS",
-    file: "goal/goal6.png",
-    score: 6,
-    isHidden: false,
-    serverId: 7
-  },
-  [GoalTypes.BASES_RBI_3]: {
-    description: "SET SHOWS 3 BASES",
-    file: "goal/goal7.png",
-    score: 12,
-    isHidden: false,
-    serverId: 16
-  },
   [GoalTypes.EACH_COLOR_2]: {
     description: "2 CARDS OF EACH COLOR",
-    file: "goal/goal8.png",
-    score: 12,
+    file: "trophy/trophy1.png",
+    score: 6,
     isHidden: false,
-    serverId: 12
+    serverId: 1
   },
-  [GoalTypes.SAME_COLOR_3]: {
-    description: "3 CARDS OF SAME COLOR",
-    file: "goal/goal9.png",
+  [GoalTypes.TWO_PAIRS]: {
+    description: 'ANY 2 PAIRS',
+    file: 'trophy/trophy2.png',
     score: 8,
-    isHidden: true,
+    isHidden: false,
     serverId: 2
   },
-  [GoalTypes.EACH_COLOR_1]: {
-    description: "1 CARD OF EACH COLOR",
-    file: "goal/goal11.png",
-    score: 4,
+  [GoalTypes.FULL_HOUSE]: {
+    description: "FULL HOUSE",
+    file: 'trophy/trophy3.png',
+    score: 12,
     isHidden: true,
     serverId: 3
   },
-  [GoalTypes.UNIQUE_OUT_CARDS_3]: {
-    description: "3 DIFFERENT OUT CARDS",
-    file: "goal/goal12.png",
+  [GoalTypes.SAME_COLOR_3]: {
+    description: "3 CARDS OF SAME COLOR",
+    file: "trophy/trophy4.png",
+    score: 6,
+    isHidden: true,
+    serverId: 4
+  },
+  [GoalTypes.SAME_COLOR_4]: {
+    description: "4 CARDS OF SAME COLOR",
+    file: "trophy/trophy5.png",
+    score: 8,
+    isHidden: false,
+    serverId: 5
+  },
+  [GoalTypes.SAME_COLOR_5]: {
+    description: "5 CARDS OF SAME COLOR",
+    file: "trophy/trophy6.png",
+    score: 12,
+    isHidden: false,
+    serverId: 6
+  },
+  [GoalTypes.IDENTICAL_CARDS_3]: {
+    description: "3 IDENTICAL CARDS",
+    file: "trophy/trophy7.png",
+    score: 6,
+    isHidden: true,
+    serverId: 7
+  },
+  [GoalTypes.IDENTICAL_CARDS_4]: {
+    description: "4 IDENTICAL CARDS",
+    file: "trophy/trophy8.png",
     score: 8,
     isHidden: false,
     serverId: 8
   },
-  [GoalTypes.SAME_COLOR_4]: {
-    description: "4 CARDS OF SAME COLOR",
-    file: "goal/goal13.png",
+  [GoalTypes.IDENTICAL_CARDS_5]: {
+    description: "5 IDENTICAL CARDS",
+    file: "trophy/trophy9.png",
     score: 12,
+    isHidden: false,
+    serverId: 9
+  },
+  [GoalTypes.OUT_3]: {
+    description: "SET SHOWS 3 OUTS",
+    file: "trophy/trophy10.png",
+    score: 6,
     isHidden: false,
     serverId: 10
   },
-  [GoalTypes.SAME_COLOR_5]: {
-    description: "5 CARDS OF SAME COLOR",
-    file: "goal/goal14.png",
-    score: 20,
-    isHidden: false,
-    serverId: 14
-  },
-  [GoalTypes.BASE_STEAL_RBI]: {
-    description: "BASE, STEAL & RBI",
-    file: "goal/goal15.png",
+  [GoalTypes.UNIQUE_OUT_CARDS_3]: {
+    description: "3 UNIQUE OUT CARDS",
+    file: "trophy/trophy12.png",
     score: 8,
     isHidden: false,
     serverId: 11
   },
-  [GoalTypes.ON_BASE_STEAL_PICK_OFF]: {
-    description: "BASE, STEAL & PICK OFF",
-    file: "",
-    score: 8,
-    isHidden: true,
-    serverId: 5
+  [GoalTypes.UNIQUE_OUT_CARDS_4]: {
+    description: "4 UNIQUE OUT CARDS",
+    file: "trophy/trophy11.png",
+    score: 12,
+    isHidden: false,
+    serverId: 12
   },
-  [GoalTypes.FULL_HOUSE]: {
-    description: "FULL HOUSE",
-    file: "",
-    score: 16,
-    isHidden: true,
-    serverId: 6
+  [GoalTypes.BASES_3]: {
+    description: "ANY 3 BASE CARDS",
+    file: "trophy/trophy13.png",
+    score: 8,
+    isHidden: false,
+    serverId: 13
+  },
+  [GoalTypes.BASES_RBI_4]: {
+    description: "CARDS WITH 4 BASES",
+    file: "trophy/trophy14.png",
+    score: 8,
+    isHidden: false,
+    serverId: 14
+  },
+  [GoalTypes.BASES_SEQ_3]: {
+    description: "3 BASE CARDS IN ORDER",
+    file: "trophy/trophy15.png",
+    score: 8,
+    isHidden: false,
+    serverId: 15
   }
 };
 
@@ -246,6 +250,16 @@ class GameState {
     this.EVENT_SELECTED_GOAL_CHANGED = 'selectedGoalChanged';
     this.EVENT_CARDS_MATCHING_SELECTED_GOAL_CHANGED = 'cardsMatchingSelectedGoalChanged';
 
+    /** @type {EventEmitter} */
+    this.emitter = new EventEmitter();
+    this.reset();
+  }
+
+  /**
+   * Resets the game state.
+   * @param {boolean} persist
+   */
+  reset(persist) {
     /** @type {Card?} */
     this.activeCard = null;
 
@@ -276,8 +290,9 @@ class GameState {
     /** @type {number} */
     this._score = 0;
 
-    /** @type {EventEmitter} */
-    this.emitter = new EventEmitter();
+    if (persist) {
+      PlaybookBridge.notifyGameState(this.toJSON());
+    }
   }
 
   /**
@@ -416,9 +431,7 @@ class GameState {
     }
 
     const restoredState = JSON.parse(state);
-    if (restoredState === null) {
-      createRandomGoal();
-    } else {
+    if (restoredState !== null) {
       restoredState.cardSlots.forEach((slot, index) => {
         this._cardSlots[index].present = slot.present;
         if (slot.present) {
@@ -943,37 +956,20 @@ function cardSetMeetsGoal(cardSet, goal) {
   let cardsMetGoal = new Array();
 
   switch (goal) {
-    case GoalTypes.BASE_STEAL_RBI: {
-      if ((numOnBase > 0) && (numRBI > 0) && (numSteal > 0)) {
-        const cardOnBase = cardSet.find(card => PlaybookEventsIsOnBase[card.play]);
-        const cardSteal = cardSet.find(card => card.play === PlaybookEvents.STEAL);
-        const cardRBI = cardSet.find(card => card.play === PlaybookEvents.RUN_SCORED);
-        cardsMetGoal.push(cardOnBase);
-        cardsMetGoal.push(cardRBI);
-        cardsMetGoal.push(cardSteal);
-        return cardsMetGoal;
-      }
-      break;
-    }
-    case GoalTypes.BASES_RBI_3: {
-      if (numOnBase >= 3) {
-        return cardSet.filter(card => PlaybookEventsIsOnBase[card.play]);
-      }
-      break;
-    }
-    case GoalTypes.EACH_COLOR_1: {
-      if (numBlue >= 1 && numRed >= 1) {
-        const cardRed = cardSet.find(card => PlaybookEventsTeams[card.play] === 'BATTING');
-        const cardBlue = cardSet.find(card => PlaybookEventsTeams[card.play] === 'FIELDING');
-        return [ cardRed, cardBlue ];
-      }
-      break;
-    }
     case GoalTypes.EACH_COLOR_2: {
       if (numBlue >= 2 && numRed >= 2) {
         const redCards = cardSet.filter(card => PlaybookEventsTeams[card.play] === 'BATTING').slice(0, 2);
         const blueCards = cardSet.filter(card => PlaybookEventsTeams[card.play] === 'FIELDING').slice(0, 2);
         return [...redCards, ...blueCards];
+      }
+      break;
+    }
+    case GoalTypes.TWO_PAIRS: {
+      const plays = Object.keys(cardCounts).filter(play => cardCounts[play] >= 2);
+      if (plays.length >= 2) {
+        const firstPair = cardSet.filter(card => card.play === plays[0]).slice(0, 2);
+        const secondPair = cardSet.filter(card => card.play === plays[1]).slice(0, 2);
+        return [...firstPair, ...secondPair];
       }
       break;
     }
@@ -987,62 +983,6 @@ function cardSetMeetsGoal(cardSet, goal) {
       }
       break;
     }
-    case GoalTypes.IDENTICAL_CARDS_3: {
-      const plays = Object.keys(cardCounts).filter(play => cardCounts[play] >= 3);
-      if (plays.length > 0) {
-        return cardSet.filter(card => card.play === plays[0]).slice(0, 3);
-      }
-      break;
-    }
-    case GoalTypes.IDENTICAL_CARDS_4: {
-      const plays = Object.keys(cardCounts).filter(play => cardCounts[play] >= 4);
-      if (plays.length > 0) {
-        return cardSet.filter(card => card.play === plays[0]).slice(0, 4);
-      }
-      break;
-    }
-    case GoalTypes.IDENTICAL_CARDS_5: {
-      const plays = Object.keys(cardCounts).filter(play => cardCounts[play] === 5);
-      if (plays.length > 0) {
-        return cardSet.filter(card => card.play === plays[0]);
-      }
-      break;
-    }
-    case GoalTypes.ON_BASE_STEAL_PICK_OFF: {
-      if ((numOnBase > 0) && (numPickOff > 0) && (numSteal > 0)) {
-        const cardOnBase = cardSet.find(card => PlaybookEventsIsOnBase[card.play]);
-        const cardSteal = cardSet.find(card => card.play === PlaybookEvents.STEAL);
-        const cardPickOff = cardSet.find(card => card.play === PlaybookEvents.PICK_OFF);
-        cardsMetGoal.push(cardOnBase);
-        cardsMetGoal.push(cardPickOff);
-        cardsMetGoal.push(cardSteal);
-        return cardsMetGoal;
-
-      }
-      break;
-    }
-    case GoalTypes.OUT_3: { //I think should be exactly 3 outs, so 2 double plays can't satisfy
-      const totalOuts = numOut + numDoublePlay * 2 + numTriplePlay * 3;
-      if (totalOuts >= 3) {
-        if (numTriplePlay > 0) {
-          return cardSet.find(card => card.play === PlaybookEvents.TRIPLE_PLAY);
-        }
-        else if (numDoublePlay > 0) {
-          const cardDoublePlay = cardSet.find(card => card.play === PlaybookEvents.DOUBLE_PLAY);
-          const cardOut = cardSet.find(card => PlaybookEventsIsOut[card.play]);
-          cardsMetGoal.push(cardDoublePlay);
-          cardsMetGoal.push(cardOut);
-          return cardsMetGoal;
-        }
-        else {
-          return cardSet.filter(card => PlaybookEventsIsOut[card.play])
-            .slice(0, 3);
-
-        }
-      }
-      break;
-    }
-
     case GoalTypes.SAME_COLOR_3: {
       if ((numBlue >= 3) || (numRed >= 3)) {
         if (numRed >= 3) {
@@ -1072,6 +1012,48 @@ function cardSetMeetsGoal(cardSet, goal) {
     case GoalTypes.SAME_COLOR_5: {
       if (numBlue === 5 || numRed === 5) {
         return cardSet;
+      }
+      break;
+    }
+    case GoalTypes.IDENTICAL_CARDS_3: {
+      const plays = Object.keys(cardCounts).filter(play => cardCounts[play] >= 3);
+      if (plays.length > 0) {
+        return cardSet.filter(card => card.play === plays[0]).slice(0, 3);
+      }
+      break;
+    }
+    case GoalTypes.IDENTICAL_CARDS_4: {
+      const plays = Object.keys(cardCounts).filter(play => cardCounts[play] >= 4);
+      if (plays.length > 0) {
+        return cardSet.filter(card => card.play === plays[0]).slice(0, 4);
+      }
+      break;
+    }
+    case GoalTypes.IDENTICAL_CARDS_5: {
+      const plays = Object.keys(cardCounts).filter(play => cardCounts[play] === 5);
+      if (plays.length > 0) {
+        return cardSet.filter(card => card.play === plays[0]);
+      }
+      break;
+    }
+    case GoalTypes.OUT_3: { //I think should be exactly 3 outs, so 2 double plays can't satisfy
+      const totalOuts = numOut + numDoublePlay * 2 + numTriplePlay * 3;
+      if (totalOuts >= 3) {
+        if (numTriplePlay > 0) {
+          return cardSet.find(card => card.play === PlaybookEvents.TRIPLE_PLAY);
+        }
+        else if (numDoublePlay > 0) {
+          const cardDoublePlay = cardSet.find(card => card.play === PlaybookEvents.DOUBLE_PLAY);
+          const cardOut = cardSet.find(card => PlaybookEventsIsOut[card.play]);
+          cardsMetGoal.push(cardDoublePlay);
+          cardsMetGoal.push(cardOut);
+          return cardsMetGoal;
+        }
+        else {
+          return cardSet.filter(card => PlaybookEventsIsOut[card.play])
+            .slice(0, 3);
+
+        }
       }
       break;
     }
@@ -1108,13 +1090,35 @@ function cardSetMeetsGoal(cardSet, goal) {
       }
       break;
     }
-    case GoalTypes.WALK_OR_HIT_BY_PITCH_3: {
-      const walkOrHitList = cardSet.filter(card =>
-        card.play === PlaybookEvents.WALK ||
-        card.play === PlaybookEvents.HIT_BY_PITCH
-      );
-      if (walkOrHitList.length >= 3) {
-        return walkOrHitList.slice(0, 3);
+    case GoalTypes.BASES_3: {
+      if (numOnBase >= 3) {
+        return cardSet.filter(card => PlaybookEventsIsOnBase[card.play]);
+      }
+      break;
+    }
+    case GoalTypes.BASES_RBI_4: {
+      const runScoredCard = cardSet.find(card => card.play === PlaybookEvents.RUN_SCORED);
+      if (numOnBase >= 3 && runScoredCard !== undefined) {
+        return [
+          ...cardSet.filter(card => PlaybookEventsIsOnBase[card.play]),
+          runScoredCard
+        ];
+      }
+      break;
+    }
+    case GoalTypes.BASES_SEQ_3: {
+      const sequences = [
+        [PlaybookEvents.HIT_BY_PITCH, PlaybookEvents.SINGLE, PlaybookEvents.DOUBLE],
+        [PlaybookEvents.WALK, PlaybookEvents.SINGLE, PlaybookEvents.DOUBLE],
+        [PlaybookEvents.SINGLE, PlaybookEvents.DOUBLE, PlaybookEvents.TRIPLE],
+        [PlaybookEvents.DOUBLE, PlaybookEvents.TRIPLE, PlaybookEvents.HOME_RUN],
+      ];
+
+      for (const sequence of sequences) {
+        const outCards = sequence.map(play => cardSet.find(card => card.play === play));
+        if (outCards.indexOf(undefined) < 0) {
+          return outCards;
+        }
       }
       break;
     }
@@ -1262,7 +1266,8 @@ function createRandomGoal() {
   const visibleGoals = Object.keys(GoalTypesMetadata)
     .filter(goal => !GoalTypesMetadata[goal].isHidden);
   const randomChoice = Math.floor((Math.random() * visibleGoals.length));
-  state.goal = visibleGoals[randomChoice];
+  //state.goal = visibleGoals[randomChoice];
+  state.goal = GoalTypes.BASES_SEQ_3;
 }
 
 /**
@@ -1655,7 +1660,7 @@ function setup() {
   stage.addChild(goalsContainer);
 
   // Add goal
-  const goalTexture = PIXI.loader.resources['resources/goal/goal1.png'].texture;
+  const goalTexture = PIXI.loader.resources['resources/trophy/trophy1.png'].texture;
   const goalSprite = new PIXI.Sprite(goalTexture);
   const goalScale = (window.innerWidth / 2 - goalTextMetrics.width - 144 * contentScale) / goalSprite.width;
   goalSprite.name = 'goal';
@@ -1773,21 +1778,21 @@ PIXI.loader
   .add('resources/Collection-Shadow-9x16.png')
   .add('resources/Collection-Shadow-Overturn.png')
   .add('resources/Prediction-Banner.png')
-  .add('resources/goal/goal1.png')
-  .add('resources/goal/goal2.png')
-  .add('resources/goal/goal3.png')
-  .add('resources/goal/goal4.png')
-  .add('resources/goal/goal5.png')
-  .add('resources/goal/goal6.png')
-  .add('resources/goal/goal7.png')
-  .add('resources/goal/goal8.png')
-  .add('resources/goal/goal9.png')
-  .add('resources/goal/goal10.png')
-  .add('resources/goal/goal11.png')
-  .add('resources/goal/goal12.png')
-  .add('resources/goal/goal13.png')
-  .add('resources/goal/goal14.png')
-  .add('resources/goal/goal15.png')
+  .add('resources/trophy/trophy1.png')
+  .add('resources/trophy/trophy2.png')
+  .add('resources/trophy/trophy3.png')
+  .add('resources/trophy/trophy4.png')
+  .add('resources/trophy/trophy5.png')
+  .add('resources/trophy/trophy6.png')
+  .add('resources/trophy/trophy7.png')
+  .add('resources/trophy/trophy8.png')
+  .add('resources/trophy/trophy9.png')
+  .add('resources/trophy/trophy10.png')
+  .add('resources/trophy/trophy11.png')
+  .add('resources/trophy/trophy12.png')
+  .add('resources/trophy/trophy13.png')
+  .add('resources/trophy/trophy14.png')
+  .add('resources/trophy/trophy15.png')
   .add('resources/cards/Card-B-FirstBase.jpg')
   .add('resources/cards/Card-B-GrandSlam.jpg')
   .add('resources/cards/Card-B-HitByPitch.jpg')
