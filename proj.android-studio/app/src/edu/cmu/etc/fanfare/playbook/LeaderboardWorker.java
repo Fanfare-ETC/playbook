@@ -248,7 +248,7 @@ public class LeaderboardWorker extends AsyncTask<String,Void,String> {
                 tv.removeAllViewsInLayout();
 
                 for (int i = 0; i < jArray.length(); i++) {
-                    TableRow tr = new TableRow(activity.getContext());
+                    TableRow tr = new TableRow(activity.getActivity());
                     /*tr.setLayoutParams(new TableRow.LayoutParams(
                             TableRow.LayoutParams.MATCH_PARENT,
                             TableRow.LayoutParams.MATCH_PARENT));*/
@@ -268,9 +268,9 @@ public class LeaderboardWorker extends AsyncTask<String,Void,String> {
                             ", Collection" + json_data.getString("CollectionScore") +
                             ", Total" + json_data.getString("Total"));
 
-                    Typeface externalFont = Typeface.createFromAsset(activity.getContext().getAssets(), "fonts/nova2.ttf");
+                    Typeface externalFont = Typeface.createFromAsset(activity.getActivity().getAssets(), "fonts/nova2.ttf");
 
-                    TextView b0 = new TextView(activity.getContext());
+                    TextView b0 = new TextView(activity.getActivity());
                     //String rank = json_data.getString("UserName");
                     b0.setText("#" + (i + 1));
                     b0.setPadding(20, 0, 10, 0);
@@ -284,7 +284,7 @@ public class LeaderboardWorker extends AsyncTask<String,Void,String> {
                     b0.setLayoutParams(params1);
                     tr.addView(b0);
 
-                    TextView b1 = new TextView(activity.getContext());
+                    TextView b1 = new TextView(activity.getActivity());
                     String name = json_data.getString("UserName");
                     if(name.length() > 13){
                         b1.setTextSize(12);
@@ -306,7 +306,7 @@ public class LeaderboardWorker extends AsyncTask<String,Void,String> {
                     b1.setLayoutParams(params1);
                     tr.addView(b1);
 
-                    TextView b2 = new TextView(activity.getContext());
+                    TextView b2 = new TextView(activity.getActivity());
                     int textSize = 20;
                     if((json_data.getInt("PredictionScore") > 999) | (json_data.getInt("CollectionScore") > 999) | (json_data.getInt("Total") > 999)){
                         if((json_data.getInt("PredictionScore") > 9999) | (json_data.getInt("CollectionScore") > 9999) | (json_data.getInt("Total") > 9999)){
@@ -333,7 +333,7 @@ public class LeaderboardWorker extends AsyncTask<String,Void,String> {
                     b2.setLayoutParams(params2);
                     tr.addView(b2);
 
-                    TextView b3 = new TextView(activity.getContext());
+                    TextView b3 = new TextView(activity.getActivity());
                     String collection = String.valueOf(json_data.getInt("CollectionScore"));
                     b3.setText(collection);
                     if (flag == 2)
@@ -349,7 +349,7 @@ public class LeaderboardWorker extends AsyncTask<String,Void,String> {
                     b3.setLayoutParams(params2);
                     tr.addView(b3);
 
-                    TextView b4 = new TextView(activity.getContext());
+                    TextView b4 = new TextView(activity.getActivity());
                     String total = String.valueOf(json_data.getInt("Total"));
                     b4.setText(total);
                     b4.setPadding(20, 0, 8, 0);
@@ -379,9 +379,9 @@ public class LeaderboardWorker extends AsyncTask<String,Void,String> {
         }
         else{
 
-            /*Typeface externalFont = Typeface.createFromAsset(activity.getContext().getAssets(), "fonts/nova2.ttf");
+            /*Typeface externalFont = Typeface.createFromAsset(activity.getActivity().getAssets(), "fonts/nova2.ttf");
 
-            TextView b0 = new TextView(activity.getContext());
+            TextView b0 = new TextView(activity.getActivity());
             b0.setTypeface(externalFont);
             b0.setText("Server error. Please inform Project Fanfare for tech support");
             b0.setPadding(20, 50, 12, 0);
