@@ -783,13 +783,13 @@ public boolean onTouch(View v, MotionEvent event)
 
                         final int w, m, c;
                         final List<String> num = Arrays.asList(s.split(","));
-                        if(num.size()!=3) {w=0;m=0;c=0;}
+                        if(num.size()!=4) {w=0;m=0;c=0;}
                         else {
-                            w = Integer.valueOf(num.get(0));
-                            m = Integer.valueOf(num.get(1));
-                            c = Integer.valueOf(num.get(2));
+                            w = Integer.valueOf(num.get(1));
+                            m = Integer.valueOf(num.get(2));
+                            c = Integer.valueOf(num.get(3));
                         }
-                        //Log.d("waggregate", Integer.toString(w) + " " + Integer.toString(m) + " " + Integer.toString(c));
+                        //Log.d("wanderer", Integer.toString(w) + " " + Integer.toString(m) + " " + Integer.toString(c));
                         if(getActivity()!=null) {
                             getActivity().runOnUiThread(new Runnable() {
                                 @Override
