@@ -82,29 +82,29 @@ const GameStages = {
 };
 
 const ScoreValues = {
-  [PlaybookEvents.NO_RUNS]: 4,
-  [PlaybookEvents.RUN_SCORED]: 4,
+  [PlaybookEvents.NO_RUNS]: 1,
+  [PlaybookEvents.RUN_SCORED]: 2,
   [PlaybookEvents.FLY_OUT]: 2,
   [PlaybookEvents.TRIPLE_PLAY]: 1400,
   [PlaybookEvents.DOUBLE_PLAY]: 20,
-  [PlaybookEvents.GROUND_OUT]: 2,
-  [PlaybookEvents.STEAL]: 5,
+  [PlaybookEvents.GROUND_OUT]: 1,
+  [PlaybookEvents.STEAL]: 18,
   [PlaybookEvents.PICK_OFF]: 7,
-  [PlaybookEvents.WALK]: 3,
+  [PlaybookEvents.WALK]: 2,
   [PlaybookEvents.BLOCKED_RUN]: 10,
-  [PlaybookEvents.STRIKEOUT]: 2,
-  [PlaybookEvents.HIT_BY_PITCH]: 2,
+  [PlaybookEvents.STRIKEOUT]: 1,
+  [PlaybookEvents.HIT_BY_PITCH]: 10,
   [PlaybookEvents.HOME_RUN]: 10,
-  [PlaybookEvents.PITCH_COUNT_16]: 2,
-  [PlaybookEvents.PITCH_COUNT_17]: 2,
+  [PlaybookEvents.PITCH_COUNT_16]: 1,
+  [PlaybookEvents.PITCH_COUNT_17]: 1,
   [PlaybookEvents.SINGLE]: 3,
   [PlaybookEvents.DOUBLE]: 5,
-  [PlaybookEvents.TRIPLE]: 20,
-  [PlaybookEvents.BATTER_COUNT_4]: 2,
-  [PlaybookEvents.BATTER_COUNT_5]: 2,
-  [PlaybookEvents.MOST_FIELDED_BY_LEFT]: 2,
-  [PlaybookEvents.MOST_FIELDED_BY_RIGHT]: 2,
-  [PlaybookEvents.MOST_FIELDED_BY_INFIELDERS]: 2,
+  [PlaybookEvents.TRIPLE]: 32,
+  [PlaybookEvents.BATTER_COUNT_4]: 1,
+  [PlaybookEvents.BATTER_COUNT_5]: 1,
+  [PlaybookEvents.MOST_FIELDED_BY_LEFT]: 3,
+  [PlaybookEvents.MOST_FIELDED_BY_RIGHT]: 5,
+  [PlaybookEvents.MOST_FIELDED_BY_INFIELDERS]: 4,
   [PlaybookEvents.MOST_FIELDED_BY_CENTER]: 2
 };
 
@@ -295,10 +295,11 @@ function handlePlaysCreated(events) {
     const plays = events.map(PlaybookEvents.getById);
     for (const play of plays) {
       if (state.predictionCounts[play] !== undefined) {
-        state.score += ScoreValues[play] * state.predictionCounts[play];
-        reportScore(ScoreValues[play] * state.predictionCounts[play]);
+        const addedScore = ScoreValues[play] * state.predictionCounts[play];
+        state.score += addedScore;
+        reportScore(addedScore);
 
-        const overlay = new PredictionCorrectOverlay(play);
+        const overlay = new PredictionCorrectOverlay(play, addedScore);
         const scoreTab = stage.getChildByName('scoreTab');
         const scoreTabGlobalPosition = scoreTab.toGlobal(scoreTab.getChildByName('score').position);
         initPredictionCorrectOverlayEvents(overlay, scoreTabGlobalPosition);
@@ -349,8 +350,9 @@ function reportScore(score) {
 class PredictionCorrectOverlay extends PIXI.Container {
   /**
    * @param {string} event
+   * @param {number} addedScore
    */
-  constructor(event) {
+  constructor(event, addedScore) {
     super();
 
     /** @type {PIXI.Graphics} */
@@ -372,7 +374,7 @@ class PredictionCorrectOverlay extends PIXI.Container {
     this.text = new PIXI.Text();
     this.text.position.set(window.innerWidth / 2, window.innerHeight / 2);
     this.text.anchor.set(0.5, 0.5);
-    this.text.text = `Prediction correct:\n ${PlaybookEventsFriendlyNames[event]}\n\nYour score is: ${state.score}`;
+    this.text.text = `Prediction correct:\n ${PlaybookEventsFriendlyNames[event]}\n\nYou got ${addedScore} ${addedScore > 1 ? 'points' : 'point'}!`;
     this.text.style.fontFamily = 'proxima-nova';
     this.text.style.fontWeight = 'bold';
     this.text.style.fontSize = 24.0;
@@ -475,6 +477,8 @@ class FieldOverlay extends PIXI.Sprite {
    * Toggles showing the payouts for the betting table.
    */
   showPayouts() {
+    this._balls.filter(ball => ball.selectedTarget)
+      .forEach(ball => ball.setHollow(true));
     this.texture = this._payoutsTexture;
   }
 
@@ -482,6 +486,8 @@ class FieldOverlay extends PIXI.Sprite {
    * Hides the payouts.
    */
   hidePayouts() {
+    this._balls.filter(ball => ball.selectedTarget)
+      .forEach(ball => ball.setHollow(false));
     this.texture = this._defaultTexture;
   }
 
@@ -719,6 +725,20 @@ class Ball {
     } else {
       this.sprite.position.set(center.x, center.y);
       renderer.isDirty = true;
+    }
+  }
+
+  /**
+   * Sets this ball as hollow. This is used to show prediction odds
+   * when the ball is covering it.
+   * @param {bool} hollow
+   */
+  setHollow(hollow) {
+    const sheet = PIXI.loader.resources['resources/prediction.json'];
+    if (hollow) {
+      this.sprite.texture = sheet.textures['Item-Ball-Hollow.png'];
+    } else {
+      this.sprite.texture = sheet.textures['Item-Ball.png'];
     }
   }
 }
@@ -1017,14 +1037,14 @@ function createFieldOverlay(balls) {
       524.0, 778.0,
       714.0, 696.0
     ]),
-    [PlaybookEvents.NO_RUNS]: new PIXI.Polygon([
+    [PlaybookEvents.GROUND_OUT]: new PIXI.Polygon([
       714.0, 1526.0,
       714.0, 1250.0,
       520.0, 1168.0,
       440.0, 978.0,
       188.0, 978.0
     ]),
-    [PlaybookEvents.GROUND_OUT]: new PIXI.Polygon([
+    [PlaybookEvents.NO_RUNS]: new PIXI.Polygon([
       726.0, 1526.0,
       1252.0, 978.0,
       1000.0, 978.0,

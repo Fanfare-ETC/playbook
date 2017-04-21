@@ -7,6 +7,7 @@ import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.graphics.Path;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.graphics.Typeface;
@@ -27,7 +28,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewTreeObserver;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.AdapterView;
@@ -193,16 +193,21 @@ public class OnboardingActivity extends AppCompatActivity {
         private Point mLeaderboardParaPosition;
         private Point mTrophyItemPosition;
         private Point mTrophyParaPosition;
+        private Path mArrowHeadPath;
+
         private Paint mPaint;
+        private Paint mArrowHeadPaint;
 
         public OverlayView(Context context) {
             super(context);
-            createPaint();
+            createPaints();
+            createArrowHeadPath();
         }
 
         public OverlayView(Context context, AttributeSet attributeSet) {
             super(context, attributeSet);
-            createPaint();
+            createPaints();
+            createArrowHeadPath();
         }
 
         @Override
@@ -230,12 +235,43 @@ public class OnboardingActivity extends AppCompatActivity {
                     mPaint
             );
 
+            // Compute the angle for the arrow head.
+            float angle = (float) (Math.atan2(
+                    mLeaderboardItemPosition.y - mLeaderboardParaPosition.y,
+                    mLeaderboardItemPosition.x - mLeaderboardParaPosition.x
+            ) * 180 / Math.PI) - 90.0f;
+
+            // Draw the arrow head.
+            float arrowHeadScalingFactor = getResources().getDisplayMetrics().density / 4.0f;
+            canvas.save();
+            canvas.translate(mLeaderboardItemPosition.x, mLeaderboardItemPosition.y);
+            canvas.rotate(angle);
+            canvas.scale(arrowHeadScalingFactor, arrowHeadScalingFactor);
+            canvas.translate(-25.0f, -8.0f);
+            canvas.drawPath(mArrowHeadPath, mArrowHeadPaint);
+            canvas.restore();
+
             // Point to the trophy case button.
             canvas.drawLine(
                     mTrophyParaPosition.x, mTrophyParaPosition.y,
                     mTrophyItemPosition.x, mTrophyItemPosition.y,
                     mPaint
             );
+
+            // Compute the angle for the arrow head.
+            angle = (float) (Math.atan2(
+                    mTrophyItemPosition.y - mTrophyParaPosition.y,
+                    mTrophyItemPosition.x - mTrophyParaPosition.x
+            ) * 180 / Math.PI) - 90.0f;
+
+            // Draw the arrow head.
+            canvas.save();
+            canvas.translate(mTrophyItemPosition.x, mTrophyItemPosition.y);
+            canvas.rotate(angle);
+            canvas.scale(arrowHeadScalingFactor, arrowHeadScalingFactor);
+            canvas.translate(-25.0f, -8.0f);
+            canvas.drawPath(mArrowHeadPath, mArrowHeadPaint);
+            canvas.restore();
         }
 
         public void setDrawerToggleRect(Rect rect) {
@@ -262,12 +298,27 @@ public class OnboardingActivity extends AppCompatActivity {
             mTrophyParaPosition = position;
         }
 
-        private void createPaint() {
+        private void createArrowHeadPath() {
+            mArrowHeadPath = new Path();
+            mArrowHeadPath.setFillType(Path.FillType.EVEN_ODD);
+            mArrowHeadPath.moveTo(0, 0);
+            mArrowHeadPath.lineTo(25, 8);
+            mArrowHeadPath.lineTo(50, 0);
+            mArrowHeadPath.lineTo(25, 50);
+            mArrowHeadPath.close();
+        }
+
+        private void createPaints() {
             mPaint = new Paint();
             mPaint.setAntiAlias(true);
             mPaint.setStyle(Paint.Style.STROKE);
             mPaint.setColor(ContextCompat.getColor(getContext(), R.color.secondary));
             mPaint.setStrokeWidth(3.0f * getResources().getDisplayMetrics().density);
+
+            mArrowHeadPaint = new Paint();
+            mArrowHeadPaint.setAntiAlias(true);
+            mArrowHeadPaint.setStyle(Paint.Style.FILL_AND_STROKE);
+            mArrowHeadPaint.setColor(ContextCompat.getColor(getContext(), R.color.secondary));
         }
     }
 
