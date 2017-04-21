@@ -477,6 +477,8 @@ class FieldOverlay extends PIXI.Sprite {
    * Toggles showing the payouts for the betting table.
    */
   showPayouts() {
+    this._balls.filter(ball => ball.selectedTarget)
+      .forEach(ball => ball.setHollow(true));
     this.texture = this._payoutsTexture;
   }
 
@@ -484,6 +486,8 @@ class FieldOverlay extends PIXI.Sprite {
    * Hides the payouts.
    */
   hidePayouts() {
+    this._balls.filter(ball => ball.selectedTarget)
+      .forEach(ball => ball.setHollow(false));
     this.texture = this._defaultTexture;
   }
 
@@ -721,6 +725,20 @@ class Ball {
     } else {
       this.sprite.position.set(center.x, center.y);
       renderer.isDirty = true;
+    }
+  }
+
+  /**
+   * Sets this ball as hollow. This is used to show prediction odds
+   * when the ball is covering it.
+   * @param {bool} hollow
+   */
+  setHollow(hollow) {
+    const sheet = PIXI.loader.resources['resources/prediction.json'];
+    if (hollow) {
+      this.sprite.texture = sheet.textures['Item-Ball-Hollow.png'];
+    } else {
+      this.sprite.texture = sheet.textures['Item-Ball.png'];
     }
   }
 }
