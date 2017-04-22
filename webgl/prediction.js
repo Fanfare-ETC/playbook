@@ -905,7 +905,7 @@ function initBallEvents(ball, ballSlot, fieldOverlay) {
  */
 function initContinueBannerEvents(continueBanner) {
   state.emitter.on(state.EVENT_STAGE_CHANGED, function (stage) {
-    continueBanner.visible = stage === GameStages.CONTINUE || GameStages.CONFIRMED;
+    continueBanner.visible = stage === GameStages.CONTINUE || stage === GameStages.CONFIRMED;
     renderer.isDirty = true;
   });
 

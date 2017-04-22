@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Google Play game services IDs.
+Save this file as res/values/games-ids.xml in your project.
+-->
+<resources>
+    <string name="app_id">205092686601</string>
+    <string name="package_name">edu.cmu.etc.fanfare.playbook</string>
+    <string name="achievement_duality">CgkIiZbog_wFEAIQAQ</string>
+    <string name="achievement_two_pairs">CgkIiZbog_wFEAIQAg</string>
+    <string name="achievement_full_house">CgkIiZbog_wFEAIQAw</string>
+    <string name="achievement_loyalist">CgkIiZbog_wFEAIQBA</string>
+    <string name="achievement_side_allegiance">CgkIiZbog_wFEAIQBQ</string>
+    <string name="achievement_side_champion">CgkIiZbog_wFEAIQBg</string>
+    <string name="achievement_three_of_a_kind">CgkIiZbog_wFEAIQBw</string>
+    <string name="achievement_four_of_a_kind">CgkIiZbog_wFEAIQCA</string>
+    <string name="achievement_five_of_a_kind">CgkIiZbog_wFEAIQCQ</string>
+    <string name="achievement_three_outs">CgkIiZbog_wFEAIQCg</string>
+    <string name="achievement_3_different_outs">CgkIiZbog_wFEAIQCw</string>
+    <string name="achievement_4_play_shutdown">CgkIiZbog_wFEAIQDA</string>
+    <string name="achievement_three_bases">CgkIiZbog_wFEAIQDQ</string>
+    <string name="achievement_casual_run">CgkIiZbog_wFEAIQDg</string>
+    <string name="achievement_on_base_seq">CgkIiZbog_wFEAIQDw</string>
+</resources>

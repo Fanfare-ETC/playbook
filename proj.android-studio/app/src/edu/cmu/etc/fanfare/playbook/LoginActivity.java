@@ -18,7 +18,7 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.common.api.GoogleApiClient;
 
-import static edu.cmu.etc.fanfare.playbook.OnboardingActivity.PREF_KEY_IS_ONBOARDING_COMPLETE;
+import static edu.cmu.etc.fanfare.playbook.PlaybookApplication.PREF_KEY_IS_ONBOARDING_COMPLETE;
 
 public class LoginActivity extends AppCompatActivity implements GoogleApiClient.OnConnectionFailedListener {
     private static final String TAG = "LoginActivity";
@@ -99,12 +99,15 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
             // Signed in successfully, show authenticated UI.
             acct = result.getSignInAccount();
             if (acct != null) {
-                Cocos2dxBridge.setPlayerName(acct.getDisplayName());
-                Cocos2dxBridge.setPlayerID(acct.getId());
+                PlaybookApplication.setPlayerName(acct.getDisplayName());
+                PlaybookApplication.setPlayerID(acct.getId());
                 //insert player
                 BackgroundWorker backgroundWorker = new BackgroundWorker();
                 backgroundWorker.execute("section");
-                startActivity(new Intent(this, AppActivity.class));
+
+                Intent intent = new Intent(this, AppActivity.class);
+                intent.putExtras(getIntent());
+                startActivity(intent);
                 finish();
             } else {
                 Toast.makeText(this, "Failed to sign in using Google.", Toast.LENGTH_SHORT).show();

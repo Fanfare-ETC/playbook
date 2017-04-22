@@ -41,10 +41,10 @@ import java.lang.reflect.Field;
 import static edu.cmu.etc.fanfare.playbook.DrawerItemAdapter.DRAWER_ITEM_LEADERBOARD;
 import static edu.cmu.etc.fanfare.playbook.DrawerItemAdapter.DRAWER_ITEM_TROPHY;
 import static edu.cmu.etc.fanfare.playbook.DrawerItemAdapter.getDrawerItems;
+import static edu.cmu.etc.fanfare.playbook.PlaybookApplication.PREF_KEY_IS_ONBOARDING_COMPLETE;
 
 public class OnboardingActivity extends AppCompatActivity {
     private static final String TAG = OnboardingActivity.class.getSimpleName();
-    public static final String PREF_KEY_IS_ONBOARDING_COMPLETE = "isOnboardingComplete";
 
     private ActionBarDrawerToggle mDrawerToggle;
 

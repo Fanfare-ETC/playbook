@@ -102,6 +102,11 @@ public class CollectionFragment extends WebViewFragment {
     public void onDetach() {
         super.onDetach();
         mIsAttached = false;
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
 
         // Save game state to preferences.
         SharedPreferences prefs = getActivity().getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
@@ -257,7 +262,7 @@ public class CollectionFragment extends WebViewFragment {
 
         @JavascriptInterface
         public String getPlayerID() {
-            return Cocos2dxBridge.getPlayerID();
+            return PlaybookApplication.getPlayerID();
         }
 
         @JavascriptInterface
