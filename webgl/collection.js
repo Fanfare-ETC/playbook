@@ -845,6 +845,7 @@ function updateGoals(goalSets) {
   goalsContainer.removeChildren();
 
   Object.keys(goalSets).map((goal, index) => {
+    const score = GoalTypesMetadata[goal].score;
     const description = GoalTypesMetadata[goal].description;
     const isHidden = GoalTypesMetadata[goal].isHidden;
     const barSpriteColor = isHidden ? 'Green' : 'Yellow';
@@ -864,13 +865,22 @@ function updateGoals(goalSets) {
     goalBarShadow.tileScale.set(1.0, contentScale);
     goalBar.addChild(goalBarShadow);
 
+    const goalBarScore = new PIXI.Text();
+    goalBarScore.text = score;
+    goalBarScore.style.fill = barTextColor;
+    goalBarScore.style.fontFamily = 'SCOREBOARD';
+    goalBarScore.style.fontSize = 104 * contentScale;
+    goalBarScore.anchor.set(0.0, 0.5);
+    goalBarScore.position.set(64 * contentScale, goalBarHeight / 2);
+    goalBar.addChild(goalBarScore);
+
     const goalBarText = new PIXI.Text();
     goalBarText.text = description;
     goalBarText.style.fill = barTextColor;
     goalBarText.style.fontFamily = 'proxima-nova-excn';
     goalBarText.style.fontSize = 104 * contentScale;
     goalBarText.anchor.set(0.0, 0.5);
-    goalBarText.position.set(64 * contentScale, goalBarHeight / 2);
+    goalBarText.position.set(96 * contentScale + goalBarScore.width, goalBarHeight / 2);
     goalBar.addChild(goalBarText);
 
     const goalBarHighlight = new PIXI.Graphics();
