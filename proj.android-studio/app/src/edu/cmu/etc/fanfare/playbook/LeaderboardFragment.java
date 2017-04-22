@@ -29,7 +29,7 @@ public class LeaderboardFragment extends PlaybookFragment {
     public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
                              Bundle savedInstanceState) {
         super.onCreateView(inflater, container, savedInstanceState);
-        final View view=inflater.inflate(R.layout.leaderboard_activity, container, false);
+        final View view=inflater.inflate(R.layout.leaderboard_fragment, container, false);
 
         sortTotal = (ImageView) view.findViewById(R.id.total);
         sortPredict = (ImageView) view.findViewById(R.id.prediction);
