@@ -74,8 +74,8 @@ public class GcmListener extends FirebaseMessagingService {
 
     private void handlePlaysCreated(String message) {
         if (AppActivity.isInForeground &&
-            AppActivity.selectedItem == DrawerItemAdapter.DRAWER_ITEM_PREDICTION ||
-            AppActivity.selectedItem == DrawerItemAdapter.DRAWER_ITEM_COLLECTION) {
+                (AppActivity.selectedItem == DrawerItemAdapter.DRAWER_ITEM_PREDICTION ||
+                AppActivity.selectedItem == DrawerItemAdapter.DRAWER_ITEM_COLLECTION)) {
             return;
         }
 
@@ -98,8 +98,8 @@ public class GcmListener extends FirebaseMessagingService {
                 .setContentTitle("A play happened!")
                 .setContentText("Check it out by choosing one of the options.")
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
-                .addAction(R.drawable.ic_betting_board, "Check Predictions", predictionIntent)
-                .addAction(R.drawable.ic_catch_the_play_game, "Collect", collectionIntent);
+                .addAction(R.drawable.ic_betting_board_32dp, "Check Predictions", predictionIntent)
+                .addAction(R.drawable.ic_catch_the_play_game_32dp, "Collect", collectionIntent);
 
         NotificationManager notificationManager =
                 (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
