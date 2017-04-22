@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="0dp"
+    android:layout_marginLeft="0dp"
+    android:layout_marginRight="0dp"
+    android:orientation="horizontal"
+    android:background="@null">
+
+    <android.support.constraint.Guideline
+        android:id="@+id/guideline"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.52"
+        tools:layout_editor_absoluteY="0dp"
+        tools:layout_editor_absoluteX="312dp" />
+
+    <TextView
+        android:id="@+id/rank"
+        android:text="#1"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:gravity="center"
+        android:layout_marginRight="10dp"
+        android:layout_marginTop="@dimen/text_margin"
+        app:layout_constraintRight_toLeftOf="@+id/nameScroll"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintVertical_bias="0.509"
+        android:layout_marginEnd="50dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginLeft="10dp"
+        android:layout_marginStart="10dp" />
+<HorizontalScrollView
+    android:id="@+id/nameScroll"
+    android:layout_width="0dp"
+    android:layout_height="wrap_content"
+    app:layout_constraintRight_toLeftOf="@+id/guideline"
+    app:layout_constraintBottom_toBottomOf="parent"
+    app:layout_constraintLeft_toRightOf="@+id/rank"
+    app:layout_constraintTop_toTopOf="parent"
+    android:layout_marginLeft="0dp"
+    android:layout_marginRight="10dp"
+    >
+    <TextView
+        android:id="@+id/name"
+        android:text="@string/app_name"
+        android:layout_height="wrap_content"
+        android:layout_width="0dp"
+        android:gravity="center"
+        android:maxLines="1"
+        android:layout_marginTop="@dimen/text_margin"
+        app:layout_constraintVertical_bias="0.509"
+
+
+
+        app:layout_constraintRight_toLeftOf="@+id/guideline"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toRightOf="@+id/rank"
+        app:layout_constraintTop_toTopOf="parent" />
+</HorizontalScrollView>
+    <TextView
+        android:id="@+id/prediction"
+        android:text="@string/app_name"
+        android:layout_height="0dp"
+        android:layout_width="0dp"
+        android:gravity="center"
+        android:layout_marginRight="5dp"
+        android:layout_marginTop="@dimen/text_margin"
+        app:layout_constraintRight_toLeftOf="@+id/collection"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintVertical_bias="0.509"
+        android:layout_marginEnd="50dp"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginLeft="10dp"
+        android:layout_marginStart="10dp"
+        app:layout_constraintLeft_toLeftOf="@+id/guideline" />
+
+    <TextView
+        android:id="@+id/collection"
+        android:text="@string/app_name"
+        android:layout_height="0dp"
+        android:layout_width="0dp"
+        android:gravity="center"
+        android:layout_marginRight="5dp"
+        android:layout_marginTop="@dimen/text_margin"
+        app:layout_constraintRight_toLeftOf="@+id/total"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintVertical_bias="0.509"
+        android:layout_marginEnd="50dp"
+        app:layout_constraintLeft_toRightOf="@+id/prediction"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginLeft="5dp"
+        android:layout_marginStart="10dp" />
+
+    <TextView
+        android:id="@+id/total"
+        android:text="@string/app_name"
+        android:layout_height="0dp"
+        android:layout_width="0dp"
+        android:gravity="center"
+        android:layout_marginRight="10dp"
+        android:layout_marginTop="@dimen/text_margin"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintVertical_bias="0.509"
+        android:layout_marginEnd="50dp"
+        app:layout_constraintLeft_toRightOf="@+id/collection"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginLeft="5dp"
+        android:layout_marginStart="10dp" />
+
+
+</android.support.constraint.ConstraintLayout>

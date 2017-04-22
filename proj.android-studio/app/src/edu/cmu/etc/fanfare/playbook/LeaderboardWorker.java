@@ -1,10 +1,21 @@
 package edu.cmu.etc.fanfare.playbook;
 
+import android.app.ListActivity;
+import android.content.Context;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.AsyncTask;
+import android.support.annotation.LayoutRes;
+import android.support.annotation.NonNull;
+import android.test.suitebuilder.TestMethod;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.ImageView;
+import android.widget.ListView;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
@@ -23,6 +34,8 @@ import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
 import static android.R.attr.id;
 import static android.R.attr.text;
@@ -50,12 +63,124 @@ public class LeaderboardWorker extends AsyncTask<String,Void,String> {
             BuildConfig.PLAYBOOK_LEADERC_APP;
     private int flag = 0; //0 order by total, 1 order by prediction, 2 order by collection
 
+    public class Leaders {
+        String rank;
+        String name;
+        int predictionScore;
+        int collectionScore;
+        int totalScore;
+    }
+
+    public class LeaderboardAdapter extends ArrayAdapter<Leaders> {
+        private class ViewHolder {
+            TextView mRank;
+            TextView mName;
+            TextView mPrediction, mCollection, mTotal;
+        }
+
+        public LeaderboardAdapter(@NonNull Context context, @LayoutRes int resource, @NonNull List<Leaders> objects) {
+            super(context, resource, objects);
+        }
+
+        @Override
+        public android.view.View getView(int position, View convertView, ViewGroup parent) {
+            Leaders leader = getItem(position);
+            LeaderboardAdapter.ViewHolder viewHolder;
+            if (convertView == null) {
+                viewHolder = new LeaderboardAdapter.ViewHolder();
+                LayoutInflater inflater = LayoutInflater.from(activity.getActivity());
+                convertView = inflater.inflate(R.layout.leaderboard_list_item, parent, false);
+                viewHolder.mRank = (TextView) convertView.findViewById(R.id.rank);
+                viewHolder.mName = (TextView) convertView.findViewById(R.id.name);
+                viewHolder.mPrediction = (TextView) convertView.findViewById(R.id.prediction);
+                viewHolder.mCollection = (TextView) convertView.findViewById(R.id.collection);
+                viewHolder.mTotal = (TextView) convertView.findViewById(R.id.total);
+                convertView.setTag(viewHolder);
+            } else {
+                viewHolder = (LeaderboardAdapter.ViewHolder) convertView.getTag();
+            }
+
+            // Populate data from leader.
+
+            Typeface fontCat = Typeface.createFromAsset(activity.getActivity().getAssets(), "fonts/nova2.ttf");
+
+            Log.i("LEAD_LIST", "Name" + leader.name +
+                    ", Prediction" + leader.predictionScore +
+                    ", Collection" + leader.collectionScore +
+                    ", Total" + leader.totalScore);
+
+            viewHolder.mRank.setText("#" + leader.rank);
+            if(Integer.parseInt(leader.rank) == 1){
+                viewHolder.mRank.setTextSize(26);
+            }
+            else {
+                viewHolder.mRank.setTextSize(20);
+            }
+            viewHolder.mRank.setTextColor(Color.WHITE);
+            viewHolder.mRank.setGravity(Gravity.LEFT);
+            viewHolder.mRank.setTypeface(null, fontCat.ITALIC);
+
+            viewHolder.mName.setText(leader.name);
+            viewHolder.mName.setTextColor(Color.WHITE);
+            viewHolder.mName.setGravity(Gravity.LEFT | Gravity.CENTER);
+            viewHolder.mName.setTypeface(fontCat);
+            viewHolder.mName.setTextSize(20);
+
+            int scoreSize = 20;
+            if(leader.predictionScore > 999 | leader.collectionScore > 999 | leader.totalScore > 999){
+                if(leader.predictionScore>9999 | leader.collectionScore> 9999 | leader.totalScore > 9999){
+                    scoreSize = 12;
+                }
+                else{
+                    scoreSize = 16;
+                }
+
+            }
+
+            viewHolder.mPrediction.setText(String.valueOf(leader.predictionScore));
+            if (flag == 1) {
+                viewHolder.mPrediction.setTextColor(Color.parseColor("#FFC300"));
+            }
+            else{
+                viewHolder.mPrediction.setTextColor(Color.WHITE);
+            }
+            viewHolder.mPrediction.setTextSize(scoreSize);
+            viewHolder.mPrediction.setGravity(Gravity.RIGHT | Gravity.CENTER);
+            viewHolder.mPrediction.setTypeface(fontCat);
+
+            viewHolder.mCollection.setText(String.valueOf(leader.collectionScore));
+            if (flag == 2) {
+                viewHolder.mCollection.setTextColor(Color.parseColor("#FFC300"));
+            }
+            else{
+                viewHolder.mCollection.setTextColor(Color.WHITE);
+            }
+            viewHolder.mCollection.setTextSize(scoreSize);
+            viewHolder.mCollection.setGravity(Gravity.RIGHT | Gravity.CENTER);
+            viewHolder.mCollection.setTypeface(fontCat);
+
+            viewHolder.mTotal.setText(String.valueOf(leader.totalScore));
+            if (flag == 0) {
+                viewHolder.mTotal.setTextColor(Color.parseColor("#FFC300"));
+            }
+            else{
+                viewHolder.mTotal.setTextColor(Color.WHITE);
+            }
+            viewHolder.mTotal.setTextSize(scoreSize);
+            viewHolder.mTotal.setGravity(Gravity.RIGHT | Gravity.CENTER);
+            viewHolder.mTotal.setTypeface(fontCat);
+
+            return convertView;
+        }
+    }
+
+
     LeaderboardWorker(LeaderboardFragment activity)
     {
         this.activity = activity;
     }
-    @Override
 
+    @Override
     protected String doInBackground(String... params) {
         String result = null;
 
@@ -243,21 +368,8 @@ public class LeaderboardWorker extends AsyncTask<String,Void,String> {
         if(result != null) {
             try {
                 jArray = new JSONArray(result);
-                Log.i("LEAD_TR", "Within post execute function");
-                TableLayout tv = (TableLayout) activity.getView().findViewById(R.id.leaderboard);
-                tv.removeAllViewsInLayout();
-
+                List<Leaders> leaders = new ArrayList<Leaders>();
                 for (int i = 0; i < jArray.length(); i++) {
-                    TableRow tr = new TableRow(activity.getActivity());
-                    /*tr.setLayoutParams(new TableRow.LayoutParams(
-                            TableRow.LayoutParams.MATCH_PARENT,
-                            TableRow.LayoutParams.MATCH_PARENT));*/
-                    TableRow.LayoutParams params1 = new TableRow.LayoutParams(
-                            TableRow.LayoutParams.MATCH_PARENT,
-                            TableRow.LayoutParams.MATCH_PARENT, 0.5f);
-                    TableRow.LayoutParams params2 = new TableRow.LayoutParams(
-                            TableRow.LayoutParams.MATCH_PARENT,
-                            TableRow.LayoutParams.MATCH_PARENT, 1 / 6f);
 
                     Log.i("LEAD_TR", "Within the array iteration");
                     JSONObject json_data = null;
@@ -267,112 +379,20 @@ public class LeaderboardWorker extends AsyncTask<String,Void,String> {
                             ", Prediction" + json_data.getInt("PredictionScore") +
                             ", Collection" + json_data.getString("CollectionScore") +
                             ", Total" + json_data.getString("Total"));
+                    
+                    Leaders leader = new Leaders();
+                    leader.rank = Integer.toString(i+1);
+                    leader.name = json_data.getString("UserName");
+                    leader.predictionScore = json_data.getInt("PredictionScore");
+                    leader.collectionScore = json_data.getInt("CollectionScore");
+                    leader.totalScore = json_data.getInt("Total");
 
-                    Typeface externalFont = Typeface.createFromAsset(activity.getActivity().getAssets(), "fonts/nova2.ttf");
-
-                    TextView b0 = new TextView(activity.getActivity());
-                    //String rank = json_data.getString("UserName");
-                    b0.setText("#" + (i + 1));
-                    b0.setPadding(20, 0, 10, 0);
-                    b0.setTextColor(Color.WHITE);
-                    b0.setTypeface(null, externalFont.ITALIC);
-                    if (i == 0)
-                        b0.setTextSize(26);
-                    else
-                        b0.setTextSize(20);
-                    b0.setGravity(Gravity.LEFT);
-                    b0.setLayoutParams(params1);
-                    tr.addView(b0);
-
-                    TextView b1 = new TextView(activity.getActivity());
-                    String name = json_data.getString("UserName");
-                    if(name.length() > 13){
-                        b1.setTextSize(12);
-                    }
-                    else {
-                        b1.setTextSize(20);
-                    }
-                    if(name.length() > 30){
-                        b1.setText(name.substring(0,23));
-                    }
-                    else {
-                        b1.setText(name);
-                    }
-                    b1.setPadding(10, 0, 10, 0);
-                    b1.setTextColor(Color.WHITE);
-                    b1.setTypeface(externalFont);
-
-                    b1.setGravity(Gravity.LEFT|Gravity.CENTER);
-                    b1.setLayoutParams(params1);
-                    tr.addView(b1);
-
-                    TextView b2 = new TextView(activity.getActivity());
-                    int textSize = 20;
-                    if((json_data.getInt("PredictionScore") > 999) | (json_data.getInt("CollectionScore") > 999) | (json_data.getInt("Total") > 999)){
-                        if((json_data.getInt("PredictionScore") > 9999) | (json_data.getInt("CollectionScore") > 9999) | (json_data.getInt("Total") > 9999)){
-                            textSize = 12;
-                        }
-                        else{
-                            textSize = 16;
-                        }
-
-                    }
-                    String prediction = String.valueOf(json_data.getInt("PredictionScore"));
-                    b2.setText(prediction);
-                    if (flag == 1)
-                        b2.setTextColor(Color.parseColor("#FFC300"));
-                    else
-                        b2.setTextColor(Color.WHITE);
-                    b2.setTypeface(externalFont);
-                    b2.setPadding(28, 0, 20, 0);
-                                       //16
-                        b2.setTextSize(textSize);
-
-
-                    b2.setGravity(Gravity.RIGHT | Gravity.CENTER);
-                    b2.setLayoutParams(params2);
-                    tr.addView(b2);
-
-                    TextView b3 = new TextView(activity.getActivity());
-                    String collection = String.valueOf(json_data.getInt("CollectionScore"));
-                    b3.setText(collection);
-                    if (flag == 2)
-                        b3.setTextColor(Color.parseColor("#FFC300"));
-                    else
-                        b3.setTextColor(Color.WHITE);
-                    b3.setTypeface(externalFont);
-                    b3.setPadding(20, 0, 6, 0);
-
-                        b3.setTextSize(textSize);
-
-                    b3.setGravity(Gravity.RIGHT | Gravity.CENTER);
-                    b3.setLayoutParams(params2);
-                    tr.addView(b3);
-
-                    TextView b4 = new TextView(activity.getActivity());
-                    String total = String.valueOf(json_data.getInt("Total"));
-                    b4.setText(total);
-                    b4.setPadding(20, 0, 8, 0);
-                    b4.setTypeface(externalFont);
-
-                        b4.setTextSize(textSize);
-
-                    b4.setGravity(Gravity.RIGHT | Gravity.CENTER);
-                    if (flag == 0)
-                        b4.setTextColor(Color.parseColor("#FFC300"));
-                    else
-                        b4.setTextColor(Color.WHITE);
-                    b4.setLayoutParams(params2);
-                    tr.addView(b4);
-
-                    tv.addView(tr);
-                    // final View vline = new View(activity);
-                    //vline.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.FILL_PARENT, 2));
-                    //vline.setBackgroundColor(Color.BLUE);
-                    //tv.addView(vline);
-
-
+                    leaders.add(leader);
                 }
+
+                LeaderboardAdapter leaderboardAdapter = new LeaderboardAdapter(activity.getActivity(), R.layout.leaderboard_list_item, leaders);
+                ListView listView = (ListView) activity.getView().findViewById(R.id.leaderboardList);
+                listView.setAdapter(leaderboardAdapter);
             } catch (JSONException e) {
                 e.printStackTrace();
             }

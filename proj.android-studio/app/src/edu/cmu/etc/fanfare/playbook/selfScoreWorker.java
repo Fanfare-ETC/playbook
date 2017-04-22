@@ -165,7 +165,7 @@ public class selfScoreWorker extends AsyncTask<String,Void,String> {
 
                     b2.setTextSize(textSize);
 
-                b2.setGravity(Gravity.RIGHT | Gravity.CENTER);
+                b2.setGravity(Gravity.RIGHT | Gravity.BOTTOM);
                 b2.setLayoutParams(params2);
                 tr.addView(b2);
 
@@ -183,7 +183,7 @@ public class selfScoreWorker extends AsyncTask<String,Void,String> {
 
                     b3.setTextSize(textSize);
 
-                b3.setGravity(Gravity.RIGHT | Gravity.CENTER);
+                b3.setGravity(Gravity.RIGHT | Gravity.BOTTOM);
                 b3.setLayoutParams(params2);
                 tr.addView(b3);
 
@@ -200,7 +200,7 @@ public class selfScoreWorker extends AsyncTask<String,Void,String> {
 
                     b4.setTextSize(textSize);
 
-                b4.setGravity(Gravity.RIGHT | Gravity.CENTER);
+                b4.setGravity(Gravity.RIGHT | Gravity.BOTTOM);
                 b4.setTextColor(Color.WHITE);
                 b4.setLayoutParams(params2);
                 tr.addView(b4);

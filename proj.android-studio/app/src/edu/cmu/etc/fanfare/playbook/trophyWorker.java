@@ -20,6 +20,7 @@ import android.widget.ListView;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import junit.framework.Assert;
 
@@ -244,7 +245,7 @@ public class trophyWorker extends AsyncTask<String,Void,String> {
         if (params[0].equals("trophy")) {
             try {
                 URL url = new URL(urlStringTrophy);
-                Log.i("Trophy URL", "String URL: " + "url");
+                Log.i("Trophy URL", "String URL: " + url);
                 HttpURLConnection httpURLConnection = (HttpURLConnection)url.openConnection();
                 httpURLConnection.setRequestMethod("POST");
                 httpURLConnection.setDoOutput(true);
@@ -426,7 +427,7 @@ public class trophyWorker extends AsyncTask<String,Void,String> {
             }
         }
         else{
-
+            Toast.makeText(activity.getActivity(), "Unable to retrieve trophy list due to a server error.", Toast.LENGTH_SHORT).show();
             Log.i("trophyList", "Server error. Object is null");
         }
     }
