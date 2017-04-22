@@ -5,6 +5,7 @@ import android.app.Dialog;
 import android.app.DialogFragment;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Typeface;
 import android.os.Bundle;
@@ -144,10 +145,13 @@ public class CollectionFragment extends WebViewFragment {
             cardSlots.put(slot);
         }
 
-        state.put("cardSlots", cardSlots);
+        state.put("activeCard", JSONObject.NULL);
+        state.put("incomingCards", new JSONArray());
         state.put("goal", JSONObject.NULL);
-        state.put("score", 0);
+        state.put("cardSlots", cardSlots);
+        state.put("cardsMatchingSelectedGoal", new JSONArray());
         state.put("selectedGoal", JSONObject.NULL);
+        state.put("score", 0);
         return state;
     }
 
@@ -207,25 +211,22 @@ public class CollectionFragment extends WebViewFragment {
             TextView para1 = (TextView) view.findViewById(R.id.collection_tutorial_para_1);
             TextView para2 = (TextView) view.findViewById(R.id.collection_tutorial_para_2);
             TextView para3 = (TextView) view.findViewById(R.id.collection_tutorial_para_3);
-            TextView para4 = (TextView) view.findViewById(R.id.collection_tutorial_para_4);
             para1.setLineSpacing(0, 1.25f);
             para1.setTypeface(typeface);
             para2.setLineSpacing(0, 1.25f);
             para2.setTypeface(typeface);
             para3.setLineSpacing(0, 1.25f);
             para3.setTypeface(typeface);
-            para4.setLineSpacing(0, 1.25f);
-            para4.setTypeface(typeface);
 
             // Append an arrow after the paragraph.
-            SpannableString lastPara = new SpannableString(para4.getText() + " \u22b2");
+            SpannableString lastPara = new SpannableString(para3.getText() + " \u22b2");
             lastPara.setSpan(new ForegroundColorSpan(
                             ContextCompat.getColor(getActivity(), R.color.primary)),
-                    para4.getText().length() + 1,
-                    para4.getText().length() + 2,
+                    para3.getText().length() + 1,
+                    para3.getText().length() + 2,
                     Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
             );
-            para4.setText(lastPara, TextView.BufferType.SPANNABLE);
+            para3.setText(lastPara, TextView.BufferType.SPANNABLE);
 
             // Use the Builder class for convenient dialog construction
             AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
@@ -295,6 +296,14 @@ public class CollectionFragment extends WebViewFragment {
                     }
                 }
             });
+        }
+
+        @JavascriptInterface
+        public void goToTrophyCase() {
+            Intent intent = new Intent(getActivity(), AppActivity.class);
+            intent.putExtra(AppActivity.INTENT_EXTRA_DRAWER_ITEM, DrawerItemAdapter.DRAWER_ITEM_TROPHY);
+            intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+            startActivity(intent);
         }
     }
 

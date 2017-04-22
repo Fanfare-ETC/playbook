@@ -38,7 +38,7 @@ if (!global.PlaybookBridge) {
 
     /**
      * Notifies the hosting application of the new state of the game.
-     * This is a no-op for the mock bridge.
+     * This saves to localStorage in the mock bridge.
      * @type {string} stateJSON
      */
     notifyGameState: function (stateJSON) {
@@ -48,7 +48,7 @@ if (!global.PlaybookBridge) {
 
     /**
      * Notifies the hosting application that we have finished loading.
-     * This is a no-op for the mock bridge.
+     * This restores from localStorage in the mock bridge.
      */
     notifyLoaded: function () {
       const restoredState = localStorage.getItem('prediction');
@@ -56,6 +56,19 @@ if (!global.PlaybookBridge) {
       if (restoredState != null) {
         state.fromJSON(restoredState);
       }
+    },
+
+    /**
+     * Changes to the leaderboard screen.
+     * This is a no-op for the mock bridge.
+     */
+    goToLeaderboard: function () {},
+
+    /**
+     * Changes to the set collection screen.
+     */
+    goToCollection: function () {
+      window.location = window.location.href.replace('prediction', 'collection');
     }
   };
 } else {
@@ -82,29 +95,29 @@ const GameStages = {
 };
 
 const ScoreValues = {
-  [PlaybookEvents.NO_RUNS]: 4,
-  [PlaybookEvents.RUN_SCORED]: 4,
+  [PlaybookEvents.NO_RUNS]: 1,
+  [PlaybookEvents.RUN_SCORED]: 2,
   [PlaybookEvents.FLY_OUT]: 2,
   [PlaybookEvents.TRIPLE_PLAY]: 1400,
   [PlaybookEvents.DOUBLE_PLAY]: 20,
-  [PlaybookEvents.GROUND_OUT]: 2,
-  [PlaybookEvents.STEAL]: 5,
+  [PlaybookEvents.GROUND_OUT]: 1,
+  [PlaybookEvents.STEAL]: 18,
   [PlaybookEvents.PICK_OFF]: 7,
-  [PlaybookEvents.WALK]: 3,
+  [PlaybookEvents.WALK]: 2,
   [PlaybookEvents.BLOCKED_RUN]: 10,
-  [PlaybookEvents.STRIKEOUT]: 2,
-  [PlaybookEvents.HIT_BY_PITCH]: 2,
+  [PlaybookEvents.STRIKEOUT]: 1,
+  [PlaybookEvents.HIT_BY_PITCH]: 10,
   [PlaybookEvents.HOME_RUN]: 10,
-  [PlaybookEvents.PITCH_COUNT_16]: 2,
-  [PlaybookEvents.PITCH_COUNT_17]: 2,
+  [PlaybookEvents.PITCH_COUNT_16]: 1,
+  [PlaybookEvents.PITCH_COUNT_17]: 1,
   [PlaybookEvents.SINGLE]: 3,
   [PlaybookEvents.DOUBLE]: 5,
-  [PlaybookEvents.TRIPLE]: 20,
-  [PlaybookEvents.BATTER_COUNT_4]: 2,
-  [PlaybookEvents.BATTER_COUNT_5]: 2,
-  [PlaybookEvents.MOST_FIELDED_BY_LEFT]: 2,
-  [PlaybookEvents.MOST_FIELDED_BY_RIGHT]: 2,
-  [PlaybookEvents.MOST_FIELDED_BY_INFIELDERS]: 2,
+  [PlaybookEvents.TRIPLE]: 32,
+  [PlaybookEvents.BATTER_COUNT_4]: 1,
+  [PlaybookEvents.BATTER_COUNT_5]: 1,
+  [PlaybookEvents.MOST_FIELDED_BY_LEFT]: 3,
+  [PlaybookEvents.MOST_FIELDED_BY_RIGHT]: 5,
+  [PlaybookEvents.MOST_FIELDED_BY_INFIELDERS]: 4,
   [PlaybookEvents.MOST_FIELDED_BY_CENTER]: 2
 };
 
@@ -235,6 +248,9 @@ const renderer = PIXI.autoDetectRenderer(1080, 1920, {
 const stage = new PIXI.Container();
 const state = new GameState();
 
+// Content scale will be updated on first draw.
+let contentScale = null;
+
 /**
  * Sets up the renderer. Adjusts the renderer according to the size of the
  * viewport, and adds it to the DOM tree.
@@ -279,6 +295,9 @@ function handleIncomingMessage(message) {
     case 'server:playsCreated':
       handlePlaysCreated(message.data);
       break;
+    case 'server:lockPredictions':
+      handleLockPredictions(message.data);
+      break;
     case 'server:clearPredictions':
       handleClearPredictions();
       break;
@@ -295,10 +314,11 @@ function handlePlaysCreated(events) {
     const plays = events.map(PlaybookEvents.getById);
     for (const play of plays) {
       if (state.predictionCounts[play] !== undefined) {
-        state.score += ScoreValues[play] * state.predictionCounts[play];
-        reportScore(ScoreValues[play] * state.predictionCounts[play]);
+        const addedScore = ScoreValues[play] * state.predictionCounts[play];
+        state.score += addedScore;
+        reportScore(addedScore);
 
-        const overlay = new PredictionCorrectOverlay(play);
+        const overlay = new PredictionCorrectOverlay(play, addedScore);
         const scoreTab = stage.getChildByName('scoreTab');
         const scoreTabGlobalPosition = scoreTab.toGlobal(scoreTab.getChildByName('score').position);
         initPredictionCorrectOverlayEvents(overlay, scoreTabGlobalPosition);
@@ -308,6 +328,46 @@ function handlePlaysCreated(events) {
         navigator.vibrate(200);
       }
     }
+  }
+}
+
+/**
+ * Handle lock predictions event.
+ */
+function handleLockPredictions(data) {
+  const current = new Date();
+  const lockTime = new Date(data.lockTime);
+  const countdownBanner = stage.getChildByName('countdownBanner');
+
+  function showBanner() {
+    countdownBanner.visible = true;
+    const moveBy = new PIXI.action.MoveBy(0.0, countdownBanner.height, 0.25);
+    const fadeIn = new PIXI.action.FadeIn(0.25);
+    PIXI.actionManager.runAction(countdownBanner, moveBy);
+    PIXI.actionManager.runAction(countdownBanner, fadeIn);
+  }
+
+  function hideBanner() {
+    const moveBy = new PIXI.action.MoveBy(0.0, -countdownBanner.height, 0.25);
+    const fadeOut = new PIXI.action.FadeOut(0.25);
+    const callFunc = new PIXI.action.CallFunc(() => countdownBanner.visible = false, 0.25);
+    const sequence = new PIXI.action.Sequence([moveBy, callFunc]);
+    PIXI.actionManager.runAction(countdownBanner, moveBy);
+    PIXI.actionManager.runAction(countdownBanner, fadeOut);
+  }
+
+  function lockPredictions() {
+    state.stage = GameStages.CONFIRMED;
+  }
+
+  // If 10 seconds has elapsed, lock the prediction immediately.
+  // Otherwise, wait till the time has elapsed.
+  if (current - lockTime > 10000) {
+    lockPredictions();
+  } else {
+    setTimeout(lockPredictions, 10000 - (current - lockTime));
+    showBanner();
+    setTimeout(hideBanner, 3000);
   }
 }
 
@@ -349,8 +409,9 @@ function reportScore(score) {
 class PredictionCorrectOverlay extends PIXI.Container {
   /**
    * @param {string} event
+   * @param {number} addedScore
    */
-  constructor(event) {
+  constructor(event, addedScore) {
     super();
 
     /** @type {PIXI.Graphics} */
@@ -372,7 +433,7 @@ class PredictionCorrectOverlay extends PIXI.Container {
     this.text = new PIXI.Text();
     this.text.position.set(window.innerWidth / 2, window.innerHeight / 2);
     this.text.anchor.set(0.5, 0.5);
-    this.text.text = `Prediction correct:\n ${PlaybookEventsFriendlyNames[event]}\n\nYour score is: ${state.score}`;
+    this.text.text = `Prediction correct:\n ${PlaybookEventsFriendlyNames[event]}\n\nYou got ${addedScore} ${addedScore > 1 ? 'points' : 'point'}!`;
     this.text.style.fontFamily = 'proxima-nova';
     this.text.style.fontWeight = 'bold';
     this.text.style.fontSize = 24.0;
@@ -475,6 +536,8 @@ class FieldOverlay extends PIXI.Sprite {
    * Toggles showing the payouts for the betting table.
    */
   showPayouts() {
+    this._balls.filter(ball => ball.selectedTarget)
+      .forEach(ball => ball.setHollow(true));
     this.texture = this._payoutsTexture;
   }
 
@@ -482,6 +545,8 @@ class FieldOverlay extends PIXI.Sprite {
    * Hides the payouts.
    */
   hidePayouts() {
+    this._balls.filter(ball => ball.selectedTarget)
+      .forEach(ball => ball.setHollow(false));
     this.texture = this._defaultTexture;
   }
 
@@ -721,6 +786,20 @@ class Ball {
       renderer.isDirty = true;
     }
   }
+
+  /**
+   * Sets this ball as hollow. This is used to show prediction odds
+   * when the ball is covering it.
+   * @param {bool} hollow
+   */
+  setHollow(hollow) {
+    const sheet = PIXI.loader.resources['resources/prediction.json'];
+    if (hollow) {
+      this.sprite.texture = sheet.textures['Item-Ball-Hollow.png'];
+    } else {
+      this.sprite.texture = sheet.textures['Item-Ball.png'];
+    }
+  }
 }
 
 /**
@@ -822,17 +901,28 @@ function initBallEvents(ball, ballSlot, fieldOverlay) {
 
 /**
  * Initializes events for the continue banner.
- * @param {PIXI.Sprite} continueBanner
+ * @param {PIXI.Graphics} continueBanner
  */
 function initContinueBannerEvents(continueBanner) {
   state.emitter.on(state.EVENT_STAGE_CHANGED, function (stage) {
-    continueBanner.visible = stage === GameStages.CONTINUE;
+    continueBanner.visible = stage === GameStages.CONTINUE || GameStages.CONFIRMED;
     renderer.isDirty = true;
   });
 
   continueBanner.interactive = true;
   continueBanner.on('tap', function () {
-    state.stage = GameStages.CONFIRMED;
+    PlaybookBridge.goToCollection();
+  });
+}
+
+/**
+ * Initializes events for the score tab.
+ * @param {PIXI.Sprite} scoreTab
+ */
+function initScoreTabEvents(scoreTab) {
+  scoreTab.interactive = true;
+  scoreTab.on('tap', () => {
+    PlaybookBridge.goToLeaderboard();
   });
 }
 
@@ -1017,14 +1107,14 @@ function createFieldOverlay(balls) {
       524.0, 778.0,
       714.0, 696.0
     ]),
-    [PlaybookEvents.NO_RUNS]: new PIXI.Polygon([
+    [PlaybookEvents.GROUND_OUT]: new PIXI.Polygon([
       714.0, 1526.0,
       714.0, 1250.0,
       520.0, 1168.0,
       440.0, 978.0,
       188.0, 978.0
     ]),
-    [PlaybookEvents.GROUND_OUT]: new PIXI.Polygon([
+    [PlaybookEvents.NO_RUNS]: new PIXI.Polygon([
       726.0, 1526.0,
       1252.0, 978.0,
       1000.0, 978.0,
@@ -1166,6 +1256,9 @@ function setup() {
   ballSlot.scale.set(ballSlotScale, ballSlotScale);
   stage.addChild(ballSlot);
 
+  // Use the ball slot as the content scale factor.
+  contentScale = ballSlot.scale.x;
+
   // Add overlay to screen.
   const fieldOverlay = createFieldOverlay(state.balls);
   const fieldOverlayScaleX = window.innerWidth / fieldOverlay.texture.width;
@@ -1181,6 +1274,26 @@ function setup() {
   fieldOverlay.anchor.set(0.5, 0.5);
   stage.addChild(fieldOverlay);
 
+  // Add lock countdown to screen.
+  const countdownBanner = new PIXI.Graphics();
+  const countdownBannerHeight = 128.0 * contentScale;
+  countdownBanner.beginFill(0x002b65);
+  countdownBanner.drawRect(0, 0, window.innerWidth, countdownBannerHeight);
+  countdownBanner.endFill();
+  countdownBanner.position.set(0, -countdownBannerHeight + bannerHeight / 2);
+  countdownBanner.name = 'countdownBanner';
+  countdownBanner.visible = false;
+  stage.addChild(countdownBanner);
+
+  const countdownBannerText = new PIXI.Text('10 seconds left to predict'.toUpperCase());
+  countdownBannerText.style.fontFamily = 'proxima-nova-excn';
+  countdownBannerText.style.fontSize = 104.0 * contentScale;
+  countdownBannerText.style.fill = 0xffffff;
+  const countdownBannerTextMetrics = PIXI.TextMetrics.measureText(countdownBannerText.text, countdownBannerText.style);
+  countdownBannerText.position.set(window.innerWidth / 2, countdownBannerTextMetrics.height / 2);
+  countdownBannerText.anchor.set(0.5, 0.5);
+  countdownBanner.addChild(countdownBannerText);
+
   // Add score tab.
   const scoreTabTexture = PIXI.loader.resources['resources/prediction.json'].textures['Prediction-Scoretab.png'];
   const scoreTab = new PIXI.Sprite(scoreTabTexture);
@@ -1188,6 +1301,7 @@ function setup() {
   scoreTab.name = 'scoreTab';
   scoreTab.scale.set(scoreTabScale, scoreTabScale);
   scoreTab.position.set(0, ballSlot.position.y - scoreTab.height);
+  initScoreTabEvents(scoreTab);
   stage.addChild(scoreTab);
 
   const scoreTabLabel = new PIXI.Text('Score:'.toUpperCase());
@@ -1273,15 +1387,26 @@ function setup() {
   }
 
   // Add continue banner.
-  const continueBannerTexture = PIXI.loader.resources['resources/prediction.json'].textures['Prediction-Button-Continue.png'];
-  const continueBanner = new PIXI.Sprite(continueBannerTexture);
-  const continueBannerScale = window.innerWidth / continueBannerTexture.width;
-  const continueBannerHeight = continueBannerTexture.height * continueBannerScale;
-  continueBanner.position.set(0, window.innerHeight - continueBannerHeight);
-  continueBanner.scale.set(continueBannerScale, continueBannerScale);
+  const continueBanner = new PIXI.Graphics();
+  continueBanner.beginFill(0xc53626);
+  continueBanner.drawRect(0, 0, window.innerWidth, ballSlot.height);
+  continueBanner.endFill();
+  continueBanner.position.set(0, window.innerHeight - ballSlot.height);
   continueBanner.visible = false;
   initContinueBannerEvents(continueBanner);
   stage.addChild(continueBanner);
+
+  const continueBannerLabel = new PIXI.Text('Continue \u22b2'.toUpperCase());
+  continueBannerLabel.style.fontFamily = 'proxima-nova-excn';
+  continueBannerLabel.style.fontWeight = 900;
+  continueBannerLabel.style.fontSize = 104.0 * contentScale;
+  continueBannerLabel.style.fill = 0xffffff;
+  continueBannerLabel.anchor.set(1.0, 0.5);
+  continueBannerLabel.position.set(
+    window.innerWidth - (64.0 * contentScale),
+    continueBanner.height / 2
+  );
+  continueBanner.addChild(continueBannerLabel);
 
   /**
    * Begin the animation loop.

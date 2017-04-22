@@ -18,7 +18,7 @@ public class GcmRegistrationIntentService extends IntentService {
      * @param name Used to name the worker thread, important only for debugging.
      */
     private static final String TAG = "RegIntentService";
-    private static final String[] TOPICS = {"global", "playsCreated"};
+    private static final String[] TOPICS = {"global", "playsCreated", "clearPredictions", "lockPredictions"};
 
     public GcmRegistrationIntentService() {
         super(TAG);

@@ -26,14 +26,7 @@
         android:id="@+id/collection_tutorial_para_3"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/collection_tutorial_para_3"/>
-
-    <TextView
-        style="@style/tutorialParagraphStyle"
-        android:id="@+id/collection_tutorial_para_4"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
         android:layout_marginBottom="8dp"
-        android:text="@string/collection_tutorial_para_4"/>
+        android:text="@string/collection_tutorial_para_3"/>
 
 </LinearLayout>
