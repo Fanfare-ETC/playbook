@@ -958,7 +958,6 @@ function invalidateScoreButton() {
 
   // These nodes are needed to compute the height.
   const tray = stage.getChildByName('tray');
-  const whiteBanner = stage.getChildByName('whiteBanner');
   const discard = stage.getChildByName('discard');
   const scoreBar = stage.getChildByName('scoreBar');
   const scoreButton = stage.getChildByName('scoreButton');
@@ -970,7 +969,7 @@ function invalidateScoreButton() {
     // Bottom part of screen
     tray.height - scoreBar.height - goalsContainer.height -
     // Top part of screen
-    whiteBanner.height - discard.height;
+    discard.height;
   const width = window.innerWidth - 128.0 * 2 * contentScale;
   const scaleX = width / scoreButton.texture.width;
   const scaleY = height / scoreButton.texture.height;
@@ -1259,7 +1258,7 @@ function getTargetByPoint(card, position) {
   const scoreButton = stage.getChildByName('scoreButton');
   const tray = stage.getChildByName('tray');
 
-  if (discard.getBounds().contains(position.x, position.y)) {
+  if (discard.getBounds().contains(position.x, position.y) || position.y < 0) {
     return discard; //discard
   } else if (scoreButton.getBounds().contains(position.x, position.y)) {
     return scoreButton; //calculate score
@@ -1725,21 +1724,16 @@ function setup() {
   goalSprite.anchor.set(1.0, 1.0);
   stage.addChild(goalSprite);
 
-  // Add banner on top
-  const whiteBanner = new PIXI.Graphics();
-  const whiteBannerHeight = 32.0 * contentScale;
-  whiteBanner.beginFill(0xffffff);
-  whiteBanner.drawRect(0, 0, window.innerWidth, whiteBannerHeight);
-  whiteBanner.name = 'whiteBanner';
-  stage.addChild(whiteBanner);
-
   // Add Drag to Discard Banner
   const discard = new PIXI.Graphics();
   const discardHeight = 128.0 * contentScale;
+  const whiteBannerHeight = 32.0 * contentScale;
+  discard.beginFill(0xffffff);
+  discard.drawRect(0, 0, window.innerWidth, whiteBannerHeight);
+  discard.endFill();
   discard.beginFill(0x002b65);
-  discard.drawRect(0, 0, window.innerWidth, discardHeight);
+  discard.drawRect(0, whiteBannerHeight, window.innerWidth, discardHeight);
   discard.name = 'discard';
-  discard.position.set(0.0, whiteBannerHeight);
   stage.addChild(discard);
 
   // Add top shadow
@@ -1754,7 +1748,7 @@ function setup() {
 
   //Add discard label
   const discardText = new PIXI.Text();
-  discardText.position.set(window.innerWidth / 2, discardHeight / 2);
+  discardText.position.set(window.innerWidth / 2, whiteBannerHeight + discardHeight / 2);
   discardText.anchor.set(0.5, 0.5);
   discardText.text = 'drag plays up to discard'.toUpperCase();
   discardText.style.fontFamily = 'proxima-nova-excn';
