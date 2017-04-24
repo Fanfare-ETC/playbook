@@ -84,10 +84,22 @@ if (!global.PlaybookBridge) {
     },
 
     /**
+     * Changes to the leaderboard screen.
+     * This is a no-op for the mock bridge.
+     */
+    goToLeaderboard: function () {},
+
+    /**
      * Changes to the trophy case.
      * This is a no-op for the mock bridge.
      */
     goToTrophyCase: function () {},
+
+    /**
+     * Shows an alert dialog that a trophy is acquired.
+     * This is a no-op for the mock bridge.
+     */
+    showTrophyAcquiredDialog: function () {}
   };
 } else {
   // Receive messages from the hosting application.
@@ -780,6 +792,11 @@ function scoreCardSet(goal, cardSet) {
         slot.present = false;
       }
     });
+
+  // If the goal matches, we show a dialog.
+  if (goal === state.goal) {
+    PlaybookBridge.showTrophyAcquiredDialog();
+  }
 
   // Send score and achievement to server.
   reportScore(GoalTypesMetadata[goal].score);
@@ -1560,6 +1577,17 @@ function distance(p1, p2) {
 }
 
 /**
+ * Initializes events for the score bar.
+ * @param {PIXI.extras.TilingSprite} scoreBar
+ */
+function initScoreBarEvents(scoreBar) {
+  scoreBar.interactive = true;
+  scoreBar.on('tap', () => {
+    PlaybookBridge.goToLeaderboard();
+  });
+}
+
+/**
  * Initializes events for the score.
  * @param {PIXI.Text} scoreText
  */
@@ -1672,6 +1700,7 @@ function setup() {
   scoreBar.name = 'scoreBar';
   scoreBar.position.set(0, window.innerHeight - trayHeight - scoreBarHeight);
   scoreBar.tileScale.set(1.0, contentScale);
+  initScoreBarEvents(scoreBar);
   stage.addChild(scoreBar);
 
   // Add score bar shadow

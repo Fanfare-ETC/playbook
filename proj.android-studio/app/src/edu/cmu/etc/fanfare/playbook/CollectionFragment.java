@@ -247,6 +247,32 @@ public class CollectionFragment extends WebViewFragment {
         }
     }
 
+    public static class TrophyAcquiredDialogFragment extends DialogFragment {
+        @Override
+        public Dialog onCreateDialog(Bundle savedInstanceState) {
+            return new AlertDialog.Builder(getActivity())
+                    .setTitle("You got a trophy!")
+                    .setMessage("Do you want to see it in the Trophy Case?")
+                    .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            Intent intent = new Intent(getActivity(), AppActivity.class);
+                            intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                            intent.putExtra(AppActivity.INTENT_EXTRA_DRAWER_ITEM, DrawerItemAdapter.DRAWER_ITEM_TROPHY);
+                            startActivity(intent);
+                            dismiss();
+                        }
+                    })
+                    .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            dismiss();
+                        }
+                    })
+                    .create();
+        }
+    }
+
     private class JavaScriptInterface {
         @JavascriptInterface
         public String getAPIUrl() {
@@ -304,11 +330,25 @@ public class CollectionFragment extends WebViewFragment {
         }
 
         @JavascriptInterface
+        public void goToLeaderboard() {
+            Intent intent = new Intent(getActivity(), AppActivity.class);
+            intent.putExtra(AppActivity.INTENT_EXTRA_DRAWER_ITEM, DrawerItemAdapter.DRAWER_ITEM_LEADERBOARD);
+            intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+            startActivity(intent);
+        }
+
+        @JavascriptInterface
         public void goToTrophyCase() {
             Intent intent = new Intent(getActivity(), AppActivity.class);
             intent.putExtra(AppActivity.INTENT_EXTRA_DRAWER_ITEM, DrawerItemAdapter.DRAWER_ITEM_TROPHY);
             intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
             startActivity(intent);
+        }
+
+        @JavascriptInterface
+        public void showTrophyAcquiredDialog() {
+            DialogFragment dialog = (DialogFragment) DialogFragment.instantiate(getActivity(), TrophyAcquiredDialogFragment.class.getName());
+            dialog.show(getFragmentManager(), null);
         }
     }
 
