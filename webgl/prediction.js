@@ -295,6 +295,9 @@ function handleIncomingMessage(message) {
     case 'server:playsCreated':
       handlePlaysCreated(message.data);
       break;
+    case 'server:notifyLockPredictions':
+      handleNotifyLockPredictions(message.data);
+      break;
     case 'server:lockPredictions':
       handleLockPredictions(message.data);
       break;
@@ -332,9 +335,9 @@ function handlePlaysCreated(events) {
 }
 
 /**
- * Handle lock predictions event.
+ * Handle notification that predictions are about to be locked.
  */
-function handleLockPredictions(data) {
+function handleNotifyLockPredictions(data) {
   const current = new Date();
   const lockTime = new Date(data.lockTime);
   const countdownBanner = stage.getChildByName('countdownBanner');
@@ -356,19 +359,19 @@ function handleLockPredictions(data) {
     PIXI.actionManager.runAction(countdownBanner, fadeOut);
   }
 
-  function lockPredictions() {
-    state.stage = GameStages.CONFIRMED;
-  }
-
-  // If 10 seconds has elapsed, lock the prediction immediately.
+  // If 10 seconds has elapsed, don't notify.
   // Otherwise, wait till the time has elapsed.
-  if (current - lockTime > 10000) {
-    lockPredictions();
-  } else {
-    setTimeout(lockPredictions, 10000 - (current - lockTime));
+  if (current - lockTime < 10000) {
     showBanner();
     setTimeout(hideBanner, 3000);
   }
+}
+
+/**
+ * Handle lock predictions event.
+ */
+function handleLockPredictions(data) {
+  state.stage = GameStages.CONFIRMED;
 }
 
 /**
