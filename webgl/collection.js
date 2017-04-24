@@ -845,22 +845,21 @@ function updateGoals(goalSets) {
   goalsContainer.removeChildren();
 
   if (Object.keys(goalSets).length > 0) {
-    goalsContainerHeight += 128.0 * contentScale;
-
-    const goalBarTexture = PIXI.loader.resources['resources/Collection-Bar-Yellow-9x16.png'].texture;
-    const goalBarHeight = goalBarTexture.height * contentScale;
-    const goalBar = new PIXI.extras.TilingSprite(goalBarTexture, window.innerWidth, goalBarHeight);
-    goalBar.anchor.set(0.0, 0.0);
-    goalBar.tileScale.set(1.0, contentScale);
+    const goalBarHeight = 128.0 * contentScale;
+    const goalBar = new PIXI.Graphics();
+    goalBar.beginFill(0x002b65);
+    goalBar.drawRect(0, 0, window.innerWidth, goalBarHeight);
+    goalBar.endFill();
 
     const goalBarText = new PIXI.Text('Pick a set:'.toUpperCase());
-    goalBarText.style.fill = 0x806200;
+    goalBarText.style.fill = 0xffffff;
     goalBarText.style.fontFamily = 'proxima-nova-excn';
     goalBarText.style.fontSize = 104 * contentScale;
     goalBarText.anchor.set(0.0, 0.5);
     goalBarText.position.set(96 * contentScale, goalBarHeight / 2);
     goalBar.addChild(goalBarText);
 
+    goalsContainerHeight += goalBarHeight;
     goalsContainer.addChild(goalBar);
   }
 
@@ -1362,6 +1361,7 @@ function createRandomGoal() {
 function setActiveGoal(goal, goalSprite) {
   const newTexture = PIXI.loader.resources[`resources/${goal.file}`].texture;
   goalSprite.texture = newTexture;
+  renderer.isDirty = true;
 
   // Invalidate.
   checkIfGoalMet();
@@ -1754,7 +1754,7 @@ function setup() {
   stage.addChild(goalsContainer);
 
   // Add goal
-  const goalTexture = PIXI.loader.resources['resources/trophy/trophy1.png'].texture;
+  const goalTexture = PIXI.loader.resources['resources/trophy/empty.png'].texture;
   const goalSprite = new PIXI.Sprite(goalTexture);
   const goalScale = (window.innerWidth / 2 - goalTextMetrics.width - 144 * contentScale) / goalSprite.width;
   goalSprite.name = 'goal';
@@ -1905,6 +1905,7 @@ PIXI.loader
   .add('resources/Collection-Bar-Yellow-9x16.png')
   .add('resources/Collection-Shadow-9x16.png')
   .add('resources/Collection-Shadow-Overturn.png')
+  .add('resources/trophy/empty.png')
   .add('resources/trophy/trophy1.png')
   .add('resources/trophy/trophy2.png')
   .add('resources/trophy/trophy3.png')
