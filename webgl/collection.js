@@ -841,8 +841,28 @@ function updateGoals(goalSets) {
   const tray = stage.getChildByName('tray');
   const stageGoalBar = stage.getChildByName('goalBar');
   const goalsContainer = stage.getChildByName('goalsContainer');
-  const goalsContainerHeight = 128.0 * contentScale * Object.keys(goalSets).length;
+  let goalsContainerHeight = 128.0 * contentScale * Object.keys(goalSets).length;
   goalsContainer.removeChildren();
+
+  if (Object.keys(goalSets).length > 0) {
+    goalsContainerHeight += 128.0 * contentScale;
+
+    const goalBarTexture = PIXI.loader.resources['resources/Collection-Bar-Yellow-9x16.png'].texture;
+    const goalBarHeight = goalBarTexture.height * contentScale;
+    const goalBar = new PIXI.extras.TilingSprite(goalBarTexture, window.innerWidth, goalBarHeight);
+    goalBar.anchor.set(0.0, 0.0);
+    goalBar.tileScale.set(1.0, contentScale);
+
+    const goalBarText = new PIXI.Text('Pick a set:'.toUpperCase());
+    goalBarText.style.fill = 0x806200;
+    goalBarText.style.fontFamily = 'proxima-nova-excn';
+    goalBarText.style.fontSize = 104 * contentScale;
+    goalBarText.anchor.set(0.0, 0.5);
+    goalBarText.position.set(96 * contentScale, goalBarHeight / 2);
+    goalBar.addChild(goalBarText);
+
+    goalsContainer.addChild(goalBar);
+  }
 
   Object.keys(goalSets).map((goal, index) => {
     const score = GoalTypesMetadata[goal].score;
@@ -856,7 +876,7 @@ function updateGoals(goalSets) {
     const goalBar = new PIXI.extras.TilingSprite(goalBarTexture, window.innerWidth, goalBarHeight);
     goalBar.anchor.set(0.0, 0.0);
     goalBar.tileScale.set(1.0, contentScale);
-    goalBar.position.set(0.0, goalBarHeight * index);
+    goalBar.position.set(0.0, goalBarHeight * (index + 1));
 
     const goalBarShadowTexture = PIXI.loader.resources['resources/Collection-Shadow-9x16.png'].texture;
     const goalBarShadowHeight = goalBarHeight;
@@ -891,7 +911,7 @@ function updateGoals(goalSets) {
     goalBarHighlight.visible = false;
     goalBar.addChild(goalBarHighlight);
 
-    initGoalBarEvents(goalBar, goal, goalSets[goal]);
+    initGoalChoiceEvents(goalBar, goal, goalSets[goal]);
     goalsContainer.addChild(goalBar);
   });
 
@@ -905,7 +925,7 @@ function updateGoals(goalSets) {
  * @param {string} goal
  * @param {Array.<Card>} matchingCards
  */
-function initGoalBarEvents(goalBar, goal, matchingCards) {
+function initGoalChoiceEvents(goalBar, goal, matchingCards) {
   goalBar.interactive = true;
 
   function onTouchStart() {
@@ -1207,7 +1227,9 @@ function assignCardToSlot(card, slot) {
   // Copy card into slot list.
   state.cardSlots[slot].card = card;
   state.cardSlots[slot].present = true;
-  state.activeCard = null;
+  if (card === state.activeCard) {
+    state.activeCard = null;
+  }
 
   card.moveToSlot(slot);
   card.isActive = false;
@@ -1601,6 +1623,16 @@ function updateTrophy(goal) {
   }));
 }
 
+/**
+ * Initializes events for the score bar.
+ * @param {PIXI.Graphics} trayTip
+ */
+function initTrayTipEvents(trayTip) {
+  state.emitter.on(state.EVENT_ACTIVE_CARD_CHANGED, (activeCard) => {
+    trayTip.visible = activeCard !== null;
+  });
+}
+
 function setup() {
   // Add background to screen.
   const bgTexture = PIXI.loader.resources['resources/Collection-BG-Wood.jpg'].texture;
@@ -1623,6 +1655,16 @@ function setup() {
   // Use the tray scale as a scaling baseline.
   contentScale = tray.scale.x;
 
+  // Add a small brighter green edge.
+  const trayEdge = new PIXI.Graphics();
+  const trayEdgeHeight = 6.0 * contentScale;
+  trayEdge.beginFill(0x00bf00);
+  trayEdge.drawRect(0, 0, window.innerWidth, trayEdgeHeight);
+  trayEdge.endFill();
+  trayEdge.name = 'trayEdge';
+  trayEdge.position.set(0, window.innerHeight - trayHeight - trayEdgeHeight);
+  stage.addChild(trayEdge);
+
   // Add score bar
   const scoreBarTexture = PIXI.loader.resources['resources/Collection-Bar-Gold-9x16.png'].texture;
   const scoreBarHeight = scoreBarTexture.height * contentScale;
@@ -1637,7 +1679,7 @@ function setup() {
   const scoreBarShadowHeight = scoreBarHeight;
   const scoreBarShadow = new PIXI.extras.TilingSprite(scoreBarShadowTexture, window.innerWidth / 2, scoreBarHeight);
   scoreBarShadow.name = 'shadow';
-  scoreBarShadow.position.set(0, window.innerHeight - trayHeight - scoreBarHeight);
+  scoreBarShadow.position.set(0, window.innerHeight - trayHeight - scoreBarShadowHeight);
   scoreBarShadow.tileScale.set(1, contentScale);
   stage.addChild(scoreBarShadow);
 
@@ -1724,6 +1766,56 @@ function setup() {
   goalSprite.anchor.set(1.0, 1.0);
   stage.addChild(goalSprite);
 
+  // Add score button
+  const scoreButtonTexture = PIXI.loader.resources['resources/Collection-Star-9x16.png'].texture;
+  const scoreButton = new PIXI.Sprite(scoreButtonTexture);
+  scoreButton.name = 'scoreButton';
+  scoreButton.anchor.set(0.5, 0.5);
+  stage.addChild(scoreButton);
+
+  // Add "drag plays down to make sets".
+  const trayTip = new PIXI.Graphics();
+  const trayTipHeight = 110.0 * contentScale;
+  trayTip.beginFill(0x000000, 0.5);
+  trayTip.drawRect(0, 0, window.innerWidth, window.innerHeight - trayHeight - trayTipHeight);
+  trayTip.endFill();
+  trayTip.beginFill(0x00bf00);
+  trayTip.drawRect(
+    0, window.innerHeight - trayHeight - trayTipHeight,
+    window.innerWidth, trayEdgeHeight
+  );
+  trayTip.endFill();
+  trayTip.beginFill(0x007f00);
+  trayTip.drawRect(
+    0, window.innerHeight - trayHeight - trayTipHeight + trayEdgeHeight,
+    window.innerWidth, trayTipHeight
+  );
+  trayTip.endFill();
+  trayTip.name = 'trayTip';
+  trayTip.visible = false;
+  initTrayTipEvents(trayTip);
+  stage.addChild(trayTip);
+
+  const trayTipShadowTexture = PIXI.loader.resources['resources/Collection-Shadow-9x16.png'].texture;
+  const trayTipShadowHeight = trayTipShadowTexture.height * contentScale;
+  const trayTipShadow = new PIXI.extras.TilingSprite(trayTipShadowTexture, window.innerWidth, trayTipShadowHeight);
+  trayTipShadow.name = 'trayTipShadow';
+  trayTipShadow.anchor.set(0.0, 1.0);
+  trayTipShadow.tileScale.set(1.0, contentScale);
+  trayTip.addChild(trayTipShadow);
+
+  const trayTipText = new PIXI.Text('Drag Plays Down to Make Sets'.toUpperCase());
+  trayTipText.position.set(
+    window.innerWidth / 2,
+    (window.innerHeight - trayHeight - trayTipHeight) + trayTipHeight / 2 + trayEdgeHeight
+  );
+  trayTipText.anchor.set(0.5, 0.5);
+  trayTipText.style.fontFamily = 'proxima-nova-excn';
+  trayTipText.style.fill = 0xffffff;
+  trayTipText.style.fontWeight = 900;
+  trayTipText.style.fontSize = 104 * contentScale;
+  trayTip.addChild(trayTipText);
+
   // Add Drag to Discard Banner
   const discard = new PIXI.Graphics();
   const discardHeight = 128.0 * contentScale;
@@ -1758,20 +1850,9 @@ function setup() {
   discardText.style.align = 'center';
   discard.addChild(discardText);
 
-  //Add Drag to Score button
-
-  //Add score button
-  const scoreButtonTexture = PIXI.loader.resources['resources/Collection-Star-9x16.png'].texture;
-  const scoreButton = new PIXI.Sprite(scoreButtonTexture);
-  const scoreButtonScale = (window.innerWidth - 128 * 2) / scoreButtonTexture.width;
-  const scoreButtonHeight = window.innerHeight - 128 * 2 - trayHeight - scoreBarHeight - discardHeight;
-  scoreButton.name = 'scoreButton';
-  scoreButton.anchor.set(0.5, 0.5);
-  stage.addChild(scoreButton);
+  // Generate a random goal.
   invalidateScoreButton();
   initScoreButtonEvents(scoreButton);
-
-  // Generate a random goal.
   initGoalEvents(goalSprite);
   initSelectedGoalEvent();
 
