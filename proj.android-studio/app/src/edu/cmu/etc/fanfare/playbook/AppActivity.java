@@ -1,10 +1,14 @@
 package edu.cmu.etc.fanfare.playbook;
 
+import android.app.Application;
 import android.app.FragmentManager;
+import android.app.NotificationManager;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Typeface;
 import android.os.Build;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
@@ -24,6 +28,7 @@ import android.widget.ListView;
 import com.koushikdutta.async.http.AsyncHttpClient;
 import com.koushikdutta.async.http.WebSocket;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -39,9 +44,6 @@ import static edu.cmu.etc.fanfare.playbook.DrawerItemAdapter.getDrawerItems;
 
 public class AppActivity extends AppCompatActivity {
     public static final String INTENT_EXTRA_DRAWER_ITEM = "intentExtraDrawerItem";
-    public static final String INTENT_EXTRA_GCM_PLAYS_CREATED = "intentExtraGcmPlaysCreated";
-    public static final String INTENT_EXTRA_GCM_LOCK_PREDICTIONS = "intentExtraGcmLockPredictions";
-    public static final String INTENT_EXTRA_GCM_CLEAR_PREDICTIONS = "intentExtraGcmClearPredictions";
 
     private static final int FRAGMENT_PREDICTION = 0;
     private static final int FRAGMENT_COLLECTION = 1;
@@ -80,6 +82,19 @@ public class AppActivity extends AppCompatActivity {
         // Get the section ID
         if (savedInstanceState != null) {
             mSection = savedInstanceState.getInt(STATE_SELECTED_SECTION);
+        }
+
+        // Clear notifications.
+        NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+        notificationManager.cancelAll();
+
+        // Start the LoginActivity if not logged in.
+        if (PlaybookApplication.getPlayerID() == null) {
+            Intent intent = new Intent(this, LoginActivity.class);
+            intent.putExtras(getIntent());
+            startActivity(intent);
+            finish();
+            return;
         }
 
         mToolbar = (Toolbar) findViewById(R.id.my_toolbar);
@@ -152,26 +167,29 @@ public class AppActivity extends AppCompatActivity {
         mFragments.put(FRAGMENT_SEAT_SELECT, new SeatSelectFragment());
         mFragments.put(FRAGMENT_TREASURE_HUNT, new TreasureHuntFragment());
 
-        // Set the home screen
-        selectItem(DEFAULT_ITEM);
+        // Set the home screen.
+        Intent intent = getIntent();
+        selectItem(intent.getIntExtra(INTENT_EXTRA_DRAWER_ITEM, DEFAULT_ITEM));
 
         // Initialize WebSocket connection.
         WebSocketHandler webSocketHandler = new WebSocketHandler();
-        Intent intent = getIntent();
 
-        if (intent.hasExtra(INTENT_EXTRA_GCM_PLAYS_CREATED)) {
-            String message = intent.getStringExtra(INTENT_EXTRA_GCM_PLAYS_CREATED);
-            webSocketHandler.onStringAvailable(message);
-        }
-
-        if (intent.hasExtra(INTENT_EXTRA_GCM_LOCK_PREDICTIONS)) {
-            String message = intent.getStringExtra(INTENT_EXTRA_GCM_LOCK_PREDICTIONS);
-            webSocketHandler.onStringAvailable(message);
-        }
-
-        if (intent.hasExtra(INTENT_EXTRA_GCM_CLEAR_PREDICTIONS)) {
-            String message = intent.getStringExtra(INTENT_EXTRA_GCM_CLEAR_PREDICTIONS);
-            webSocketHandler.onStringAvailable(message);
+        // Restore items from the GCM queue.
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        if (prefs.contains(PlaybookApplication.PREF_KEY_GCM_MESSAGE_QUEUE)) {
+            String queue = prefs.getString(PlaybookApplication.PREF_KEY_GCM_MESSAGE_QUEUE, "[]");
+            try {
+                JSONArray queueJSON = new JSONArray(queue);
+                for (int i = 0; i < queueJSON.length(); i++) {
+                    JSONObject messageJSON = queueJSON.getJSONObject(i);
+                    String message = messageJSON.toString();
+                    Log.d(TAG, "Restoring message from GCM queue: " + message);
+                    webSocketHandler.onStringAvailable(messageJSON.toString());
+                }
+                prefs.edit().putString(PlaybookApplication.PREF_KEY_GCM_MESSAGE_QUEUE, "[]").apply();
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
         }
 
         AsyncHttpClient.getDefaultInstance().websocket(PLAYBOOK_API_URL, null, webSocketHandler);
@@ -230,6 +248,10 @@ public class AppActivity extends AppCompatActivity {
     @Override
     public void onNewIntent(Intent intent) {
         selectItem(intent.getIntExtra(INTENT_EXTRA_DRAWER_ITEM, DEFAULT_ITEM));
+
+        // Clear notifications.
+        NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+        notificationManager.cancelAll();
     }
 
     private class DrawerItemClickListener implements ListView.OnItemClickListener {
