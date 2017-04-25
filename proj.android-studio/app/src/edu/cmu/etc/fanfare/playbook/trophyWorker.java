@@ -58,6 +58,7 @@ public class trophyWorker extends AsyncTask<String,Void,String> {
         int id1, id2, id3;
         String name1, name2, name3;
         String description1, description2, description3;
+        String date1, date2, date3;
         String category;
         String color;
         String playerId1, playerId2, playerId3;
@@ -94,9 +95,9 @@ public class trophyWorker extends AsyncTask<String,Void,String> {
                 viewHolder.mName1 = (TextView) convertView.findViewById(R.id.trophyName1);
                 viewHolder.mName2 = (TextView) convertView.findViewById(R.id.trophyName2);
                 viewHolder.mName3 = (TextView) convertView.findViewById(R.id.trophyName3);
-                viewHolder.mDescription1 = (TextView) convertView.findViewById(R.id.trophyDescrp1);
-                viewHolder.mDescription2 = (TextView) convertView.findViewById(R.id.trophyDescrp2);
-                viewHolder.mDescription3 = (TextView) convertView.findViewById(R.id.trophyDescrp3);
+                viewHolder.mDescription1 = (TextView) convertView.findViewById(R.id.trophyDescrp1Content);
+                viewHolder.mDescription2 = (TextView) convertView.findViewById(R.id.trophyDescrp2Content);
+                viewHolder.mDescription3 = (TextView) convertView.findViewById(R.id.trophyDescrp3Content);
                 convertView.setTag(viewHolder);
             } else {
                 viewHolder = (ViewHolder) convertView.getTag();
@@ -131,39 +132,64 @@ public class trophyWorker extends AsyncTask<String,Void,String> {
             viewHolder.mBannerName.setText(trophyCat.category.toUpperCase());
             viewHolder.mBannerName.setTypeface(fontCat);
 
+            //int descripTextSize = 11;
+
             boolean light = false;
             String trophyIndex1 = "trophy"+Integer.toString(trophyCat.id1);
             Log.i("TROPHY", "Trophy1 ID is: " + trophyIndex1);
             if (trophyCat.playerId1 == null) {
                 Log.i("TROPHY", "Player ID 1 is null");
-                viewHolder.mImage1.setImageResource(R.drawable.trophy_black);
-            } else {
 
+                viewHolder.mImage1.setImageResource(R.drawable.trophy_black);
+                viewHolder.mDescription1.setText(trophyCat.description1);
+                if(trophyCat.description1.length() >= 63){
+                    viewHolder.mDescription1.setTextSize(20);
+                }
+                viewHolder.mDescription1.setTextSize(20);
+            } else {
                 light = true;
                 Log.i("TROPHY", "Player ID 1 is: " + trophyCat.playerId1);
                 viewHolder.mImage1.setImageResource(getDrawable(activity.getActivity(), trophyIndex1));
+                viewHolder.mDescription1.setText(trophyCat.date1);
+                viewHolder.mDescription1.setTextSize(20);
             }
 
             String trophyIndex2 = "trophy"+Integer.toString(trophyCat.id2);
             Log.i("TROPHY", "Trophy2 ID is: " + trophyIndex2);
             if (trophyCat.playerId2 == null) {
+
                 Log.i("TROPHY", "Player ID 2 is null");
+                viewHolder.mDescription2.setText(trophyCat.description2);
                 viewHolder.mImage2.setImageResource(R.drawable.trophy_black);
+                if(trophyCat.description2.length() >= 63){
+                    viewHolder.mDescription2.setTextSize(20);
+                }
+                viewHolder.mDescription2.setTextSize(20);
             } else {
                 light = true;
                 Log.i("TROPHY", "Player ID 3 is: " + trophyCat.playerId2);
                 viewHolder.mImage2.setImageResource(getDrawable(activity.getActivity(), trophyIndex2));
+                viewHolder.mDescription2.setText(trophyCat.date2);
+                viewHolder.mDescription2.setTextSize(20);
             }
 
             String trophyIndex3 = "trophy"+Integer.toString(trophyCat.id3);
             Log.i("TROPHY", "Trophy3 ID is: " + trophyIndex3);
             if (trophyCat.playerId3 == null) {
+
                 Log.i("TROPHY", "Player ID 3 is null");
+                viewHolder.mDescription3.setText(trophyCat.description3);
                 viewHolder.mImage3.setImageResource(R.drawable.trophy_black);
+                if(trophyCat.description3.length() >= 63){
+                    viewHolder.mDescription3.setTextSize(20);
+                }
+                viewHolder.mDescription3.setTextSize(20);
             } else {
                 light = true;
                 Log.i("TROPHY", "Player ID 3 is: " + trophyCat.playerId3);
                 viewHolder.mImage3.setImageResource(getDrawable(activity.getActivity(), trophyIndex3));
+                viewHolder.mDescription3.setText(trophyCat.date3);
+                viewHolder.mDescription3.setTextSize(20);
             }
 
             if(light == true){
@@ -201,33 +227,23 @@ public class trophyWorker extends AsyncTask<String,Void,String> {
             viewHolder.mName3.setTextSize(nameTextSize);
 
             Typeface descripFont = Typeface.createFromAsset(activity.getActivity().getAssets(), "nova_excthin.otf");
-            int descripTextSize = 11;
+            //descripTextSize = 11;
             viewHolder.mDescription1.setTextColor(Color.BLACK);
-            viewHolder.mDescription1.setText(trophyCat.description1);
+            //viewHolder.mDescription1.setText(trophyCat.description1);
             viewHolder.mDescription1.setTypeface(descripFont);
-            if(trophyCat.description1.length() >= 63){
-                descripTextSize = 9;
-            }
-            viewHolder.mDescription1.setTextSize(descripTextSize);
-            viewHolder.mDescription1.setGravity(Gravity.TOP | Gravity.CENTER_HORIZONTAL);
+            //viewHolder.mDescription1.setGravity(Gravity.TOP | Gravity.RIGHT);
 
             viewHolder.mDescription2.setTextColor(Color.BLACK);
-            viewHolder.mDescription2.setText(trophyCat.description2);
+            //viewHolder.mDescription2.setText(trophyCat.description2);
             viewHolder.mDescription2.setTypeface(descripFont);
-            if(trophyCat.description2.length() >= 63){
-                descripTextSize = 9;
-            }
-            viewHolder.mDescription2.setTextSize(descripTextSize);
-            viewHolder.mDescription2.setGravity(Gravity.TOP | Gravity.CENTER_HORIZONTAL);
+
+           // viewHolder.mDescription2.setGravity(Gravity.TOP | Gravity.RIGHT);
 
             viewHolder.mDescription3.setTextColor(Color.BLACK);
-            viewHolder.mDescription3.setText(trophyCat.description3);
+            //viewHolder.mDescription3.setText(trophyCat.description3);
             viewHolder.mDescription3.setTypeface(descripFont);
-            if(trophyCat.description3.length() >= 63){
-                descripTextSize = 8;
-            }
-            viewHolder.mDescription3.setTextSize(descripTextSize);
-            viewHolder.mDescription3.setGravity(Gravity.TOP | Gravity.CENTER_HORIZONTAL);
+
+            //viewHolder.mDescription3.setGravity(Gravity.TOP | Gravity.RIGHT);
 
             return convertView;
         }
@@ -256,7 +272,7 @@ public class trophyWorker extends AsyncTask<String,Void,String> {
                 BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(outputStream, "UTF-8"));
                 JSONObject object = new JSONObject();
                 object.put("id", LoginActivity.acct.getId().toString());
-                //object.put("id", "1"); //for test purpose only
+               // object.put("id", "1"); //for test purpose only
                 Log.d("acct_no", object.toString());
                 bufferedWriter.write(object.toString());
                 bufferedWriter.flush();
@@ -318,6 +334,9 @@ public class trophyWorker extends AsyncTask<String,Void,String> {
                     trophyCat.description1 = item1.getString("description");
                     trophyCat.description2 = item2.getString("description");
                     trophyCat.description3 = item3.getString("description");
+                    trophyCat.date1 = item1.getString("Date");
+                    trophyCat.date2 = item2.getString("Date");
+                    trophyCat.date3 = item3.getString("Date");
                     trophyCat.category = item1.getString("category");
                     trophyCat.color = item1.getString("color");
                     trophyCat.playerId1 = item1.isNull("playerId") ? null : item1.getString("playerId");

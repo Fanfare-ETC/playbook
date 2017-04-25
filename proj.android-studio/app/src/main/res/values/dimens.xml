@@ -16,5 +16,8 @@
     <dimen name="center_margin1">8dp</dimen>
     <dimen name="top_margin">24dp</dimen>
     <dimen name="continue_margin">0dp</dimen>
+    <dimen name="button_margin">8dp</dimen>
+    <dimen name="bottom_margin">15dp</dimen>
+    <dimen name="left_margin">20dp</dimen>
     <item name="guideline3" format="float" type="dimen">0.72</item>
 </resources>
