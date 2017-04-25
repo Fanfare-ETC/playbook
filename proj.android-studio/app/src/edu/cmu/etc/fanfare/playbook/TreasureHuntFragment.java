@@ -57,7 +57,6 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
     private ImageView warmerView,colderView,markerView;
     private boolean flag=false;
     private Vibrator myVib;
-    private static boolean firstLoad=true;
 
 
     private  String mEndpoint = "ws://" +
@@ -415,10 +414,7 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
                                 }
                                 else {
                                     if (gameState.game_on && (!gameState.flag1 && !gameState.flag2 && !gameState.flag3 && !gameState.game_off)) {
-                                        if(firstLoad) {
-                                            showTutorial();
-                                            firstLoad=false;
-                                        }
+                                        showTutorial();
                                         startGame();
                                     }
                                 }
