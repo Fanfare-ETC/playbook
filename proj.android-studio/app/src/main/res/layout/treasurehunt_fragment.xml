@@ -10,7 +10,7 @@
 
 
     <ImageView
-        android:id="@+id/v0"
+        android:id="@+id/bird_v0"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:scaleType="fitCenter"
@@ -22,7 +22,7 @@
         app:layout_constraintVertical_bias="0.157" />
 
     <ImageView
-        android:id="@+id/v1"
+        android:id="@+id/bird_v1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:scaleType="fitCenter"
@@ -34,7 +34,7 @@
         app:layout_constraintVertical_bias="0.116" />
 
     <ImageView
-        android:id="@+id/v2"
+        android:id="@+id/bird_v2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:scaleType="fitCenter"
@@ -46,7 +46,7 @@
         app:layout_constraintVertical_bias="0.037" />
 
     <ImageView
-        android:id="@+id/v3"
+        android:id="@+id/bird_v3"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:scaleType="fitCenter"
@@ -58,7 +58,7 @@
         app:layout_constraintVertical_bias="0.094" />
 
     <ImageView
-        android:id="@+id/v4"
+        android:id="@+id/bird_v4"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:scaleType="fitCenter"
@@ -70,7 +70,7 @@
         app:layout_constraintVertical_bias="0.071" />
 
     <ImageView
-        android:id="@+id/v5"
+        android:id="@+id/bird_v5"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:scaleType="fitCenter"
@@ -82,9 +82,82 @@
         app:layout_constraintVertical_bias="0.282" />
 
     <ImageView
+        android:id="@+id/boat_v0"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:scaleType="fitCenter"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintHorizontal_bias="0.476"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.036" />
+
+    <ImageView
+        android:id="@+id/boat_v1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:scaleType="fitCenter"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintHorizontal_bias="0.253"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.2" />
+
+    <ImageView
+        android:id="@+id/boat_v2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:scaleType="fitCenter"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintHorizontal_bias="0.37"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.28" />
+
+    <ImageView
+        android:id="@+id/boat_v3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:scaleType="fitCenter"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintHorizontal_bias="0.618"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.28" />
+
+    <ImageView
+        android:id="@+id/boat_v4"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:scaleType="fitCenter"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintHorizontal_bias="0.746"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.2" />
+
+    <ImageView
+        android:id="@+id/boat_v5"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:scaleType="fitCenter"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintHorizontal_bias="0.369"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.188" />
+
+    <ImageView
         android:id="@+id/warmerSection"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:hapticFeedbackEnabled="true"
         android:scaleType="fitCenter"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintHorizontal_bias="0.155"
@@ -97,6 +170,7 @@
         android:id="@+id/colderSection"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:hapticFeedbackEnabled="true"
         android:scaleType="fitXY"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintHorizontal_bias="0.834"
@@ -109,6 +183,7 @@
         android:id="@+id/markerSection"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:hapticFeedbackEnabled="true"
         android:scaleType="fitXY"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintHorizontal_bias="0.498"
@@ -119,7 +194,7 @@
 
     <ImageView
         android:id="@+id/map"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:adjustViewBounds="true"
         android:cropToPadding="true"
@@ -135,12 +210,16 @@
         android:id="@+id/ex"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:focusable="true"
         android:scaleX="0.75"
         android:scaleY="0.75"
+        android:visibility="visible"
         app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.52"
         app:srcCompat="@drawable/hotcoldx" />
 
     <ImageView
@@ -156,7 +235,7 @@
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.0"
-        app:srcCompat="@drawable/drawing" />
+        app:srcCompat="@drawable/bird_drawing" />
 
     <ImageView
         android:id="@+id/aggregate"
@@ -178,6 +257,7 @@
         android:layout_height="wrap_content"
         android:adjustViewBounds="false"
         android:cropToPadding="false"
+        android:hapticFeedbackEnabled="true"
         android:padding="0dp"
         android:paddingBottom="0dp"
         android:paddingEnd="0dp"
@@ -224,6 +304,7 @@
         android:layout_marginStart="0dp"
         android:layout_marginTop="0dp"
         android:adjustViewBounds="false"
+        android:hapticFeedbackEnabled="true"
         android:scaleType="fitXY"
         android:scaleX="1"
         android:visibility="visible"
@@ -234,6 +315,21 @@
         app:layout_constraintTop_toBottomOf="@+id/aggregate"
         app:layout_constraintVertical_bias="0.0"
         app:srcCompat="@drawable/colder" />
+
+    <TextView
+        android:id="@+id/colder_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:elevation="1dp"
+        android:text="Getting\nColder!"
+        android:textAlignment="center"
+        android:textColor="@color/common_google_signin_btn_text_dark_default"
+        android:textColorLink="@color/common_google_signin_btn_text_dark_default"
+        android:textSize="18sp"
+        app:layout_constraintBottom_toBottomOf="@+id/colder"
+        app:layout_constraintLeft_toLeftOf="@+id/colder"
+        app:layout_constraintRight_toRightOf="@+id/colder"
+        app:layout_constraintTop_toTopOf="@+id/colder" />
 
     <ImageView
         android:id="@+id/marker"
@@ -246,6 +342,7 @@
         android:layout_marginRight="0dp"
         android:layout_marginStart="0dp"
         android:layout_marginTop="0dp"
+        android:hapticFeedbackEnabled="true"
         android:scaleType="fitXY"
         android:scaleX="1"
         android:visibility="visible"
@@ -265,21 +362,6 @@
         app:layout_constraintLeft_toLeftOf="@+id/marker"
         app:layout_constraintRight_toRightOf="@+id/marker"
         app:layout_constraintTop_toTopOf="@+id/marker" />
-
-    <TextView
-        android:id="@+id/colder_text"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:elevation="1dp"
-        android:text="Getting\nColder!"
-        android:textAlignment="center"
-        android:textColor="@color/common_google_signin_btn_text_dark_default"
-        android:textColorLink="@color/common_google_signin_btn_text_dark_default"
-        android:textSize="18sp"
-        app:layout_constraintBottom_toBottomOf="@+id/colder"
-        app:layout_constraintLeft_toLeftOf="@+id/colder"
-        app:layout_constraintRight_toRightOf="@+id/colder"
-        app:layout_constraintTop_toTopOf="@+id/colder" />
 
     <TextView
         android:id="@+id/aggregate_text"
@@ -311,9 +393,19 @@
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
     <view
-        android:id="@+id/connectDots"
-        class="edu.cmu.etc.fanfare.playbook.TreasureHuntFragment$connectDots"
+        android:id="@+id/bird_connectDots"
+        class="edu.cmu.etc.fanfare.playbook.BirdDrawing$connectDots"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+    <view
+        android:id="@+id/boat_connectDots"
+        class="edu.cmu.etc.fanfare.playbook.BoatDrawing$connectDots"
         android:layout_width="0dp"
         android:layout_height="0dp"
         app:layout_constraintBottom_toBottomOf="parent"
