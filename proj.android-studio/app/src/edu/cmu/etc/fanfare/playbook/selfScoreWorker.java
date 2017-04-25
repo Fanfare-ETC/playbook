@@ -62,7 +62,8 @@ public class selfScoreWorker extends AsyncTask<String,Void,String> {
                 OutputStream outputStream = httpURLConnection.getOutputStream();
                 BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(outputStream, "UTF-8"));
                 JSONObject object = new JSONObject();
-                object.put("id", LoginActivity.acct.getId().toString());
+                //object.put("id", LoginActivity.acct.getId().toString());
+                object.put("id", "1");
                 Log.d("acct_no", object.toString());
                 // String post_data = URLEncoder.encode("sectionNo","UTF-8")+"="+URLEncoder.encode(sec,"UTF-8")+"&"
                 //    + URLEncoder.encode("Move","UTF-8")+"="+URLEncoder.encode(move,"UTF-8");
@@ -161,7 +162,7 @@ public class selfScoreWorker extends AsyncTask<String,Void,String> {
                 }
                 b2.setTextColor(Color.WHITE);
                 b2.setTypeface(externalFont);
-                b2.setPadding(35, 10, 10, 0);
+                b2.setPadding(15, 10, 0, 0);
 
                     b2.setTextSize(textSize);
 
@@ -179,7 +180,7 @@ public class selfScoreWorker extends AsyncTask<String,Void,String> {
                 }
                 b3.setTextColor(Color.WHITE);
                 b3.setTypeface(externalFont);
-                b3.setPadding(35, 10, 10, 0);
+                b3.setPadding(10, 10, 0, 0);
 
                     b3.setTextSize(textSize);
 
@@ -195,7 +196,7 @@ public class selfScoreWorker extends AsyncTask<String,Void,String> {
                 else{
                     b4.setText(total);
                 }
-                b4.setPadding(35, 10, 10, 0);
+                b4.setPadding(10, 10, 10, 0);
                 b4.setTypeface(externalFont);
 
                     b4.setTextSize(textSize);
