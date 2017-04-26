@@ -34,6 +34,7 @@ cocos2d/build/cocos2d_libs.xcodeproj/xcuserdata/
 proj.ios_mac/build/
 proj.ios_mac/*.xcodeproj/project.xcworkspace
 proj.ios_mac/*.xcodeproj/xcuserdata/
+proj.ios_mac/ios/Assets/
 !*.pch
 
 # Windows project files
@@ -58,6 +59,9 @@ linux-build/
 # Vim swap files
 [._]*.s[a-w][a-z]
 [._]s[a-w][a-z]
+
+# macOS files
+*.DS_Store
 
 # Files that can contain credentials
 proj.android-studio/app/src/debug/google-services.json

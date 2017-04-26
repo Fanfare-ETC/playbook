@@ -2,6 +2,7 @@
 import * as PIXI from 'pixi.js';
 import 'pixi-action';
 import EventEmitter from 'eventemitter3';
+import FontFaceObserver from 'fontfaceobserver';
 
 import PlaybookEvents,
 {
@@ -1476,6 +1477,16 @@ function configureWebSocket(connection) {
 };
 
 /**
+ * Sets up web fonts.
+ * @param {Array.<string>} fonts
+ * @returns {Promise}
+ */
+function configureFonts(fonts) {
+  // Load the required font files.
+  return Promise.all(fonts.map(font => new FontFaceObserver(font).load()));
+}
+
+/**
  * Returns the card's position given a slot number.
  * @param {PIXI.Texture} cardTexture
  * @param {number} i
@@ -1815,47 +1826,51 @@ configureRenderer(renderer);
 configureWebSocket(connection);
 
 // Load the sprites we need.
-PIXI.loader
-  .add('resources/Collection-BG-Wood.jpg')
-  .add('resources/Collection-Tray-9x16.png')
-  .add('resources/Collection-Star-9x16.png')
-  .add('resources/Collection-Bar-Gold-9x16.png')
-  .add('resources/Collection-Bar-Green-9x16.png')
-  .add('resources/Collection-Bar-Yellow-9x16.png')
-  .add('resources/Collection-Shadow-9x16.png')
-  .add('resources/Collection-Shadow-Overturn.png')
-  .add('resources/trophy/trophy1.png')
-  .add('resources/trophy/trophy2.png')
-  .add('resources/trophy/trophy3.png')
-  .add('resources/trophy/trophy4.png')
-  .add('resources/trophy/trophy5.png')
-  .add('resources/trophy/trophy6.png')
-  .add('resources/trophy/trophy7.png')
-  .add('resources/trophy/trophy8.png')
-  .add('resources/trophy/trophy9.png')
-  .add('resources/trophy/trophy10.png')
-  .add('resources/trophy/trophy11.png')
-  .add('resources/trophy/trophy12.png')
-  .add('resources/trophy/trophy13.png')
-  .add('resources/trophy/trophy14.png')
-  .add('resources/trophy/trophy15.png')
-  .add('resources/cards/Card-B-FirstBase.jpg')
-  .add('resources/cards/Card-B-GrandSlam.jpg')
-  .add('resources/cards/Card-B-HitByPitch.jpg')
-  .add('resources/cards/Card-B-HomeRun.jpg')
-  .add('resources/cards/Card-B-RunScored.jpg')
-  .add('resources/cards/Card-B-SecondBase.jpg')
-  .add('resources/cards/Card-B-Steal.jpg')
-  .add('resources/cards/Card-B-ThirdBase.jpg')
-  .add('resources/cards/Card-B-Walk.jpg')
-  .add('resources/cards/Card-F-BlockedRun.jpg')
-  .add('resources/cards/Card-F-DoublePlay.jpg')
-  .add('resources/cards/Card-F-FieldersChoice.jpg')
-  .add('resources/cards/Card-F-FlyOut.jpg')
-  .add('resources/cards/Card-F-GroundOut.jpg')
-  .add('resources/cards/Card-F-LongOut.jpg')
-  .add('resources/cards/Card-F-PickOff.jpg')
-  .add('resources/cards/Card-F-Strikeout.jpg')
-  .add('resources/cards/Card-F-TriplePlay.jpg')
-  .add('resources/cards/Card-F-UnopposedStrikeout.jpg')
-  .load(setup);
+configureFonts(['proxima-nova-excn', 'SCOREBOARD'])
+  .then(() => {
+    PIXI.loader
+      .add('resources/Collection-BG-Wood.jpg')
+      .add('resources/Collection-Tray-9x16.png')
+      .add('resources/Collection-Star-9x16.png')
+      .add('resources/Collection-Bar-Gold-9x16.png')
+      .add('resources/Collection-Bar-Green-9x16.png')
+      .add('resources/Collection-Bar-Yellow-9x16.png')
+      .add('resources/Collection-Shadow-9x16.png')
+      .add('resources/Collection-Shadow-Overturn.png')
+      .add('resources/trophy/trophy1.png')
+      .add('resources/trophy/trophy2.png')
+      .add('resources/trophy/trophy3.png')
+      .add('resources/trophy/trophy4.png')
+      .add('resources/trophy/trophy5.png')
+      .add('resources/trophy/trophy6.png')
+      .add('resources/trophy/trophy7.png')
+      .add('resources/trophy/trophy8.png')
+      .add('resources/trophy/trophy9.png')
+      .add('resources/trophy/trophy10.png')
+      .add('resources/trophy/trophy11.png')
+      .add('resources/trophy/trophy12.png')
+      .add('resources/trophy/trophy13.png')
+      .add('resources/trophy/trophy14.png')
+      .add('resources/trophy/trophy15.png')
+      .add('resources/cards/Card-B-FirstBase.jpg')
+      .add('resources/cards/Card-B-GrandSlam.jpg')
+      .add('resources/cards/Card-B-HitByPitch.jpg')
+      .add('resources/cards/Card-B-HomeRun.jpg')
+      .add('resources/cards/Card-B-RunScored.jpg')
+      .add('resources/cards/Card-B-SecondBase.jpg')
+      .add('resources/cards/Card-B-Steal.jpg')
+      .add('resources/cards/Card-B-ThirdBase.jpg')
+      .add('resources/cards/Card-B-Walk.jpg')
+      .add('resources/cards/Card-F-BlockedRun.jpg')
+      .add('resources/cards/Card-F-DoublePlay.jpg')
+      .add('resources/cards/Card-F-FieldersChoice.jpg')
+      .add('resources/cards/Card-F-FlyOut.jpg')
+      .add('resources/cards/Card-F-GroundOut.jpg')
+      .add('resources/cards/Card-F-LongOut.jpg')
+      .add('resources/cards/Card-F-PickOff.jpg')
+      .add('resources/cards/Card-F-Strikeout.jpg')
+      .add('resources/cards/Card-F-TriplePlay.jpg')
+      .add('resources/cards/Card-F-UnopposedStrikeout.jpg')
+      .load(setup);
+  });
+
