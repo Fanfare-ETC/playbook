@@ -838,7 +838,7 @@ function createBallCountSprites(fieldOverlay, ballSprite) {
  */
 function initBallEvents(ball, ballSlot, fieldOverlay) {
   ball.sprite.interactive = true;
-  ball.sprite.hitArea = new PIXI.Circle(0, 0, ball.sprite.texture.width / 2);
+  ball.sprite.hitArea = new PIXI.Circle(0, 0, ball.sprite.texture.width * 1.5 / 2);
 
   // Listen for changes to state.
   state.emitter.on(state.EVENT_STAGE_CHANGED, function (value) {
