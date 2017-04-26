@@ -192,6 +192,13 @@ public class AppActivity extends AppCompatActivity {
             }
         }
 
+        // Show the drawer if it's the first time we're starting.
+        boolean shouldShowDrawer = prefs.getBoolean(PlaybookApplication.PREF_KEY_FIRST_TIME_SHOW_DRAWER, true);
+        if (shouldShowDrawer) {
+            mDrawerLayout.openDrawer(mDrawerList);
+            prefs.edit().putBoolean(PlaybookApplication.PREF_KEY_FIRST_TIME_SHOW_DRAWER, false).apply();
+        }
+
         AsyncHttpClient.getDefaultInstance().websocket(PLAYBOOK_API_URL, null, webSocketHandler);
     }
 
