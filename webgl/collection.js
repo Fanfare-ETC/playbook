@@ -1155,37 +1155,17 @@ function cardSetMeetsGoal(cardSet, goal) {
       break;
     }
     case GoalTypes.UNIQUE_OUT_CARDS_3: {
-      let cardArray = new Array();
-      const outCards = cardSet.filter(card => PlaybookEventsIsOut[card.play]);
-      cardArray = outCards;
-      outCards.forEach(cardIt => {
-        outCards.forEach(card => {
-          if (cardIt.name === card.play) {
-            cardArray.splice(cardArray.indexOf(card), 1);
-          }
-        });
-      });
-      if (cardArray.length >= 3) {
-        return cardArray.slice(0, 3);
+      const uniqueOutPlays = Object.keys(cardCounts).filter(play => PlaybookEventsIsOut[play]);
+      if (uniqueOutPlays.length === 3) {
+        return uniqueOutPlays.map(play => cardSet.find(card => card.play === play));
       }
-
       break;
     }
     case GoalTypes.UNIQUE_OUT_CARDS_4: {
-      let cardArray = new Array();
-      const outCards = cardSet.filter(card => PlaybookEventsIsOut[card.play]);
-      cardArray = outCards;
-      outCards.forEach(cardIt => {
-        outCards.forEach(card => {
-          if (cardIt.name === card.play) {
-            cardArray.splice(cardArray.indexOf(card), 1);
-          }
-        });
-      });
-      if (cardArray.length >= 4) {
-        return cardArray.slice(0, 4);
+      const uniqueOutPlays = Object.keys(cardCounts).filter(play => PlaybookEventsIsOut[play]);
+      if (uniqueOutPlays.length === 4) {
+        return uniqueOutPlays.map(play => cardSet.find(card => card.play === play));
       }
-      break;
     }
     case GoalTypes.BASES_3: {
       if (numOnBase >= 3) {
