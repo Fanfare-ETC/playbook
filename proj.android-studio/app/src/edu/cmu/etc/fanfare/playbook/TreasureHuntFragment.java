@@ -55,10 +55,10 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
     private int plusoneId,plustenWarmerId,plustenColderId,plustenMarkerId;
     private int warmerSectionId,colderSectionId,markerSectionId;
     private ImageView warmerView,colderView,markerView;
-    private boolean flag=false;
-    private Vibrator myVib;
     private static boolean firstLoad=true;
-
+    private Vibrator myVib;
+    private BirdDrawing birdDrawing;
+    private BoatDrawing boatDrawing;
 
     private  String mEndpoint = "ws://" +
             BuildConfig.PLAYBOOK_TREASUREHUNT_API_HOST + ":" +
@@ -73,142 +73,7 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
         public static boolean game_off=true;
     }
 
-    public static class connectDots extends View {
 
-        public connectDots(Context context) {
-            super(context);
-        }
-
-        public connectDots(Context context, AttributeSet attributeSet) {
-            super(context, attributeSet);
-        }
-
-        public void onDraw(Canvas canvas) {
-
-            super.onDraw(canvas);
-
-            int[] loc0 = new int[2];
-            int[] loc1 = new int[2];
-            int [] canvasloc = LinesView.canvasLocation;
-
-            if(gameState.game_on) {
-                ImageView v2 =(ImageView)view.findViewById(R.id.v2);
-                ImageView v4 =(ImageView)view.findViewById(R.id.v4);
-                ImageView v5 =(ImageView)view.findViewById(R.id.v5);
-
-                int mColor = Color.rgb(255, 255, 255);
-                Paint mPaint= new Paint();
-                mPaint.setColor(mColor);
-                mPaint.setAntiAlias(true);
-                mPaint.setStrokeWidth(10);
-                mPaint.setStyle(Paint.Style.FILL);
-
-                //draw a circle at 2,4,5 vertices
-                v2.getLocationInWindow(loc0);
-                loc0[0] -= canvasloc[0];
-                loc0[1] -= canvasloc[1];
-                canvas.drawCircle(loc0[0], loc0[1], 15, mPaint);
-                v4.getLocationInWindow(loc0);
-                loc0[0] -= canvasloc[0];
-                loc0[1] -= canvasloc[1];
-                canvas.drawCircle(loc0[0], loc0[1], 15, mPaint);
-                v5.getLocationInWindow(loc0);
-                loc0[0] -= canvasloc[0];
-                loc0[1] -= canvasloc[1];
-                canvas.drawCircle(loc0[0], loc0[1], 15, mPaint);
-            }
-
-
-            if (gameState.flag1)
-            {
-                ImageView v0 =(ImageView)view.findViewById(R.id.v0);
-                ImageView v5 =(ImageView)view.findViewById(R.id.v5);
-
-                int mColor = Color.rgb(255, 255, 255);
-                Paint mPaint= new Paint();
-                mPaint.setColor(mColor);
-                mPaint.setAntiAlias(true);
-                mPaint.setStrokeWidth(10);
-                mPaint.setStyle(Paint.Style.FILL);
-
-                v0.getLocationInWindow(loc0);
-                loc0[0] -= canvasloc[0];
-                loc0[1] -= canvasloc[1];
-                canvas.drawCircle(loc0[0], loc0[1], 15, mPaint);
-                v5.getLocationInWindow(loc1);
-                loc1[0] -= canvasloc[0];
-                loc1[1] -= canvasloc[1];
-                canvas.drawLine(loc0[0], loc0[1], loc1[0], loc1[1], mPaint);
-            }
-
-            if(gameState.flag2)
-            {
-
-                ImageView v2 =(ImageView)view.findViewById(R.id.v2);
-                ImageView v3 =(ImageView)view.findViewById(R.id.v3);
-                ImageView v4 =(ImageView)view.findViewById(R.id.v4);
-                ImageView v5 =(ImageView)view.findViewById(R.id.v5);
-
-                int mColor = Color.rgb(255, 255, 255);
-                Paint mPaint= new Paint();
-                mPaint.setColor(mColor);
-                mPaint.setAntiAlias(true);
-                mPaint.setStrokeWidth(10);
-                mPaint.setStyle(Paint.Style.FILL);
-
-                    v3.getLocationInWindow(loc0);
-                    loc0[0] -= canvasloc[0];
-                    loc0[1] -= canvasloc[1];
-                    canvas.drawCircle(loc0[0],loc0[1],15,mPaint);
-
-                    v2.getLocationInWindow(loc1);
-                    loc1[0] -= canvasloc[0];
-                    loc1[1] -= canvasloc[1];
-                    canvas.drawLine(loc0[0], loc0[1], loc1[0], loc1[1], mPaint);
-
-                    v4.getLocationInWindow(loc1);
-                    loc1[0] -= canvasloc[0];
-                    loc1[1] -= canvasloc[1];
-                    canvas.drawLine(loc0[0], loc0[1], loc1[0], loc1[1], mPaint);
-
-                    v5.getLocationInWindow(loc0);
-                    loc0[0] -= canvasloc[0];
-                    loc0[1] -= canvasloc[1];
-                    canvas.drawLine(loc0[0], loc0[1], loc1[0], loc1[1], mPaint);
-            }
-
-            if(gameState.flag3) {
-
-                ImageView v0 =(ImageView)view.findViewById(R.id.v0);
-                ImageView v1 =(ImageView)view.findViewById(R.id.v1);
-                ImageView v2 =(ImageView)view.findViewById(R.id.v2);
-
-                int mColor = Color.rgb(255, 255, 255);
-                Paint mPaint= new Paint();
-                mPaint.setColor(mColor);
-                mPaint.setAntiAlias(true);
-                mPaint.setStrokeWidth(10);
-                mPaint.setStyle(Paint.Style.FILL);
-                        v1.getLocationInWindow(loc0);
-                        loc0[0] -= canvasloc[0];
-                        loc0[1] -= canvasloc[1];
-                        canvas.drawCircle(loc0[0],loc0[1],15,mPaint);
-
-                        v2.getLocationInWindow(loc1);
-                        loc1[0] -= canvasloc[0];
-                        loc1[1] -= canvasloc[1];
-                        canvas.drawLine(loc0[0], loc0[1], loc1[0], loc1[1], mPaint);
-
-                        v0.getLocationInWindow(loc1);
-                        loc1[0] -= canvasloc[0];
-                        loc1[1] -= canvasloc[1];
-                        canvas.drawLine(loc0[0], loc0[1], loc1[0], loc1[1], mPaint);
-            }
-                    if(!gameState.flag1|| !gameState.flag2|| !gameState.flag3)
-                    invalidate();
-
-            }
-    }
     public static class LinesView extends View {
 
         private View mWarmerView;
@@ -342,9 +207,14 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
                 linesView.invalidate();
             }
         });
+
         myVib = (Vibrator) getActivity().getSystemService(VIBRATOR_SERVICE);
+
         //mEndpoint="ws://128.2.238.137:9000";
         Future<WebSocket> webSocket= AsyncHttpClient.getDefaultInstance().websocket(mEndpoint, null, wsh);
+
+        birdDrawing = new BirdDrawing(view,section);
+        boatDrawing = new BoatDrawing(view,section);
 
         return view;
 
@@ -398,43 +268,65 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
         getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                if(gameState.game_off)
-                    stopGame();
+                if(gameState.game_off) {
+                    if(section==0)
+                        stopGame(R.drawable.bird_drawing);
+                    if(section==1)
+                        stopGame(R.drawable.boat_drawing);
+                }
                 else {
-                    if (gameState.flag1)
-                        updateMarker_1();
-                    if (gameState.flag2)
-                        updateMarker_2();
+                    if (gameState.flag1) {
+                        if(section==0)
+                            updateMarker_1(R.id.bird_v3);
+                        if(section==1)
+                            updateMarker_1(R.id.boat_v4);
+                    }
+                    if (gameState.flag2) {
+                        if(section==0)
+                            updateMarker_2(R.id.bird_v1);
+                        if(section==1)
+                            updateMarker_2(R.id.boat_v2);
+                    }
                     if (gameState.flag3)
                         updateMarker_3();
                             else
                             {
                                 if (!gameState.game_on && !gameState.game_off) {
                                     showTutorial();
-
+                                    firstLoad = true;
                                 }
                                 else {
                                     if (gameState.game_on && (!gameState.flag1 && !gameState.flag2 && !gameState.flag3 && !gameState.game_off)) {
                                         if(firstLoad) {
                                             showTutorial();
-                                            firstLoad=false;
+                                            firstLoad = false;
                                         }
-                                        startGame();
+                                        if(section==0)
+                                            startGame(R.id.bird_v0);
+                                        if(section==1)
+                                            startGame(R.id.boat_v1);
                                     }
                                 }
 
                             }
                 }
-                    connectDots cd = (connectDots) view.findViewById(R.id.connectDots);
-                    cd.invalidate();
+                if(section==0) {
+                    BirdDrawing.connectDots cd1 = (BirdDrawing.connectDots) view.findViewById(R.id.bird_connectDots);
+                    cd1.invalidate();
+                }
+                if(section==1) {
+                    BoatDrawing.connectDots cd2 = (BoatDrawing.connectDots) view.findViewById(R.id.boat_connectDots);
+                    cd2.invalidate();
+                }
+
 
             }
         });
     }
-    public void  updateMarker_1()
+    public void  updateMarker_1(int vertex_id)
     {
         //move marker to vertex 3
-        ImageView v3 = ((ImageView) view.findViewById(R.id.v3));
+        ImageView v3 = ((ImageView) view.findViewById(vertex_id));
         int[] loc0 = new int[2];
         int[] canvasLocation = new int[2];
         view.getLocationInWindow(canvasLocation);
@@ -446,10 +338,10 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
         ex.setY(loc0[1]);
 
     }
-    public void  updateMarker_2()
+    public void  updateMarker_2(int vertex_id)
     {
         //move marker to vertex 1
-        ImageView v1 = ((ImageView) view.findViewById(R.id.v1));
+        ImageView v1 = ((ImageView) view.findViewById(vertex_id));
         int[] loc0 = new int[2];
         int[] canvasLocation = new int[2];
         view.getLocationInWindow(canvasLocation);
@@ -466,14 +358,14 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
         ImageView ex = (ImageView) view.findViewById(R.id.ex);
         ex.setVisibility(View.INVISIBLE);
     }
-    public void startGame()
+    public void startGame(int vertex_id)
     {
         ImageView translucent = (ImageView) view.findViewById(R.id.translucentlayer);
         translucent.setVisibility(View.INVISIBLE);
         ImageView drawing= (ImageView)view.findViewById(R.id.drawing);
         drawing.setVisibility(View.INVISIBLE);
         //move marker to vertex 0
-        ImageView v0 = ((ImageView) view.findViewById(R.id.v0));
+        ImageView v0 = ((ImageView) view.findViewById(vertex_id));
         int[] loc0 = new int[2];
         int[] canvasLocation = new int[2];
         view.getLocationInWindow(canvasLocation);
@@ -486,11 +378,12 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
         ex.setY(loc0[1]);
 
     }
-    public void stopGame()
+    public void stopGame(int drawingResId)
     {
         ImageView ex = (ImageView) view.findViewById(R.id.ex);
         ex.setVisibility(View.INVISIBLE);
         ImageView drawing= (ImageView)view.findViewById(R.id.drawing);
+        drawing.setImageResource(drawingResId);
         drawing.setVisibility(View.VISIBLE);
         drawing.setZ(1.0f);
         ImageView translucent = (ImageView) view.findViewById(R.id.translucentlayer);
@@ -502,9 +395,11 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
         text.setTextSize(30);
         text.setTextColor(Color.WHITE);
         text.setBackgroundColor(getResources().getColor(R.color.green));
+        //text.setBackgroundColor(colorResId);
         text.setText("      Hurray! Game Over!");
 
     }
+
     public void plustenaimation(Vector<ImageView> plustens,Vector<ObjectAnimator> anim_plustens,int plustenId,int sectionId)
     {
 

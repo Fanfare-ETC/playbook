@@ -2,6 +2,7 @@
 import * as PIXI from 'pixi.js';
 import 'pixi-action';
 import EventEmitter from 'eventemitter3';
+import FontFaceObserver from 'fontfaceobserver';
 
 import PlaybookEvents,
   { FriendlyNames as PlaybookEventsFriendlyNames } from './lib/PlaybookEvents';
@@ -283,6 +284,16 @@ function configureWebSocket(connection) {
     handleIncomingMessage(message);
   });
 };
+
+/**
+ * Sets up web fonts.
+ * @param {Array.<string>} fonts
+ * @returns {Promise}
+ */
+function configureFonts(fonts) {
+  // Load the required font files.
+  return Promise.all(fonts.map(font => new FontFaceObserver(font).load()));
+}
 
 /**
  * Handles incoming messages.
@@ -1444,12 +1455,15 @@ function setup() {
 configureRenderer(renderer);
 configureWebSocket(connection);
 
-// Load the sprites we need.
-PIXI.loader
-  .add('resources/prediction.json')
-  .add('resources/Prediction-BG.jpg')
-  .add('resources/Prediction-BG-Payout.jpg')
-  .add('resources/Prediction-Overlay.png')
-  .add('resources/Prediction-Overlay-Payout.png')
-  .add('resources/Item-Ball-Rotated.png')
-  .load(setup);
+// Load the fonts and sprites we need.
+configureFonts(['proxima-nova', 'proxima-nova-excn', 'SCOREBOARD'])
+  .then(() => {
+    PIXI.loader
+      .add('resources/prediction.json')
+      .add('resources/Prediction-BG.jpg')
+      .add('resources/Prediction-BG-Payout.jpg')
+      .add('resources/Prediction-Overlay.png')
+      .add('resources/Prediction-Overlay-Payout.png')
+      .add('resources/Item-Ball-Rotated.png')
+      .load(setup);
+  });
