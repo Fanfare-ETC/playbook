@@ -1067,6 +1067,12 @@ function cardSetMeetsGoal(cardSet, goal) {
         const firstPair = cardSet.filter(card => card.play === plays[0]).slice(0, 2);
         const secondPair = cardSet.filter(card => card.play === plays[1]).slice(0, 2);
         return [...firstPair, ...secondPair];
+      } else if (plays.length === 1) {
+        // It's also possible that two pairs are the same play.
+        const play = plays[0];
+        if (cardCounts[play] >= 4) {
+          return cardSet.filter(card => card.play === play).slice(0, 4);
+        }
       }
       break;
     }
