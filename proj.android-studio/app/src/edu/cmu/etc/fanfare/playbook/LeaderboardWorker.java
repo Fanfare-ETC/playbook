@@ -69,13 +69,15 @@ public class LeaderboardWorker extends AsyncTask<String,Void,String> {
         int predictionScore;
         int collectionScore;
         int totalScore;
+        int badge;
     }
 
     public class LeaderboardAdapter extends ArrayAdapter<Leaders> {
         private class ViewHolder {
             TextView mRank;
             TextView mName;
-            TextView mPrediction, mCollection, mTotal;
+            TextView mPrediction, mCollection;
+            ImageView mBadge;
         }
 
         public LeaderboardAdapter(@NonNull Context context, @LayoutRes int resource, @NonNull List<Leaders> objects) {
@@ -94,7 +96,7 @@ public class LeaderboardWorker extends AsyncTask<String,Void,String> {
                 viewHolder.mName = (TextView) convertView.findViewById(R.id.name);
                 viewHolder.mPrediction = (TextView) convertView.findViewById(R.id.prediction);
                 viewHolder.mCollection = (TextView) convertView.findViewById(R.id.collection);
-                viewHolder.mTotal = (TextView) convertView.findViewById(R.id.total);
+                viewHolder.mBadge = (ImageView) convertView.findViewById(R.id.total);
                 convertView.setTag(viewHolder);
             } else {
                 viewHolder = (LeaderboardAdapter.ViewHolder) convertView.getTag();
@@ -107,7 +109,8 @@ public class LeaderboardWorker extends AsyncTask<String,Void,String> {
             Log.i("LEAD_LIST", "Name" + leader.name +
                     ", Prediction" + leader.predictionScore +
                     ", Collection" + leader.collectionScore +
-                    ", Total" + leader.totalScore);
+                    ", Total" + leader.totalScore +
+                    ", Badge" + leader.badge);
 
             viewHolder.mRank.setText("#" + leader.rank);
             if(Integer.parseInt(leader.rank) == 1){
@@ -159,7 +162,7 @@ public class LeaderboardWorker extends AsyncTask<String,Void,String> {
             viewHolder.mCollection.setGravity(Gravity.RIGHT | Gravity.CENTER);
             viewHolder.mCollection.setTypeface(fontCat);
 
-            viewHolder.mTotal.setText(String.valueOf(leader.totalScore));
+         /*   viewHolder.mTotal.setText(String.valueOf(leader.totalScore));
             if (flag == 0) {
                 viewHolder.mTotal.setTextColor(Color.parseColor("#FFC300"));
             }
@@ -169,6 +172,11 @@ public class LeaderboardWorker extends AsyncTask<String,Void,String> {
             viewHolder.mTotal.setTextSize(scoreSize);
             viewHolder.mTotal.setGravity(Gravity.RIGHT | Gravity.CENTER);
             viewHolder.mTotal.setTypeface(fontCat);
+*/
+
+            if(leader.badge == 1){
+                viewHolder.mBadge.setImageResource(R.drawable.badge);
+            }
 
             return convertView;
         }
@@ -378,7 +386,8 @@ public class LeaderboardWorker extends AsyncTask<String,Void,String> {
                     Log.i("LEAD_TR", "Name" + json_data.getString("UserName") +
                             ", Prediction" + json_data.getInt("PredictionScore") +
                             ", Collection" + json_data.getString("CollectionScore") +
-                            ", Total" + json_data.getString("Total"));
+                            ", Total" + json_data.getString("Total") +
+                            ", Badge" + json_data.getInt("Badge"));
                     
                     Leaders leader = new Leaders();
                     leader.rank = Integer.toString(i+1);
@@ -386,6 +395,7 @@ public class LeaderboardWorker extends AsyncTask<String,Void,String> {
                     leader.predictionScore = json_data.getInt("PredictionScore");
                     leader.collectionScore = json_data.getInt("CollectionScore");
                     leader.totalScore = json_data.getInt("Total");
+                    leader.badge = json_data.getInt("Badge");
 
                     leaders.add(leader);
                 }

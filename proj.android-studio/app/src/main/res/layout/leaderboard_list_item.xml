@@ -97,21 +97,22 @@
         android:layout_marginLeft="5dp"
         android:layout_marginStart="10dp" />
 
-    <TextView
+    <ImageView
         android:id="@+id/total"
         android:text="@string/app_name"
         android:layout_height="0dp"
         android:layout_width="0dp"
         android:gravity="center"
         android:layout_marginRight="10dp"
-        android:layout_marginTop="@dimen/text_margin"
+        android:layout_marginTop="6dp"
+        android:layout_marginBottom="6dp"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintVertical_bias="0.509"
         android:layout_marginEnd="50dp"
         app:layout_constraintLeft_toRightOf="@+id/collection"
         app:layout_constraintTop_toTopOf="parent"
-        android:layout_marginLeft="5dp"
+        android:layout_marginLeft="10dp"
         android:layout_marginStart="10dp" />
 
 
