@@ -16,7 +16,7 @@ android {
         buildConfigField 'Integer', 'PLAYBOOK_TREASUREHUNT_API_PORT', '9000'
         buildConfigField 'String', 'PLAYBOOK_API_HOST', '"10.0.2.2"'
         buildConfigField 'Integer', 'PLAYBOOK_API_PORT', '9001'
-        buildConfigField 'String', 'PLAYBOOK_SECTION_API_HOST', '"128.2.238.6"'
+        buildConfigField 'String', 'PLAYBOOK_SECTION_API_HOST', '"10.0.2.2"'
         buildConfigField 'Integer', 'PLAYBOOK_SECTION_API_PORT', '9002'
         buildConfigField 'String', 'PLAYBOOK_SECTION_APP', '"players"'
         buildConfigField 'String', 'PLAYBOOK_LEADER_APP', '"leaderboard"'

@@ -96,9 +96,9 @@ public class trophyWorker extends AsyncTask<String,Void,String> {
                 viewHolder.mBanner = (ImageView) convertView.findViewById(R.id.trophyBanner);
                 viewHolder.mBannerName = (TextView) convertView.findViewById(R.id.bannerName);
                 viewHolder.mLight = (ImageView) convertView.findViewById(R.id.trophyShadow);
-                viewHolder.mName1 = (TextView) convertView.findViewById(R.id.trophyName1);
-                viewHolder.mName2 = (TextView) convertView.findViewById(R.id.trophyName2);
-                viewHolder.mName3 = (TextView) convertView.findViewById(R.id.trophyName3);
+                viewHolder.mName1 = (TextView) convertView.findViewById(R.id.trophyName1Content);
+                viewHolder.mName2 = (TextView) convertView.findViewById(R.id.trophyName2Content);
+                viewHolder.mName3 = (TextView) convertView.findViewById(R.id.trophyName3Content);
                 viewHolder.mDescription1 = (TextView) convertView.findViewById(R.id.trophyDescrp1Content);
                 viewHolder.mDescription2 = (TextView) convertView.findViewById(R.id.trophyDescrp2Content);
                 viewHolder.mDescription3 = (TextView) convertView.findViewById(R.id.trophyDescrp3Content);
@@ -213,25 +213,19 @@ public class trophyWorker extends AsyncTask<String,Void,String> {
             viewHolder.mName1.setTextColor(Color.BLACK);
             viewHolder.mName1.setText(trophyCat.name1.toUpperCase());
             viewHolder.mName1.setTypeface(nameFont);
-            if(trophyCat.name1.length() >= 17){
-                nameTextSize = 12;
-            }
+
             viewHolder.mName1.setTextSize(nameTextSize);
 
             viewHolder.mName2.setTextColor(Color.BLACK);
             viewHolder.mName2.setText(trophyCat.name2.toUpperCase());
             viewHolder.mName2.setTypeface(nameFont);
-            if(trophyCat.name2.length() >= 17){
-                nameTextSize = 12;
-            }
+
             viewHolder.mName2.setTextSize(nameTextSize);
 
             viewHolder.mName3.setTextColor(Color.BLACK);
             viewHolder.mName3.setText(trophyCat.name3.toUpperCase());
             viewHolder.mName3.setTypeface(nameFont);
-            if(trophyCat.name3.length() >= 17){
-                nameTextSize = 10;
-            }
+
             viewHolder.mName3.setTextSize(nameTextSize);
 
             Typeface descripFont = Typeface.createFromAsset(activity.getActivity().getAssets(), "nova_excthin.otf");
