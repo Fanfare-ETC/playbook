@@ -2,6 +2,7 @@
 import * as PIXI from 'pixi.js';
 import 'pixi-action';
 import EventEmitter from 'eventemitter3';
+import FontFaceObserver from 'fontfaceobserver';
 
 import PlaybookEvents,
 {
@@ -84,10 +85,22 @@ if (!global.PlaybookBridge) {
     },
 
     /**
+     * Changes to the leaderboard screen.
+     * This is a no-op for the mock bridge.
+     */
+    goToLeaderboard: function () {},
+
+    /**
      * Changes to the trophy case.
      * This is a no-op for the mock bridge.
      */
     goToTrophyCase: function () {},
+
+    /**
+     * Shows an alert dialog that a trophy is acquired.
+     * This is a no-op for the mock bridge.
+     */
+    showTrophyAcquiredDialog: function () {}
   };
 } else {
   // Receive messages from the hosting application.
@@ -781,6 +794,11 @@ function scoreCardSet(goal, cardSet) {
       }
     });
 
+  // If the goal matches, we show a dialog.
+  if (goal === state.goal) {
+    PlaybookBridge.showTrophyAcquiredDialog();
+  }
+
   // Send score and achievement to server.
   reportScore(GoalTypesMetadata[goal].score);
   reportGoal(goal);
@@ -841,8 +859,27 @@ function updateGoals(goalSets) {
   const tray = stage.getChildByName('tray');
   const stageGoalBar = stage.getChildByName('goalBar');
   const goalsContainer = stage.getChildByName('goalsContainer');
-  const goalsContainerHeight = 128.0 * contentScale * Object.keys(goalSets).length;
+  let goalsContainerHeight = 128.0 * contentScale * Object.keys(goalSets).length;
   goalsContainer.removeChildren();
+
+  if (Object.keys(goalSets).length > 0) {
+    const goalBarHeight = 128.0 * contentScale;
+    const goalBar = new PIXI.Graphics();
+    goalBar.beginFill(0x002b65);
+    goalBar.drawRect(0, 0, window.innerWidth, goalBarHeight);
+    goalBar.endFill();
+
+    const goalBarText = new PIXI.Text('Pick a set:'.toUpperCase());
+    goalBarText.style.fill = 0xffffff;
+    goalBarText.style.fontFamily = 'proxima-nova-excn';
+    goalBarText.style.fontSize = 104 * contentScale;
+    goalBarText.anchor.set(0.0, 0.5);
+    goalBarText.position.set(96 * contentScale, goalBarHeight / 2);
+    goalBar.addChild(goalBarText);
+
+    goalsContainerHeight += goalBarHeight;
+    goalsContainer.addChild(goalBar);
+  }
 
   Object.keys(goalSets).map((goal, index) => {
     const score = GoalTypesMetadata[goal].score;
@@ -856,7 +893,7 @@ function updateGoals(goalSets) {
     const goalBar = new PIXI.extras.TilingSprite(goalBarTexture, window.innerWidth, goalBarHeight);
     goalBar.anchor.set(0.0, 0.0);
     goalBar.tileScale.set(1.0, contentScale);
-    goalBar.position.set(0.0, goalBarHeight * index);
+    goalBar.position.set(0.0, goalBarHeight * (index + 1));
 
     const goalBarShadowTexture = PIXI.loader.resources['resources/Collection-Shadow-9x16.png'].texture;
     const goalBarShadowHeight = goalBarHeight;
@@ -891,7 +928,7 @@ function updateGoals(goalSets) {
     goalBarHighlight.visible = false;
     goalBar.addChild(goalBarHighlight);
 
-    initGoalBarEvents(goalBar, goal, goalSets[goal]);
+    initGoalChoiceEvents(goalBar, goal, goalSets[goal]);
     goalsContainer.addChild(goalBar);
   });
 
@@ -905,7 +942,7 @@ function updateGoals(goalSets) {
  * @param {string} goal
  * @param {Array.<Card>} matchingCards
  */
-function initGoalBarEvents(goalBar, goal, matchingCards) {
+function initGoalChoiceEvents(goalBar, goal, matchingCards) {
   goalBar.interactive = true;
 
   function onTouchStart() {
@@ -1030,6 +1067,12 @@ function cardSetMeetsGoal(cardSet, goal) {
         const firstPair = cardSet.filter(card => card.play === plays[0]).slice(0, 2);
         const secondPair = cardSet.filter(card => card.play === plays[1]).slice(0, 2);
         return [...firstPair, ...secondPair];
+      } else if (plays.length === 1) {
+        // It's also possible that two pairs are the same play.
+        const play = plays[0];
+        if (cardCounts[play] >= 4) {
+          return cardSet.filter(card => card.play === play).slice(0, 4);
+        }
       }
       break;
     }
@@ -1118,37 +1161,17 @@ function cardSetMeetsGoal(cardSet, goal) {
       break;
     }
     case GoalTypes.UNIQUE_OUT_CARDS_3: {
-      let cardArray = new Array();
-      const outCards = cardSet.filter(card => PlaybookEventsIsOut[card.play]);
-      cardArray = outCards;
-      outCards.forEach(cardIt => {
-        outCards.forEach(card => {
-          if (cardIt.name === card.play) {
-            cardArray.splice(cardArray.indexOf(card), 1);
-          }
-        });
-      });
-      if (cardArray.length >= 3) {
-        return cardArray.slice(0, 3);
+      const uniqueOutPlays = Object.keys(cardCounts).filter(play => PlaybookEventsIsOut[play]);
+      if (uniqueOutPlays.length === 3) {
+        return uniqueOutPlays.map(play => cardSet.find(card => card.play === play));
       }
-
       break;
     }
     case GoalTypes.UNIQUE_OUT_CARDS_4: {
-      let cardArray = new Array();
-      const outCards = cardSet.filter(card => PlaybookEventsIsOut[card.play]);
-      cardArray = outCards;
-      outCards.forEach(cardIt => {
-        outCards.forEach(card => {
-          if (cardIt.name === card.play) {
-            cardArray.splice(cardArray.indexOf(card), 1);
-          }
-        });
-      });
-      if (cardArray.length >= 4) {
-        return cardArray.slice(0, 4);
+      const uniqueOutPlays = Object.keys(cardCounts).filter(play => PlaybookEventsIsOut[play]);
+      if (uniqueOutPlays.length === 4) {
+        return uniqueOutPlays.map(play => cardSet.find(card => card.play === play));
       }
-      break;
     }
     case GoalTypes.BASES_3: {
       if (numOnBase >= 3) {
@@ -1207,7 +1230,9 @@ function assignCardToSlot(card, slot) {
   // Copy card into slot list.
   state.cardSlots[slot].card = card;
   state.cardSlots[slot].present = true;
-  state.activeCard = null;
+  if (card === state.activeCard) {
+    state.activeCard = null;
+  }
 
   card.moveToSlot(slot);
   card.isActive = false;
@@ -1340,6 +1365,7 @@ function createRandomGoal() {
 function setActiveGoal(goal, goalSprite) {
   const newTexture = PIXI.loader.resources[`resources/${goal.file}`].texture;
   goalSprite.texture = newTexture;
+  renderer.isDirty = true;
 
   // Invalidate.
   checkIfGoalMet();
@@ -1476,6 +1502,16 @@ function configureWebSocket(connection) {
 };
 
 /**
+ * Sets up web fonts.
+ * @param {Array.<string>} fonts
+ * @returns {Promise}
+ */
+function configureFonts(fonts) {
+  // Load the required font files.
+  return Promise.all(fonts.map(font => new FontFaceObserver(font).load()));
+}
+
+/**
  * Returns the card's position given a slot number.
  * @param {PIXI.Texture} cardTexture
  * @param {number} i
@@ -1535,6 +1571,17 @@ function distance(p1, p2) {
   const disx = Math.pow(p1.x - p2.x, 2);
   const disy = Math.pow(p1.y - p2.y, 2);
   return (Math.sqrt(disx + disy));
+}
+
+/**
+ * Initializes events for the score bar.
+ * @param {PIXI.extras.TilingSprite} scoreBar
+ */
+function initScoreBarEvents(scoreBar) {
+  scoreBar.interactive = true;
+  scoreBar.on('tap', () => {
+    PlaybookBridge.goToLeaderboard();
+  });
 }
 
 /**
@@ -1601,6 +1648,16 @@ function updateTrophy(goal) {
   }));
 }
 
+/**
+ * Initializes events for the score bar.
+ * @param {PIXI.Graphics} trayTip
+ */
+function initTrayTipEvents(trayTip) {
+  state.emitter.on(state.EVENT_ACTIVE_CARD_CHANGED, (activeCard) => {
+    trayTip.visible = activeCard !== null;
+  });
+}
+
 function setup() {
   // Add background to screen.
   const bgTexture = PIXI.loader.resources['resources/Collection-BG-Wood.jpg'].texture;
@@ -1623,6 +1680,16 @@ function setup() {
   // Use the tray scale as a scaling baseline.
   contentScale = tray.scale.x;
 
+  // Add a small brighter green edge.
+  const trayEdge = new PIXI.Graphics();
+  const trayEdgeHeight = 6.0 * contentScale;
+  trayEdge.beginFill(0x00bf00);
+  trayEdge.drawRect(0, 0, window.innerWidth, trayEdgeHeight);
+  trayEdge.endFill();
+  trayEdge.name = 'trayEdge';
+  trayEdge.position.set(0, window.innerHeight - trayHeight - trayEdgeHeight);
+  stage.addChild(trayEdge);
+
   // Add score bar
   const scoreBarTexture = PIXI.loader.resources['resources/Collection-Bar-Gold-9x16.png'].texture;
   const scoreBarHeight = scoreBarTexture.height * contentScale;
@@ -1630,6 +1697,7 @@ function setup() {
   scoreBar.name = 'scoreBar';
   scoreBar.position.set(0, window.innerHeight - trayHeight - scoreBarHeight);
   scoreBar.tileScale.set(1.0, contentScale);
+  initScoreBarEvents(scoreBar);
   stage.addChild(scoreBar);
 
   // Add score bar shadow
@@ -1637,7 +1705,7 @@ function setup() {
   const scoreBarShadowHeight = scoreBarHeight;
   const scoreBarShadow = new PIXI.extras.TilingSprite(scoreBarShadowTexture, window.innerWidth / 2, scoreBarHeight);
   scoreBarShadow.name = 'shadow';
-  scoreBarShadow.position.set(0, window.innerHeight - trayHeight - scoreBarHeight);
+  scoreBarShadow.position.set(0, window.innerHeight - trayHeight - scoreBarShadowHeight);
   scoreBarShadow.tileScale.set(1, contentScale);
   stage.addChild(scoreBarShadow);
 
@@ -1712,7 +1780,7 @@ function setup() {
   stage.addChild(goalsContainer);
 
   // Add goal
-  const goalTexture = PIXI.loader.resources['resources/trophy/trophy1.png'].texture;
+  const goalTexture = PIXI.loader.resources['resources/trophy/empty.png'].texture;
   const goalSprite = new PIXI.Sprite(goalTexture);
   const goalScale = (window.innerWidth / 2 - goalTextMetrics.width - 144 * contentScale) / goalSprite.width;
   goalSprite.name = 'goal';
@@ -1723,6 +1791,56 @@ function setup() {
   );
   goalSprite.anchor.set(1.0, 1.0);
   stage.addChild(goalSprite);
+
+  // Add score button
+  const scoreButtonTexture = PIXI.loader.resources['resources/Collection-Star-9x16.png'].texture;
+  const scoreButton = new PIXI.Sprite(scoreButtonTexture);
+  scoreButton.name = 'scoreButton';
+  scoreButton.anchor.set(0.5, 0.5);
+  stage.addChild(scoreButton);
+
+  // Add "drag plays down to make sets".
+  const trayTip = new PIXI.Graphics();
+  const trayTipHeight = 110.0 * contentScale;
+  trayTip.beginFill(0x000000, 0.5);
+  trayTip.drawRect(0, 0, window.innerWidth, window.innerHeight - trayHeight - trayTipHeight);
+  trayTip.endFill();
+  trayTip.beginFill(0x00bf00);
+  trayTip.drawRect(
+    0, window.innerHeight - trayHeight - trayTipHeight,
+    window.innerWidth, trayEdgeHeight
+  );
+  trayTip.endFill();
+  trayTip.beginFill(0x007f00);
+  trayTip.drawRect(
+    0, window.innerHeight - trayHeight - trayTipHeight + trayEdgeHeight,
+    window.innerWidth, trayTipHeight
+  );
+  trayTip.endFill();
+  trayTip.name = 'trayTip';
+  trayTip.visible = false;
+  initTrayTipEvents(trayTip);
+  stage.addChild(trayTip);
+
+  const trayTipShadowTexture = PIXI.loader.resources['resources/Collection-Shadow-9x16.png'].texture;
+  const trayTipShadowHeight = trayTipShadowTexture.height * contentScale;
+  const trayTipShadow = new PIXI.extras.TilingSprite(trayTipShadowTexture, window.innerWidth, trayTipShadowHeight);
+  trayTipShadow.name = 'trayTipShadow';
+  trayTipShadow.anchor.set(0.0, 1.0);
+  trayTipShadow.tileScale.set(1.0, contentScale);
+  trayTip.addChild(trayTipShadow);
+
+  const trayTipText = new PIXI.Text('Drag Plays Down to Make Sets'.toUpperCase());
+  trayTipText.position.set(
+    window.innerWidth / 2,
+    (window.innerHeight - trayHeight - trayTipHeight) + trayTipHeight / 2 + trayEdgeHeight
+  );
+  trayTipText.anchor.set(0.5, 0.5);
+  trayTipText.style.fontFamily = 'proxima-nova-excn';
+  trayTipText.style.fill = 0xffffff;
+  trayTipText.style.fontWeight = 900;
+  trayTipText.style.fontSize = 104 * contentScale;
+  trayTip.addChild(trayTipText);
 
   // Add Drag to Discard Banner
   const discard = new PIXI.Graphics();
@@ -1758,20 +1876,9 @@ function setup() {
   discardText.style.align = 'center';
   discard.addChild(discardText);
 
-  //Add Drag to Score button
-
-  //Add score button
-  const scoreButtonTexture = PIXI.loader.resources['resources/Collection-Star-9x16.png'].texture;
-  const scoreButton = new PIXI.Sprite(scoreButtonTexture);
-  const scoreButtonScale = (window.innerWidth - 128 * 2) / scoreButtonTexture.width;
-  const scoreButtonHeight = window.innerHeight - 128 * 2 - trayHeight - scoreBarHeight - discardHeight;
-  scoreButton.name = 'scoreButton';
-  scoreButton.anchor.set(0.5, 0.5);
-  stage.addChild(scoreButton);
+  // Generate a random goal.
   invalidateScoreButton();
   initScoreButtonEvents(scoreButton);
-
-  // Generate a random goal.
   initGoalEvents(goalSprite);
   initSelectedGoalEvent();
 
@@ -1815,47 +1922,51 @@ configureRenderer(renderer);
 configureWebSocket(connection);
 
 // Load the sprites we need.
-PIXI.loader
-  .add('resources/Collection-BG-Wood.jpg')
-  .add('resources/Collection-Tray-9x16.png')
-  .add('resources/Collection-Star-9x16.png')
-  .add('resources/Collection-Bar-Gold-9x16.png')
-  .add('resources/Collection-Bar-Green-9x16.png')
-  .add('resources/Collection-Bar-Yellow-9x16.png')
-  .add('resources/Collection-Shadow-9x16.png')
-  .add('resources/Collection-Shadow-Overturn.png')
-  .add('resources/trophy/trophy1.png')
-  .add('resources/trophy/trophy2.png')
-  .add('resources/trophy/trophy3.png')
-  .add('resources/trophy/trophy4.png')
-  .add('resources/trophy/trophy5.png')
-  .add('resources/trophy/trophy6.png')
-  .add('resources/trophy/trophy7.png')
-  .add('resources/trophy/trophy8.png')
-  .add('resources/trophy/trophy9.png')
-  .add('resources/trophy/trophy10.png')
-  .add('resources/trophy/trophy11.png')
-  .add('resources/trophy/trophy12.png')
-  .add('resources/trophy/trophy13.png')
-  .add('resources/trophy/trophy14.png')
-  .add('resources/trophy/trophy15.png')
-  .add('resources/cards/Card-B-FirstBase.jpg')
-  .add('resources/cards/Card-B-GrandSlam.jpg')
-  .add('resources/cards/Card-B-HitByPitch.jpg')
-  .add('resources/cards/Card-B-HomeRun.jpg')
-  .add('resources/cards/Card-B-RunScored.jpg')
-  .add('resources/cards/Card-B-SecondBase.jpg')
-  .add('resources/cards/Card-B-Steal.jpg')
-  .add('resources/cards/Card-B-ThirdBase.jpg')
-  .add('resources/cards/Card-B-Walk.jpg')
-  .add('resources/cards/Card-F-BlockedRun.jpg')
-  .add('resources/cards/Card-F-DoublePlay.jpg')
-  .add('resources/cards/Card-F-FieldersChoice.jpg')
-  .add('resources/cards/Card-F-FlyOut.jpg')
-  .add('resources/cards/Card-F-GroundOut.jpg')
-  .add('resources/cards/Card-F-LongOut.jpg')
-  .add('resources/cards/Card-F-PickOff.jpg')
-  .add('resources/cards/Card-F-Strikeout.jpg')
-  .add('resources/cards/Card-F-TriplePlay.jpg')
-  .add('resources/cards/Card-F-UnopposedStrikeout.jpg')
-  .load(setup);
+configureFonts(['proxima-nova-excn', 'SCOREBOARD'])
+  .then(() => {
+    PIXI.loader
+      .add('resources/Collection-BG-Wood.jpg')
+      .add('resources/Collection-Tray-9x16.png')
+      .add('resources/Collection-Star-9x16.png')
+      .add('resources/Collection-Bar-Gold-9x16.png')
+      .add('resources/Collection-Bar-Green-9x16.png')
+      .add('resources/Collection-Bar-Yellow-9x16.png')
+      .add('resources/Collection-Shadow-9x16.png')
+      .add('resources/Collection-Shadow-Overturn.png')
+      .add('resources/trophy/empty.png')
+      .add('resources/trophy/trophy1.png')
+      .add('resources/trophy/trophy2.png')
+      .add('resources/trophy/trophy3.png')
+      .add('resources/trophy/trophy4.png')
+      .add('resources/trophy/trophy5.png')
+      .add('resources/trophy/trophy6.png')
+      .add('resources/trophy/trophy7.png')
+      .add('resources/trophy/trophy8.png')
+      .add('resources/trophy/trophy9.png')
+      .add('resources/trophy/trophy10.png')
+      .add('resources/trophy/trophy11.png')
+      .add('resources/trophy/trophy12.png')
+      .add('resources/trophy/trophy13.png')
+      .add('resources/trophy/trophy14.png')
+      .add('resources/trophy/trophy15.png')
+      .add('resources/cards/Card-B-FirstBase.jpg')
+      .add('resources/cards/Card-B-GrandSlam.jpg')
+      .add('resources/cards/Card-B-HitByPitch.jpg')
+      .add('resources/cards/Card-B-HomeRun.jpg')
+      .add('resources/cards/Card-B-RunScored.jpg')
+      .add('resources/cards/Card-B-SecondBase.jpg')
+      .add('resources/cards/Card-B-Steal.jpg')
+      .add('resources/cards/Card-B-ThirdBase.jpg')
+      .add('resources/cards/Card-B-Walk.jpg')
+      .add('resources/cards/Card-F-BlockedRun.jpg')
+      .add('resources/cards/Card-F-DoublePlay.jpg')
+      .add('resources/cards/Card-F-FieldersChoice.jpg')
+      .add('resources/cards/Card-F-FlyOut.jpg')
+      .add('resources/cards/Card-F-GroundOut.jpg')
+      .add('resources/cards/Card-F-LongOut.jpg')
+      .add('resources/cards/Card-F-PickOff.jpg')
+      .add('resources/cards/Card-F-Strikeout.jpg')
+      .add('resources/cards/Card-F-TriplePlay.jpg')
+      .add('resources/cards/Card-F-UnopposedStrikeout.jpg')
+      .load(setup);
+  });

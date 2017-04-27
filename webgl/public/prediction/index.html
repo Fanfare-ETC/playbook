@@ -21,6 +21,14 @@
       }
 
       @font-face {
+        font-family: 'rockwell';
+        src: url('resources/rockwell-bold.woff2');
+        font-variant: normal;
+        font-weight: bold;
+        font-style: normal;
+      }
+
+      @font-face {
         font-family: 'SCOREBOARD';
         src: url('resources/SCOREBOARD.woff2');
         font-variant: normal;
@@ -50,12 +58,17 @@
       .webfont-loading-hack-SCOREBOARD {
         font-family: 'SCOREBOARD';
       }
+
+      .webfont-loading-hack-rockwell {
+        font-family: 'rockwell';
+      }
     </style>
   </head>
   <body>
     <div class="webfont-loading-hack webfont-loading-hack-proxima-nova">X</div>
     <div class="webfont-loading-hack webfont-loading-hack-proxima-nova-excn">&#8882;</div>
     <div class="webfont-loading-hack webfont-loading-hack-SCOREBOARD">X</div>
+    <div class="webfont-loading-hack webfont-loading-hack-rockwell">X</div>
     <script src="prediction.js"></script>
   </body>
 </html>

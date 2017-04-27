@@ -7,7 +7,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.media.RingtoneManager;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
@@ -22,7 +21,7 @@ import org.json.JSONObject;
 import java.util.Map;
 
 import static edu.cmu.etc.fanfare.playbook.PlaybookApplication.NOTIFICATION_ID_CLEAR_PREDICTIONS;
-import static edu.cmu.etc.fanfare.playbook.PlaybookApplication.NOTIFICATION_ID_LOCK_PREDICTIONS;
+import static edu.cmu.etc.fanfare.playbook.PlaybookApplication.NOTIFICATION_ID_NOTIFY_LOCK_PREDICTIONS;
 import static edu.cmu.etc.fanfare.playbook.PlaybookApplication.NOTIFICATION_ID_PLAYS_CREATED;
 
 public class GcmListener extends FirebaseMessagingService {
@@ -46,8 +45,8 @@ public class GcmListener extends FirebaseMessagingService {
 
         if (from.startsWith("/topics/playsCreated")) {
             handlePlaysCreated(message);
-        } else if (from.startsWith("/topics/lockPredictions")) {
-            handleLockPredictions(message);
+        } else if (from.startsWith("/topics/notifyLockPredictions")) {
+            handleNotifyLockPredictions(message);
         } else if (from.startsWith("/topics/clearPredictions")) {
             handleClearPredictions(message);
         } else {
@@ -107,14 +106,14 @@ public class GcmListener extends FirebaseMessagingService {
         notificationManager.notify(NOTIFICATION_ID_PLAYS_CREATED, builder.build());
     }
 
-    private void handleLockPredictions(String message) {
+    private void handleNotifyLockPredictions(String message) {
         if (AppActivity.isInForeground &&
             AppActivity.selectedItem == DrawerItemAdapter.DRAWER_ITEM_PREDICTION) {
             return;
         }
 
         // Show a notification that the predictions will be locked soon.
-        Log.d(TAG, "handleLockPredictions");
+        Log.d(TAG, "handleNotifyLockPredictions");
         PendingIntent intent = createPendingIntent(DrawerItemAdapter.DRAWER_ITEM_PREDICTION);
         NotificationCompat.Builder builder = buildNotification()
                 .setContentTitle("Half-inning is starting soon")
@@ -125,7 +124,7 @@ public class GcmListener extends FirebaseMessagingService {
         NotificationManager notificationManager =
                 (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
-        notificationManager.notify(NOTIFICATION_ID_LOCK_PREDICTIONS, builder.build());
+        notificationManager.notify(NOTIFICATION_ID_NOTIFY_LOCK_PREDICTIONS, builder.build());
     }
 
     private void handleClearPredictions(String message) {

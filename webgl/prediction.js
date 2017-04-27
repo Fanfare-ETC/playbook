@@ -2,6 +2,7 @@
 import * as PIXI from 'pixi.js';
 import 'pixi-action';
 import EventEmitter from 'eventemitter3';
+import FontFaceObserver from 'fontfaceobserver';
 
 import PlaybookEvents,
   { FriendlyNames as PlaybookEventsFriendlyNames } from './lib/PlaybookEvents';
@@ -285,6 +286,16 @@ function configureWebSocket(connection) {
 };
 
 /**
+ * Sets up web fonts.
+ * @param {Array.<string>} fonts
+ * @returns {Promise}
+ */
+function configureFonts(fonts) {
+  // Load the required font files.
+  return Promise.all(fonts.map(font => new FontFaceObserver(font).load()));
+}
+
+/**
  * Handles incoming messages.
  * @param {Object} message
  * @param {string} message.event
@@ -294,6 +305,9 @@ function handleIncomingMessage(message) {
   switch (message.event) {
     case 'server:playsCreated':
       handlePlaysCreated(message.data);
+      break;
+    case 'server:notifyLockPredictions':
+      handleNotifyLockPredictions(message.data);
       break;
     case 'server:lockPredictions':
       handleLockPredictions(message.data);
@@ -332,9 +346,9 @@ function handlePlaysCreated(events) {
 }
 
 /**
- * Handle lock predictions event.
+ * Handle notification that predictions are about to be locked.
  */
-function handleLockPredictions(data) {
+function handleNotifyLockPredictions(data) {
   const current = new Date();
   const lockTime = new Date(data.lockTime);
   const countdownBanner = stage.getChildByName('countdownBanner');
@@ -356,19 +370,19 @@ function handleLockPredictions(data) {
     PIXI.actionManager.runAction(countdownBanner, fadeOut);
   }
 
-  function lockPredictions() {
-    state.stage = GameStages.CONFIRMED;
-  }
-
-  // If 10 seconds has elapsed, lock the prediction immediately.
+  // If 10 seconds has elapsed, don't notify.
   // Otherwise, wait till the time has elapsed.
-  if (current - lockTime > 10000) {
-    lockPredictions();
-  } else {
-    setTimeout(lockPredictions, 10000 - (current - lockTime));
+  if (current - lockTime < 10000) {
     showBanner();
     setTimeout(hideBanner, 3000);
   }
+}
+
+/**
+ * Handle lock predictions event.
+ */
+function handleLockPredictions(data) {
+  state.stage = GameStages.CONFIRMED;
 }
 
 /**
@@ -414,14 +428,12 @@ class PredictionCorrectOverlay extends PIXI.Container {
   constructor(event, addedScore) {
     super();
 
-    /** @type {PIXI.Graphics} */
     this.background = new PIXI.Graphics();
     this.background.beginFill(0x000000, 0.75);
     this.background.drawRect(0, 0, window.innerWidth, window.innerHeight);
     this.background.endFill();
     this.addChild(this.background);
 
-    /** @type {PIXI.Sprite} */
     this.ball = new PIXI.Sprite(PIXI.loader.resources['resources/Item-Ball-Rotated.png'].texture);
     const ballScale = window.innerWidth / this.ball.texture.width;
     this.ball.scale.set(ballScale, ballScale);
@@ -429,16 +441,61 @@ class PredictionCorrectOverlay extends PIXI.Container {
     this.ball.anchor.set(0.5, 0.5);
     this.addChild(this.ball);
 
-    /** @type {PIXI.Text} */
+    const textStyle = new PIXI.TextStyle({
+      fontFamily: 'rockwell',
+      fontWeight: 'bold',
+      fontSize: 72.0 * contentScale,
+      align: 'center',
+      fill: 0x002b65
+    });
+
+    this.textContainer = new PIXI.Container();
+
     this.text = new PIXI.Text();
-    this.text.position.set(window.innerWidth / 2, window.innerHeight / 2);
-    this.text.anchor.set(0.5, 0.5);
-    this.text.text = `Prediction correct:\n ${PlaybookEventsFriendlyNames[event]}\n\nYou got ${addedScore} ${addedScore > 1 ? 'points' : 'point'}!`;
-    this.text.style.fontFamily = 'proxima-nova';
-    this.text.style.fontWeight = 'bold';
-    this.text.style.fontSize = 24.0;
-    this.text.style.align = 'center';
-    this.addChild(this.text);
+    this.text.text = `Prediction Correct:\n ${PlaybookEventsFriendlyNames[event]}\n`;
+    this.text.style = textStyle;
+    const textMetrics = PIXI.TextMetrics.measureText(this.text.text, this.text.style);
+    this.textContainer.addChild(this.text);
+
+    this.scoreContainer = new PIXI.Container();
+
+    this.score1 = new PIXI.Text();
+    this.score1.text = 'You got ';
+    this.score1.style = textStyle;
+    this.score1.position.set(0, textMetrics.height);
+    const textMetricsScore1 = PIXI.TextMetrics.measureText(this.score1.text, this.score1.style);
+    this.scoreContainer.addChild(this.score1);
+
+    this.score2 = new PIXI.Text();
+    this.score2.text = addedScore.toString();
+    this.score2.style.fontFamily = 'SCOREBOARD';
+    this.score2.style.fontSize = 72.0 * contentScale;
+    this.score2.style.align = 'center';
+    const textMetricsScore2 = PIXI.TextMetrics.measureText(this.score2.text, this.score2.style);
+    this.score2.position.set(
+      textMetricsScore1.width,
+      textMetrics.height + (textMetricsScore1.height - textMetricsScore2.height - textMetrics.fontProperties.descent)
+    );
+    this.scoreContainer.addChild(this.score2);
+
+    this.score3 = new PIXI.Text();
+    this.score3.text = ` ${addedScore > 1 ? 'points' : 'point'}!`;
+    this.score3.style = textStyle;
+    this.score3.position.set(textMetricsScore1.width + textMetricsScore2.width, textMetrics.height);
+    const textMetricsScore3 = PIXI.TextMetrics.measureText(this.score3.text, this.score3.style);
+    this.scoreContainer.addChild(this.score3);
+
+    this.textContainer.addChild(this.scoreContainer);
+    this.textContainer.position.set(
+      window.innerWidth / 2 - this.textContainer.width / 2,
+      window.innerHeight / 2 - this.textContainer.height / 2
+    );
+    this.addChild(this.textContainer);
+
+    // Reposition the text to the center of the window.
+    const center = new PIXI.Point(window.innerWidth / 2, window.innerHeight / 2);
+    const scoreContainerCenter = this.scoreContainer.toLocal(center);
+    this.scoreContainer.position.x = scoreContainerCenter.x - (this.scoreContainer.width / 2);
   }
 }
 
@@ -503,6 +560,8 @@ class FieldOverlay extends PIXI.Sprite {
       area.endFill();
 
       const moveNextBallToField = () => {
+        if (state.stage === GameStages.CONFIRMED) { return; }
+
         const nextBall = balls.find(ball => ball.selectedTarget === null);
         if (nextBall !== undefined) {
           makePrediction(state, area, nextBall);
@@ -824,7 +883,7 @@ function createBallCountSprites(fieldOverlay, ballSprite) {
  */
 function initBallEvents(ball, ballSlot, fieldOverlay) {
   ball.sprite.interactive = true;
-  ball.sprite.hitArea = new PIXI.Circle(0, 0, ball.sprite.texture.width / 2);
+  ball.sprite.hitArea = new PIXI.Circle(0, 0, ball.sprite.texture.width * 1.5 / 2);
 
   // Listen for changes to state.
   state.emitter.on(state.EVENT_STAGE_CHANGED, function (value) {
@@ -981,9 +1040,9 @@ function initPredictionCorrectOverlayEvents(overlay, scoreTextPosition) {
     PIXI.actionManager.runAction(overlay.ball, ballMoveTo);
     PIXI.actionManager.runAction(overlay.ball, ballScaleTo);
     PIXI.actionManager.runAction(overlay.ball, ballFadeOut);
-    PIXI.actionManager.runAction(overlay.text, ballMoveTo);
-    PIXI.actionManager.runAction(overlay.text, ballScaleTo);
-    PIXI.actionManager.runAction(overlay.text, ballFadeOut);
+    PIXI.actionManager.runAction(overlay.textContainer, ballMoveTo);
+    PIXI.actionManager.runAction(overlay.textContainer, ballScaleTo);
+    PIXI.actionManager.runAction(overlay.textContainer, ballFadeOut);
     PIXI.actionManager.runAction(overlay.background, backgroundSequence);
   });
 }
@@ -1441,12 +1500,15 @@ function setup() {
 configureRenderer(renderer);
 configureWebSocket(connection);
 
-// Load the sprites we need.
-PIXI.loader
-  .add('resources/prediction.json')
-  .add('resources/Prediction-BG.jpg')
-  .add('resources/Prediction-BG-Payout.jpg')
-  .add('resources/Prediction-Overlay.png')
-  .add('resources/Prediction-Overlay-Payout.png')
-  .add('resources/Item-Ball-Rotated.png')
-  .load(setup);
+// Load the fonts and sprites we need.
+configureFonts(['proxima-nova', 'proxima-nova-excn', 'SCOREBOARD', 'rockwell'])
+  .then(() => {
+    PIXI.loader
+      .add('resources/prediction.json')
+      .add('resources/Prediction-BG.jpg')
+      .add('resources/Prediction-BG-Payout.jpg')
+      .add('resources/Prediction-Overlay.png')
+      .add('resources/Prediction-Overlay-Payout.png')
+      .add('resources/Item-Ball-Rotated.png')
+      .load(setup);
+  });

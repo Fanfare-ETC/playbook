@@ -245,12 +245,17 @@ public class PredictionFragment extends WebViewFragment {
                     mCorrectDialog = new AlertDialog.Builder(context)
                             .setTitle("Bravo!")
                             .setMessage("You got a prediction right.")
-                            .setCancelable(false)
                             .setPositiveButton("Check it out!", new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
                                     dialog.dismiss();
                                     context.startActivity(intent);
+                                }
+                            })
+                            .setNegativeButton("Dismiss", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    dialog.dismiss();
                                 }
                             })
                             .create();
