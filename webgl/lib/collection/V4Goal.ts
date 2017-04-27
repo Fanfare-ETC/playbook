@@ -1,5 +1,6 @@
 'use strict';
 import * as PIXI from 'pixi.js';
+import GoalTypes from './GoalTypes';
 import GoalTypesMetadata from './GoalTypesMetadata';
 
 interface ContainerParams {
@@ -35,6 +36,14 @@ class V4Goal extends PIXI.Graphics {
     this._info = info;
     this._active = false;
 
+    // If the goal type is unknown, we need to assign a random goal.
+    if (info.goal === GoalTypes.UNKNOWN) {
+      const visibleGoals = Object.keys(GoalTypesMetadata)
+        .filter(goal => !GoalTypesMetadata[goal].isHidden);
+      const randomChoice = Math.floor((Math.random() * visibleGoals.length));
+      info.goal = visibleGoals[randomChoice];
+    }
+
     if (info.goal !== null) {
       this._label = new PIXI.Text(GoalTypesMetadata[info.goal].description);
       this.addChild(this._label);
@@ -53,12 +62,10 @@ class V4Goal extends PIXI.Graphics {
     this._invalidate();
   }
 
-  /** @returns {boolean} */
   get active() {
     return this._active;
   }
 
-  /** @param {boolean} value */
   set active(value) {
     const oldValue = this._active;
     this._active = !!value;
