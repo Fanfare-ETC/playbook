@@ -7,12 +7,9 @@ import * as FontFaceObserver from 'fontfaceobserver';
 import PlaybookEvents,
 {
   Teams as PlaybookEventsTeams,
-  StringMap as PlaybookEventsStringMap,
-  IsOut as PlaybookEventsIsOut,
-  IsOnBase as PlaybookEventsIsOnBase
+  StringMap as PlaybookEventsStringMap
 } from './lib/PlaybookEvents';
 import GoalTypes from './lib/collection/GoalTypes';
-import GoalTypesMetadata, { IGoalTypeMetadata } from './lib/collection/GoalTypesMetadata';
 import V4Goal from './lib/collection/V4Goal';
 import PlaybookBridge from './lib/collection/PlaybookBridge';
 import PlaybookRenderer from './lib/collection/PlaybookRenderer';
@@ -388,6 +385,9 @@ function initCardEvents(card: Card) {
       } else {
         card.moveToOrigPosition();
       }
+    } else if (card.dragTarget instanceof V4Goal) {
+      console.log('Dragged card to goal!');
+      card.moveToOrigPosition();
     } else {
       card.moveToOrigPosition();
     }
@@ -451,219 +451,11 @@ function checkIfGoalMet() {
   const cardSet = state.cardSlots
     .filter(slot => slot.present)
     .map(slot => slot.card);
-
-  state.goalSets = {};
-  Object.keys(GoalTypesMetadata)
-    .filter(goal => GoalTypesMetadata[goal].isHidden)
-    .forEach(goal => {
-      const goalCardSet = cardSetMeetsGoal(cardSet as Card[], goal);
-      if (goalCardSet.length > 0) {
-        state.goalSets[goal] = goalCardSet;
-      }
-    });
-
-  // Check the active goal.
-  if (state.goal === null) {
-    console.warn('state.goal was null!');
-    return;
+  const goalsContainer = stage.getChildByName('v4GoalsContainer') as PIXI.Container;
+  for (const goal of goalsContainer.children as V4Goal[]) {
+    const goalCards = goal.satisfiedBy(cardSet as ICard[]);
+    goal.active = goalCards.length > 0;
   }
-
-  const activeGoalCardSet = cardSetMeetsGoal(cardSet as Card[], state.goal);
-  if (activeGoalCardSet.length > 0) {
-    state.goalSets[state.goal as string] = activeGoalCardSet;
-  }
-
-  //updateGoals(state.goalSets);
-}
-
-/**
- * Check if the given list of cards meets the goal.
- * @param {Array.<Card>} cardSet
- * @param {string} goal
- * @returns {boolean}
- */
-function cardSetMeetsGoal(cardSet: Card[], goal: string) : Card[] {
-  const numOnBase = cardSet.filter(card => PlaybookEventsIsOnBase[card.play]).length;
-  const numOut = cardSet.filter(card => (
-    PlaybookEventsIsOut[card.play] &&
-    card.play !== PlaybookEvents.TRIPLE_PLAY &&
-    card.play !== PlaybookEvents.DOUBLE_PLAY
-  )).length;
-  const numRed = cardSet.filter(card => (PlaybookEventsTeams[card.play] === 'BATTING')).length;
-  const numBlue = cardSet.filter(card => (PlaybookEventsTeams[card.play] === 'FIELDING')).length;
-  const numDoublePlay = cardSet.filter(card => card.play === PlaybookEvents.DOUBLE_PLAY).length;
-  const numTriplePlay = cardSet.filter(card => card.play === PlaybookEvents.TRIPLE_PLAY).length;
-
-  const cardCounts: { [play: string]: number } = {};
-  cardSet.forEach(card => {
-    if (cardCounts[card.play] === undefined) {
-      cardCounts[card.play] = 1;
-    } else {
-      cardCounts[card.play]++;
-    }
-  });
-
-  let cardsMetGoal = new Array();
-
-  switch (goal) {
-    case GoalTypes.EACH_COLOR_2: {
-      if (numBlue >= 2 && numRed >= 2) {
-        const redCards = cardSet.filter(card => PlaybookEventsTeams[card.play] === 'BATTING').slice(0, 2);
-        const blueCards = cardSet.filter(card => PlaybookEventsTeams[card.play] === 'FIELDING').slice(0, 2);
-        return [...redCards, ...blueCards];
-      }
-      break;
-    }
-    case GoalTypes.TWO_PAIRS: {
-      const plays = Object.keys(cardCounts).filter(play => cardCounts[play] >= 2);
-      if (plays.length >= 2) {
-        const firstPair = cardSet.filter(card => card.play === plays[0]).slice(0, 2);
-        const secondPair = cardSet.filter(card => card.play === plays[1]).slice(0, 2);
-        return [...firstPair, ...secondPair];
-      } else if (plays.length === 1) {
-        // It's also possible that two pairs are the same play.
-        const play = plays[0];
-        if (cardCounts[play] >= 4) {
-          return cardSet.filter(card => card.play === play).slice(0, 4);
-        }
-      }
-      break;
-    }
-    case GoalTypes.FULL_HOUSE: {
-      const plays2 = Object.keys(cardCounts).find(play => cardCounts[play] === 2);
-      const plays3 = Object.keys(cardCounts).find(play => cardCounts[play] === 3);
-      if (plays2 !== undefined && plays3 !== undefined && plays2 !== plays3) {
-        const cards2 = cardSet.filter(card => card.play === plays2);
-        const cards3 = cardSet.filter(card => card.play === plays3);
-        return [...cards2, ...cards3];
-      }
-      break;
-    }
-    case GoalTypes.SAME_COLOR_3: {
-      if ((numBlue >= 3) || (numRed >= 3)) {
-        if (numRed >= 3) {
-          return cardSet.filter(card => (PlaybookEventsTeams[card.play] === 'BATTING'))
-            .slice(0, 3);
-        }
-        else if ((numBlue >= 3)) {
-          return cardSet.filter(card => (PlaybookEventsTeams[card.play] === 'FIELDING'))
-            .slice(0, 3);
-        }
-      }
-      break;
-    }
-    case GoalTypes.SAME_COLOR_4: {
-      if ((numBlue >= 4) || (numRed >= 4)) {
-        if (numRed >= 4) {
-          return cardSet.filter(card => (PlaybookEventsTeams[card.play] === 'BATTING'))
-            .slice(0, 4);
-        }
-        else if ((numBlue >= 4)) {
-          return cardSet.filter(card => (PlaybookEventsTeams[card.play] === 'FIELDING'))
-            .slice(0, 4);
-        }
-      }
-      break;
-    }
-    case GoalTypes.SAME_COLOR_5: {
-      if (numBlue === 5 || numRed === 5) {
-        return cardSet;
-      }
-      break;
-    }
-    case GoalTypes.IDENTICAL_CARDS_3: {
-      const plays = Object.keys(cardCounts).filter(play => cardCounts[play] >= 3);
-      if (plays.length > 0) {
-        return cardSet.filter(card => card.play === plays[0]).slice(0, 3);
-      }
-      break;
-    }
-    case GoalTypes.IDENTICAL_CARDS_4: {
-      const plays = Object.keys(cardCounts).filter(play => cardCounts[play] >= 4);
-      if (plays.length > 0) {
-        return cardSet.filter(card => card.play === plays[0]).slice(0, 4);
-      }
-      break;
-    }
-    case GoalTypes.IDENTICAL_CARDS_5: {
-      const plays = Object.keys(cardCounts).filter(play => cardCounts[play] === 5);
-      if (plays.length > 0) {
-        return cardSet.filter(card => card.play === plays[0]);
-      }
-      break;
-    }
-    case GoalTypes.OUT_3: { //I think should be exactly 3 outs, so 2 double plays can't satisfy
-      const totalOuts = numOut + numDoublePlay * 2 + numTriplePlay * 3;
-      if (totalOuts >= 3) {
-        const triplePlay = cardSet.find(card => card.play === PlaybookEvents.TRIPLE_PLAY);
-        if (triplePlay !== undefined) {
-          return [ triplePlay ];
-        } else if (numDoublePlay > 0) {
-          const cardDoublePlay = cardSet.find(card => card.play === PlaybookEvents.DOUBLE_PLAY);
-          const cardOut = cardSet.find(card => PlaybookEventsIsOut[card.play]);
-          cardsMetGoal.push(cardDoublePlay);
-          cardsMetGoal.push(cardOut);
-          return cardsMetGoal;
-        }
-        else {
-          return cardSet.filter(card => PlaybookEventsIsOut[card.play])
-            .slice(0, 3);
-
-        }
-      }
-      break;
-    }
-    case GoalTypes.UNIQUE_OUT_CARDS_3: {
-      const uniqueOutPlays = Object.keys(cardCounts).filter(play => PlaybookEventsIsOut[play]);
-      if (uniqueOutPlays.length === 3) {
-        return uniqueOutPlays.map(play => cardSet.find(card => card.play === play) as Card);
-      }
-      break;
-    }
-    case GoalTypes.UNIQUE_OUT_CARDS_4: {
-      const uniqueOutPlays = Object.keys(cardCounts).filter(play => PlaybookEventsIsOut[play]);
-      if (uniqueOutPlays.length === 4) {
-        return uniqueOutPlays.map(play => cardSet.find(card => card.play === play) as Card);
-      }
-    }
-    case GoalTypes.BASES_3: {
-      if (numOnBase >= 3) {
-        return cardSet.filter(card => PlaybookEventsIsOnBase[card.play]);
-      }
-      break;
-    }
-    case GoalTypes.BASES_RBI_4: {
-      const runScoredCard = cardSet.find(card => card.play === PlaybookEvents.RUN_SCORED);
-      if (numOnBase >= 3 && runScoredCard !== undefined) {
-        return [
-          ...cardSet.filter(card => PlaybookEventsIsOnBase[card.play]),
-          runScoredCard
-        ];
-      }
-      break;
-    }
-    case GoalTypes.BASES_SEQ_3: {
-      const sequences = [
-        [PlaybookEvents.HIT_BY_PITCH, PlaybookEvents.SINGLE, PlaybookEvents.DOUBLE],
-        [PlaybookEvents.WALK, PlaybookEvents.SINGLE, PlaybookEvents.DOUBLE],
-        [PlaybookEvents.SINGLE, PlaybookEvents.DOUBLE, PlaybookEvents.TRIPLE],
-        [PlaybookEvents.DOUBLE, PlaybookEvents.TRIPLE, PlaybookEvents.HOME_RUN],
-      ];
-
-      for (const sequence of sequences) {
-        const outCards = sequence.map(play => cardSet.find(card => card.play === play));
-        if (outCards.indexOf(undefined) < 0) {
-          return outCards as Card[];
-        }
-      }
-      break;
-    }
-
-    default:
-      console.warn('Unknown goal', goal);
-  }
-
-  return cardsMetGoal;
 }
 
 /**
@@ -731,9 +523,15 @@ function discardCard(card: Card) {
  * @returns {PIXI.Sprite?}
  */
 function getTargetByPoint(card: Card, position: PIXI.Point) : any {
-  //const local = card.toLocal(position);
   const discard = stage.getChildByName('discard');
   const tray = stage.getChildByName('tray');
+  const v4GoalsContainer = stage.getChildByName('v4GoalsContainer') as PIXI.Container;
+
+  for (const goal of v4GoalsContainer.children) {
+    if (goal.getBounds().contains(position.x, position.y)) {
+      return goal;
+    }
+  }
 
   if (discard.getBounds().contains(position.x, position.y) || position.y < 0) {
     return discard; //discard
@@ -743,27 +541,9 @@ function getTargetByPoint(card: Card, position: PIXI.Point) : any {
 }
 
 /**
- * Listens to changes on the goal state.
- * @param {PIXI.Sprite} goalSprite
- */
-function initGoalEvents(goalSprite: PIXI.Sprite) {
-  goalSprite.interactive = true;
-  goalSprite.on('tap', () => {
-    PlaybookBridge.goToTrophyCase();
-  });
-
-  state.emitter.on(state.EVENT_GOAL_CHANGED, function (goal: string) {
-    if (goal === null) {
-      createRandomGoal();
-    } else {
-      setActiveGoal(GoalTypesMetadata[goal], goalSprite);
-    }
-  });
-}
-
-/**
  * Creates a random goal.
  */
+/*
 function createRandomGoal() {
   // Only set visible goals.
   const visibleGoals = Object.keys(GoalTypesMetadata)
@@ -771,12 +551,14 @@ function createRandomGoal() {
   const randomChoice = Math.floor((Math.random() * visibleGoals.length));
   state.goal = visibleGoals[randomChoice];
 }
+*/
 
 /**
  * Updates the given goal sprite with the given goal.
  * @param {string} goal
  * @param {PIXI.Sprite} goalSprite
  */
+/*
 function setActiveGoal(goal: IGoalTypeMetadata, goalSprite: PIXI.Sprite) {
   const newTexture = PIXI.loader.resources[`resources/${goal.file}`].texture;
   goalSprite.texture = newTexture;
@@ -785,6 +567,7 @@ function setActiveGoal(goal: IGoalTypeMetadata, goalSprite: PIXI.Sprite) {
   // Invalidate.
   checkIfGoalMet();
 }
+*/
 
 function handleIncomingMessage(message: any) {
   switch (message.event) {
@@ -1102,7 +885,7 @@ function setup() {
   // Add score bar
   const scoreBarTexture = PIXI.loader.resources['resources/Collection-Bar-Gold-9x16.png'].texture;
   const scoreBarHeight = scoreBarTexture.height * contentScale;
-  const scoreBar = new PIXI.extras.TilingSprite(scoreBarTexture, window.innerWidth / 2, scoreBarHeight);
+  const scoreBar = new PIXI.extras.TilingSprite(scoreBarTexture, window.innerWidth, scoreBarHeight);
   scoreBar.name = 'scoreBar';
   scoreBar.position.set(0, window.innerHeight - trayHeight - scoreBarHeight);
   scoreBar.tileScale.set(1.0, contentScale);
@@ -1112,7 +895,7 @@ function setup() {
   // Add score bar shadow
   const scoreBarShadowTexture = PIXI.loader.resources['resources/Collection-Shadow-9x16.png'].texture;
   const scoreBarShadowHeight = scoreBarHeight;
-  const scoreBarShadow = new PIXI.extras.TilingSprite(scoreBarShadowTexture, window.innerWidth / 2, scoreBarHeight);
+  const scoreBarShadow = new PIXI.extras.TilingSprite(scoreBarShadowTexture, window.innerWidth, scoreBarHeight);
   scoreBarShadow.name = 'shadow';
   scoreBarShadow.position.set(0, window.innerHeight - trayHeight - scoreBarShadowHeight);
   scoreBarShadow.tileScale.set(1, contentScale);
@@ -1152,59 +935,11 @@ function setup() {
   bottomShadow.tileScale.set(1.0, contentScale);
   stage.addChild(bottomShadow);
 
-  // Add goal bar
-  const goalBarTexture = PIXI.loader.resources['resources/Collection-Bar-Yellow-9x16.png'].texture;
-  const goalBarHeight = goalBarTexture.height * contentScale;
-  const goalBar = new PIXI.extras.TilingSprite(goalBarTexture, window.innerWidth / 2, goalBarHeight);
-  goalBar.name = 'goalBar';
-  goalBar.position.set(window.innerWidth / 2, window.innerHeight - trayHeight - goalBarHeight);
-  goalBar.tileScale.set(1.0, contentScale);
-  stage.addChild(goalBar);
-
-  // Add goal bar shadow
-  const goalBarShadowTexture = PIXI.loader.resources['resources/Collection-Shadow-9x16.png'].texture;
-  const goalBarShadowHeight = goalBarHeight;
-  const goalBarShadow = new PIXI.extras.TilingSprite(goalBarShadowTexture, window.innerWidth / 2, goalBarShadowHeight);
-  goalBarShadow.name = 'goalBarShadow';
-  goalBarShadow.position.set(window.innerWidth / 2, window.innerHeight - trayHeight - goalBarHeight);
-  goalBarShadow.tileScale.set(1.0, contentScale);
-  stage.addChild(goalBarShadow);
-
-  // Add goal bar label
-  const goalText = new PIXI.Text();
-  goalText.text = 'Goal:'.toUpperCase();
-  goalText.style.fontFamily = 'proxima-nova-excn';
-  goalText.style.fill = 0x806200;
-  goalText.style.fontWeight = '900';
-  goalText.style.fontSize = 104 * contentScale;
-  const goalTextMetrics = PIXI.TextMetrics.measureText(goalText.text, goalText.style);
-  goalText.position.set(16, (goalBarTexture.height - goalTextMetrics.height / contentScale) * contentScale / 2);
-  goalBar.addChild(goalText);
-
-  // Add hidden container for goals.
-  const goalsContainer = new PIXI.Container();
-  goalsContainer.name = 'goalsContainer';
-  goalsContainer.position.set(0.0, window.innerHeight - tray.height - goalBar.height);
-  stage.addChild(goalsContainer);
-
-  // Add goal
-  const goalTexture = PIXI.loader.resources['resources/trophy/empty.png'].texture;
-  const goalSprite = new PIXI.Sprite(goalTexture);
-  const goalScale = (window.innerWidth / 2 - goalTextMetrics.width - 144 * contentScale) / goalSprite.width;
-  goalSprite.name = 'goal';
-  goalSprite.scale.set(goalScale, goalScale);
-  goalSprite.position.set(
-    goalBar.position.x + window.innerWidth / 2 - 64 * contentScale,
-    goalBar.position.y + goalBar.height - 16 * contentScale
-  );
-  goalSprite.anchor.set(1.0, 1.0);
-  stage.addChild(goalSprite);
-
   // Add goals section.
   const whiteBannerHeight = 32.0 * contentScale;
-  const v4GoalsContainerHeight = window.innerHeight - trayHeight - whiteBannerHeight - goalBarHeight;
+  const v4GoalsContainerHeight = window.innerHeight - trayHeight - whiteBannerHeight - scoreBarHeight;
   const v4GoalsContainer = new PIXI.Container();
-  v4GoalsContainer.name = 'goalsContainer2';
+  v4GoalsContainer.name = 'v4GoalsContainer';
   v4GoalsContainer.position.set(0.0, whiteBannerHeight);
   stage.addChild(v4GoalsContainer);
 
@@ -1214,22 +949,26 @@ function setup() {
     position: new PIXI.Point(64.0 * contentScale, 64.0 * contentScale),
     backgroundColor: 0xff9f40,
     textColor: 0x402000,
-    goal: GoalTypes.EACH_COLOR_2
+    goal: GoalTypes.EACH_COLOR_2,
+    showTrophy: false
   }, {
     position: new PIXI.Point(128.0 * contentScale + v4GoalWidth, 64.0 * contentScale),
     backgroundColor: 0xbfcad8,
     textColor: 0x303740,
-    goal: GoalTypes.TWO_PAIRS
+    goal: GoalTypes.TWO_PAIRS,
+    showTrophy: false
   }, {
     position: new PIXI.Point(64.0 * contentScale, 128.0 * contentScale + v4GoalHeight),
     backgroundColor: 0xffc300,
     textColor: 0x403100,
-    goal: GoalTypes.FULL_HOUSE
+    goal: GoalTypes.FULL_HOUSE,
+    showTrophy: false
   }, {
     position: new PIXI.Point(128.0 * contentScale + v4GoalWidth, 128.0 * contentScale + v4GoalHeight),
     backgroundColor: 0xffffff,
     textColor: 0x806200,
-    goal: GoalTypes.UNKNOWN
+    goal: GoalTypes.UNKNOWN,
+    showTrophy: true
   }];
 
   v4GoalsInfo.forEach(info => {
@@ -1316,9 +1055,6 @@ function setup() {
   discardText.style.align = 'center';
   discard.addChild(discardText);
 
-  // Generate a random goal.
-  initGoalEvents(goalSprite);
-
   /**
    * Begin the animation loop.
    * @param {DOMHighResTimeStamp} now
@@ -1389,6 +1125,8 @@ configureFonts(['proxima-nova-excn', 'SCOREBOARD'])
       .add('resources/Collection-Example-2-2.png')
       .add('resources/Collection-Example-2-3.png')
       .add('resources/Collection-Example-3.png')
+      .add('resources/Collection-Example-4.png')
+      .add('resources/Collection-Example-5.png')
       .add('resources/cards/Card-B-FirstBase.jpg')
       .add('resources/cards/Card-B-GrandSlam.jpg')
       .add('resources/cards/Card-B-HitByPitch.jpg')

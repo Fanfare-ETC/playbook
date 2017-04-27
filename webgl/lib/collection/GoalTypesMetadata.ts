@@ -53,8 +53,7 @@ const GoalTypesMetadata: IGoalTypesMetadataMap = {
     score: 8,
     isHidden: false,
     serverId: 5,
-    // TODO
-    example: 'Collection-Example-3.png'
+    example: 'Collection-Example-4.png'
   },
   [GoalTypes.SAME_COLOR_5]: {
     description: '5 CARDS OF SAME COLOR',
@@ -62,8 +61,7 @@ const GoalTypesMetadata: IGoalTypesMetadataMap = {
     score: 12,
     isHidden: false,
     serverId: 6,
-    // TODO
-    example: 'Collection-Example-3.png'
+    example: 'Collection-Example-5.png'
   },
   [GoalTypes.IDENTICAL_CARDS_3]: {
     description: '3 IDENTICAL CARDS',
@@ -79,8 +77,7 @@ const GoalTypesMetadata: IGoalTypesMetadataMap = {
     score: 8,
     isHidden: false,
     serverId: 8,
-    // TODO
-    example: 'Collection-Example-3.png'
+    example: 'Collection-Example-4.png'
   },
   [GoalTypes.IDENTICAL_CARDS_5]: {
     description: '5 IDENTICAL CARDS',
@@ -88,8 +85,7 @@ const GoalTypesMetadata: IGoalTypesMetadataMap = {
     score: 12,
     isHidden: false,
     serverId: 9,
-    // TODO
-    example: 'Collection-Example-3.png'
+    example: 'Collection-Example-5.png'
   },
   [GoalTypes.OUT_3]: {
     description: 'SET SHOWS 3 OUTS',
@@ -113,8 +109,7 @@ const GoalTypesMetadata: IGoalTypesMetadataMap = {
     score: 12,
     isHidden: false,
     serverId: 12,
-    // TODO
-    example: 'Collection-Example-3.png'
+    example: 'Collection-Example-4.png'
   },
   [GoalTypes.BASES_3]: {
     description: 'ANY 3 BASE CARDS',
@@ -130,8 +125,7 @@ const GoalTypesMetadata: IGoalTypesMetadataMap = {
     score: 8,
     isHidden: false,
     serverId: 14,
-    // TODO
-    example: 'Collection-Example-3.png'
+    example: 'Collection-Example-4.png'
   },
   [GoalTypes.BASES_SEQ_3]: {
     description: '3 BASE CARDS IN ORDER',
