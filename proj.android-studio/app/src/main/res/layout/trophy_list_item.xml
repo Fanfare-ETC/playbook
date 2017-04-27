@@ -43,6 +43,41 @@
         app:layout_constraintBottom_toTopOf="@+id/trophyBg"
         app:layout_constraintLeft_toLeftOf="parent" />
 
+    <Button
+        android:id="@+id/trophyButton1"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="@null"
+        app:layout_constraintLeft_toLeftOf="@+id/trophy1"
+        app:layout_constraintRight_toRightOf="@+id/trophy1"
+        app:layout_constraintTop_toTopOf="@+id/trophy1"
+        app:layout_constraintBottom_toBottomOf="@+id/trophy1"
+        android:layout_weight="0.167"
+        android:layout_marginTop="0dp"/>
+
+    <Button
+        android:id="@+id/trophyButton2"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginEnd="8dp"
+        android:background="@null"
+        app:layout_constraintLeft_toLeftOf="@+id/trophy2"
+        app:layout_constraintRight_toRightOf="@+id/trophy2"
+        app:layout_constraintTop_toTopOf="@+id/trophy2"
+        app:layout_constraintBottom_toBottomOf="@+id/trophy2"
+        android:layout_weight="0.167"
+        android:layout_marginTop="0dp"/>
+
+    <Button
+        android:id="@+id/trophyButton3"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="@null"
+        app:layout_constraintLeft_toLeftOf="@+id/trophy3"
+        app:layout_constraintRight_toRightOf="@+id/trophy3"
+        app:layout_constraintTop_toTopOf="@+id/trophy3"
+        app:layout_constraintBottom_toBottomOf="@+id/trophy3"/>
+
     <ImageView
         android:id="@+id/trophyBg"
         android:layout_width="0dp"
