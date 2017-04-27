@@ -1,110 +1,30 @@
 'use strict';
 import * as PIXI from 'pixi.js';
 import 'pixi-action';
-import EventEmitter from 'eventemitter3';
-import FontFaceObserver from 'fontfaceobserver';
+import { EventEmitter } from 'eventemitter3';
+import * as FontFaceObserver from 'fontfaceobserver';
 
 import PlaybookEvents,
 {
-  FriendlyNames as PlaybookEventsFriendlyNames,
   Teams as PlaybookEventsTeams,
   StringMap as PlaybookEventsStringMap,
   IsOut as PlaybookEventsIsOut,
   IsOnBase as PlaybookEventsIsOnBase
 } from './lib/PlaybookEvents';
+import GoalTypes from './lib/collection/GoalTypes';
+import GoalTypesMetadata, { IGoalTypeMetadata } from './lib/collection/GoalTypesMetadata';
+import V4Goal from './lib/collection/V4Goal';
+import PlaybookBridge from './lib/collection/PlaybookBridge';
 
-// The Playbook Bridge is supplied via addJavaScriptInterface() on the Java
-// side of the code. In the absence of that, we need to mock one.
-if (!global.PlaybookBridge) {
-  /** @type {Object<string, function>} */
-  global.PlaybookBridge = {
-    /**
-     * Returns the URL of the WebSocket server.
-     * @returns {string}
-     */
-    getAPIUrl: function () {
-      return 'ws://localhost:9001';
-    },
+declare module 'pixi.js' {
+  const actionManager: any;
+  const action: any;
+  const TextMetrics: any;
+}
 
-    /**
-     * Returns the URL of the Section API server.
-     * @returns {string}
-     */
-    getSectionAPIUrl: function () {
-      return 'http://localhost:9002';
-    },
-
-    /**
-     * Returns the ID of the current player.
-     * This is stubbed.
-     * @returns {string}
-     */
-    getPlayerID: function () {
-      return 1;
-    },
-
-    /**
-     * Notifies the hosting application of the new state of the game.
-     * This is a no-op for the mock bridge.
-     * @type {string} stateJSON
-     */
-    notifyGameState: function (stateJSON) {
-      console.log('Saving state: ', stateJSON);
-      localStorage.setItem('collection', stateJSON);
-    },
-
-    /**
-     * Notifies the hosting application that we have finished loading.
-     * This is a no-op for the mock bridge.
-     */
-    notifyLoaded: function () {
-      let restoredState = localStorage.getItem('collection');
-      if (restoredState === null) {
-        restoredState = JSON.stringify({
-          cardSlots: [
-            { present: false, card: null },
-            { present: false, card: null },
-            { present: false, card: null },
-            { present: false, card: null },
-            { present: false, card: null }
-          ],
-          goal: null,
-          score: 0,
-          selectedGoal: null
-        });
-      }
-
-      console.log('Loading state: ', restoredState);
-      try {
-        state.fromJSON(restoredState);
-      } catch (e) {
-        console.error('Error restoring state due to exception: ', e);
-        state.reset(true);
-        window.location = window.location;
-      }
-    },
-
-    /**
-     * Changes to the leaderboard screen.
-     * This is a no-op for the mock bridge.
-     */
-    goToLeaderboard: function () {},
-
-    /**
-     * Changes to the trophy case.
-     * This is a no-op for the mock bridge.
-     */
-    goToTrophyCase: function () {},
-
-    /**
-     * Shows an alert dialog that a trophy is acquired.
-     * This is a no-op for the mock bridge.
-     */
-    showTrophyAcquiredDialog: function () {}
-  };
-} else {
-  // Receive messages from the hosting application.
-  global.addEventListener('message', function (e) {
+// Receive messages from the hosting application.
+if (window.PlaybookBridge) {
+  window.addEventListener('message', function (e) {
     const message = e.data;
     switch (message.action) {
       case 'RESTORE_GAME_STATE':
@@ -114,7 +34,7 @@ if (!global.PlaybookBridge) {
         } catch (e) {
           console.error('Error restoring state due to exception: ', e);
           state.reset(true);
-          window.location = window.location;
+          window.location.href = window.location.href;
         }
         break;
       case 'HANDLE_MESSAGE':
@@ -125,153 +45,28 @@ if (!global.PlaybookBridge) {
   });
 }
 
-const GoalTypes = {
-  EACH_COLOR_2: "EACH_COLOR_2",
-  TWO_PAIRS: "TWO_PAIRS",
-  FULL_HOUSE: "FULL_HOUSE",
-  SAME_COLOR_3: "SAME_COLOR_3",
-  SAME_COLOR_4: "SAME_COLOR_4",
-  SAME_COLOR_5: "SAME_COLOR_5",
-  IDENTICAL_CARDS_3: "IDENTICAL_CARDS_3",
-  IDENTICAL_CARDS_4: "IDENTICAL_CARDS_4",
-  IDENTICAL_CARDS_5: "IDENTICAL_CARDS_5",
-  OUT_3: "OUT_3",
-  UNIQUE_OUT_CARDS_3: "UNIQUE_OUT_CARDS_3",
-  UNIQUE_OUT_CARDS_4: "UNIQUE_OUT_CARDS_4",
-  BASES_3: "BASES_3",
-  BASES_RBI_4: "BASES_RBI_4",
-  BASES_SEQ_3: "BASES_SEQ_3",
-  UNKNOWN: "UNKNOWN"
-};
-/*
-const finder = function (goal) {
-  return function (id) {
-    return GoalTypesMetadata[goal].serverId === id;
-  };
-};
-Object.keys(GoalTypesMetadata)
-  .find(finder(15))
-
-std::find_if()
-*/
-const GoalTypesMetadata = {
-  [GoalTypes.EACH_COLOR_2]: {
-    description: "2 CARDS OF EACH COLOR",
-    file: "trophy/trophy1.png",
-    score: 6,
-    isHidden: false,
-    serverId: 1
-  },
-  [GoalTypes.TWO_PAIRS]: {
-    description: 'ANY 2 PAIRS',
-    file: 'trophy/trophy2.png',
-    score: 8,
-    isHidden: false,
-    serverId: 2
-  },
-  [GoalTypes.FULL_HOUSE]: {
-    description: "FULL HOUSE",
-    file: 'trophy/trophy3.png',
-    score: 12,
-    isHidden: true,
-    serverId: 3
-  },
-  [GoalTypes.SAME_COLOR_3]: {
-    description: "3 CARDS OF SAME COLOR",
-    file: "trophy/trophy4.png",
-    score: 6,
-    isHidden: true,
-    serverId: 4
-  },
-  [GoalTypes.SAME_COLOR_4]: {
-    description: "4 CARDS OF SAME COLOR",
-    file: "trophy/trophy5.png",
-    score: 8,
-    isHidden: false,
-    serverId: 5
-  },
-  [GoalTypes.SAME_COLOR_5]: {
-    description: "5 CARDS OF SAME COLOR",
-    file: "trophy/trophy6.png",
-    score: 12,
-    isHidden: false,
-    serverId: 6
-  },
-  [GoalTypes.IDENTICAL_CARDS_3]: {
-    description: "3 IDENTICAL CARDS",
-    file: "trophy/trophy7.png",
-    score: 6,
-    isHidden: true,
-    serverId: 7
-  },
-  [GoalTypes.IDENTICAL_CARDS_4]: {
-    description: "4 IDENTICAL CARDS",
-    file: "trophy/trophy8.png",
-    score: 8,
-    isHidden: false,
-    serverId: 8
-  },
-  [GoalTypes.IDENTICAL_CARDS_5]: {
-    description: "5 IDENTICAL CARDS",
-    file: "trophy/trophy9.png",
-    score: 12,
-    isHidden: false,
-    serverId: 9
-  },
-  [GoalTypes.OUT_3]: {
-    description: "SET SHOWS 3 OUTS",
-    file: "trophy/trophy10.png",
-    score: 6,
-    isHidden: false,
-    serverId: 10
-  },
-  [GoalTypes.UNIQUE_OUT_CARDS_3]: {
-    description: "3 UNIQUE OUT CARDS",
-    file: "trophy/trophy12.png",
-    score: 8,
-    isHidden: false,
-    serverId: 11
-  },
-  [GoalTypes.UNIQUE_OUT_CARDS_4]: {
-    description: "4 UNIQUE OUT CARDS",
-    file: "trophy/trophy11.png",
-    score: 12,
-    isHidden: false,
-    serverId: 12
-  },
-  [GoalTypes.BASES_3]: {
-    description: "ANY 3 BASE CARDS",
-    file: "trophy/trophy13.png",
-    score: 8,
-    isHidden: false,
-    serverId: 13
-  },
-  [GoalTypes.BASES_RBI_4]: {
-    description: "CARDS WITH 4 BASES",
-    file: "trophy/trophy14.png",
-    score: 8,
-    isHidden: false,
-    serverId: 14
-  },
-  [GoalTypes.BASES_SEQ_3]: {
-    description: "3 BASE CARDS IN ORDER",
-    file: "trophy/trophy15.png",
-    score: 8,
-    isHidden: false,
-    serverId: 15
-  }
-};
-
 class GameState {
-  constructor() {
-    this.EVENT_ACTIVE_CARD_CHANGED = 'activeCardChanged';
-    this.EVENT_INCOMING_CARDS_CHANGED = 'incomingCardsChanged';
-    this.EVENT_GOAL_CHANGED = 'goalChanged';
-    this.EVENT_CARD_SLOTS_CHANGED = 'cardSlotsChanged';
-    this.EVENT_CARDS_MATCHING_SELECTED_GOAL_CHANGED = 'cardsMatchingSelectedGoalChanged';
-    this.EVENT_SELECTED_GOAL_CHANGED = 'selectedGoalChanged';
-    this.EVENT_SCORE_CHANGED = 'scoreChanged';
+  EVENT_ACTIVE_CARD_CHANGED: string = 'activeCardChanged';
+  EVENT_INCOMING_CARDS_CHANGED: string = 'incomingCardsChanged';
+  EVENT_GOAL_CHANGED: string = 'goalChanged';
+  EVENT_CARD_SLOTS_CHANGED: string = 'cardSlotsChanged';
+  EVENT_CARDS_MATCHING_SELECTED_GOAL_CHANGED: string = 'cardsMatchingSelectedGoalChanged';
+  EVENT_SELECTED_GOAL_CHANGED: string = 'selectedGoalChanged';
+  EVENT_SCORE_CHANGED: string = 'scoreChanged';
 
+  emitter: EventEmitter;
+
+  _activeCard: Card | null = null;
+  _incomingCards: string[] = [];
+  _goal: string | null;
+  cards: PIXI.Sprite[] = [];
+  _cardSlots: CardSlot[] = [];
+  goalSets: { [goal: string]: Card[] } = {};
+  _cardsMatchingSelectedGoal: Card[] | null = null;
+  _selectedGoal: string | null = null;
+  _score: number = 0;
+
+  constructor() {
     /** @type {EventEmitter} */
     this.emitter = new EventEmitter();
     this.reset();
@@ -281,34 +76,7 @@ class GameState {
    * Resets the game state.
    * @param {boolean} persist
    */
-  reset(persist) {
-    /** @type {Card?} */
-    this._activeCard = null;
-
-    /** @type {Array.<string>} */
-    this._incomingCards = new Array();
-
-    /** @type {string} */
-    this._goal = null;
-
-    /** @type {Array.<Card>} */
-    this.cards = new Array();
-
-    /** @type {Array.<CardSlot>} */
-    this._cardSlots = new Array();
-
-    /** @type {Object.<string, Array.<Card>>} */
-    this.goalSets = {};
-
-    /** @type {Array.<Card>?} */
-    this._cardsMatchingSelectedGoal = null;
-
-    /** @type {string?} */
-    this._selectedGoal = null;
-
-    /** @type {number} */
-    this._score = 0;
-
+  reset(persist: boolean = false) {
     if (persist) {
       PlaybookBridge.notifyGameState(this.toJSON());
     }
@@ -449,7 +217,7 @@ class GameState {
     const cardSlots = this.cardSlots.map(slot => {
       return {
         present: slot.present,
-        card: slot.present ? {
+        card: slot.present && slot.card ? {
           isActive: slot.card.isActive,
           play: slot.card.play,
           team: slot.card.team
@@ -479,7 +247,7 @@ class GameState {
    * Restores the game state from JSON.
    * @param {string} state
    */
-  fromJSON(state) {
+  fromJSON(state: string) {
     console.log('fromJSON', state);
 
     // Create empty card slots.
@@ -489,14 +257,18 @@ class GameState {
 
     const restoredState = JSON.parse(state);
     if (restoredState !== null) {
-      restoredState.cardSlots.forEach((slot, index) => {
+      restoredState.cardSlots.forEach((slot: any, index: number) => {
         this._cardSlots[index].present = slot.present;
         if (slot.present) {
           const card = createCard(slot.card.play, false, index);
-          Object.assign(card, slot.card);
-          initCardEvents(card);
-          card.moveToSlot(index);
-          this._cardSlots[index].card = card;
+          if (card !== null) {
+            Object.assign(card, slot.card);
+            initCardEvents(card);
+            card.moveToSlot(index);
+            this._cardSlots[index].card = card;
+          } else {
+            console.warn('fromJSON', 'createCard returned null!');
+          }
         }
       });
 
@@ -507,7 +279,7 @@ class GameState {
       this._incomingCards = restoredState.incomingCards ? restoredState.incomingCards : [];
       this._goal = restoredState.goal;
       this._cardsMatchingSelectedGoal = restoredState.cardsMatchingSelectedGoal ?
-        restoredState.cardsMatchingSelectedGoal.map(cardId => {
+        restoredState.cardsMatchingSelectedGoal.map((cardId: number) => {
           return this.cardSlots[cardId].card;
         }) : null;
       this._selectedGoal = restoredState.selectedGoal;
@@ -525,62 +297,63 @@ class GameState {
   }
 }
 
+class PlaybookRenderer {
+  renderer: PIXI.CanvasRenderer | PIXI.WebGLRenderer;
+
+  _dirty: boolean = false;
+
+  constructor() {
+    this.renderer = PIXI.autoDetectRenderer(1080, 1920, { resolution: window.devicePixelRatio });
+  }
+
+  render(displayObject: PIXI.DisplayObject) {
+    this.renderer.render(displayObject);
+    this._dirty = false;
+  }
+
+  markDirty() {
+    this._dirty = true;
+  }
+
+  get dirty() {
+    return this._dirty;
+  }
+}
+
 const connection = new WebSocket(PlaybookBridge.getAPIUrl());
-const renderer = PIXI.autoDetectRenderer(1080, 1920, { resolution: window.devicePixelRatio });
+const renderer = new PlaybookRenderer();
 const stage = new PIXI.Container();
 const state = new GameState();
 
 // Content scale will be updated on first draw.
-let contentScale = null;
+let contentScale: number | null = null;
 
 /**
  * Card.
  */
 class Card {
+  play: string;
+  team: string;
+  sprite: PIXI.Sprite;
+  isBeingDragged: boolean = false;
+  dragPointerId: number | null = null;
+  dragOffset: PIXI.Point | null = null;
+  dragOrigPosition: PIXI.Point | null = null;
+  dragOrigRotation: number | null = null;
+  dragOrigScale: number | null = null;
+  dragTarget: PIXI.Sprite | number | null = null;
+  isAnimating: number = 0;
+  isActive: boolean = true;
+
   /**
    * @param {string} team
    * @param {event} play
    * @param {PIXI.Sprite} card
    */
-  constructor(team, play, card) {
-    /** @type {string} */
+  constructor(team: string, play: string, card: PIXI.Sprite) {
     this.play = play;
-
-    /** @type {string} */
     this.team = team;
-
-    /** @type {PIXI.Sprite} */
     this.sprite = card;
-
-    /** @type {bool} */
-    this.isBeingDragged = false;
-
-    /** @type {int?} */
-    this.dragPointerId = null;
-
-    /** @type {PIXI.Point?} */
-    this.dragOffset = null;
-
-    /** @type {PIXI.Point?} */
-    this.dragOrigPosition = null;
-
-    /** @type {number?} */
-    this.dragOrigRotation = null;
-
-    /** @type {number?} */
-    this.dragOrigScale = null;
-
-    /** @type {PIXI.Sprite?} */
-    this.dragTarget = null; //card slot (0-4) discard (6) or score (7)
-
-    /** @type {number} */
-    this.isAnimating = false;
-
-    /** @type {bool} */
-    this.isActive = true;
-
-    /** @type {FieldOverlayArea?} */
-    this.selectedTarget = null; //only score
   }
 
   /**
@@ -588,7 +361,7 @@ class Card {
    * @param {PIXI.Point} position
    * @return {PIXI.action.Sequence}
    */
-  _moveToWithAnimation(position) {
+  _moveToWithAnimation(position: PIXI.Point) {
     const moveTo = new PIXI.action.MoveTo(position.x, position.y, 0.25);
     const callFunc = new PIXI.action.CallFunc(() => this.isAnimating--);
     const sequence = new PIXI.action.Sequence([moveTo, callFunc]);
@@ -602,7 +375,7 @@ class Card {
    * @param {number} rotation
    * @return {PIXI.action.Sequence}
    */
-  _rotateToWithAnimation(rotation) {
+  _rotateToWithAnimation(rotation: number) {
     const rotateTo = new PIXI.action.RotateTo(rotation, 0.25);
     const callFunc = new PIXI.action.CallFunc(() => this.isAnimating--);
     const sequence = new PIXI.action.Sequence([rotateTo, callFunc]);
@@ -616,7 +389,7 @@ class Card {
    * @param {number} scale
    * @return {PIXI.action.Sequence}
    */
-  _scaleToWithAnimation(scale) {
+  _scaleToWithAnimation(scale: number) {
     const scaleTo = new PIXI.action.ScaleTo(scale, scale, 0.25);
     const callFunc = new PIXI.action.CallFunc(() => this.isAnimating--);
     const sequence = new PIXI.action.Sequence([scaleTo, callFunc]);
@@ -629,9 +402,14 @@ class Card {
    * Moves this card to its original location.
    */
   moveToOrigPosition() {
-    this._moveToWithAnimation(this.dragOrigPosition); //probably the original slot it was residing
-    this._rotateToWithAnimation(this.dragOrigRotation);
-    this._scaleToWithAnimation(this.dragOrigScale);
+    if (this.dragOrigPosition !== null && this.dragOrigRotation !== null &&
+        this.dragOrigScale !== null) {
+      this._moveToWithAnimation(this.dragOrigPosition); //probably the original slot it was residing
+      this._rotateToWithAnimation(this.dragOrigRotation);
+      this._scaleToWithAnimation(this.dragOrigScale);
+    } else {
+      console.warn('moveToOrigPosition', 'dragOrigPosition, dragOrigRotation or dragOrigScale was null!');
+    }
   }
 
   /**
@@ -639,7 +417,7 @@ class Card {
    * @param {number} slot
    * @return {PIXI.action.Sequence}
    */
-  moveToSlot(slot) {
+  moveToSlot(slot: number) {
     return this._moveToWithAnimation(getCardPositionForSlot(this.sprite.texture, slot));
   }
 
@@ -660,26 +438,20 @@ class Card {
 }
 
 /**
- *Card slots
+ * Card slots
  */
 class CardSlot {
-  constructor() {
-    /** @type {Card} */
-    this.card = null;
-
-    /** @type {bool} */
-    this.present = false;
-  }
+  card: Card | null = null;
+  present: boolean = false;
 }
 
 /**
  * Sets up events for an active card.
- * @param {Card} card
  */
-function initCardEvents(card) {
+function initCardEvents(card: Card) {
   card.sprite.interactive = true;
 
-  const onTouchStart = function (e) {
+  const onTouchStart = function (e: PIXI.interaction.InteractionEvent) {
     // Don't allow interaction if card is being animated.
     if (card.isAnimating) { return; }
 
@@ -694,22 +466,31 @@ function initCardEvents(card) {
     }
 
     // Offset the drag so we get an accurate touch point.
-    card.isBeingDragged = true;
-    card.dragPointerId = e.data.identifier;
-    card.dragOffset = e.data.getLocalPosition(card.sprite);
-    card.dragOffset.x *= card.sprite.scale.x;
-    card.dragOffset.y *= card.sprite.scale.y;
-    card.dragOrigPosition = new PIXI.Point(
-      card.sprite.position.x,
-      card.sprite.position.y
-    );
-    card.dragOrigRotation = card.sprite.rotation;
-    card.dragOrigScale = card.sprite.scale.x;
+    if (e.data.identifier) {
+      card.isBeingDragged = true;
+      card.dragPointerId = e.data.identifier;
+      card.dragOffset = e.data.getLocalPosition(card.sprite);
+      card.dragOffset.x *= card.sprite.scale.x;
+      card.dragOffset.y *= card.sprite.scale.y;
+      card.dragOrigPosition = new PIXI.Point(
+        card.sprite.position.x,
+        card.sprite.position.y
+      );
+      card.dragOrigRotation = card.sprite.rotation;
+      card.dragOrigScale = card.sprite.scale.x;
+    } else {
+      console.warn('e.data.identifier was undefined!');
+    }
   };
 
-  const onTouchMove = function (e) {
+  const onTouchMove = function (e: PIXI.interaction.InteractionEvent) {
     if (card.isBeingDragged &&
       card.dragPointerId === e.data.identifier) {
+      if (card.dragOffset === null) {
+        console.warn('card.dragOffset was null!');
+        return;
+      }
+
       card.sprite.position.set(
         e.data.global.x - card.dragOffset.x,
         e.data.global.y - card.dragOffset.y
@@ -737,11 +518,11 @@ function initCardEvents(card) {
       }
 
       // Re-render the scene.
-      renderer.isDirty = true;
+      renderer.markDirty();
     }
   };
 
-  const onTouchEnd = function (e) {
+  const onTouchEnd = function (e: PIXI.interaction.InteractionEvent) {
     // Don't allow interaction if card is being animated.
     if (card.isAnimating || !card.isBeingDragged) { return; }
     card.isBeingDragged = false;
@@ -754,14 +535,16 @@ function initCardEvents(card) {
       discardCard(card);
     } else if (card.dragTarget === stage.getChildByName('scoreButton')) {
       if (state.cardsMatchingSelectedGoal &&
-          state.cardsMatchingSelectedGoal.indexOf(card) >= 0) {
+          state.cardsMatchingSelectedGoal.indexOf(card) >= 0 &&
+          state.selectedGoal !== null) {
         scoreCardSet(state.selectedGoal, state.cardsMatchingSelectedGoal);
       } else {
         card.moveToOrigPosition();
       }
-    } else if (card.dragTarget >= 0 && card.dragTarget < 6) {
-      if (card.dragTarget !== null && !state.cardSlots[card.dragTarget].present) {
-        assignCardToSlot(card, card.dragTarget);
+    } else if (card.dragTarget !== null &&
+               card.dragTarget >= 0 && card.dragTarget < 6) {
+      if (card.dragTarget !== null && !state.cardSlots[card.dragTarget as number].present) {
+        assignCardToSlot(card, card.dragTarget as number);
       } else {
         card.moveToOrigPosition();
       }
@@ -783,7 +566,7 @@ function initCardEvents(card) {
  * @param {string} goal
  * @param {Array.<Card>} cardSet
  */
-function scoreCardSet(goal, cardSet) {
+function scoreCardSet(goal: string, cardSet: Card[]) {
   // Remove matching cards.
   state.cardSlots.filter(slot => slot.present)
     .forEach(slot => {
@@ -812,7 +595,7 @@ function scoreCardSet(goal, cardSet) {
   const delayTime = new PIXI.action.DelayTime(0.25);
   const callFunc = new PIXI.action.CallFunc(() => {
     if (!GoalTypesMetadata[goal].isHidden) {
-      createRandomGoal(stage.getChildByName('goal'));
+      createRandomGoal();
     } else {
       checkIfGoalMet();
     }
@@ -833,16 +616,21 @@ function checkIfGoalMet() {
   Object.keys(GoalTypesMetadata)
     .filter(goal => GoalTypesMetadata[goal].isHidden)
     .forEach(goal => {
-      const goalCardSet = cardSetMeetsGoal(cardSet, goal);
+      const goalCardSet = cardSetMeetsGoal(cardSet as Card[], goal);
       if (goalCardSet.length > 0) {
         state.goalSets[goal] = goalCardSet;
       }
     });
 
   // Check the active goal.
-  const activeGoalCardSet = cardSetMeetsGoal(cardSet, state.goal);
+  if (state.goal === null) {
+    console.warn('state.goal was null!');
+    return;
+  }
+
+  const activeGoalCardSet = cardSetMeetsGoal(cardSet as Card[], state.goal);
   if (activeGoalCardSet.length > 0) {
-    state.goalSets[state.goal] = activeGoalCardSet;
+    state.goalSets[state.goal as string] = activeGoalCardSet;
   }
 
   state.selectedGoal = null;
@@ -854,16 +642,15 @@ function checkIfGoalMet() {
  * Updates the goals section in the UI.
  * @param {Object.<string, Array.<Card>>}
  */
-function updateGoals(goalSets) {
-  /** @type {PIXI.Container} */
-  const tray = stage.getChildByName('tray');
-  const stageGoalBar = stage.getChildByName('goalBar');
-  const goalsContainer = stage.getChildByName('goalsContainer');
-  let goalsContainerHeight = 128.0 * contentScale * Object.keys(goalSets).length;
+function updateGoals(goalSets : { [goal: string]: Card[] }) {
+  const tray = stage.getChildByName('tray') as PIXI.Container;
+  const stageGoalBar = stage.getChildByName('goalBar') as PIXI.Container;
+  const goalsContainer = stage.getChildByName('goalsContainer') as PIXI.Container;
+  let goalsContainerHeight = 128.0 * contentScale! * Object.keys(goalSets).length;
   goalsContainer.removeChildren();
 
   if (Object.keys(goalSets).length > 0) {
-    const goalBarHeight = 128.0 * contentScale;
+    const goalBarHeight = 128.0 * contentScale!;
     const goalBar = new PIXI.Graphics();
     goalBar.beginFill(0x002b65);
     goalBar.drawRect(0, 0, window.innerWidth, goalBarHeight);
@@ -872,9 +659,9 @@ function updateGoals(goalSets) {
     const goalBarText = new PIXI.Text('Pick a set:'.toUpperCase());
     goalBarText.style.fill = 0xffffff;
     goalBarText.style.fontFamily = 'proxima-nova-excn';
-    goalBarText.style.fontSize = 104 * contentScale;
+    goalBarText.style.fontSize = 104 * contentScale!;
     goalBarText.anchor.set(0.0, 0.5);
-    goalBarText.position.set(96 * contentScale, goalBarHeight / 2);
+    goalBarText.position.set(96 * contentScale!, goalBarHeight / 2);
     goalBar.addChild(goalBarText);
 
     goalsContainerHeight += goalBarHeight;
@@ -889,35 +676,35 @@ function updateGoals(goalSets) {
     const barTextColor = isHidden ? 0xffffff : 0x806200;
 
     const goalBarTexture = PIXI.loader.resources[`resources/Collection-Bar-${barSpriteColor}-9x16.png`].texture;
-    const goalBarHeight = goalBarTexture.height * contentScale;
+    const goalBarHeight = goalBarTexture.height * contentScale!;
     const goalBar = new PIXI.extras.TilingSprite(goalBarTexture, window.innerWidth, goalBarHeight);
     goalBar.anchor.set(0.0, 0.0);
-    goalBar.tileScale.set(1.0, contentScale);
+    goalBar.tileScale.set(1.0, contentScale!);
     goalBar.position.set(0.0, goalBarHeight * (index + 1));
 
     const goalBarShadowTexture = PIXI.loader.resources['resources/Collection-Shadow-9x16.png'].texture;
     const goalBarShadowHeight = goalBarHeight;
     const goalBarShadow = new PIXI.extras.TilingSprite(goalBarShadowTexture, window.innerWidth, goalBarShadowHeight);
     goalBarShadow.anchor.set(0.0, 0.0);
-    goalBarShadow.tileScale.set(1.0, contentScale);
+    goalBarShadow.tileScale.set(1.0, contentScale!);
     goalBar.addChild(goalBarShadow);
 
     const goalBarScore = new PIXI.Text();
-    goalBarScore.text = score;
+    goalBarScore.text = score.toString();
     goalBarScore.style.fill = barTextColor;
     goalBarScore.style.fontFamily = 'SCOREBOARD';
-    goalBarScore.style.fontSize = 104 * contentScale;
+    goalBarScore.style.fontSize = 104 * contentScale!;
     goalBarScore.anchor.set(0.0, 0.5);
-    goalBarScore.position.set(64 * contentScale, goalBarHeight / 2);
+    goalBarScore.position.set(64 * contentScale!, goalBarHeight / 2);
     goalBar.addChild(goalBarScore);
 
     const goalBarText = new PIXI.Text();
     goalBarText.text = description;
     goalBarText.style.fill = barTextColor;
     goalBarText.style.fontFamily = 'proxima-nova-excn';
-    goalBarText.style.fontSize = 104 * contentScale;
+    goalBarText.style.fontSize = 104 * contentScale!;
     goalBarText.anchor.set(0.0, 0.5);
-    goalBarText.position.set(96 * contentScale + goalBarScore.width, goalBarHeight / 2);
+    goalBarText.position.set(96 * contentScale! + goalBarScore.width, goalBarHeight / 2);
     goalBar.addChild(goalBarText);
 
     const goalBarHighlight = new PIXI.Graphics();
@@ -942,13 +729,13 @@ function updateGoals(goalSets) {
  * @param {string} goal
  * @param {Array.<Card>} matchingCards
  */
-function initGoalChoiceEvents(goalBar, goal, matchingCards) {
+function initGoalChoiceEvents(goalBar: PIXI.Sprite, goal: string, matchingCards: Card[]) {
   goalBar.interactive = true;
 
   function onTouchStart() {
     const highlight = goalBar.getChildByName('goalBarHighlight');
     highlight.visible = true;
-    renderer.isDirty = true;
+    renderer.markDirty();
   }
 
   function onTouchEnd() {
@@ -956,7 +743,7 @@ function initGoalChoiceEvents(goalBar, goal, matchingCards) {
     highlight.visible = false;
     state.cardsMatchingSelectedGoal = matchingCards;
     state.selectedGoal = goal;
-    renderer.isDirty = true;
+    renderer.markDirty();
   }
 
   goalBar
@@ -971,7 +758,7 @@ function initGoalChoiceEvents(goalBar, goal, matchingCards) {
  */
 function highlightCardsMatchingGoal() {
   state.cardSlots.filter(slot => slot.present)
-    .map(slot => slot.card.sprite)
+    .map(slot => slot.card!.sprite)
     .forEach(sprite => sprite.tint = 0xffffff);
 
   if (state.selectedGoal && state.cardsMatchingSelectedGoal) {
@@ -987,27 +774,27 @@ function highlightCardsMatchingGoal() {
  * This redraws the section to fit the button.
  */
 function invalidateScoreButton() {
-  const goalsContainer = stage.getChildByName('goalsContainer');
+  const goalsContainer = stage.getChildByName('goalsContainer') as PIXI.Container;
 
   // Redraw the shadow.
   const bottomShadow = stage.getChildByName('bottomShadow');
   bottomShadow.position.set(0, goalsContainer.position.y);
 
   // These nodes are needed to compute the height.
-  const tray = stage.getChildByName('tray');
-  const discard = stage.getChildByName('discard');
-  const scoreBar = stage.getChildByName('scoreBar');
-  const scoreButton = stage.getChildByName('scoreButton');
+  const tray = stage.getChildByName('tray') as PIXI.Container;
+  const discard = stage.getChildByName('discard') as PIXI.Container;
+  const scoreBar = stage.getChildByName('scoreBar') as PIXI.Container;
+  const scoreButton = stage.getChildByName('scoreButton') as PIXI.Sprite;
 
   // Compute height and width of the button.
   const height = window.innerHeight -
     // Margins
-    128.0 * 2 * contentScale -
+    128.0 * 2 * contentScale! -
     // Bottom part of screen
     tray.height - scoreBar.height - goalsContainer.height -
     // Top part of screen
     discard.height;
-  const width = window.innerWidth - 128.0 * 2 * contentScale;
+  const width = window.innerWidth - 128.0 * 2 * contentScale!;
   const scaleX = width / scoreButton.texture.width;
   const scaleY = height / scoreButton.texture.height;
   const scale = Math.min(scaleX, scaleY);
@@ -1026,7 +813,7 @@ function invalidateScoreButton() {
  * @param {string} goal
  * @returns {boolean}
  */
-function cardSetMeetsGoal(cardSet, goal) {
+function cardSetMeetsGoal(cardSet: Card[], goal: string) : Card[] {
   const numOnBase = cardSet.filter(card => PlaybookEventsIsOnBase[card.play]).length;
   const numOut = cardSet.filter(card => (
     PlaybookEventsIsOut[card.play] &&
@@ -1035,13 +822,10 @@ function cardSetMeetsGoal(cardSet, goal) {
   )).length;
   const numRed = cardSet.filter(card => (PlaybookEventsTeams[card.play] === 'BATTING')).length;
   const numBlue = cardSet.filter(card => (PlaybookEventsTeams[card.play] === 'FIELDING')).length;
-  const numRBI = cardSet.filter(card => card.play === PlaybookEvents.RUN_SCORED).length;
-  const numSteal = cardSet.filter(card => card.play === PlaybookEvents.STEAL).length;
-  const numPickOff = cardSet.filter(card => card.play === PlaybookEvents.PICK_OFF).length;
   const numDoublePlay = cardSet.filter(card => card.play === PlaybookEvents.DOUBLE_PLAY).length;
   const numTriplePlay = cardSet.filter(card => card.play === PlaybookEvents.TRIPLE_PLAY).length;
 
-  const cardCounts = {};
+  const cardCounts: { [play: string]: number } = {};
   cardSet.forEach(card => {
     if (cardCounts[card.play] === undefined) {
       cardCounts[card.play] = 1;
@@ -1142,10 +926,10 @@ function cardSetMeetsGoal(cardSet, goal) {
     case GoalTypes.OUT_3: { //I think should be exactly 3 outs, so 2 double plays can't satisfy
       const totalOuts = numOut + numDoublePlay * 2 + numTriplePlay * 3;
       if (totalOuts >= 3) {
-        if (numTriplePlay > 0) {
-          return cardSet.find(card => card.play === PlaybookEvents.TRIPLE_PLAY);
-        }
-        else if (numDoublePlay > 0) {
+        const triplePlay = cardSet.find(card => card.play === PlaybookEvents.TRIPLE_PLAY);
+        if (triplePlay !== undefined) {
+          return [ triplePlay ];
+        } else if (numDoublePlay > 0) {
           const cardDoublePlay = cardSet.find(card => card.play === PlaybookEvents.DOUBLE_PLAY);
           const cardOut = cardSet.find(card => PlaybookEventsIsOut[card.play]);
           cardsMetGoal.push(cardDoublePlay);
@@ -1163,14 +947,14 @@ function cardSetMeetsGoal(cardSet, goal) {
     case GoalTypes.UNIQUE_OUT_CARDS_3: {
       const uniqueOutPlays = Object.keys(cardCounts).filter(play => PlaybookEventsIsOut[play]);
       if (uniqueOutPlays.length === 3) {
-        return uniqueOutPlays.map(play => cardSet.find(card => card.play === play));
+        return uniqueOutPlays.map(play => cardSet.find(card => card.play === play) as Card);
       }
       break;
     }
     case GoalTypes.UNIQUE_OUT_CARDS_4: {
       const uniqueOutPlays = Object.keys(cardCounts).filter(play => PlaybookEventsIsOut[play]);
       if (uniqueOutPlays.length === 4) {
-        return uniqueOutPlays.map(play => cardSet.find(card => card.play === play));
+        return uniqueOutPlays.map(play => cardSet.find(card => card.play === play) as Card);
       }
     }
     case GoalTypes.BASES_3: {
@@ -1200,7 +984,7 @@ function cardSetMeetsGoal(cardSet, goal) {
       for (const sequence of sequences) {
         const outCards = sequence.map(play => cardSet.find(card => card.play === play));
         if (outCards.indexOf(undefined) < 0) {
-          return outCards;
+          return outCards as Card[];
         }
       }
       break;
@@ -1218,7 +1002,7 @@ function cardSetMeetsGoal(cardSet, goal) {
  * @param {Card} card
  * @param {number} slot
  */
-function assignCardToSlot(card, slot) {
+function assignCardToSlot(card: Card, slot: number) {
   // Check if card exists in existing slot.
   const existingSlot = state.cardSlots.filter(slot => slot.present)
     .find(slot => slot.card === card);
@@ -1248,19 +1032,19 @@ function assignCardToSlot(card, slot) {
  * Discards a given card.
  * @param {Card} card
  */
-function discardCard(card) {
+function discardCard(card: Card) {
   if (state.activeCard === card) {
     stage.removeChild(state.activeCard.sprite);
     state.activeCard = null;
   } else {
-    const slot = state.cardSlots.find(slot => slot.card === card);
+    const slot = state.cardSlots.find((slot: CardSlot) => slot.card === card);
     if (slot === undefined) {
       console.warn('Attempting to discard card that doesn\'t exist in slot!');
       return;
     }
 
     slot.present = false;
-    stage.removeChild(slot.card.sprite);
+    stage.removeChild(slot.card!.sprite);
     slot.card = null;
 
     // Notify listeners that the slots have been updated.
@@ -1268,7 +1052,7 @@ function discardCard(card) {
   }
 
   checkIfGoalMet();
-  renderer.isDirty = true;
+  renderer.markDirty();
 }
 
 /**
@@ -1277,7 +1061,7 @@ function discardCard(card) {
  * @param {PIXI.Point} position
  * @returns {PIXI.Sprite?}
  */
-function getTargetByPoint(card, position) {
+function getTargetByPoint(card: Card, position: PIXI.Point) : any {
   //const local = card.toLocal(position);
   const discard = stage.getChildByName('discard');
   const scoreButton = stage.getChildByName('scoreButton');
@@ -1293,23 +1077,9 @@ function getTargetByPoint(card, position) {
 }
 
 /**
- * Returns the world space position for a ball slot.
- * @param {PIXI.Texture} cardTexture
- * @param {PIXI.Sprite} cardSlot
- * @param {Number} i
- */
-function getCardSlotPositionFor(cardTexture, i) {
-  const cardScale = stage.getChildByName['tray'].sprite.texture.height / cardTexture.height / 1.5;
-  return stage.getChildByName['tray'].toGlobal(new PIXI.Point(
-    120 + cardTexture.width * i * cardScale,
-    stage.getChildByName['tray'].sprite.texture.height / 2
-  ));
-};
-
-/**
  * Listens to button presses on drag set to score.
  */
-function initScoreButtonEvents(scoreButton) {
+function initScoreButtonEvents(scoreButton: PIXI.DisplayObject) {
   scoreButton.interactive = true;
   scoreButton.on('tap', () => {
     if (state.selectedGoal && state.cardsMatchingSelectedGoal) {
@@ -1322,13 +1092,13 @@ function initScoreButtonEvents(scoreButton) {
  * Listens to changes on the goal state.
  * @param {PIXI.Sprite} goalSprite
  */
-function initGoalEvents(goalSprite) {
+function initGoalEvents(goalSprite: PIXI.Sprite) {
   goalSprite.interactive = true;
   goalSprite.on('tap', () => {
     PlaybookBridge.goToTrophyCase();
   });
 
-  state.emitter.on(state.EVENT_GOAL_CHANGED, function (goal) {
+  state.emitter.on(state.EVENT_GOAL_CHANGED, function (goal: string) {
     if (goal === null) {
       createRandomGoal();
     } else {
@@ -1341,7 +1111,7 @@ function initGoalEvents(goalSprite) {
  * Listen to changes on the selected state.
  */
 function initSelectedGoalEvent() {
-  state.emitter.on(state.EVENT_SELECTED_GOAL_CHANGED, function (goal) {
+  state.emitter.on(state.EVENT_SELECTED_GOAL_CHANGED, function (goal: string) {
     highlightCardsMatchingGoal();
   });
 }
@@ -1362,22 +1132,19 @@ function createRandomGoal() {
  * @param {string} goal
  * @param {PIXI.Sprite} goalSprite
  */
-function setActiveGoal(goal, goalSprite) {
+function setActiveGoal(goal: IGoalTypeMetadata, goalSprite: PIXI.Sprite) {
   const newTexture = PIXI.loader.resources[`resources/${goal.file}`].texture;
   goalSprite.texture = newTexture;
-  renderer.isDirty = true;
+  renderer.markDirty();
 
   // Invalidate.
   checkIfGoalMet();
 }
 
-function handleIncomingMessage(message) {
+function handleIncomingMessage(message: any) {
   switch (message.event) {
     case 'server:playsCreated':
       handlePlaysCreated(message.data);
-      break;
-    case 'server:clearPredictions':
-      handleClearPredictions();
       break;
     default:
   }
@@ -1387,12 +1154,12 @@ function handleIncomingMessage(message) {
  * Handles plays created event.
  * @param {Array.<number>} events
  */
-function handlePlaysCreated(events) {
+function handlePlaysCreated(events: number[]) {
   const plays = events.map(PlaybookEvents.getById);
   for (const play of plays) {
     state.incomingCards.push(play);
     state.incomingCards = state.incomingCards.slice();
-    renderer.isDirty = true;
+    renderer.markDirty();
   }
 }
 
@@ -1400,7 +1167,7 @@ function handlePlaysCreated(events) {
  * Receives a card from the server.
  * @param {string} play
  */
-function receiveCard(play) {
+function receiveCard(play: string) {
   const card = createCard(play);
   if (!card) { return; }
 
@@ -1431,7 +1198,7 @@ function receiveCard(play) {
  * @param {number?} slot
  * @returns {Card}
  */
-function createCard(play, isActive = true, slot) {
+function createCard(play: string, isActive: boolean = true, slot?: number) : Card | null {
   const team = PlaybookEventsTeams[play];
   let teamString;
   switch (team) {
@@ -1442,7 +1209,7 @@ function createCard(play, isActive = true, slot) {
       teamString = 'B-';
       break;
     default:
-      return;
+      return null;
   }
 
   const mapString = PlaybookEventsStringMap[play];
@@ -1455,10 +1222,15 @@ function createCard(play, isActive = true, slot) {
     card.scale.set(0, 0);
     card.rotation = PIXI.DEG_TO_RAD * (Math.floor(Math.random() * 10) + -5);
   } else {
-    const position = getCardPositionForSlot(cardTexture, slot);
-    const scale = getCardScaleInSlot(cardTexture);
-    card.position.set(position.x, position.y);
-    card.scale.set(scale, scale);
+    if (slot !== undefined) {
+      const position = getCardPositionForSlot(cardTexture, slot);
+      const scale = getCardScaleInSlot(cardTexture);
+      card.position.set(position.x, position.y);
+      card.scale.set(scale, scale);
+    } else {
+      console.error('Card marked as non-active, but slot is not passed!');
+      return null;
+    }
   }
 
   const cardObj = new Card(team, play, card);
@@ -1473,29 +1245,32 @@ function createCard(play, isActive = true, slot) {
  * viewport, and adds it to the DOM tree.
  * @param {PIXI.WebGLRenderer} renderer
  */
-function configureRenderer(renderer) {
-  const resizeToFitWindow = function (renderer) {
-    renderer.resize(window.innerWidth, window.innerHeight);
+function configureRenderer(renderer: PlaybookRenderer) {
+  const resizeToFitWindow = function (renderer: PlaybookRenderer) {
+    renderer.renderer.resize(window.innerWidth, window.innerHeight);
   };
 
-  renderer.view.style.position = 'absolute';
-  renderer.view.style.display = 'block';
-  renderer.autoResize = true;
+  renderer.renderer.view.style.position = 'absolute';
+  renderer.renderer.view.style.display = 'block';
+  renderer.renderer.autoResize = true;
   resizeToFitWindow(renderer);
-  document.body.appendChild(renderer.view);
-  window.addEventListener('resize', resizeToFitWindow.bind(this, renderer));
+  document.body.appendChild(renderer.renderer.view);
+  window.addEventListener('resize', () => {
+    resizeToFitWindow(renderer);
+  });
 };
 
 /**
  * Sets up the WebSocket connection.
  * @param {WebSocket} connection
  */
-function configureWebSocket(connection) {
+function configureWebSocket(connection: WebSocket) {
   connection.addEventListener('open', function () {
     console.log(`Connected to ${connection.url}`);
   });
 
-  connection.addEventListener('message', function (message) {
+  // TODO: Use more stringent type check here.
+  connection.addEventListener('message', function (message: any) {
     message = JSON.parse(message.data);
     handleIncomingMessage(message);
   });
@@ -1506,7 +1281,7 @@ function configureWebSocket(connection) {
  * @param {Array.<string>} fonts
  * @returns {Promise}
  */
-function configureFonts(fonts) {
+function configureFonts(fonts: string[]) {
   // Load the required font files.
   return Promise.all(fonts.map(font => new FontFaceObserver(font).load()));
 }
@@ -1516,7 +1291,7 @@ function configureFonts(fonts) {
  * @param {PIXI.Texture} cardTexture
  * @param {number} i
  */
-function getCardPositionForSlot(cardTexture, i) {
+function getCardPositionForSlot(cardTexture: PIXI.Texture, i: number) {
   const trayScale = stage.getChildByName('tray').scale.x;
   const cardScale = getCardScaleInSlot(cardTexture);
   const scaledWidth = cardTexture.width * cardScale;
@@ -1532,7 +1307,7 @@ function getCardPositionForSlot(cardTexture, i) {
  * Returns the scale of a card in a slot.
  * @param {PIXI.Texture} cardTexture
  */
-function getCardScaleInSlot(cardTexture) {
+function getCardScaleInSlot(cardTexture: PIXI.Texture) {
   const trayScale = stage.getChildByName('tray').scale.x;
   const cardHolderWidth = (window.innerWidth - (48.0 * trayScale * 2) - ((5/*NUM_SLOTS*/ - 1) * 24.0 * trayScale)) / 5.0;
   return cardHolderWidth / cardTexture.width;
@@ -1544,7 +1319,7 @@ function getCardScaleInSlot(cardTexture) {
  * @param {PIXI.Point} position
  * @returns {number?}
  */
-function getNearestSlot(card, position) {
+function getNearestSlot(card: Card, position: PIXI.Point) {
   let slot = null;
   let smallestDistance = Number.MAX_VALUE;
   state.cardSlots.forEach((cardSlot, i) => {
@@ -1567,7 +1342,7 @@ function getNearestSlot(card, position) {
  * @param {PIXI.Point} p2
  * @returns {number}
  */
-function distance(p1, p2) {
+function distance(p1: PIXI.Point, p2: PIXI.Point) {
   const disx = Math.pow(p1.x - p2.x, 2);
   const disy = Math.pow(p1.y - p2.y, 2);
   return (Math.sqrt(disx + disy));
@@ -1577,7 +1352,7 @@ function distance(p1, p2) {
  * Initializes events for the score bar.
  * @param {PIXI.extras.TilingSprite} scoreBar
  */
-function initScoreBarEvents(scoreBar) {
+function initScoreBarEvents(scoreBar: PIXI.extras.TilingSprite) {
   scoreBar.interactive = true;
   scoreBar.on('tap', () => {
     PlaybookBridge.goToLeaderboard();
@@ -1588,8 +1363,8 @@ function initScoreBarEvents(scoreBar) {
  * Initializes events for the score.
  * @param {PIXI.Text} scoreText
  */
-function initScoreEvents(scoreText) {
-  state.emitter.on(state.EVENT_SCORE_CHANGED, function (score, oldScore) {
+function initScoreEvents(scoreText: PIXI.Text) {
+  state.emitter.on(state.EVENT_SCORE_CHANGED, function (score: number, oldScore: number) {
     scoreText.text = ('000000' + score).substr(-Math.max(score.toString().length, 3));
 
     if (oldScore !== null) {
@@ -1609,7 +1384,7 @@ function initScoreEvents(scoreText) {
  * Report a scoring event to the server.
  * @param {number} score
  */
-function reportScore(score) {
+function reportScore(score: number) {
   const request = new XMLHttpRequest();
   request.open('POST', `${PlaybookBridge.getSectionAPIUrl()}/updateScore`);
   request.setRequestHeader('Content-Type', 'application/json');
@@ -1624,7 +1399,7 @@ function reportScore(score) {
  * Reports a trophy achievement to the server.
  * @param {string} goal
  */
-function reportGoal(goal) {
+function reportGoal(goal: string) {
   const request = new XMLHttpRequest();
   request.open('POST', `${PlaybookBridge.getSectionAPIUrl()}/updateTrophy`);
   request.setRequestHeader('Content-Type', 'application/json');
@@ -1635,25 +1410,10 @@ function reportGoal(goal) {
 }
 
 /**
- * Update trophy case to the server.
- * @param {string}
- */
-function updateTrophy(goal) {
-  const request = new XMLHttpRequest();
-  request.open('POST', `${PlaybookBridge.getSectionAPIUrl()}/updateTrophy`);
-  request.setRequestHeader('Content-Type', 'application/json');
-  request.send(JSON.stringify({
-    userId: PlaybookBridge.getPlayerID(),
-    trophyId: GoalTypesMetadata[goal].serverId
-  }));
-}
-
-/**
  * Initializes events for the score bar.
- * @param {PIXI.Graphics} trayTip
  */
-function initTrayTipEvents(trayTip) {
-  state.emitter.on(state.EVENT_ACTIVE_CARD_CHANGED, (activeCard) => {
+function initTrayTipEvents(trayTip: PIXI.DisplayObject) {
+  state.emitter.on(state.EVENT_ACTIVE_CARD_CHANGED, (activeCard?: Card) => {
     trayTip.visible = activeCard !== null;
   });
 }
@@ -1716,7 +1476,7 @@ function setup() {
   scoreBarText.text = 'Score:'.toUpperCase();
   scoreBarText.style.fontFamily = 'proxima-nova-excn';
   scoreBarText.style.fill = 0xffffff;
-  scoreBarText.style.fontWeight = 900;
+  scoreBarText.style.fontWeight = '900';
   scoreBarText.style.fontSize = 104 * contentScale;
   const scoreBarTextMetrics = PIXI.TextMetrics.measureText(scoreBarText.text, scoreBarText.style);
   scoreBarText.position.set(64 * contentScale, (scoreBarTexture.height - scoreBarTextMetrics.height / contentScale) * contentScale / 2);
@@ -1747,7 +1507,6 @@ function setup() {
   const goalBarTexture = PIXI.loader.resources['resources/Collection-Bar-Yellow-9x16.png'].texture;
   const goalBarHeight = goalBarTexture.height * contentScale;
   const goalBar = new PIXI.extras.TilingSprite(goalBarTexture, window.innerWidth / 2, goalBarHeight);
-  const goalBarScale = window.innerWidth / 2;
   goalBar.name = 'goalBar';
   goalBar.position.set(window.innerWidth / 2, window.innerHeight - trayHeight - goalBarHeight);
   goalBar.tileScale.set(1.0, contentScale);
@@ -1767,7 +1526,7 @@ function setup() {
   goalText.text = 'Goal:'.toUpperCase();
   goalText.style.fontFamily = 'proxima-nova-excn';
   goalText.style.fill = 0x806200;
-  goalText.style.fontWeight = 900;
+  goalText.style.fontWeight = '900';
   goalText.style.fontSize = 104 * contentScale;
   const goalTextMetrics = PIXI.TextMetrics.measureText(goalText.text, goalText.style);
   goalText.position.set(16, (goalBarTexture.height - goalTextMetrics.height / contentScale) * contentScale / 2);
@@ -1791,6 +1550,47 @@ function setup() {
   );
   goalSprite.anchor.set(1.0, 1.0);
   stage.addChild(goalSprite);
+
+  // Add goals section.
+  const whiteBannerHeight = 32.0 * contentScale;
+  const v4GoalsContainerHeight = window.innerHeight - trayHeight - whiteBannerHeight - goalBarHeight;
+  const v4GoalsContainer = new PIXI.Container();
+  v4GoalsContainer.name = 'goalsContainer2';
+  v4GoalsContainer.position.set(0.0, whiteBannerHeight);
+  stage.addChild(v4GoalsContainer);
+
+  const v4GoalWidth = (window.innerWidth - 192.0 * contentScale) / 2;
+  const v4GoalHeight = (v4GoalsContainerHeight - 192.0 * contentScale) / 2;
+  const v4GoalsInfo = [{
+    position: new PIXI.Point(64.0 * contentScale, 64.0 * contentScale),
+    backgroundColor: 0xff9f40,
+    textColor: 0x402000,
+    goal: GoalTypes.EACH_COLOR_2
+  }, {
+    position: new PIXI.Point(128.0 * contentScale + v4GoalWidth, 64.0 * contentScale),
+    backgroundColor: 0xbfcad8,
+    textColor: 0x303740,
+    goal: GoalTypes.TWO_PAIRS
+  }, {
+    position: new PIXI.Point(64.0 * contentScale, 128.0 * contentScale + v4GoalHeight),
+    backgroundColor: 0xffc300,
+    textColor: 0x403100,
+    goal: GoalTypes.FULL_HOUSE
+  }, {
+    position: new PIXI.Point(128.0 * contentScale + v4GoalWidth, 128.0 * contentScale + v4GoalHeight),
+    backgroundColor: 0xffffff,
+    textColor: 0x806200,
+    // TODO
+    goal: GoalTypes.BASES_3
+  }];
+
+  v4GoalsInfo.forEach(info => {
+    const v4Goal = new V4Goal(contentScale!, {
+      width: v4GoalWidth,
+      height: v4GoalHeight
+    }, info);
+    v4GoalsContainer.addChild(v4Goal);
+  });
 
   // Add score button
   const scoreButtonTexture = PIXI.loader.resources['resources/Collection-Star-9x16.png'].texture;
@@ -1838,14 +1638,13 @@ function setup() {
   trayTipText.anchor.set(0.5, 0.5);
   trayTipText.style.fontFamily = 'proxima-nova-excn';
   trayTipText.style.fill = 0xffffff;
-  trayTipText.style.fontWeight = 900;
+  trayTipText.style.fontWeight = '900';
   trayTipText.style.fontSize = 104 * contentScale;
   trayTip.addChild(trayTipText);
 
   // Add Drag to Discard Banner
   const discard = new PIXI.Graphics();
   const discardHeight = 128.0 * contentScale;
-  const whiteBannerHeight = 32.0 * contentScale;
   discard.beginFill(0xffffff);
   discard.drawRect(0, 0, window.innerWidth, whiteBannerHeight);
   discard.endFill();
@@ -1871,7 +1670,7 @@ function setup() {
   discardText.text = 'drag plays up to discard'.toUpperCase();
   discardText.style.fontFamily = 'proxima-nova-excn';
   discardText.style.fill = 0xffffff;
-  discardText.style.fontWeight = 900;
+  discardText.style.fontWeight = '900';
   discardText.style.fontSize = 104 * contentScale;
   discardText.style.align = 'center';
   discard.addChild(discardText);
@@ -1886,25 +1685,24 @@ function setup() {
    * Begin the animation loop.
    * @param {DOMHighResTimeStamp} now
    */
-  function beginDrawLoop(now) {
+  function beginDrawLoop(now: number) {
     const numPendingActions = Object.keys(PIXI.actionManager.actions).length;
     if (numPendingActions > 0) {
-      renderer.isDirty = true;
+      renderer.markDirty();
     }
 
     // Check if we have cards pending in the queue.
     if (state.activeCard === null && state.incomingCards.length > 0) {
       const play = state.incomingCards.pop();
       state.incomingCards = state.incomingCards.slice();
-      receiveCard(play);
+      receiveCard(play!);
     }
 
     // For mobile phones, we don't go full-blast at 60 fps.
     // Re-render only if dirty.
-    if (renderer.isDirty) {
+    if (renderer.dirty) {
       PIXI.actionManager.update((now - lastRenderTime) / 1000);
       renderer.render(stage);
-      renderer.isDirty = false;
     }
 
     lastRenderTime = now;
@@ -1912,8 +1710,8 @@ function setup() {
   };
 
   let lastRenderTime = performance.now();
-  renderer.isDirty = true;
-  PlaybookBridge.notifyLoaded();
+  renderer.markDirty();
+  PlaybookBridge.notifyLoaded(state);
   beginDrawLoop(lastRenderTime);
 };
 
@@ -1949,6 +1747,10 @@ configureFonts(['proxima-nova-excn', 'SCOREBOARD'])
       .add('resources/trophy/trophy13.png')
       .add('resources/trophy/trophy14.png')
       .add('resources/trophy/trophy15.png')
+      .add('resources/Collection-Example-2.png')
+      .add('resources/Collection-Example-2-2.png')
+      .add('resources/Collection-Example-2-3.png')
+      .add('resources/Collection-Example-3.png')
       .add('resources/cards/Card-B-FirstBase.jpg')
       .add('resources/cards/Card-B-GrandSlam.jpg')
       .add('resources/cards/Card-B-HitByPitch.jpg')
