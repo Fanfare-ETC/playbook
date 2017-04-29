@@ -19,6 +19,7 @@ import CardSlot from './lib/collection/CardSlot';
 import DiscardBar from './lib/collection/DiscardBar';
 import IGameState from './lib/collection/IGameState';
 import ICard from './lib/collection/ICard';
+import TrayTip from './lib/collection/TrayTip';
 
 // Receive messages from the hosting application.
 if (window.PlaybookBridge) {
@@ -445,6 +446,7 @@ function scoreCardSet(choice: GoalChoice, goal: string) {
   // Update score.
   state.score = state.score + GoalTypesMetadata[goal].score;
   state.selectedGoal = null;
+  state.goal = getRandomGoal();
 }
 
 /**
@@ -454,7 +456,8 @@ function scoreCardSet(choice: GoalChoice, goal: string) {
  */
 function assignCardToSlot(card: Card, slot: number) {
   // Check if card exists in existing slot.
-  const existingSlot = state.cardSlots.filter(slot => slot.present)
+  const existingSlot = state.cardSlots
+    .filter(slot => slot.present)
     .find(slot => slot.card === card);
   if (existingSlot !== undefined) {
     existingSlot.present = false;
@@ -725,10 +728,29 @@ function getNearestSlot(card: Card, position: PIXI.Point) {
  * @param {PIXI.Point} p2
  * @returns {number}
  */
-function distance(p1: PIXI.Point, p2: PIXI.Point) {
+function distance(p1: PIXI.Point, p2: PIXI.Point) : number {
   const disx = Math.pow(p1.x - p2.x, 2);
   const disy = Math.pow(p1.y - p2.y, 2);
   return (Math.sqrt(disx + disy));
+}
+
+/**
+ * Returns an array of cards from the tray.
+ */
+function getCardsInSlots() : ICard[] {
+  return state.cardSlots
+    .filter(slot => slot.present)
+    .map(slot => slot.card) as ICard[];
+}
+
+/**
+ * Returns a random goal from the list of goals.
+ */
+function getRandomGoal() : string {
+  const visibleGoals = Object.keys(GoalTypesMetadata)
+    .filter(goal => !GoalTypesMetadata[goal].isHidden);
+  const randomChoice = Math.floor((Math.random() * visibleGoals.length));
+  return visibleGoals[randomChoice];
 }
 
 /**
@@ -769,19 +791,14 @@ function initScoreEvents(scoreText: PIXI.Text) {
 function initGoalChoicesContainerEvents(container: GoalChoicesContainer) {
   state.emitter.on(state.EVENT_GOAL_CHANGED, (goal: string) => {
     if (goal === null) {
-      const visibleGoals = Object.keys(GoalTypesMetadata)
-        .filter(goal => !GoalTypesMetadata[goal].isHidden);
-      const randomChoice = Math.floor((Math.random() * visibleGoals.length));
-      state.goal = visibleGoals[randomChoice];
+      state.goal = getRandomGoal();
     } else {
       container.goal = goal;
     }
   });
 
   state.emitter.on(state.EVENT_CARD_SLOTS_CHANGED, function (slots: CardSlot[]) {
-    const cardSet = state.cardSlots
-      .filter(slot => slot.present)
-      .map(slot => slot.card);
+    const cardSet = getCardsInSlots();
     for (const goal of container.children as GoalChoice[]) {
       const goalCards = goal.satisfiedBy(cardSet as ICard[]);
       goal.active = goalCards.length > 0;
@@ -799,9 +816,7 @@ function initGoalChoicesContainerEvents(container: GoalChoicesContainer) {
 
     console.assert(goalTile !== undefined);
 
-    const cardSet = state.cardSlots
-      .filter(slot => slot.present)
-      .map(slot => slot.card) as ICard[];
+    const cardSet = getCardsInSlots();
     const satisfiedSet = goalTile.satisfiedBy(cardSet);
     cardSet.forEach(card => card.sprite.tint = 0xffffff);
     if (satisfiedSet.length > 0) {
@@ -843,10 +858,21 @@ function reportGoal(goal: string) {
 /**
  * Initializes events for the score bar.
  */
-function initTrayTipEvents(trayTip: PIXI.DisplayObject) {
-  state.emitter.on(state.EVENT_ACTIVE_CARD_CHANGED, (activeCard?: Card) => {
-    trayTip.visible = activeCard !== null;
-  });
+function initTrayTipEvents(trayTip: TrayTip) {
+  function handler() {
+    if (getCardsInSlots().length === 5 && state.activeCard !== null) {
+      trayTip.visible = true;
+      trayTip.text = 'Hand is full';
+    } else if (state.activeCard !== null) {
+      trayTip.visible = true;
+      trayTip.text = 'Drag cards down to make sets';
+    } else {
+      trayTip.visible = false;
+    }
+  }
+
+  state.emitter.on(state.EVENT_ACTIVE_CARD_CHANGED, handler);
+  state.emitter.on(state.EVENT_CARD_SLOTS_CHANGED, handler);
 }
 
 /**
@@ -855,7 +881,7 @@ function initTrayTipEvents(trayTip: PIXI.DisplayObject) {
 function initDiscardBarEvents(bar: DiscardBar) {
   function handler() {
     if (state.activeCard !== null &&
-        state.cardSlots.filter(slot => slot.present).length === 5) {
+        getCardsInSlots().length === 5) {
       bar.expand();
     } else {
       bar.contract();
@@ -872,7 +898,6 @@ function setup() {
   const bg = new PIXI.Sprite(bgTexture);
   bg.scale.x = window.innerWidth / bgTexture.width;
   bg.scale.y = window.innerHeight / bgTexture.height;
-  stage.addChild(bg);
 
   // Add card tray to screen.
   const trayTexture = PIXI.loader.resources['resources/Collection-Tray-9x16.png'].texture;
@@ -882,8 +907,6 @@ function setup() {
   tray.name = 'tray';
   tray.position.set(0, window.innerHeight - trayHeight);
   tray.scale.set(trayScale, trayScale);
-  //_tray = tray;
-  stage.addChild(tray);
 
   // Use the tray scale as a scaling baseline.
   contentScale = tray.scale.x;
@@ -896,7 +919,6 @@ function setup() {
   trayEdge.endFill();
   trayEdge.name = 'trayEdge';
   trayEdge.position.set(0, window.innerHeight - trayHeight - trayEdgeHeight);
-  stage.addChild(trayEdge);
 
   // Add score bar
   const scoreBarTexture = PIXI.loader.resources['resources/Collection-Bar-Gold-9x16.png'].texture;
@@ -906,7 +928,6 @@ function setup() {
   scoreBar.position.set(0, window.innerHeight - trayHeight - scoreBarHeight);
   scoreBar.tileScale.set(1.0, contentScale);
   initScoreBarEvents(scoreBar);
-  stage.addChild(scoreBar);
 
   // Add score bar shadow
   const scoreBarShadowTexture = PIXI.loader.resources['resources/Collection-Shadow-9x16.png'].texture;
@@ -915,7 +936,6 @@ function setup() {
   scoreBarShadow.name = 'shadow';
   scoreBarShadow.position.set(0, window.innerHeight - trayHeight - scoreBarShadowHeight);
   scoreBarShadow.tileScale.set(1, contentScale);
-  stage.addChild(scoreBarShadow);
 
   //Add score label
   /** @type {PIXI.Text} */
@@ -949,10 +969,14 @@ function setup() {
   bottomShadow.name = 'bottomShadow';
   bottomShadow.anchor.set(0.0, 1.0);
   bottomShadow.tileScale.set(1.0, contentScale);
-  stage.addChild(bottomShadow);
+
+  // Add discard bar.
+  const discardBar = new DiscardBar(state, contentScale);
+  discardBar.name = 'discard';
+  initDiscardBarEvents(discardBar);
 
   // Add goals section.
-  const whiteBannerHeight = 32.0 * contentScale;
+  const whiteBannerHeight = discardBar.getChildrenLayoutParams().whiteBanner.height;
   const goalChoicesContainer = new GoalChoicesContainer(state, contentScale, {
     height: window.innerHeight - trayHeight - whiteBannerHeight - scoreBarHeight,
     width: window.innerWidth
@@ -960,55 +984,26 @@ function setup() {
   goalChoicesContainer.name = 'goalChoicesContainer';
   goalChoicesContainer.position.set(0.0, whiteBannerHeight);
   initGoalChoicesContainerEvents(goalChoicesContainer);
-  stage.addChild(goalChoicesContainer);
 
   // Add "drag plays down to make sets".
-  const trayTip = new PIXI.Graphics();
-  const trayTipHeight = 110.0 * contentScale;
-  trayTip.beginFill(0x000000, 0.5);
-  trayTip.drawRect(0, 0, window.innerWidth, window.innerHeight - trayHeight - trayTipHeight);
-  trayTip.endFill();
-  trayTip.beginFill(0x00bf00);
-  trayTip.drawRect(
-    0, window.innerHeight - trayHeight - trayTipHeight,
-    window.innerWidth, trayEdgeHeight
-  );
-  trayTip.endFill();
-  trayTip.beginFill(0x007f00);
-  trayTip.drawRect(
-    0, window.innerHeight - trayHeight - trayTipHeight + trayEdgeHeight,
-    window.innerWidth, trayTipHeight
-  );
-  trayTip.endFill();
+  const trayTip = new TrayTip(contentScale, {
+    width: window.innerWidth,
+    height: 110.0 * contentScale,
+    trayEdgeHeight, trayHeight
+  });
   trayTip.name = 'trayTip';
   trayTip.visible = false;
   initTrayTipEvents(trayTip);
+
+  // Add the items in order of appearance.
+  stage.addChild(bg);
+  stage.addChild(tray);
+  stage.addChild(trayEdge);
+  stage.addChild(scoreBar);
+  stage.addChild(scoreBarShadow);
+  stage.addChild(bottomShadow);
+  stage.addChild(goalChoicesContainer);
   stage.addChild(trayTip);
-
-  const trayTipShadowTexture = PIXI.loader.resources['resources/Collection-Shadow-9x16.png'].texture;
-  const trayTipShadowHeight = trayTipShadowTexture.height * contentScale;
-  const trayTipShadow = new PIXI.extras.TilingSprite(trayTipShadowTexture, window.innerWidth, trayTipShadowHeight);
-  trayTipShadow.name = 'trayTipShadow';
-  trayTipShadow.anchor.set(0.0, 1.0);
-  trayTipShadow.tileScale.set(1.0, contentScale);
-  trayTip.addChild(trayTipShadow);
-
-  const trayTipText = new PIXI.Text('Drag Cards Down to Make Sets'.toUpperCase());
-  trayTipText.position.set(
-    window.innerWidth / 2,
-    (window.innerHeight - trayHeight - trayTipHeight) + trayTipHeight / 2 + trayEdgeHeight
-  );
-  trayTipText.anchor.set(0.5, 0.5);
-  trayTipText.style.fontFamily = 'proxima-nova-excn';
-  trayTipText.style.fill = 0xffffff;
-  trayTipText.style.fontWeight = '900';
-  trayTipText.style.fontSize = 104 * contentScale;
-  trayTip.addChild(trayTipText);
-
-  // Add Drag to Discard Banner
-  const discardBar = new DiscardBar(state, contentScale);
-  discardBar.name = 'discard';
-  initDiscardBarEvents(discardBar);
   stage.addChild(discardBar);
 
   /**
