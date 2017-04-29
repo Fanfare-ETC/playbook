@@ -46,6 +46,7 @@ class GameState implements IGameState {
   EVENT_INCOMING_CARDS_CHANGED: string = 'incomingCardsChanged';
   EVENT_GOAL_CHANGED: string = 'goalChanged';
   EVENT_CARD_SLOTS_CHANGED: string = 'cardSlotsChanged';
+  EVENT_SELECTED_GOAL_CHANGED: string = 'selectedGoalChanged';
   EVENT_SCORE_CHANGED: string = 'scoreChanged';
 
   emitter: EventEmitter;
@@ -56,6 +57,7 @@ class GameState implements IGameState {
   cards: PIXI.Sprite[] = [];
   _cardSlots: CardSlot[] = [];
   goalSets: { [goal: string]: Card[] } = {};
+  _selectedGoal: string | null = null;
   _score: number = 0;
 
   constructor() {
@@ -118,6 +120,18 @@ class GameState implements IGameState {
     this._cardSlots = value;
     console.log('cardSlots->', value);
     this.emitter.emit(this.EVENT_CARD_SLOTS_CHANGED, value, oldValue);
+    PlaybookBridge.notifyGameState(this.toJSON());
+  }
+
+  get selectedGoal() {
+    return this._selectedGoal;
+  }
+
+  set selectedGoal(value) {
+    const oldValue = this._selectedGoal;
+    this._selectedGoal = value;
+    console.log('selectedGoal->', value);
+    this.emitter.emit(this.EVENT_SELECTED_GOAL_CHANGED, value, oldValue);
     PlaybookBridge.notifyGameState(this.toJSON());
   }
 
@@ -484,9 +498,6 @@ function assignCardToSlot(card: Card, slot: number) {
 
   // Trigger an update.
   state.cardSlots = state.cardSlots.slice();
-
-  // Check if the set of cards meet the goal.
-  checkIfGoalMet();
 }
 
 /**
@@ -512,7 +523,6 @@ function discardCard(card: Card) {
     state.cardSlots = state.cardSlots.slice();
   }
 
-  checkIfGoalMet();
   renderer.markDirty();
 }
 
@@ -809,6 +819,36 @@ function initScoreEvents(scoreText: PIXI.Text) {
 }
 
 /**
+ * Initializes events for the goals container.
+ */
+function initV4GoalsContainerEvents(container: PIXI.Container) {
+  state.emitter.on(state.EVENT_CARD_SLOTS_CHANGED, function (slots: CardSlot[]) {
+    checkIfGoalMet();
+    renderer.markDirty();
+  });
+
+  state.emitter.on(state.EVENT_SELECTED_GOAL_CHANGED, (goal: string) => {
+    const container = stage.getChildByName('v4GoalsContainer') as PIXI.Container;
+    const goalTile = container.children.find((goalTile: V4Goal) => {
+      return goal === goalTile.info.goal;
+    }) as V4Goal;
+
+    console.assert(goalTile !== undefined);
+
+    const cardSet = state.cardSlots
+      .filter(slot => slot.present)
+      .map(slot => slot.card) as ICard[];
+    const satisfiedSet = goalTile.satisfiedBy(cardSet);
+    if (satisfiedSet.length > 0) {
+      satisfiedSet.forEach(card => card.sprite.tint = goalTile.info.backgroundColor);
+    } else {
+      cardSet.forEach(card => card.sprite.tint = 0xffffff);
+    }
+    renderer.markDirty();
+  });
+}
+
+/**
  * Report a scoring event to the server.
  * @param {number} score
  */
@@ -941,6 +981,7 @@ function setup() {
   const v4GoalsContainer = new PIXI.Container();
   v4GoalsContainer.name = 'v4GoalsContainer';
   v4GoalsContainer.position.set(0.0, whiteBannerHeight);
+  initV4GoalsContainerEvents(v4GoalsContainer);
   stage.addChild(v4GoalsContainer);
 
   const v4GoalWidth = (window.innerWidth - 192.0 * contentScale) / 2;
@@ -972,7 +1013,7 @@ function setup() {
   }];
 
   v4GoalsInfo.forEach(info => {
-    const v4Goal = new V4Goal(contentScale!, {
+    const v4Goal = new V4Goal(state, contentScale!, {
       width: v4GoalWidth,
       height: v4GoalHeight
     }, info);
@@ -1010,7 +1051,7 @@ function setup() {
   trayTipShadow.tileScale.set(1.0, contentScale);
   trayTip.addChild(trayTipShadow);
 
-  const trayTipText = new PIXI.Text('Drag Plays Down to Make Sets'.toUpperCase());
+  const trayTipText = new PIXI.Text('Drag Cards Down to Make Sets'.toUpperCase());
   trayTipText.position.set(
     window.innerWidth / 2,
     (window.innerHeight - trayHeight - trayTipHeight) + trayTipHeight / 2 + trayEdgeHeight
@@ -1043,11 +1084,11 @@ function setup() {
   topShadow.tileScale.set(1.0, contentScale);
   stage.addChild(topShadow);
 
-  //Add discard label
+  // Add discard label
   const discardText = new PIXI.Text();
   discardText.position.set(window.innerWidth / 2, whiteBannerHeight + discardHeight / 2);
   discardText.anchor.set(0.5, 0.5);
-  discardText.text = 'drag plays up to discard'.toUpperCase();
+  discardText.text = 'drag cards up to discard'.toUpperCase();
   discardText.style.fontFamily = 'proxima-nova-excn';
   discardText.style.fill = 0xffffff;
   discardText.style.fontWeight = '900';

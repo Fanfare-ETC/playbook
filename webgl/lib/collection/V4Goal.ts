@@ -7,6 +7,7 @@ import PlaybookEvents,
   IsOut as PlaybookEventsIsOut,
   IsOnBase as PlaybookEventsIsOnBase
 } from '../PlaybookEvents';
+import IGameState from './IGameState';
 import GoalTypes from './GoalTypes';
 import GoalTypesMetadata from './GoalTypesMetadata';
 import Card from './ICard';
@@ -211,12 +212,14 @@ function cardSetMeetsGoal(cardSet: Card[], goal: string) : Card[] {
   return cardsMetGoal;
 }
 
-class V4Goal extends PIXI.Graphics {
+class V4Goal extends PIXI.Container {
+  _state: IGameState;
   _contentScale: number;
   _containerParams: ContainerParams;
   _info: V4GoalInfo;
   _active: boolean;
 
+  _background: PIXI.Graphics;
   _label: PIXI.Text;
   _example: PIXI.Sprite;
   _score: PIXI.Text;
@@ -225,13 +228,19 @@ class V4Goal extends PIXI.Graphics {
   /**
    * Creates a goal tile.
    */
-  constructor(contentScale: number, containerParams: ContainerParams, info: V4GoalInfo) {
+  constructor(state: IGameState, contentScale: number, containerParams: ContainerParams, info: V4GoalInfo) {
     super();
 
+    this._state = state;
     this._contentScale = contentScale;
     this._containerParams = containerParams;
     this._info = info;
     this._active = false;
+
+    this._initEvents();
+
+    this._background = new PIXI.Graphics();
+    this.addChild(this._background);
 
     // If the goal type is unknown, we need to assign a random goal.
     if (info.goal === GoalTypes.UNKNOWN) {
@@ -263,6 +272,10 @@ class V4Goal extends PIXI.Graphics {
     this._invalidate();
   }
 
+  get info() {
+    return this._info;
+  }
+
   get active() {
     return this._active;
   }
@@ -279,23 +292,33 @@ class V4Goal extends PIXI.Graphics {
     return cardSetMeetsGoal(cardSet, this._info.goal);
   }
 
+  _initEvents() {
+    this.interactive = true;
+    this.on('tap', () => {
+      this._state.selectedGoal = this._info.goal;
+    });
+  }
+
   _invalidate() {
     const contentScale = this._contentScale;
+    const background = this._background;
     const info = this._info;
     const label = this._label;
     const example = this._example;
     const score = this._score;
     const trophy = this._trophy;
 
-    this.clear();
-    this.lineStyle(12.0 * contentScale, info.backgroundColor);
+    background.clear();
+    background.lineStyle(12.0 * contentScale, info.backgroundColor);
 
     if (this._active) {
-      this.beginFill(info.backgroundColor);
-      this.drawRoundedRect(0, 0, this._containerParams.width, this._containerParams.height, 64.0 * contentScale);
-      this.endFill();
+      background.beginFill(info.backgroundColor);
+      background.drawRoundedRect(0, 0, this._containerParams.width, this._containerParams.height, 64.0 * contentScale);
+      background.endFill();
     } else {
-      this.drawRoundedRect(0, 0, this._containerParams.width, this._containerParams.height, 64.0 * contentScale);
+      background.beginFill(info.backgroundColor, 0.0);
+      background.drawRoundedRect(0, 0, this._containerParams.width, this._containerParams.height, 64.0 * contentScale);
+      background.endFill();
     }
 
     if (this._info.showTrophy) {

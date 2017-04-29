@@ -1,6 +1,5 @@
 package edu.cmu.etc.fanfare.playbook;
 
-import android.app.Application;
 import android.app.FragmentManager;
 import android.app.NotificationManager;
 import android.content.Intent;

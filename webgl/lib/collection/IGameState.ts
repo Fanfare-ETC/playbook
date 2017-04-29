@@ -8,6 +8,7 @@ interface IGameState {
   EVENT_INCOMING_CARDS_CHANGED: string;
   EVENT_GOAL_CHANGED: string;
   EVENT_CARD_SLOTS_CHANGED: string;
+  EVENT_SELECTED_GOAL_CHANGED: string;
   EVENT_SCORE_CHANGED: string;
 
   emitter: EventEmitter;
@@ -23,6 +24,7 @@ interface IGameState {
   incomingCards: string[];
   goal: string | null;
   cardSlots: CardSlot[];
+  selectedGoal: string | null;
   score: number;
 }
 
