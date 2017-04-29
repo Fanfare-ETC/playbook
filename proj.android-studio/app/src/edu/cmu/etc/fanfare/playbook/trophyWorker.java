@@ -2,11 +2,13 @@ package edu.cmu.etc.fanfare.playbook;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.AsyncTask;
 import android.support.annotation.LayoutRes;
 import android.support.annotation.NonNull;
+import android.support.v7.app.AlertDialog;
 import android.text.Layout;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -15,6 +17,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TableLayout;
@@ -72,6 +75,7 @@ public class trophyWorker extends AsyncTask<String,Void,String> {
             TextView mBannerName;
             TextView mName1, mName2, mName3;
             TextView mDescription1, mDescription2, mDescription3;
+            Button mButton1, mButton2, mButton3;
         }
 
         public TrophyAdapter(@NonNull Context context, @LayoutRes int resource, @NonNull List<TrophyCat> objects) {
@@ -80,8 +84,8 @@ public class trophyWorker extends AsyncTask<String,Void,String> {
 
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
-            TrophyCat trophyCat = getItem(position);
-            ViewHolder viewHolder;
+            final TrophyCat trophyCat = getItem(position);
+            final ViewHolder viewHolder;
             if (convertView == null) {
                 viewHolder = new ViewHolder();
                 LayoutInflater inflater = LayoutInflater.from(activity.getActivity());
@@ -92,18 +96,22 @@ public class trophyWorker extends AsyncTask<String,Void,String> {
                 viewHolder.mBanner = (ImageView) convertView.findViewById(R.id.trophyBanner);
                 viewHolder.mBannerName = (TextView) convertView.findViewById(R.id.bannerName);
                 viewHolder.mLight = (ImageView) convertView.findViewById(R.id.trophyShadow);
-                viewHolder.mName1 = (TextView) convertView.findViewById(R.id.trophyName1);
-                viewHolder.mName2 = (TextView) convertView.findViewById(R.id.trophyName2);
-                viewHolder.mName3 = (TextView) convertView.findViewById(R.id.trophyName3);
+                viewHolder.mName1 = (TextView) convertView.findViewById(R.id.trophyName1Content);
+                viewHolder.mName2 = (TextView) convertView.findViewById(R.id.trophyName2Content);
+                viewHolder.mName3 = (TextView) convertView.findViewById(R.id.trophyName3Content);
                 viewHolder.mDescription1 = (TextView) convertView.findViewById(R.id.trophyDescrp1Content);
                 viewHolder.mDescription2 = (TextView) convertView.findViewById(R.id.trophyDescrp2Content);
                 viewHolder.mDescription3 = (TextView) convertView.findViewById(R.id.trophyDescrp3Content);
+                viewHolder.mButton1 = (Button) convertView.findViewById(R.id.trophyButton1);
+                viewHolder.mButton2 = (Button) convertView.findViewById(R.id.trophyButton2);
+                viewHolder.mButton3 = (Button) convertView.findViewById(R.id.trophyButton3);
                 convertView.setTag(viewHolder);
             } else {
                 viewHolder = (ViewHolder) convertView.getTag();
             }
 
             // Populate data from trophyCat.
+
 
             Integer bannerNameColor;
             switch (trophyCat.color){
@@ -135,7 +143,7 @@ public class trophyWorker extends AsyncTask<String,Void,String> {
             //int descripTextSize = 11;
 
             boolean light = false;
-            String trophyIndex1 = "trophy"+Integer.toString(trophyCat.id1);
+            final String trophyIndex1 = "trophy"+Integer.toString(trophyCat.id1);
             Log.i("TROPHY", "Trophy1 ID is: " + trophyIndex1);
             if (trophyCat.playerId1 == null) {
                 Log.i("TROPHY", "Player ID 1 is null");
@@ -154,7 +162,7 @@ public class trophyWorker extends AsyncTask<String,Void,String> {
                 viewHolder.mDescription1.setTextSize(20);
             }
 
-            String trophyIndex2 = "trophy"+Integer.toString(trophyCat.id2);
+            final String trophyIndex2 = "trophy"+Integer.toString(trophyCat.id2);
             Log.i("TROPHY", "Trophy2 ID is: " + trophyIndex2);
             if (trophyCat.playerId2 == null) {
 
@@ -173,7 +181,7 @@ public class trophyWorker extends AsyncTask<String,Void,String> {
                 viewHolder.mDescription2.setTextSize(20);
             }
 
-            String trophyIndex3 = "trophy"+Integer.toString(trophyCat.id3);
+            final String trophyIndex3 = "trophy"+Integer.toString(trophyCat.id3);
             Log.i("TROPHY", "Trophy3 ID is: " + trophyIndex3);
             if (trophyCat.playerId3 == null) {
 
@@ -199,31 +207,25 @@ public class trophyWorker extends AsyncTask<String,Void,String> {
                 viewHolder.mLight.setImageResource(R.drawable.shadow_layer);
             }
 
-            Typeface nameFont = Typeface.createFromAsset(activity.getActivity().getAssets(), "nova_excblack.otf");
+            final Typeface nameFont = Typeface.createFromAsset(activity.getActivity().getAssets(), "nova_excblack.otf");
             int nameTextSize = 16;
 
             viewHolder.mName1.setTextColor(Color.BLACK);
             viewHolder.mName1.setText(trophyCat.name1.toUpperCase());
             viewHolder.mName1.setTypeface(nameFont);
-            if(trophyCat.name1.length() >= 17){
-                nameTextSize = 12;
-            }
+
             viewHolder.mName1.setTextSize(nameTextSize);
 
             viewHolder.mName2.setTextColor(Color.BLACK);
             viewHolder.mName2.setText(trophyCat.name2.toUpperCase());
             viewHolder.mName2.setTypeface(nameFont);
-            if(trophyCat.name2.length() >= 17){
-                nameTextSize = 12;
-            }
+
             viewHolder.mName2.setTextSize(nameTextSize);
 
             viewHolder.mName3.setTextColor(Color.BLACK);
             viewHolder.mName3.setText(trophyCat.name3.toUpperCase());
             viewHolder.mName3.setTypeface(nameFont);
-            if(trophyCat.name3.length() >= 17){
-                nameTextSize = 10;
-            }
+
             viewHolder.mName3.setTextSize(nameTextSize);
 
             Typeface descripFont = Typeface.createFromAsset(activity.getActivity().getAssets(), "nova_excthin.otf");
@@ -244,6 +246,125 @@ public class trophyWorker extends AsyncTask<String,Void,String> {
             viewHolder.mDescription3.setTypeface(descripFont);
 
             //viewHolder.mDescription3.setGravity(Gravity.TOP | Gravity.RIGHT);
+
+            viewHolder.mButton1.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Log.i("Trophy", "Item " + trophyCat.id1 + "selected");
+                    AlertDialog.Builder builder = new AlertDialog.Builder(v.getContext());
+
+                    ImageView trophy1 = new ImageView(v.getContext());
+                    trophy1.setImageResource(getDrawable(activity.getActivity(), trophyIndex1));
+
+                    TextView title1 = new TextView(v.getContext());
+                    title1.setText(("Trophy " + trophyCat.name1).toUpperCase());
+                    title1.setTextSize(36);
+                    title1.setTypeface(nameFont);
+                    title1.setGravity(Gravity.CENTER);
+
+                    builder.setView(trophy1);
+                    if(trophyCat.playerId1 != null){
+                        builder.setMessage("Description: " + trophyCat.description1 + "\n" + "You got it on " + trophyCat.date1 + "!");
+                    }
+                    else {
+                        builder.setMessage("Description: " + trophyCat.description1);
+                    }
+
+                    builder.setCustomTitle(title1);
+                    builder.setCancelable(false);
+
+                    builder.setPositiveButton(
+                            "Go back",
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int id) {
+                                    dialog.cancel();
+                                }
+                            });
+
+                    AlertDialog alert = builder.create();
+
+                    alert.show();
+                }
+            });
+
+            viewHolder.mButton2.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Log.i("Trophy", "Item " + trophyCat.id2 + "selected");
+                    AlertDialog.Builder builder = new AlertDialog.Builder(v.getContext());
+
+                    ImageView trophy2 = new ImageView(v.getContext());
+                    trophy2.setImageResource(getDrawable(activity.getActivity(), trophyIndex2));
+
+                    TextView title2 = new TextView(v.getContext());
+                    title2.setText(("Trophy " + trophyCat.name2).toUpperCase());
+                    title2.setTextSize(36);
+                    title2.setTypeface(nameFont);
+                    title2.setGravity(Gravity.CENTER);
+
+                    builder.setView(trophy2);
+                    if(trophyCat.playerId2 != null){
+                        builder.setMessage("Description: " + trophyCat.description2 + "\n" + "You got it on " + trophyCat.date2 + "!");
+                    }
+                    else {
+                        builder.setMessage("Description: " + trophyCat.description2);
+                    }
+                    builder.setCustomTitle(title2);
+                    builder.setCancelable(false);
+
+                    builder.setPositiveButton(
+                            "Go back",
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int id) {
+                                    dialog.cancel();
+                                }
+                            });
+
+                    AlertDialog alert = builder.create();
+
+                    alert.show();
+                }
+            });
+
+            viewHolder.mButton3.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Log.i("Trophy", "Item " + trophyCat.id3 + "selected");
+                    AlertDialog.Builder builder = new AlertDialog.Builder(v.getContext());
+
+                    ImageView trophy3 = new ImageView(v.getContext());
+                    trophy3.setImageResource(getDrawable(activity.getActivity(), trophyIndex3));
+
+                    TextView title3 = new TextView(v.getContext());
+                    title3.setText(("Trophy " + trophyCat.name3).toUpperCase());
+                    title3.setTextSize(36);
+                    title3.setTypeface(nameFont);
+                    title3.setGravity(Gravity.CENTER);
+
+                    builder.setView(trophy3);
+                    if(trophyCat.playerId3 != null){
+                        builder.setMessage("Description: " + trophyCat.description3 + "\n" + "You got it on " + trophyCat.date3 + "!");
+                    }
+                    else {
+                        builder.setMessage("Description: " + trophyCat.description3);
+                    }
+                    builder.setCustomTitle(title3);
+                    builder.setCancelable(false);
+
+                    builder.setPositiveButton(
+                            "Go back",
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int id) {
+                                    dialog.cancel();
+                                }
+                            });
+
+                    AlertDialog alert = builder.create();
+
+                    alert.show();
+                }
+            });
+
 
             return convertView;
         }
@@ -272,7 +393,7 @@ public class trophyWorker extends AsyncTask<String,Void,String> {
                 BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(outputStream, "UTF-8"));
                 JSONObject object = new JSONObject();
                 object.put("id", LoginActivity.acct.getId().toString());
-               // object.put("id", "1"); //for test purpose only
+                //object.put("id", "1"); //for test purpose only
                 Log.d("acct_no", object.toString());
                 bufferedWriter.write(object.toString());
                 bufferedWriter.flush();
