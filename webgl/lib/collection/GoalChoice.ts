@@ -217,6 +217,7 @@ class GoalChoice extends PIXI.Container {
   _contentScale: number;
   _containerParams: ContainerParams;
   _info: GoalChoiceInfo;
+  _scoreFunc: (choice: GoalChoice, goal: string) => void;
   _active: boolean;
 
   _background: PIXI.Graphics;
@@ -228,13 +229,15 @@ class GoalChoice extends PIXI.Container {
   /**
    * Creates a goal tile.
    */
-  constructor(state: IGameState, contentScale: number, containerParams: ContainerParams, info: GoalChoiceInfo) {
+  constructor(state: IGameState, contentScale: number, containerParams: ContainerParams,
+              info: GoalChoiceInfo, scoreFunc: (choice: GoalChoice, goal: string) => void) {
     super();
 
     this._state = state;
     this._contentScale = contentScale;
     this._containerParams = containerParams;
     this._info = info;
+    this._scoreFunc = scoreFunc;
     this._active = false;
 
     this._initEvents();
@@ -287,7 +290,11 @@ class GoalChoice extends PIXI.Container {
   private _initEvents() {
     this.interactive = true;
     this.on('tap', () => {
-      this._state.selectedGoal = this._info.goal;
+      if (this._state.selectedGoal === this._info.goal) {
+        this._scoreFunc(this, this._info.goal);
+      } else {
+        this._state.selectedGoal = this._info.goal;
+      }
     });
   }
 

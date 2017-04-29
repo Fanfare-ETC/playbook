@@ -13,16 +13,19 @@ class GoalChoicesContainer extends PIXI.Container {
   _state: IGameState;
   _containerParams: ContainerParams;
   _contentScale: number;
+  _scoreFunc: (choice: GoalChoice, goal: string) => void;
   _choices: GoalChoice[];
 
   _goal: string | null = null;
 
-  constructor(state: IGameState, contentScale: number, containerParams: ContainerParams) {
+  constructor(state: IGameState, contentScale: number, containerParams: ContainerParams,
+              scoreFunc: (choice: GoalChoice, goal: string) => void) {
     super();
 
     this._state = state;
     this._containerParams = containerParams;
     this._contentScale = contentScale;
+    this._scoreFunc = scoreFunc;
 
     this._invalidate();
   }
@@ -36,6 +39,7 @@ class GoalChoicesContainer extends PIXI.Container {
     const state = this._state;
     const containerParams = this._containerParams;
     const contentScale = this._contentScale;
+    const scoreFunc = this._scoreFunc;
     this.removeChildren();
 
     // Don't render anything yet if the goal is not set.
@@ -75,7 +79,7 @@ class GoalChoicesContainer extends PIXI.Container {
       const choice = new GoalChoice(state, contentScale, {
         width: choiceWidth,
         height: choiceHeight
-      }, item);
+      }, item, scoreFunc);
       this.addChild(choice);
     });
   }

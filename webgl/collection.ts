@@ -423,19 +423,15 @@ function initCardEvents(card: Card) {
 /**
  * Scores the given card set.
  * @param {string} goal
- * @param {Array.<Card>} cardSet
  */
-/*
-function scoreCardSet(goal: string, cardSet: Card[]) {
+function scoreCardSet(choice: GoalChoice, goal: string) {
+  const cardSet = state.cardSlots
+    .filter(slot => slot.present)
+    .map(slot => slot.card) as ICard[];
+
   // Remove matching cards.
-  state.cardSlots.filter(slot => slot.present)
-    .forEach(slot => {
-      const card = cardSet.find(card => card === slot.card);
-      if (card) {
-        card.moveToScoreButton();
-        slot.present = false;
-      }
-    });
+  const satisfiedSet = choice.satisfiedBy(cardSet);
+  satisfiedSet.forEach(card => discardCard(card));
 
   // If the goal matches, we show a dialog.
   if (goal === state.goal) {
@@ -448,20 +444,8 @@ function scoreCardSet(goal: string, cardSet: Card[]) {
 
   // Update score.
   state.score = state.score + GoalTypesMetadata[goal].score;
-
-  // We need to delay the execution of this so that animation completes.
-  const delayTime = new PIXI.action.DelayTime(0.25);
-  const callFunc = new PIXI.action.CallFunc(() => {
-    if (!GoalTypesMetadata[goal].isHidden) {
-      createRandomGoal();
-    } else {
-      checkIfGoalMet();
-    }
-  });
-  const sequence = new PIXI.action.Sequence([delayTime, callFunc]);
-  PIXI.actionManager.runAction(stage, sequence);
+  state.selectedGoal = null;
 }
-*/
 
 /**
  * Assigns the card to a specific slot.
@@ -493,9 +477,8 @@ function assignCardToSlot(card: Card, slot: number) {
 
 /**
  * Discards a given card.
- * @param {Card} card
  */
-function discardCard(card: Card) {
+function discardCard(card: ICard) {
   if (state.activeCard === card) {
     stage.removeChild(state.activeCard.sprite);
     state.activeCard = null;
@@ -540,35 +523,6 @@ function getTargetByPoint(card: Card, position: PIXI.Point) : any {
     return getNearestSlot(card, position);
   }
 }
-
-/**
- * Creates a random goal.
- */
-/*
-function createRandomGoal() {
-  // Only set visible goals.
-  const visibleGoals = Object.keys(GoalTypesMetadata)
-    .filter(goal => !GoalTypesMetadata[goal].isHidden);
-  const randomChoice = Math.floor((Math.random() * visibleGoals.length));
-  state.goal = visibleGoals[randomChoice];
-}
-*/
-
-/**
- * Updates the given goal sprite with the given goal.
- * @param {string} goal
- * @param {PIXI.Sprite} goalSprite
- */
-/*
-function setActiveGoal(goal: IGoalTypeMetadata, goalSprite: PIXI.Sprite) {
-  const newTexture = PIXI.loader.resources[`resources/${goal.file}`].texture;
-  goalSprite.texture = newTexture;
-  renderer.markDirty();
-
-  // Invalidate.
-  checkIfGoalMet();
-}
-*/
 
 function handleIncomingMessage(message: any) {
   switch (message.event) {
@@ -861,7 +815,6 @@ function initGoalChoicesContainerEvents(container: GoalChoicesContainer) {
  * Report a scoring event to the server.
  * @param {number} score
  */
-/*
 function reportScore(score: number) {
   const request = new XMLHttpRequest();
   request.open('POST', `${PlaybookBridge.getSectionAPIUrl()}/updateScore`);
@@ -872,13 +825,11 @@ function reportScore(score: number) {
     id: PlaybookBridge.getPlayerID()
   }));
 }
-*/
 
 /**
  * Reports a trophy achievement to the server.
  * @param {string} goal
  */
-/*
 function reportGoal(goal: string) {
   const request = new XMLHttpRequest();
   request.open('POST', `${PlaybookBridge.getSectionAPIUrl()}/updateTrophy`);
@@ -888,7 +839,6 @@ function reportGoal(goal: string) {
     userId: PlaybookBridge.getPlayerID()
   }));
 }
-*/
 
 /**
  * Initializes events for the score bar.
@@ -1006,7 +956,7 @@ function setup() {
   const goalChoicesContainer = new GoalChoicesContainer(state, contentScale, {
     height: window.innerHeight - trayHeight - whiteBannerHeight - scoreBarHeight,
     width: window.innerWidth
-  });
+  }, scoreCardSet);
   goalChoicesContainer.name = 'goalChoicesContainer';
   goalChoicesContainer.position.set(0.0, whiteBannerHeight);
   initGoalChoicesContainerEvents(goalChoicesContainer);
