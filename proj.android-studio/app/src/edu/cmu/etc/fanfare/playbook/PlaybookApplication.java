@@ -1,8 +1,12 @@
 package edu.cmu.etc.fanfare.playbook;
 
 import android.app.Application;
+import android.os.Looper;
+import android.util.Log;
 
 public class PlaybookApplication extends Application {
+    private static final String TAG = PlaybookApplication.class.getSimpleName();
+
     public static final String PREF_KEY_GCM_SENT_TOKEN = "gcmSentToken";
     public static final String PREF_KEY_GCM_MESSAGE_QUEUE = "gcmMessageQueue";
     public static final String PREF_KEY_IS_ONBOARDING_COMPLETE = "isOnboardingComplete";
@@ -14,6 +18,18 @@ public class PlaybookApplication extends Application {
 
     private static String mPlayerName;
     private static String mPlayerID;
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        while (true) {
+            try {
+                Looper.loop();
+            } catch (Throwable e) {
+                Log.e(TAG, "Forcefully continuing despite exception: ", e);
+            }
+        }
+    }
 
     /**
      * For LoginActivity to set the player name and ID.
