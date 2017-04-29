@@ -13,11 +13,11 @@ import GoalTypesMetadata from './GoalTypesMetadata';
 import Card from './ICard';
 
 interface ContainerParams {
-  height: number,
-  width: number
+  width: number,
+  height: number
 }
 
-interface V4GoalInfo {
+export interface GoalChoiceInfo {
   position: PIXI.Point,
   backgroundColor: number,
   textColor: number,
@@ -212,11 +212,11 @@ function cardSetMeetsGoal(cardSet: Card[], goal: string) : Card[] {
   return cardsMetGoal;
 }
 
-class V4Goal extends PIXI.Container {
+class GoalChoice extends PIXI.Container {
   _state: IGameState;
   _contentScale: number;
   _containerParams: ContainerParams;
-  _info: V4GoalInfo;
+  _info: GoalChoiceInfo;
   _active: boolean;
 
   _background: PIXI.Graphics;
@@ -228,7 +228,7 @@ class V4Goal extends PIXI.Container {
   /**
    * Creates a goal tile.
    */
-  constructor(state: IGameState, contentScale: number, containerParams: ContainerParams, info: V4GoalInfo) {
+  constructor(state: IGameState, contentScale: number, containerParams: ContainerParams, info: GoalChoiceInfo) {
     super();
 
     this._state = state;
@@ -241,14 +241,6 @@ class V4Goal extends PIXI.Container {
 
     this._background = new PIXI.Graphics();
     this.addChild(this._background);
-
-    // If the goal type is unknown, we need to assign a random goal.
-    if (info.goal === GoalTypes.UNKNOWN) {
-      const visibleGoals = Object.keys(GoalTypesMetadata)
-        .filter(goal => !GoalTypesMetadata[goal].isHidden);
-      const randomChoice = Math.floor((Math.random() * visibleGoals.length));
-      info.goal = visibleGoals[randomChoice];
-    }
 
     if (info.goal !== null) {
       this._label = new PIXI.Text(GoalTypesMetadata[info.goal].description);
@@ -359,4 +351,4 @@ class V4Goal extends PIXI.Container {
   }
 }
 
-export default V4Goal;
+export default GoalChoice;

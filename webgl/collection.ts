@@ -9,8 +9,9 @@ import PlaybookEvents,
   Teams as PlaybookEventsTeams,
   StringMap as PlaybookEventsStringMap
 } from './lib/PlaybookEvents';
-import GoalTypes from './lib/collection/GoalTypes';
-import V4Goal from './lib/collection/V4Goal';
+import GoalChoice from './lib/collection/GoalChoice';
+import GoalChoicesContainer from './lib/collection/GoalChoicesContainer';
+import GoalTypesMetadata from './lib/collection/GoalTypesMetadata';
 import PlaybookBridge from './lib/collection/PlaybookBridge';
 import PlaybookRenderer from './lib/collection/PlaybookRenderer';
 
@@ -54,7 +55,7 @@ class GameState implements IGameState {
 
   _activeCard: Card | null = null;
   _incomingCards: string[] = [];
-  _goal: string | null;
+  _goal: string | null = null;
   cards: PIXI.Sprite[] = [];
   _cardSlots: CardSlot[] = [];
   goalSets: { [goal: string]: Card[] } = {};
@@ -169,6 +170,7 @@ class GameState implements IGameState {
       incomingCards: this.incomingCards,
       goal: this.goal,
       cardSlots: cardSlots,
+      selectedGoal: this.selectedGoal,
       score: this.score
     };
 
@@ -208,7 +210,8 @@ class GameState implements IGameState {
       }
 
       this._incomingCards = restoredState.incomingCards ? restoredState.incomingCards : [];
-      this._goal = restoredState.goal;
+      this._goal = restoredState.goal ? restoredState.goal : null;
+      this._selectedGoal = restoredState.selectedGoal ? restoredState.selectedGoal : null;
       this._score = restoredState.score;
 
       // Trigger initial updates.
@@ -216,6 +219,7 @@ class GameState implements IGameState {
       this.emitter.emit(this.EVENT_INCOMING_CARDS_CHANGED, this._incomingCards, null);
       this.emitter.emit(this.EVENT_GOAL_CHANGED, this._goal, null);
       this.emitter.emit(this.EVENT_CARD_SLOTS_CHANGED, this._cardSlots, null);
+      this.emitter.emit(this.EVENT_SELECTED_GOAL_CHANGED, this._selectedGoal, null);
       this.emitter.emit(this.EVENT_SCORE_CHANGED, this._score, null);
     }
   }
@@ -400,7 +404,7 @@ function initCardEvents(card: Card) {
       } else {
         card.moveToOrigPosition();
       }
-    } else if (card.dragTarget instanceof V4Goal) {
+    } else if (card.dragTarget instanceof GoalChoice) {
       console.log('Dragged card to goal!');
       card.moveToOrigPosition();
     } else {
@@ -458,20 +462,6 @@ function scoreCardSet(goal: string, cardSet: Card[]) {
   PIXI.actionManager.runAction(stage, sequence);
 }
 */
-
-/**
- * Checks if the given goal is met.
- */
-function checkIfGoalMet() {
-  const cardSet = state.cardSlots
-    .filter(slot => slot.present)
-    .map(slot => slot.card);
-  const goalsContainer = stage.getChildByName('v4GoalsContainer') as PIXI.Container;
-  for (const goal of goalsContainer.children as V4Goal[]) {
-    const goalCards = goal.satisfiedBy(cardSet as ICard[]);
-    goal.active = goalCards.length > 0;
-  }
-}
 
 /**
  * Assigns the card to a specific slot.
@@ -536,9 +526,9 @@ function discardCard(card: Card) {
 function getTargetByPoint(card: Card, position: PIXI.Point) : any {
   const discard = stage.getChildByName('discard');
   const tray = stage.getChildByName('tray');
-  const v4GoalsContainer = stage.getChildByName('v4GoalsContainer') as PIXI.Container;
+  const goalChoicesContainer = stage.getChildByName('goalChoicesContainer') as GoalChoicesContainer;
 
-  for (const goal of v4GoalsContainer.children) {
+  for (const goal of goalChoicesContainer.children) {
     if (goal.getBounds().contains(position.x, position.y)) {
       return goal;
     }
@@ -822,17 +812,36 @@ function initScoreEvents(scoreText: PIXI.Text) {
 /**
  * Initializes events for the goals container.
  */
-function initV4GoalsContainerEvents(container: PIXI.Container) {
+function initGoalChoicesContainerEvents(container: GoalChoicesContainer) {
+  state.emitter.on(state.EVENT_GOAL_CHANGED, (goal: string) => {
+    if (goal === null) {
+      const visibleGoals = Object.keys(GoalTypesMetadata)
+        .filter(goal => !GoalTypesMetadata[goal].isHidden);
+      const randomChoice = Math.floor((Math.random() * visibleGoals.length));
+      state.goal = visibleGoals[randomChoice];
+    } else {
+      container.goal = goal;
+    }
+  });
+
   state.emitter.on(state.EVENT_CARD_SLOTS_CHANGED, function (slots: CardSlot[]) {
-    checkIfGoalMet();
+    const cardSet = state.cardSlots
+      .filter(slot => slot.present)
+      .map(slot => slot.card);
+    for (const goal of container.children as GoalChoice[]) {
+      const goalCards = goal.satisfiedBy(cardSet as ICard[]);
+      goal.active = goalCards.length > 0;
+    }
+
     renderer.markDirty();
   });
 
   state.emitter.on(state.EVENT_SELECTED_GOAL_CHANGED, (goal: string) => {
-    const container = stage.getChildByName('v4GoalsContainer') as PIXI.Container;
-    const goalTile = container.children.find((goalTile: V4Goal) => {
+    if (goal === null) { return; }
+
+    const goalTile = container.children.find((goalTile: GoalChoice) => {
       return goal === goalTile.info.goal;
-    }) as V4Goal;
+    }) as GoalChoice;
 
     console.assert(goalTile !== undefined);
 
@@ -840,10 +849,9 @@ function initV4GoalsContainerEvents(container: PIXI.Container) {
       .filter(slot => slot.present)
       .map(slot => slot.card) as ICard[];
     const satisfiedSet = goalTile.satisfiedBy(cardSet);
+    cardSet.forEach(card => card.sprite.tint = 0xffffff);
     if (satisfiedSet.length > 0) {
       satisfiedSet.forEach(card => card.sprite.tint = goalTile.info.backgroundColor);
-    } else {
-      cardSet.forEach(card => card.sprite.tint = 0xffffff);
     }
     renderer.markDirty();
   });
@@ -995,48 +1003,14 @@ function setup() {
 
   // Add goals section.
   const whiteBannerHeight = 32.0 * contentScale;
-  const v4GoalsContainerHeight = window.innerHeight - trayHeight - whiteBannerHeight - scoreBarHeight;
-  const v4GoalsContainer = new PIXI.Container();
-  v4GoalsContainer.name = 'v4GoalsContainer';
-  v4GoalsContainer.position.set(0.0, whiteBannerHeight);
-  initV4GoalsContainerEvents(v4GoalsContainer);
-  stage.addChild(v4GoalsContainer);
-
-  const v4GoalWidth = (window.innerWidth - 192.0 * contentScale) / 2;
-  const v4GoalHeight = (v4GoalsContainerHeight - 192.0 * contentScale) / 2;
-  const v4GoalsInfo = [{
-    position: new PIXI.Point(64.0 * contentScale, 64.0 * contentScale),
-    backgroundColor: 0xff9f40,
-    textColor: 0x402000,
-    goal: GoalTypes.EACH_COLOR_2,
-    showTrophy: false
-  }, {
-    position: new PIXI.Point(128.0 * contentScale + v4GoalWidth, 64.0 * contentScale),
-    backgroundColor: 0xbfcad8,
-    textColor: 0x303740,
-    goal: GoalTypes.TWO_PAIRS,
-    showTrophy: false
-  }, {
-    position: new PIXI.Point(64.0 * contentScale, 128.0 * contentScale + v4GoalHeight),
-    backgroundColor: 0xffc300,
-    textColor: 0x403100,
-    goal: GoalTypes.FULL_HOUSE,
-    showTrophy: false
-  }, {
-    position: new PIXI.Point(128.0 * contentScale + v4GoalWidth, 128.0 * contentScale + v4GoalHeight),
-    backgroundColor: 0xffffff,
-    textColor: 0x806200,
-    goal: GoalTypes.UNKNOWN,
-    showTrophy: true
-  }];
-
-  v4GoalsInfo.forEach(info => {
-    const v4Goal = new V4Goal(state, contentScale!, {
-      width: v4GoalWidth,
-      height: v4GoalHeight
-    }, info);
-    v4GoalsContainer.addChild(v4Goal);
+  const goalChoicesContainer = new GoalChoicesContainer(state, contentScale, {
+    height: window.innerHeight - trayHeight - whiteBannerHeight - scoreBarHeight,
+    width: window.innerWidth
   });
+  goalChoicesContainer.name = 'goalChoicesContainer';
+  goalChoicesContainer.position.set(0.0, whiteBannerHeight);
+  initGoalChoicesContainerEvents(goalChoicesContainer);
+  stage.addChild(goalChoicesContainer);
 
   // Add "drag plays down to make sets".
   const trayTip = new PIXI.Graphics();
