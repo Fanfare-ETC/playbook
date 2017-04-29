@@ -292,14 +292,14 @@ class V4Goal extends PIXI.Container {
     return cardSetMeetsGoal(cardSet, this._info.goal);
   }
 
-  _initEvents() {
+  private _initEvents() {
     this.interactive = true;
     this.on('tap', () => {
       this._state.selectedGoal = this._info.goal;
     });
   }
 
-  _invalidate() {
+  private _invalidate() {
     const contentScale = this._contentScale;
     const background = this._background;
     const info = this._info;

@@ -15,6 +15,7 @@ import PlaybookBridge from './lib/collection/PlaybookBridge';
 import PlaybookRenderer from './lib/collection/PlaybookRenderer';
 
 import CardSlot from './lib/collection/CardSlot';
+import DiscardBar from './lib/collection/DiscardBar';
 import IGameState from './lib/collection/IGameState';
 import ICard from './lib/collection/ICard';
 
@@ -390,7 +391,7 @@ function initCardEvents(card: Card) {
     // If discard: destroy the card
     // If score: add the score
     // If slot number: move to a slot
-    if (card.dragTarget === stage.getChildByName('discard')) {
+    if (card.dragTarget instanceof DiscardBar) {
       discardCard(card);
     } else if (card.dragTarget !== null &&
                card.dragTarget >= 0 && card.dragTarget < 6) {
@@ -890,6 +891,23 @@ function initTrayTipEvents(trayTip: PIXI.DisplayObject) {
   });
 }
 
+/**
+ * Initializes events for the discard bar.
+ */
+function initDiscardBarEvents(bar: DiscardBar) {
+  function handler() {
+    if (state.activeCard !== null &&
+        state.cardSlots.filter(slot => slot.present).length === 5) {
+      bar.expand();
+    } else {
+      bar.contract();
+    }
+  }
+
+  state.emitter.on(state.EVENT_ACTIVE_CARD_CHANGED, handler);
+  state.emitter.on(state.EVENT_CARD_SLOTS_CHANGED, handler);
+}
+
 function setup() {
   // Add background to screen.
   const bgTexture = PIXI.loader.resources['resources/Collection-BG-Wood.jpg'].texture;
@@ -1064,37 +1082,10 @@ function setup() {
   trayTip.addChild(trayTipText);
 
   // Add Drag to Discard Banner
-  const discard = new PIXI.Graphics();
-  const discardHeight = 128.0 * contentScale;
-  discard.beginFill(0xffffff);
-  discard.drawRect(0, 0, window.innerWidth, whiteBannerHeight);
-  discard.endFill();
-  discard.beginFill(0x002b65);
-  discard.drawRect(0, whiteBannerHeight, window.innerWidth, discardHeight);
-  discard.name = 'discard';
-  stage.addChild(discard);
-
-  // Add top shadow
-  const topShadowTexture = PIXI.loader.resources['resources/Collection-Shadow-Overturn.png'].texture;
-  const topShadowHeight = topShadowTexture.height * contentScale;
-  const topShadow = new PIXI.extras.TilingSprite(topShadowTexture, window.innerWidth, topShadowHeight);
-  topShadow.name = 'shadowTop';
-  topShadow.anchor.set(0.0, 0.0);
-  topShadow.position.set(0, whiteBannerHeight + discardHeight);
-  topShadow.tileScale.set(1.0, contentScale);
-  stage.addChild(topShadow);
-
-  // Add discard label
-  const discardText = new PIXI.Text();
-  discardText.position.set(window.innerWidth / 2, whiteBannerHeight + discardHeight / 2);
-  discardText.anchor.set(0.5, 0.5);
-  discardText.text = 'drag cards up to discard'.toUpperCase();
-  discardText.style.fontFamily = 'proxima-nova-excn';
-  discardText.style.fill = 0xffffff;
-  discardText.style.fontWeight = '900';
-  discardText.style.fontSize = 104 * contentScale;
-  discardText.style.align = 'center';
-  discard.addChild(discardText);
+  const discardBar = new DiscardBar(state, contentScale);
+  discardBar.name = 'discard';
+  initDiscardBarEvents(discardBar);
+  stage.addChild(discardBar);
 
   /**
    * Begin the animation loop.
