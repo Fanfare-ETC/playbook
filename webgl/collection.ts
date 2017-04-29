@@ -338,7 +338,7 @@ function initCardEvents(card: Card) {
     }
 
     // Offset the drag so we get an accurate touch point.
-    if (e.data.identifier) {
+    if (e.data.identifier !== undefined) {
       card.isBeingDragged = true;
       card.dragPointerId = e.data.identifier;
       card.dragOffset = e.data.getLocalPosition(card.sprite);
@@ -968,6 +968,7 @@ function setup() {
   const bottomShadow = new PIXI.extras.TilingSprite(bottomShadowTexture, window.innerWidth, bottomShadowHeight);
   bottomShadow.name = 'bottomShadow';
   bottomShadow.anchor.set(0.0, 1.0);
+  bottomShadow.position.set(0, scoreBar.position.y);
   bottomShadow.tileScale.set(1.0, contentScale);
 
   // Add discard bar.
