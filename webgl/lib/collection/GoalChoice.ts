@@ -10,7 +10,7 @@ import PlaybookEvents,
 import IGameState from './IGameState';
 import GoalTypes from './GoalTypes';
 import GoalTypesMetadata from './GoalTypesMetadata';
-import Card from './ICard';
+import ICard from './ICard';
 
 interface ContainerParams {
   width: number,
@@ -28,7 +28,7 @@ export interface GoalChoiceInfo {
 /**
  * Check if the given list of cards meets the goal.
  */
-function cardSetMeetsGoal(cardSet: Card[], goal: string) : Card[] {
+function cardSetMeetsGoal(cardSet: ICard[], goal: string) : ICard[] {
   const numOnBase = cardSet.filter(card => PlaybookEventsIsOnBase[card.play]).length;
   const numOut = cardSet.filter(card => (
     PlaybookEventsIsOut[card.play] &&
@@ -162,14 +162,14 @@ function cardSetMeetsGoal(cardSet: Card[], goal: string) : Card[] {
     case GoalTypes.UNIQUE_OUT_CARDS_3: {
       const uniqueOutPlays = Object.keys(cardCounts).filter(play => PlaybookEventsIsOut[play]);
       if (uniqueOutPlays.length === 3) {
-        return uniqueOutPlays.map(play => cardSet.find(card => card.play === play) as Card);
+        return uniqueOutPlays.map(play => cardSet.find(card => card.play === play) as ICard);
       }
       break;
     }
     case GoalTypes.UNIQUE_OUT_CARDS_4: {
       const uniqueOutPlays = Object.keys(cardCounts).filter(play => PlaybookEventsIsOut[play]);
       if (uniqueOutPlays.length === 4) {
-        return uniqueOutPlays.map(play => cardSet.find(card => card.play === play) as Card);
+        return uniqueOutPlays.map(play => cardSet.find(card => card.play === play) as ICard);
       }
     }
     case GoalTypes.BASES_3: {
@@ -199,7 +199,7 @@ function cardSetMeetsGoal(cardSet: Card[], goal: string) : Card[] {
       for (const sequence of sequences) {
         const outCards = sequence.map(play => cardSet.find(card => card.play === play));
         if (outCards.indexOf(undefined) < 0) {
-          return outCards as Card[];
+          return outCards as ICard[];
         }
       }
       break;
@@ -217,6 +217,7 @@ class GoalChoice extends PIXI.Container {
   _contentScale: number;
   _containerParams: ContainerParams;
   _info: GoalChoiceInfo;
+  _getCardSetFunc: () => ICard[];
   _scoreFunc: (choice: GoalChoice, goal: string) => void;
   _active: boolean;
 
@@ -230,13 +231,15 @@ class GoalChoice extends PIXI.Container {
    * Creates a goal tile.
    */
   constructor(state: IGameState, contentScale: number, containerParams: ContainerParams,
-              info: GoalChoiceInfo, scoreFunc: (choice: GoalChoice, goal: string) => void) {
+              info: GoalChoiceInfo, getCardSetFunc: () => ICard[],
+              scoreFunc: (choice: GoalChoice, goal: string) => void) {
     super();
 
     this._state = state;
     this._contentScale = contentScale;
     this._containerParams = containerParams;
     this._info = info;
+    this._getCardSetFunc = getCardSetFunc;
     this._scoreFunc = scoreFunc;
     this._active = false;
 
@@ -250,7 +253,7 @@ class GoalChoice extends PIXI.Container {
       this.addChild(this._label);
 
       if (GoalTypesMetadata[info.goal].example !== null) {
-          const texture = PIXI.loader.resources[`resources/${GoalTypesMetadata[info.goal].example}`].texture;
+          const texture = PIXI.loader.resources['resources/collection.json'].textures![GoalTypesMetadata[info.goal].example];
           this._example = new PIXI.Sprite(texture);
           this.addChild(this._example);
       }
@@ -259,7 +262,7 @@ class GoalChoice extends PIXI.Container {
       this.addChild(this._score);
     }
 
-    const texture = PIXI.loader.resources['resources/trophy/empty.png'].texture;
+    const texture = PIXI.loader.resources['resources/collection.json'].textures!['empty.png'];
     this._trophy = new PIXI.Sprite(texture);
     this.addChild(this._trophy);
 
@@ -283,14 +286,16 @@ class GoalChoice extends PIXI.Container {
     }
   }
 
-  satisfiedBy(cardSet: Card[]) : Card[] {
+  satisfiedBy(cardSet: ICard[]) : ICard[] {
     return cardSetMeetsGoal(cardSet, this._info.goal);
   }
 
   private _initEvents() {
     this.interactive = true;
     this.on('tap', () => {
-      if (this._state.selectedGoal === this._info.goal) {
+      const satisfiedSet = this.satisfiedBy(this._getCardSetFunc());
+      if (satisfiedSet.length > 0 &&
+          this._state.selectedGoal === this._info.goal) {
         this._scoreFunc(this, this._info.goal);
       } else {
         this._state.selectedGoal = this._info.goal;
@@ -322,7 +327,7 @@ class GoalChoice extends PIXI.Container {
 
     if (this._info.showTrophy) {
       trophy.visible = true;
-      trophy.texture = PIXI.loader.resources[`resources/${GoalTypesMetadata[info.goal].file}`].texture;
+      trophy.texture = PIXI.loader.resources['resources/collection.json'].textures![GoalTypesMetadata[info.goal].file];
       trophy.scale.set(contentScale, contentScale);
       trophy.position.set(
         this._containerParams.width - trophy.width,

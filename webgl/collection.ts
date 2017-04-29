@@ -1,6 +1,7 @@
 'use strict';
 import * as PIXI from 'pixi.js';
 import 'pixi-action';
+import 'pixi-filters';
 import { EventEmitter } from 'eventemitter3';
 import * as FontFaceObserver from 'fontfaceobserver';
 
@@ -379,7 +380,7 @@ function initCardEvents(card: Card) {
       if (card.dragTarget === discard) {
         card.sprite.tint = 0xff0000;
       } else {
-          card.sprite.tint = 0xffffff;
+        card.sprite.tint = 0xffffff;
       }
 
       // Re-render the scene.
@@ -818,9 +819,11 @@ function initGoalChoicesContainerEvents(container: GoalChoicesContainer) {
 
     const cardSet = getCardsInSlots();
     const satisfiedSet = goalTile.satisfiedBy(cardSet);
-    cardSet.forEach(card => card.sprite.tint = 0xffffff);
+    cardSet.forEach(card => card.sprite.filters = []);
+    //cardSet.forEach(card => card.sprite.tint = 0xffffff);
     if (satisfiedSet.length > 0) {
-      satisfiedSet.forEach(card => card.sprite.tint = goalTile.info.backgroundColor);
+      satisfiedSet.forEach(card => card.sprite.filters = [new PIXI.filters.BloomFilter()]);
+      //satisfiedSet.forEach(card => card.sprite.tint = goalTile.info.backgroundColor);
     }
     renderer.markDirty();
   });
@@ -900,7 +903,7 @@ function setup() {
   bg.scale.y = window.innerHeight / bgTexture.height;
 
   // Add card tray to screen.
-  const trayTexture = PIXI.loader.resources['resources/Collection-Tray-9x16.png'].texture;
+  const trayTexture = PIXI.loader.resources['resources/collection.json'].textures!['Collection-Tray-9x16.png'];
   const tray = new PIXI.Sprite(trayTexture);
   const trayScale = window.innerWidth / trayTexture.width;
   const trayHeight = trayScale * trayTexture.height;
@@ -981,7 +984,7 @@ function setup() {
   const goalChoicesContainer = new GoalChoicesContainer(state, contentScale, {
     height: window.innerHeight - trayHeight - discardBarLayoutParams.height - scoreBarHeight - 64.0 * contentScale,
     width: window.innerWidth
-  }, scoreCardSet);
+  }, getCardsInSlots, scoreCardSet);
   goalChoicesContainer.name = 'goalChoicesContainer';
   goalChoicesContainer.position.set(0.0, discardBarLayoutParams.height + 64.0 * contentScale);
   initGoalChoicesContainerEvents(goalChoicesContainer);
@@ -1049,36 +1052,11 @@ configureWebSocket(connection);
 configureFonts(['proxima-nova-excn', 'SCOREBOARD'])
   .then(() => {
     PIXI.loader
+      .add('resources/collection.json')
       .add('resources/Collection-BG-Wood.jpg')
-      .add('resources/Collection-Tray-9x16.png')
-      .add('resources/Collection-Star-9x16.png')
-      .add('resources/Collection-Bar-Gold-9x16.png')
-      .add('resources/Collection-Bar-Green-9x16.png')
-      .add('resources/Collection-Bar-Yellow-9x16.png')
-      .add('resources/Collection-Shadow-9x16.png')
       .add('resources/Collection-Shadow-Overturn.png')
-      .add('resources/trophy/empty.png')
-      .add('resources/trophy/trophy1.png')
-      .add('resources/trophy/trophy2.png')
-      .add('resources/trophy/trophy3.png')
-      .add('resources/trophy/trophy4.png')
-      .add('resources/trophy/trophy5.png')
-      .add('resources/trophy/trophy6.png')
-      .add('resources/trophy/trophy7.png')
-      .add('resources/trophy/trophy8.png')
-      .add('resources/trophy/trophy9.png')
-      .add('resources/trophy/trophy10.png')
-      .add('resources/trophy/trophy11.png')
-      .add('resources/trophy/trophy12.png')
-      .add('resources/trophy/trophy13.png')
-      .add('resources/trophy/trophy14.png')
-      .add('resources/trophy/trophy15.png')
-      .add('resources/Collection-Example-2.png')
-      .add('resources/Collection-Example-2-2.png')
-      .add('resources/Collection-Example-2-3.png')
-      .add('resources/Collection-Example-3.png')
-      .add('resources/Collection-Example-4.png')
-      .add('resources/Collection-Example-5.png')
+      .add('resources/Collection-Shadow-9x16.png')
+      .add('resources/Collection-Bar-Gold-9x16.png')
       .add('resources/cards/Card-B-FirstBase.jpg')
       .add('resources/cards/Card-B-GrandSlam.jpg')
       .add('resources/cards/Card-B-HitByPitch.jpg')

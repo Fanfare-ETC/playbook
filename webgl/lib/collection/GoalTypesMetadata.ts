@@ -17,7 +17,7 @@ interface IGoalTypesMetadataMap {
 const GoalTypesMetadata: IGoalTypesMetadataMap = {
   [GoalTypes.EACH_COLOR_2]: {
     description: '2 RED & 2 BLUE',
-    file: 'trophy/trophy1.png',
+    file: 'trophy1.png',
     score: 6,
     isHidden: true,
     serverId: 1,
@@ -25,7 +25,7 @@ const GoalTypesMetadata: IGoalTypesMetadataMap = {
   },
   [GoalTypes.TWO_PAIRS]: {
     description: 'ANY 2 PAIRS',
-    file: 'trophy/trophy2.png',
+    file: 'trophy2.png',
     score: 8,
     isHidden: true,
     serverId: 2,
@@ -33,7 +33,7 @@ const GoalTypesMetadata: IGoalTypesMetadataMap = {
   },
   [GoalTypes.FULL_HOUSE]: {
     description: 'FULL HOUSE',
-    file: 'trophy/trophy3.png',
+    file: 'trophy3.png',
     score: 12,
     isHidden: true,
     serverId: 3,
@@ -41,7 +41,7 @@ const GoalTypesMetadata: IGoalTypesMetadataMap = {
   },
   [GoalTypes.SAME_COLOR_3]: {
     description: '3 CARDS OF SAME COLOR',
-    file: 'trophy/trophy4.png',
+    file: 'trophy4.png',
     score: 6,
     isHidden: false,
     serverId: 4,
@@ -49,7 +49,7 @@ const GoalTypesMetadata: IGoalTypesMetadataMap = {
   },
   [GoalTypes.SAME_COLOR_4]: {
     description: '4 CARDS OF SAME COLOR',
-    file: 'trophy/trophy5.png',
+    file: 'trophy5.png',
     score: 8,
     isHidden: false,
     serverId: 5,
@@ -57,7 +57,7 @@ const GoalTypesMetadata: IGoalTypesMetadataMap = {
   },
   [GoalTypes.SAME_COLOR_5]: {
     description: '5 CARDS OF SAME COLOR',
-    file: 'trophy/trophy6.png',
+    file: 'trophy6.png',
     score: 12,
     isHidden: false,
     serverId: 6,
@@ -65,7 +65,7 @@ const GoalTypesMetadata: IGoalTypesMetadataMap = {
   },
   [GoalTypes.IDENTICAL_CARDS_3]: {
     description: '3 IDENTICAL CARDS',
-    file: 'trophy/trophy7.png',
+    file: 'trophy7.png',
     score: 6,
     isHidden: false,
     serverId: 7,
@@ -73,7 +73,7 @@ const GoalTypesMetadata: IGoalTypesMetadataMap = {
   },
   [GoalTypes.IDENTICAL_CARDS_4]: {
     description: '4 IDENTICAL CARDS',
-    file: 'trophy/trophy8.png',
+    file: 'trophy8.png',
     score: 8,
     isHidden: false,
     serverId: 8,
@@ -81,7 +81,7 @@ const GoalTypesMetadata: IGoalTypesMetadataMap = {
   },
   [GoalTypes.IDENTICAL_CARDS_5]: {
     description: '5 IDENTICAL CARDS',
-    file: 'trophy/trophy9.png',
+    file: 'trophy9.png',
     score: 12,
     isHidden: false,
     serverId: 9,
@@ -89,7 +89,7 @@ const GoalTypesMetadata: IGoalTypesMetadataMap = {
   },
   [GoalTypes.OUT_3]: {
     description: 'SET SHOWS 3 OUTS',
-    file: 'trophy/trophy10.png',
+    file: 'trophy10.png',
     score: 6,
     isHidden: false,
     serverId: 10,
@@ -97,7 +97,7 @@ const GoalTypesMetadata: IGoalTypesMetadataMap = {
   },
   [GoalTypes.UNIQUE_OUT_CARDS_3]: {
     description: '3 UNIQUE OUT CARDS',
-    file: 'trophy/trophy12.png',
+    file: 'trophy12.png',
     score: 8,
     isHidden: false,
     serverId: 11,
@@ -105,7 +105,7 @@ const GoalTypesMetadata: IGoalTypesMetadataMap = {
   },
   [GoalTypes.UNIQUE_OUT_CARDS_4]: {
     description: '4 UNIQUE OUT CARDS',
-    file: 'trophy/trophy11.png',
+    file: 'trophy11.png',
     score: 12,
     isHidden: false,
     serverId: 12,
@@ -113,7 +113,7 @@ const GoalTypesMetadata: IGoalTypesMetadataMap = {
   },
   [GoalTypes.BASES_3]: {
     description: 'ANY 3 BASE CARDS',
-    file: 'trophy/trophy13.png',
+    file: 'trophy13.png',
     score: 8,
     isHidden: false,
     serverId: 13,
@@ -121,7 +121,7 @@ const GoalTypesMetadata: IGoalTypesMetadataMap = {
   },
   [GoalTypes.BASES_RBI_4]: {
     description: 'CARDS WITH 4 BASES',
-    file: 'trophy/trophy14.png',
+    file: 'trophy14.png',
     score: 8,
     isHidden: false,
     serverId: 14,
@@ -129,7 +129,7 @@ const GoalTypesMetadata: IGoalTypesMetadataMap = {
   },
   [GoalTypes.BASES_SEQ_3]: {
     description: '3 BASE CARDS IN ORDER',
-    file: 'trophy/trophy15.png',
+    file: 'trophy15.png',
     score: 8,
     isHidden: false,
     serverId: 15,

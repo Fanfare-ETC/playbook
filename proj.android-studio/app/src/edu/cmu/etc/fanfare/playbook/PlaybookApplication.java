@@ -28,6 +28,7 @@ public class PlaybookApplication extends Application {
         Thread.setDefaultUncaughtExceptionHandler(new HoustonWeHaveNoProblemExceptionHandler(new Handler()));
 
         // Catches uncaught exceptions in the main loop.
+        //noinspection InfiniteLoopStatement
         while (true) {
             try {
                 Looper.loop();
