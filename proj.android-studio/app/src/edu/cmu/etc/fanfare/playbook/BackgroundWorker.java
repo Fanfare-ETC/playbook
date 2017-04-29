@@ -50,8 +50,8 @@ public class  BackgroundWorker extends AsyncTask<String,Void,String> {
                 BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(outputStream, "UTF-8"));
                 JSONObject object = new JSONObject();
                 //object.put("id", param);
-                object.put("userId", LoginActivity.acct.getId());
-                object.put("userName", LoginActivity.acct.getGivenName() + " " + LoginActivity.acct.getFamilyName());
+                object.put("userId", LoginActivity.acct.getUid());
+                object.put("userName", LoginActivity.acct.getDisplayName());
                 Log.d("test", object.toString());
                // String post_data = URLEncoder.encode("sectionNo","UTF-8")+"="+URLEncoder.encode(sec,"UTF-8")+"&"
                     //    + URLEncoder.encode("Move","UTF-8")+"="+URLEncoder.encode(move,"UTF-8");

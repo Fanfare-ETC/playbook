@@ -10,13 +10,18 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
+import com.firebase.ui.auth.AuthUI;
+import com.firebase.ui.auth.IdpResponse;
+import com.firebase.ui.auth.ResultCodes;
 import com.google.android.gms.auth.api.Auth;
-import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
-import com.google.android.gms.auth.api.signin.GoogleSignInResult;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+
+import java.util.Arrays;
 
 import static edu.cmu.etc.fanfare.playbook.PlaybookApplication.PREF_KEY_IS_ONBOARDING_COMPLETE;
 
@@ -24,7 +29,7 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
     private static final String TAG = "LoginActivity";
     private static final int RC_SIGN_IN = 1;
     private GoogleApiClient mGoogleApiClient;
-    public static GoogleSignInAccount acct;
+    public static FirebaseUser acct;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -65,7 +70,17 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
             }
 
             private void signIn() {
-                Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(mGoogleApiClient);
+                //Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(mGoogleApiClient);
+                //startActivityForResult(signInIntent, RC_SIGN_IN);
+                Intent signInIntent = AuthUI.getInstance()
+                        .createSignInIntentBuilder()
+                        .setTheme(R.style.Theme_AppCompat_Dialog_Alert)
+                        .setIsSmartLockEnabled(false)
+                        .setProviders(Arrays.asList(
+                                new AuthUI.IdpConfig.Builder(AuthUI.GOOGLE_PROVIDER).build(),
+                                new AuthUI.IdpConfig.Builder(AuthUI.FACEBOOK_PROVIDER).build()
+                        ))
+                        .build();
                 startActivityForResult(signInIntent, RC_SIGN_IN);
             }
         });
@@ -88,19 +103,19 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
 
         // Result returned from launching the Intent from GoogleSignInApi.getSignInIntent(...);
         if (requestCode == RC_SIGN_IN) {
-            GoogleSignInResult result = Auth.GoogleSignInApi.getSignInResultFromIntent(data);
-            handleSignInResult(result);
+            IdpResponse response = IdpResponse.fromResultIntent(data);
+            handleSignInResponse(response, resultCode);
         }
     }
 
-    private void handleSignInResult(GoogleSignInResult result) {
-        Log.d(TAG, "handleSignInResult:" + result.isSuccess());
-        if (result.isSuccess()) {
+    private void handleSignInResponse(IdpResponse response, int resultCode) {
+        Log.d(TAG, "handleSignInResponse:" + resultCode);
+        if (resultCode == ResultCodes.OK) {
             // Signed in successfully, show authenticated UI.
-            acct = result.getSignInAccount();
+            acct = FirebaseAuth.getInstance().getCurrentUser();
             if (acct != null) {
                 PlaybookApplication.setPlayerName(acct.getDisplayName());
-                PlaybookApplication.setPlayerID(acct.getId());
+                PlaybookApplication.setPlayerID(acct.getUid());
                 //insert player
                 BackgroundWorker backgroundWorker = new BackgroundWorker();
                 backgroundWorker.execute("section");

@@ -392,7 +392,7 @@ public class trophyWorker extends AsyncTask<String,Void,String> {
                 OutputStream outputStream = httpURLConnection.getOutputStream();
                 BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(outputStream, "UTF-8"));
                 JSONObject object = new JSONObject();
-                object.put("id", LoginActivity.acct.getId().toString());
+                object.put("id", LoginActivity.acct.getUid());
                 //object.put("id", "1"); //for test purpose only
                 Log.d("acct_no", object.toString());
                 bufferedWriter.write(object.toString());
