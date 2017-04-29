@@ -1,6 +1,7 @@
 package edu.cmu.etc.fanfare.playbook;
 
 import android.app.Application;
+import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 
@@ -22,11 +23,16 @@ public class PlaybookApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
+
+        // Catches uncaught exceptions in background threads.
+        Thread.setDefaultUncaughtExceptionHandler(new HoustonWeHaveNoProblemExceptionHandler(new Handler()));
+
+        // Catches uncaught exceptions in the main loop.
         while (true) {
             try {
                 Looper.loop();
             } catch (Throwable e) {
-                Log.e(TAG, "Forcefully continuing despite exception: ", e);
+                Log.e(TAG, "Uncaught exception on UI thread: ", e);
             }
         }
     }
@@ -38,4 +44,21 @@ public class PlaybookApplication extends Application {
     public static String getPlayerName() { return mPlayerName; }
     public static void setPlayerID(String id) { mPlayerID = id; }
     public static String getPlayerID() { return mPlayerID; }
+    
+    private class HoustonWeHaveNoProblemExceptionHandler implements Thread.UncaughtExceptionHandler {
+        private final Handler mHandler;
+
+        HoustonWeHaveNoProblemExceptionHandler(Handler handler) {
+            mHandler = handler;
+        }
+
+        @Override
+        public void uncaughtException(Thread t, final Throwable e) {
+            mHandler.post(new Runnable() {
+                public void run() {
+                    Log.e(TAG, "Uncaught exception on background thread: ", e);
+                }
+            });
+        }
+    }
 }
