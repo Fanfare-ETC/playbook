@@ -337,7 +337,9 @@ class GoalChoice extends PIXI.Container {
       label.style.fontSize = 72.0 * contentScale;
       label.style.fill = this._active ? info.textColor : info.backgroundColor;
       label.style.align = 'center';
-      label.anchor.set(0.5, 0.5);
+      label.style.wordWrap = true;
+      label.style.wordWrapWidth = this._containerParams.width - 128.0 * contentScale;
+      label.anchor.set(0.5, 0.0);
       label.position.set(this._containerParams.width / 2, 64.0 * contentScale);
 
       if (GoalTypesMetadata[info.goal].example !== null) {

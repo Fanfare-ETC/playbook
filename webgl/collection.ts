@@ -976,13 +976,13 @@ function setup() {
   initDiscardBarEvents(discardBar);
 
   // Add goals section.
-  const whiteBannerHeight = discardBar.getChildrenLayoutParams().whiteBanner.height;
+  const discardBarLayoutParams = discardBar.getChildrenLayoutParams();
   const goalChoicesContainer = new GoalChoicesContainer(state, contentScale, {
-    height: window.innerHeight - trayHeight - whiteBannerHeight - scoreBarHeight,
+    height: window.innerHeight - trayHeight - discardBarLayoutParams.height - scoreBarHeight - 64.0 * contentScale,
     width: window.innerWidth
   }, scoreCardSet);
   goalChoicesContainer.name = 'goalChoicesContainer';
-  goalChoicesContainer.position.set(0.0, whiteBannerHeight);
+  goalChoicesContainer.position.set(0.0, discardBarLayoutParams.height + 64.0 * contentScale);
   initGoalChoicesContainerEvents(goalChoicesContainer);
 
   // Add "drag plays down to make sets".

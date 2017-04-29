@@ -4,6 +4,8 @@ import IGameState from './IGameState';
 
 export interface IDiscardBarLayoutParams {
   whiteBanner: PIXI.Rectangle;
+  height: number;
+  heightExpanded: number;
 }
 
 class DiscardBar extends PIXI.Container {
@@ -46,7 +48,9 @@ class DiscardBar extends PIXI.Container {
   getChildrenLayoutParams() : IDiscardBarLayoutParams {
     const contentScale = this._contentScale;
     return {
-      whiteBanner: new PIXI.Rectangle(0, 0, window.innerWidth, 32.0 * contentScale)
+      whiteBanner: new PIXI.Rectangle(0, 0, window.innerWidth, 32.0 * contentScale),
+      height: 32.0 * contentScale,
+      heightExpanded: 128.0 * contentScale
     };
   }
 
@@ -57,8 +61,9 @@ class DiscardBar extends PIXI.Container {
     const background = this._background;
     const label = this._label;
 
-    const backgroundHeight = (expanded ? 128.0 : 32.0) * contentScale;
-    const whiteBannerHeight = this.getChildrenLayoutParams().whiteBanner.height;
+    const layoutParams = this.getChildrenLayoutParams();
+    const backgroundHeight = (expanded ? layoutParams.heightExpanded : layoutParams.height);
+    const whiteBannerHeight = layoutParams.whiteBanner.height;
 
     background.clear();
     background.beginFill(0xffffff);
