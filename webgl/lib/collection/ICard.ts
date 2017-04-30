@@ -17,6 +17,7 @@ interface ICard {
   isActive: boolean;
   isDiscarding: boolean;
   isScoring: boolean;
+  bloom: boolean;
   tint: number;
 
   moveToOrigPosition: () => void;

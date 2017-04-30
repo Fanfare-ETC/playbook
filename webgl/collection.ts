@@ -252,14 +252,20 @@ class Card implements ICard {
   dragTarget: PIXI.Sprite | number | null = null;
   isAnimating: number = 0;
   isActive: boolean = true;
-  _tint: number = 0xffffff;
   _isDiscarding: boolean = false;
   _isScoring: boolean = false;
+  _bloom: boolean = false;
+  _tint: number = 0xffffff;
+
+  _defaultTexture: PIXI.Texture;
+  _bloomTexture: PIXI.RenderTexture;
 
   constructor(team: string, play: string, card: PIXI.Sprite) {
     this.play = play;
     this.team = team;
     this.sprite = card;
+    this._defaultTexture = card.texture;
+    this._prepareBloomTexture();
   }
 
   set isDiscarding(value: boolean) {
@@ -275,6 +281,22 @@ class Card implements ICard {
   set tint(value: number) {
     this._tint = value;
     this._invalidate();
+  }
+
+  set bloom(value: boolean) {
+    if (value) {
+      this.sprite.texture = this._bloomTexture;
+    } else {
+      this.sprite.texture = this._defaultTexture;
+    }
+  }
+
+  private _prepareBloomTexture() {
+    const card = new PIXI.Sprite(this.sprite.texture);
+    card.filters = [new PIXI.filters.BloomFilter()];
+
+    this._bloomTexture = PIXI.RenderTexture.create(card.texture.width, card.texture.height);
+    renderer.renderer.render(card, this._bloomTexture);
   }
 
   private _invalidate() {
@@ -873,7 +895,7 @@ function initGoalChoicesContainerEvents(container: GoalChoicesContainer) {
 
   function handler() {
     const cardSet = getCardsInSlots();
-    cardSet.forEach(card => card.sprite.filters = []);
+    cardSet.forEach(card => card.bloom = false);
     cardSet.forEach(card => card.tint = 0xffffff);
 
     for (const choice of container.children as GoalChoice[]) {
@@ -887,7 +909,7 @@ function initGoalChoicesContainerEvents(container: GoalChoicesContainer) {
         const satisfiedSet = goalTile.satisfiedBy(cardSet);
         if (satisfiedSet.length > 0) {
           if (goalTile.info.backgroundColor === 0xffffff) {
-            satisfiedSet.forEach(card => card.sprite.filters = [new PIXI.filters.BloomFilter()]);
+            satisfiedSet.forEach(card => card.bloom = true);
           } else {
             satisfiedSet.forEach(card => card.tint = goalTile.info.backgroundColor);
           }

@@ -171,6 +171,7 @@ function cardSetMeetsGoal(cardSet: ICard[], goal: string) : ICard[] {
       if (uniqueOutPlays.length === 4) {
         return uniqueOutPlays.map(play => cardSet.find(card => card.play === play) as ICard);
       }
+      break;
     }
     case GoalTypes.BASES_3: {
       if (numOnBase >= 3) {
