@@ -35,6 +35,12 @@ class GoalChoicesContainer extends PIXI.Container {
     this._invalidate();
   }
 
+  getTileMatchingGoal(goal: string) : GoalChoice {
+    return this.children.find((goalTile: GoalChoice) => {
+      return goal === goalTile.info.goal;
+    }) as GoalChoice;
+  }
+
   private _invalidate() {
     const state = this._state;
     const containerParams = this._containerParams;

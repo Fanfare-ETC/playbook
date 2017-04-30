@@ -81,7 +81,7 @@ declare module 'pixi.js' {
     }
 
     class Repeat extends Action {
-      constructor(action: Action, count: number);
+      constructor(action: Action, count?: number);
     }
 
     class Sequence extends Action {

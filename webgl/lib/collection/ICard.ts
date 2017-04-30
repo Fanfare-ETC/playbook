@@ -15,6 +15,8 @@ interface ICard {
   dragTarget: PIXI.Sprite | number | null;
   isAnimating: number;
   isActive: boolean;
+  isDiscarding: boolean;
+  tint: number;
 
   moveToOrigPosition: () => void;
   moveToSlot: (slot: number) => PIXI.action.Sequence;

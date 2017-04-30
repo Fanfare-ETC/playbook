@@ -13,6 +13,7 @@ import PlaybookEvents,
 import GoalChoice from './lib/collection/GoalChoice';
 import GoalChoicesContainer from './lib/collection/GoalChoicesContainer';
 import GoalTypesMetadata from './lib/collection/GoalTypesMetadata';
+import GhostCards from './lib/collection/GhostCards';
 import PlaybookBridge from './lib/collection/PlaybookBridge';
 import PlaybookRenderer from './lib/collection/PlaybookRenderer';
 
@@ -251,6 +252,8 @@ class Card implements ICard {
   dragTarget: PIXI.Sprite | number | null = null;
   isAnimating: number = 0;
   isActive: boolean = true;
+  _tint: number = 0xffffff;
+  _isDiscarding: boolean = false;
 
   constructor(team: string, play: string, card: PIXI.Sprite) {
     this.play = play;
@@ -258,10 +261,28 @@ class Card implements ICard {
     this.sprite = card;
   }
 
+  set isDiscarding(value: boolean) {
+    this._isDiscarding = value;
+    this._invalidate();
+  }
+
+  set tint(value: number) {
+    this._tint = value;
+    this._invalidate();
+  }
+
+  private _invalidate() {
+    if (this._isDiscarding) {
+      this.sprite.tint = 0xff0000;
+    } else {
+      this.sprite.tint = this._tint;
+    }
+  }
+
   /**
    * Moves this card to a specific position in world space with animation.
    */
-  _moveToWithAnimation(position: PIXI.Point) {
+  private _moveToWithAnimation(position: PIXI.Point) {
     const moveTo = new PIXI.action.MoveTo(position.x, position.y, 0.25);
     const callFunc = new PIXI.action.CallFunc(() => this.isAnimating--);
     const sequence = new PIXI.action.Sequence([moveTo, callFunc]);
@@ -273,7 +294,7 @@ class Card implements ICard {
   /**
    * Rotates this card to a specific position in world space with animation.
    */
-  _rotateToWithAnimation(rotation: number) {
+  private _rotateToWithAnimation(rotation: number) {
     const rotateTo = new PIXI.action.RotateTo(rotation, 0.25);
     const callFunc = new PIXI.action.CallFunc(() => this.isAnimating--);
     const sequence = new PIXI.action.Sequence([rotateTo, callFunc]);
@@ -285,7 +306,7 @@ class Card implements ICard {
   /**
    * Scales this card to a specific scale in world space with animation.
    */
-  _scaleToWithAnimation(scale: number) {
+  private _scaleToWithAnimation(scale: number) {
     const scaleTo = new PIXI.action.ScaleTo(scale, scale, 0.25);
     const callFunc = new PIXI.action.CallFunc(() => this.isAnimating--);
     const sequence = new PIXI.action.Sequence([scaleTo, callFunc]);
@@ -378,9 +399,9 @@ function initCardEvents(card: Card) {
       // Tint card red when in the discard zone.
       const discard = stage.getChildByName('discard');
       if (card.dragTarget === discard) {
-        card.sprite.tint = 0xff0000;
+        card.isDiscarding = true;
       } else {
-        card.sprite.tint = 0xffffff;
+        card.isDiscarding = false;
       }
 
       // Re-render the scene.
@@ -759,6 +780,27 @@ function getRandomGoal() : string {
 }
 
 /**
+ * Initializes events for the ghost cars.
+ */
+function initGhostCardsEvents(ghostCards: GhostCards, container: GoalChoicesContainer) {
+  function handler() {
+    if (state.selectedGoal !== null) {
+      const cardSet = getCardsInSlots();
+      const choice = container.getTileMatchingGoal(state.selectedGoal);
+      const satisfiedSet = choice.satisfiedBy(cardSet);
+      ghostCards.cards = satisfiedSet;
+      ghostCards.goalTile = choice;
+    } else {
+      ghostCards.cards = null;
+      ghostCards.goalTile = null;
+    }
+  }
+
+  state.emitter.on(state.EVENT_SELECTED_GOAL_CHANGED, handler);
+  state.emitter.on(state.EVENT_CARD_SLOTS_CHANGED, handler);
+}
+
+/**
  * Initializes events for the score bar.
  * @param {PIXI.extras.TilingSprite} scoreBar
  */
@@ -815,23 +857,20 @@ function initGoalChoicesContainerEvents(container: GoalChoicesContainer) {
   state.emitter.on(state.EVENT_SELECTED_GOAL_CHANGED, (goal: string) => {
     const cardSet = getCardsInSlots();
     cardSet.forEach(card => card.sprite.filters = []);
-    cardSet.forEach(card => card.sprite.tint = 0xffffff);
+    cardSet.forEach(card => card.tint = 0xffffff);
 
     container.children.forEach((goalTile: GoalChoice) => {
       goalTile.selected = goal === goalTile.info.goal;
     });
 
-    const goalTile = container.children.find((goalTile: GoalChoice) => {
-      return goal === goalTile.info.goal;
-    }) as GoalChoice;
-
+    const goalTile = container.getTileMatchingGoal(goal);
     if (goalTile !== undefined) {
       const satisfiedSet = goalTile.satisfiedBy(cardSet);
       if (satisfiedSet.length > 0) {
         if (goalTile.info.backgroundColor === 0xffffff) {
           satisfiedSet.forEach(card => card.sprite.filters = [new PIXI.filters.BloomFilter()]);
         } else {
-          satisfiedSet.forEach(card => card.sprite.tint = goalTile.info.backgroundColor);
+          satisfiedSet.forEach(card => card.tint = goalTile.info.backgroundColor);
         }
       }
     }
@@ -1010,6 +1049,10 @@ function setup() {
   goalChoicesContainer.position.set(0.0, discardBarLayoutParams.height + 64.0 * contentScale);
   initGoalChoicesContainerEvents(goalChoicesContainer);
 
+  // Add ghost cards (for scorability indication).
+  const ghostCards = new GhostCards();
+  initGhostCardsEvents(ghostCards, goalChoicesContainer);
+
   // Add "drag plays down to make sets".
   const trayTip = new TrayTip(contentScale, {
     width: window.innerWidth,
@@ -1028,6 +1071,7 @@ function setup() {
   stage.addChild(scoreBarShadow);
   stage.addChild(bottomShadow);
   stage.addChild(goalChoicesContainer);
+  stage.addChild(ghostCards);
   stage.addChild(trayTip);
   stage.addChild(discardBar);
 

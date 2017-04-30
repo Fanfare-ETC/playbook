@@ -324,9 +324,12 @@ class GoalChoice extends PIXI.Container {
 
     glow.clear();
     if (this._selected) {
+      glow.visible = true;
       glow.beginFill(info.backgroundColor);
       glow.drawRoundedRect(0, 0, this._containerParams.width, this._containerParams.height, 64.0 * contentScale);
       glow.endFill();
+    } else {
+      glow.visible = false;
     }
 
     background.clear();
