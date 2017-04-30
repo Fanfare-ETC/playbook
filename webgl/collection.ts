@@ -968,21 +968,22 @@ function reportGoal(goal: string) {
 /**
  * Initializes events for the score bar.
  */
-function initTrayTipEvents(trayTip: TrayTip) {
+function initTrayTipEvents(trayTip: TrayTip, container: GoalChoicesContainer) {
   function handler() {
     if (getCardsInSlots().length === 5 && state.activeCard !== null) {
-      trayTip.visible = true;
-      trayTip.text = 'Hand is full';
+      trayTip.show('Hand is full');
     } else if (state.activeCard !== null) {
-      trayTip.visible = true;
-      trayTip.text = 'Drag cards down to make sets';
+      trayTip.show('Drag cards down to make sets');
+    } else if (container.hasMatchingGoal() && state.selectedGoal === null) {
+      trayTip.show('Tap goal to select', false);
     } else {
-      trayTip.visible = false;
+      trayTip.hide();
     }
   }
 
   state.emitter.on(state.EVENT_ACTIVE_CARD_CHANGED, handler);
   state.emitter.on(state.EVENT_CARD_SLOTS_CHANGED, handler);
+  state.emitter.on(state.EVENT_SELECTED_GOAL_CHANGED, handler);
 }
 
 /**
@@ -1103,14 +1104,10 @@ function setup() {
     height: window.innerHeight - trayHeight - discardBarLayoutParams.height - scoreBarHeight - 64.0 * contentScale,
     width: window.innerWidth
   }, (choice: GoalChoice) => {
-    const satisfiedSet = choice.satisfiedBy(getCardsInSlots());
-    if (satisfiedSet.length > 0 &&
-        state.selectedGoal === choice.info.goal) {
-      scoreCardSet(choice, choice.info.goal);
-    } else if (choice.active) {
-      state.selectedGoal = choice.info.goal;
-    } else {
+    if (choice.info.goal === state.selectedGoal) {
       state.selectedGoal = null;
+    } else {
+      state.selectedGoal = choice.info.goal;
     }
   });
   goalChoicesContainer.name = 'goalChoicesContainer';
@@ -1129,7 +1126,7 @@ function setup() {
   });
   trayTip.name = 'trayTip';
   trayTip.visible = false;
-  initTrayTipEvents(trayTip);
+  initTrayTipEvents(trayTip, goalChoicesContainer);
 
   // Add set scored screen.
   const setScoredOverlay = new SetScoredOverlay(contentScale, renderer);

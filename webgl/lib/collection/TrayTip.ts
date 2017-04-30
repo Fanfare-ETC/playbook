@@ -12,6 +12,7 @@ class TrayTip extends PIXI.Container {
   _contentScale: number;
   _containerParams: ContainerParams;
   _text: string = '';
+  _showOverlay: boolean = true;
 
   _background: PIXI.Graphics;
   _shadow: PIXI.extras.TilingSprite;
@@ -37,8 +38,15 @@ class TrayTip extends PIXI.Container {
     this._invalidate();
   }
 
-  set text(value: string) {
-    this._text = value;
+  show(text: string, showOverlay: boolean = true) {
+    this._text = text;
+    this._showOverlay = showOverlay;
+    this.visible = true;
+    this._invalidate();
+  }
+
+  hide() {
+    this.visible = false;
     this._invalidate();
   }
 
@@ -50,9 +58,13 @@ class TrayTip extends PIXI.Container {
     const label = this._label;
 
     background.clear();
-    background.beginFill(0x000000, 0.5);
-    background.drawRect(0, 0, window.innerWidth, window.innerHeight - containerParams.trayHeight - containerParams.height);
-    background.endFill();
+
+    if (this._showOverlay) {
+      background.beginFill(0x000000, 0.5);
+      background.drawRect(0, 0, window.innerWidth, window.innerHeight - containerParams.trayHeight - containerParams.height);
+      background.endFill();
+    }
+
     background.beginFill(0x00bf00);
     background.drawRect(
       0, window.innerHeight - containerParams.trayHeight - containerParams.height,
