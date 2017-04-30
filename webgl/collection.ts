@@ -405,6 +405,20 @@ function initCardEvents(card: Card) {
       PIXI.actionManager.runAction(card.sprite, rotateTo);
     }
 
+    // TODO: Group cards if there's a selected goal.
+    if (state.selectedGoal !== null) {
+      const container = stage.getChildByName('goalChoicesContainer') as GoalChoicesContainer;
+      const choice = container.getTileMatchingGoal(state.selectedGoal);
+      const satisfiedSet = choice.satisfiedBy(getCardsInSlots());
+      if (satisfiedSet.indexOf(card) >= 0) {
+        for (const satisfiedCard of satisfiedSet) {
+          if (satisfiedCard !== card) {
+            //satisfiedCard.sprite.alpha = 0;
+          }
+        }
+      }
+    }
+
     // Offset the drag so we get an accurate touch point.
     if (e.data.identifier !== undefined) {
       card.isBeingDragged = true;
@@ -459,7 +473,7 @@ function initCardEvents(card: Card) {
         const choice = card.dragTarget as GoalChoice;
         const satisfiedSet = choice.satisfiedBy(cardSet);
         for (const item of satisfiedSet) {
-          item.isScoring = choice.active;
+          item.isScoring = choice.active && choice.info.goal === state.selectedGoal;
         }
       }
 
@@ -489,7 +503,7 @@ function initCardEvents(card: Card) {
     } else if (card.dragTarget instanceof GoalChoice &&
                state.activeCard === null) {
       const choice = card.dragTarget as GoalChoice;
-      if (choice.active) {
+      if (choice.active && choice.info.goal === state.selectedGoal) {
         scoreCardSet(choice, choice.info.goal);
       } else {
         card.moveToOrigPosition();
@@ -564,8 +578,9 @@ function assignCardToSlot(card: Card, slot: number) {
  * Discards a given card.
  */
 function discardCard(card: ICard) {
+  const container = stage.getChildByName('cardsContainer') as PIXI.Container;
   if (state.activeCard === card) {
-    stage.removeChild(state.activeCard.sprite);
+    container.removeChild(state.activeCard.sprite);
     state.activeCard = null;
   } else {
     const slot = state.cardSlots.find((slot: CardSlot) => slot.card === card);
@@ -575,7 +590,7 @@ function discardCard(card: ICard) {
     }
 
     slot.present = false;
-    stage.removeChild(slot.card!.sprite);
+    container.removeChild(slot.card!.sprite);
     slot.card = null;
 
     // Notify listeners that the slots have been updated.
@@ -704,7 +719,9 @@ function createCard(play: string, isActive: boolean = true, slot?: number) : Car
   const cardObj = new Card(team, play, card);
   cardObj.sprite = card;
   state.cards.push(card);
-  stage.addChild(card);
+
+  const container = stage.getChildByName('cardsContainer') as PIXI.Container;
+  container.addChild(card);
 
   return cardObj;
 }
@@ -976,6 +993,8 @@ function initTrayTipEvents(trayTip: TrayTip, container: GoalChoicesContainer) {
       trayTip.show('Drag cards down to make sets');
     } else if (container.hasMatchingGoal() && state.selectedGoal === null) {
       trayTip.show('Tap goal to select', false);
+    } else if (state.selectedGoal !== null) {
+      trayTip.show('Drag cards to score', false);
     } else {
       trayTip.hide();
     }
@@ -1020,6 +1039,10 @@ function setup() {
   const bg = new PIXI.Sprite(bgTexture);
   bg.scale.x = window.innerWidth / bgTexture.width;
   bg.scale.y = window.innerHeight / bgTexture.height;
+
+  // Add cards container to screen.
+  const cardsContainer = new PIXI.Container();
+  cardsContainer.name = 'cardsContainer';
 
   // Add card tray to screen.
   const trayTexture = PIXI.loader.resources['resources/collection.json'].textures!['Collection-Tray-9x16.png'];
@@ -1107,7 +1130,11 @@ function setup() {
     if (choice.info.goal === state.selectedGoal) {
       state.selectedGoal = null;
     } else {
-      state.selectedGoal = choice.info.goal;
+      if (choice.active) {
+        state.selectedGoal = choice.info.goal;
+      } else {
+        state.selectedGoal = null;
+      }
     }
   });
   goalChoicesContainer.name = 'goalChoicesContainer';
@@ -1143,6 +1170,7 @@ function setup() {
   stage.addChild(trayTip);
   stage.addChild(ghostCards);
   stage.addChild(discardBar);
+  stage.addChild(cardsContainer);
   stage.addChild(setScoredOverlay);
 
   /**
