@@ -11,6 +11,7 @@ import IGameState from './IGameState';
 import GoalTypes from './GoalTypes';
 import GoalTypesMetadata from './GoalTypesMetadata';
 import ICard from './ICard';
+import Trophy from './Trophy';
 
 interface ContainerParams {
   width: number,
@@ -228,7 +229,7 @@ class GoalChoice extends PIXI.Container {
   _label: PIXI.Text;
   _example: PIXI.Sprite;
   _score: PIXI.Text;
-  _trophy: PIXI.Sprite;
+  _trophy: Trophy;
 
   /**
    * Creates a goal tile.
@@ -268,8 +269,7 @@ class GoalChoice extends PIXI.Container {
       this.addChild(this._score);
     }
 
-    const texture = PIXI.loader.resources['resources/collection.json'].textures!['empty.png'];
-    this._trophy = new PIXI.Sprite(texture);
+    this._trophy = new Trophy();
     this.addChild(this._trophy);
 
     this.position.set(info.position.x, info.position.y);
@@ -366,7 +366,7 @@ class GoalChoice extends PIXI.Container {
 
     if (this._info.showTrophy) {
       trophy.visible = true;
-      trophy.texture = PIXI.loader.resources['resources/collection.json'].textures![GoalTypesMetadata[info.goal].file];
+      trophy.goal = info.goal;
       trophy.scale.set(contentScale, contentScale);
       trophy.position.set(
         this._containerParams.width - trophy.width,

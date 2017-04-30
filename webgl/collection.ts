@@ -22,6 +22,7 @@ import DiscardBar from './lib/collection/DiscardBar';
 import IGameState from './lib/collection/IGameState';
 import ICard from './lib/collection/ICard';
 import TrayTip from './lib/collection/TrayTip';
+import SetScoredOverlay from './lib/collection/SetScoredOverlay';
 
 // Receive messages from the hosting application.
 if (window.PlaybookBridge) {
@@ -53,6 +54,7 @@ class GameState implements IGameState {
   EVENT_CARD_SLOTS_CHANGED: string = 'cardSlotsChanged';
   EVENT_SELECTED_GOAL_CHANGED: string = 'selectedGoalChanged';
   EVENT_SCORE_CHANGED: string = 'scoreChanged';
+  EVENT_LAST_SCORED_GOAL_CHANGED: string = 'lastScoredGoalChanged';
 
   emitter: EventEmitter;
 
@@ -64,6 +66,7 @@ class GameState implements IGameState {
   goalSets: { [goal: string]: Card[] } = {};
   _selectedGoal: string | null = null;
   _score: number = 0;
+  _lastScoredGoal: string | null = null;
 
   constructor() {
     this.emitter = new EventEmitter();
@@ -152,6 +155,18 @@ class GameState implements IGameState {
     PlaybookBridge.notifyGameState(this.toJSON());
   }
 
+  get lastScoredGoal() {
+    return this._lastScoredGoal;
+  }
+
+  set lastScoredGoal(value) {
+    const oldValue = this._lastScoredGoal;
+    this._lastScoredGoal = value;
+    console.log('lastScoredGoal->', value);
+    this.emitter.emit(this.EVENT_LAST_SCORED_GOAL_CHANGED, value, oldValue);
+    PlaybookBridge.notifyGameState(this.toJSON());
+  }
+
   /**
    * Returns the game state as JSON.
    */
@@ -224,6 +239,7 @@ class GameState implements IGameState {
       this.emitter.emit(this.EVENT_CARD_SLOTS_CHANGED, this._cardSlots, null);
       this.emitter.emit(this.EVENT_SELECTED_GOAL_CHANGED, this._selectedGoal, null);
       this.emitter.emit(this.EVENT_SCORE_CHANGED, this._score, null);
+      this.emitter.emit(this.EVENT_LAST_SCORED_GOAL_CHANGED, this._lastScoredGoal, null);
     }
   }
 }
@@ -514,6 +530,7 @@ function scoreCardSet(choice: GoalChoice, goal: string) {
 
   // Update score.
   state.score = state.score + GoalTypesMetadata[goal].score;
+  state.lastScoredGoal = goal;
   state.selectedGoal = null;
   state.goal = getRandomGoal();
 }
@@ -973,6 +990,18 @@ function initTrayTipEvents(trayTip: TrayTip) {
 }
 
 /**
+ * Initializes events for the set scored overlay.
+ */
+function initSetScoredOverlayEvents(overlay: SetScoredOverlay) {
+  state.emitter.on(state.EVENT_LAST_SCORED_GOAL_CHANGED, (goal: string) => {
+    console.log('changed!');
+    if (goal !== null) {
+      overlay.show(goal);
+    }
+  });
+}
+
+/**
  * Initializes events for the discard bar.
  */
 function initDiscardBarEvents(bar: DiscardBar) {
@@ -1107,6 +1136,11 @@ function setup() {
   trayTip.visible = false;
   initTrayTipEvents(trayTip);
 
+  // Add set scored screen.
+  const setScoredOverlay = new SetScoredOverlay(contentScale);
+  initSetScoredOverlayEvents(setScoredOverlay);
+  //setScoredOverlay.visible = false;
+
   // Add the items in order of appearance.
   stage.addChild(bg);
   stage.addChild(tray);
@@ -1118,6 +1152,7 @@ function setup() {
   stage.addChild(trayTip);
   stage.addChild(ghostCards);
   stage.addChild(discardBar);
+  stage.addChild(setScoredOverlay);
 
   /**
    * Begin the animation loop.
@@ -1158,7 +1193,7 @@ configureRenderer(renderer);
 configureWebSocket(connection);
 
 // Load the sprites we need.
-configureFonts(['proxima-nova-excn', 'SCOREBOARD'])
+configureFonts(['proxima-nova-excn', 'SCOREBOARD', 'rockwell'])
   .then(() => {
     PIXI.loader
       .add('resources/collection.json')
