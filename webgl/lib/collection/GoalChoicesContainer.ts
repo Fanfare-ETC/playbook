@@ -11,20 +11,22 @@ interface ContainerParams {
 
 class GoalChoicesContainer extends PIXI.Container {
   _state: IGameState;
-  _containerParams: ContainerParams;
+  _renderer: PIXI.SystemRenderer;
   _contentScale: number;
+  _containerParams: ContainerParams;
   _onChoiceTap: (choice: GoalChoice) => void;
   _choices: GoalChoice[];
 
   _goal: string | null = null;
 
-  constructor(state: IGameState, contentScale: number, containerParams: ContainerParams,
-              onChoiceTap: (choice: GoalChoice) => void) {
+  constructor(state: IGameState, contentScale: number, renderer: PIXI.SystemRenderer,
+              containerParams: ContainerParams, onChoiceTap: (choice: GoalChoice) => void) {
     super();
 
     this._state = state;
-    this._containerParams = containerParams;
+    this._renderer = renderer;
     this._contentScale = contentScale;
+    this._containerParams = containerParams;
     this._onChoiceTap = onChoiceTap;
 
     this._invalidate();
@@ -43,8 +45,9 @@ class GoalChoicesContainer extends PIXI.Container {
 
   private _invalidate() {
     const state = this._state;
-    const containerParams = this._containerParams;
+    const renderer = this._renderer;
     const contentScale = this._contentScale;
+    const containerParams = this._containerParams;
     const onChoiceTap = this._onChoiceTap;
     this.removeChildren();
 
@@ -82,7 +85,7 @@ class GoalChoicesContainer extends PIXI.Container {
     }];
 
     info.forEach(item => {
-      const choice = new GoalChoice(state, contentScale, {
+      const choice = new GoalChoice(state, contentScale, renderer,  {
         width: choiceWidth,
         height: choiceHeight
       }, item, onChoiceTap);

@@ -215,13 +215,14 @@ function cardSetMeetsGoal(cardSet: ICard[], goal: string) : ICard[] {
 class GoalChoice extends PIXI.Container {
   _state: IGameState;
   _contentScale: number;
+  _renderer: PIXI.SystemRenderer;
   _containerParams: ContainerParams;
   _info: GoalChoiceInfo;
   _onChoiceTap: (choice: GoalChoice) => void;
   _active: boolean;
   _selected: boolean;
 
-  _glow: PIXI.Graphics;
+  _glowContainer: PIXI.Container;
   _background: PIXI.Graphics;
   _label: PIXI.Text;
   _example: PIXI.Sprite;
@@ -231,12 +232,14 @@ class GoalChoice extends PIXI.Container {
   /**
    * Creates a goal tile.
    */
-  constructor(state: IGameState, contentScale: number, containerParams: ContainerParams,
-              info: GoalChoiceInfo, onChoiceTap: (choice: GoalChoice) => void) {
+  constructor(state: IGameState, contentScale: number, renderer: PIXI.SystemRenderer,
+              containerParams: ContainerParams, info: GoalChoiceInfo,
+              onChoiceTap: (choice: GoalChoice) => void) {
     super();
 
     this._state = state;
     this._contentScale = contentScale;
+    this._renderer = renderer;
     this._containerParams = containerParams;
     this._info = info;
     this._onChoiceTap = onChoiceTap;
@@ -244,9 +247,8 @@ class GoalChoice extends PIXI.Container {
 
     this._initEvents();
 
-    this._glow = new PIXI.Graphics();
-    this._glow.filters = [new PIXI.filters.BlurFilter()];
-    this.addChild(this._glow);
+    this._glowContainer = new PIXI.Container();
+    this.addChild(this._glowContainer);
 
     this._background = new PIXI.Graphics();
     this.addChild(this._background);
@@ -314,7 +316,8 @@ class GoalChoice extends PIXI.Container {
 
   private _invalidate() {
     const contentScale = this._contentScale;
-    const glow = this._glow;
+    const renderer = this._renderer;
+    const glowContainer = this._glowContainer;
     const background = this._background;
     const info = this._info;
     const label = this._label;
@@ -322,12 +325,27 @@ class GoalChoice extends PIXI.Container {
     const score = this._score;
     const trophy = this._trophy;
 
-    glow.clear();
+    const glowGraphics = new PIXI.Graphics();
+    glowGraphics.beginFill(info.backgroundColor);
+    glowGraphics.drawRoundedRect(0, 0, this._containerParams.width, this._containerParams.height, 64.0 * contentScale);
+    glowGraphics.endFill();
+    glowGraphics.filters = [new PIXI.filters.BlurFilter()];
+    glowGraphics.position.set(64.0 * contentScale, 64.0 * contentScale);
+
+    const glowRT = PIXI.RenderTexture.create(
+      glowGraphics.width + 128.0 * contentScale,
+      glowGraphics.height + 128.0 * contentScale
+    );
+    renderer.render(glowGraphics, glowRT);
+
+    glowContainer.removeChildren();
+
+    const glow = new PIXI.Sprite(glowRT);
+    glow.position.set(-64.0 * contentScale, -64.0 * contentScale);
+    glowContainer.addChild(glow);
+
     if (this._selected) {
       glow.visible = true;
-      glow.beginFill(info.backgroundColor);
-      glow.drawRoundedRect(0, 0, this._containerParams.width, this._containerParams.height, 64.0 * contentScale);
-      glow.endFill();
     } else {
       glow.visible = false;
     }

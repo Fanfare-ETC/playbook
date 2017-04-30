@@ -58,8 +58,6 @@ class GhostCards extends PIXI.Container {
 
       this.addChild(ghostCard);
     }
-
-    console.log(this.children);
   }
 }
 

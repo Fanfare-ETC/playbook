@@ -808,9 +808,14 @@ function initGhostCardsEvents(ghostCards: GhostCards, container: GoalChoicesCont
     if (state.selectedGoal !== null && state.activeCard === null) {
       const cardSet = getCardsInSlots();
       const choice = container.getTileMatchingGoal(state.selectedGoal);
-      const satisfiedSet = choice.satisfiedBy(cardSet);
-      ghostCards.cards = satisfiedSet;
-      ghostCards.goalTile = choice;
+      if (choice !== undefined) {
+        const satisfiedSet = choice.satisfiedBy(cardSet);
+        ghostCards.cards = satisfiedSet;
+        ghostCards.goalTile = choice;
+      } else {
+        ghostCards.cards = null;
+        ghostCards.goalTile = null;
+      }
     } else {
       ghostCards.cards = null;
       ghostCards.goalTile = null;
@@ -1048,7 +1053,7 @@ function setup() {
 
   // Add goals section.
   const discardBarLayoutParams = discardBar.getChildrenLayoutParams();
-  const goalChoicesContainer = new GoalChoicesContainer(state, contentScale, {
+  const goalChoicesContainer = new GoalChoicesContainer(state, contentScale, renderer.renderer, {
     height: window.innerHeight - trayHeight - discardBarLayoutParams.height - scoreBarHeight - 64.0 * contentScale,
     width: window.innerWidth
   }, (choice: GoalChoice) => {

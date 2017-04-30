@@ -85,7 +85,7 @@ if (!window.PlaybookBridge) {
       } catch (e) {
         console.error('Error restoring state due to exception: ', e);
         state.reset(true);
-        window.location.href = window.location.href;
+        //window.location.href = window.location.href;
       }
     },
 
