@@ -43,7 +43,6 @@ public class PredictionFragment extends WebViewFragment {
 
     private static final String PREF_NAME = "prediction";
     private static final String PREF_KEY_GAME_STATE = "gameState";
-    private static final String PREF_KEY_TUTORIAL_SHOWN = "tutorialShown";
 
     private static final SparseArray<String> PLAYBOOK_EVENTS = new SparseArray<String>();
 
@@ -71,12 +70,6 @@ public class PredictionFragment extends WebViewFragment {
             }
         } catch (JSONException e) {
             e.printStackTrace();
-        }
-
-        // Show tutorial for the first time.
-        boolean isTutorialShown = prefs.getBoolean(PREF_KEY_TUTORIAL_SHOWN, false);
-        if (!isTutorialShown) {
-            showTutorial();
         }
 
         // Populate the events.
@@ -334,13 +327,6 @@ public class PredictionFragment extends WebViewFragment {
             AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
             builder.setView(view);
             return builder.create();
-        }
-
-        @Override
-        public void onDismiss(DialogInterface dialog) {
-            super.onDismiss(dialog);
-            SharedPreferences prefs = getActivity().getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
-            prefs.edit().putBoolean(PREF_KEY_TUTORIAL_SHOWN, true).apply();
         }
     }
 
