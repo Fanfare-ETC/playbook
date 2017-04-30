@@ -2,7 +2,6 @@
 import * as PIXI from 'pixi.js';
 import GoalChoice from './GoalChoice';
 import GoalTypes from './GoalTypes';
-import ICard from './ICard';
 import IGameState from './IGameState';
 
 interface ContainerParams {
@@ -14,22 +13,19 @@ class GoalChoicesContainer extends PIXI.Container {
   _state: IGameState;
   _containerParams: ContainerParams;
   _contentScale: number;
-  _getCardSetFunc: () => ICard[];
-  _scoreFunc: (choice: GoalChoice, goal: string) => void;
+  _onChoiceTap: (choice: GoalChoice) => void;
   _choices: GoalChoice[];
 
   _goal: string | null = null;
 
   constructor(state: IGameState, contentScale: number, containerParams: ContainerParams,
-              getCardSetFunc: () => ICard[],
-              scoreFunc: (choice: GoalChoice, goal: string) => void) {
+              onChoiceTap: (choice: GoalChoice) => void) {
     super();
 
     this._state = state;
     this._containerParams = containerParams;
     this._contentScale = contentScale;
-    this._getCardSetFunc = getCardSetFunc;
-    this._scoreFunc = scoreFunc;
+    this._onChoiceTap = onChoiceTap;
 
     this._invalidate();
   }
@@ -43,8 +39,7 @@ class GoalChoicesContainer extends PIXI.Container {
     const state = this._state;
     const containerParams = this._containerParams;
     const contentScale = this._contentScale;
-    const getCardSetFunc = this._getCardSetFunc;
-    const scoreFunc = this._scoreFunc;
+    const onChoiceTap = this._onChoiceTap;
     this.removeChildren();
 
     // Don't render anything yet if the goal is not set.
@@ -84,7 +79,7 @@ class GoalChoicesContainer extends PIXI.Container {
       const choice = new GoalChoice(state, contentScale, {
         width: choiceWidth,
         height: choiceHeight
-      }, item, getCardSetFunc, scoreFunc);
+      }, item, onChoiceTap);
       this.addChild(choice);
     });
   }

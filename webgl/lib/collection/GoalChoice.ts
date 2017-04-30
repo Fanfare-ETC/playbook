@@ -217,10 +217,11 @@ class GoalChoice extends PIXI.Container {
   _contentScale: number;
   _containerParams: ContainerParams;
   _info: GoalChoiceInfo;
-  _getCardSetFunc: () => ICard[];
-  _scoreFunc: (choice: GoalChoice, goal: string) => void;
+  _onChoiceTap: (choice: GoalChoice) => void;
   _active: boolean;
+  _selected: boolean;
 
+  _glow: PIXI.Graphics;
   _background: PIXI.Graphics;
   _label: PIXI.Text;
   _example: PIXI.Sprite;
@@ -231,19 +232,21 @@ class GoalChoice extends PIXI.Container {
    * Creates a goal tile.
    */
   constructor(state: IGameState, contentScale: number, containerParams: ContainerParams,
-              info: GoalChoiceInfo, getCardSetFunc: () => ICard[],
-              scoreFunc: (choice: GoalChoice, goal: string) => void) {
+              info: GoalChoiceInfo, onChoiceTap: (choice: GoalChoice) => void) {
     super();
 
     this._state = state;
     this._contentScale = contentScale;
     this._containerParams = containerParams;
     this._info = info;
-    this._getCardSetFunc = getCardSetFunc;
-    this._scoreFunc = scoreFunc;
+    this._onChoiceTap = onChoiceTap;
     this._active = false;
 
     this._initEvents();
+
+    this._glow = new PIXI.Graphics();
+    this._glow.filters = [new PIXI.filters.BlurFilter()];
+    this.addChild(this._glow);
 
     this._background = new PIXI.Graphics();
     this.addChild(this._background);
@@ -286,6 +289,18 @@ class GoalChoice extends PIXI.Container {
     }
   }
 
+  get selected() {
+    return this._selected;
+  }
+
+  set selected(value) {
+    const oldValue = this._selected;
+    this._selected = !!value;
+    if (oldValue !== this._selected) {
+      this._invalidate();
+    }
+  }
+
   satisfiedBy(cardSet: ICard[]) : ICard[] {
     return cardSetMeetsGoal(cardSet, this._info.goal);
   }
@@ -293,24 +308,26 @@ class GoalChoice extends PIXI.Container {
   private _initEvents() {
     this.interactive = true;
     this.on('tap', () => {
-      const satisfiedSet = this.satisfiedBy(this._getCardSetFunc());
-      if (satisfiedSet.length > 0 &&
-          this._state.selectedGoal === this._info.goal) {
-        this._scoreFunc(this, this._info.goal);
-      } else {
-        this._state.selectedGoal = this._info.goal;
-      }
+      this._onChoiceTap(this);
     });
   }
 
   private _invalidate() {
     const contentScale = this._contentScale;
+    const glow = this._glow;
     const background = this._background;
     const info = this._info;
     const label = this._label;
     const example = this._example;
     const score = this._score;
     const trophy = this._trophy;
+
+    glow.clear();
+    if (this._selected) {
+      glow.beginFill(info.backgroundColor);
+      glow.drawRoundedRect(0, 0, this._containerParams.width, this._containerParams.height, 64.0 * contentScale);
+      glow.endFill();
+    }
 
     background.clear();
     background.lineStyle(12.0 * contentScale, info.backgroundColor);

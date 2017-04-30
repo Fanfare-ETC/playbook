@@ -407,8 +407,12 @@ function initCardEvents(card: Card) {
         card.moveToOrigPosition();
       }
     } else if (card.dragTarget instanceof GoalChoice) {
-      console.log('Dragged card to goal!');
-      card.moveToOrigPosition();
+      const choice = card.dragTarget as GoalChoice;
+      if (choice.active) {
+        scoreCardSet(choice, choice.info.goal);
+      } else {
+        card.moveToOrigPosition();
+      }
     } else {
       card.moveToOrigPosition();
     }
@@ -809,22 +813,29 @@ function initGoalChoicesContainerEvents(container: GoalChoicesContainer) {
   });
 
   state.emitter.on(state.EVENT_SELECTED_GOAL_CHANGED, (goal: string) => {
-    if (goal === null) { return; }
+    const cardSet = getCardsInSlots();
+    cardSet.forEach(card => card.sprite.filters = []);
+    cardSet.forEach(card => card.sprite.tint = 0xffffff);
+
+    container.children.forEach((goalTile: GoalChoice) => {
+      goalTile.selected = goal === goalTile.info.goal;
+    });
 
     const goalTile = container.children.find((goalTile: GoalChoice) => {
       return goal === goalTile.info.goal;
     }) as GoalChoice;
 
-    console.assert(goalTile !== undefined);
-
-    const cardSet = getCardsInSlots();
-    const satisfiedSet = goalTile.satisfiedBy(cardSet);
-    cardSet.forEach(card => card.sprite.filters = []);
-    //cardSet.forEach(card => card.sprite.tint = 0xffffff);
-    if (satisfiedSet.length > 0) {
-      satisfiedSet.forEach(card => card.sprite.filters = [new PIXI.filters.BloomFilter()]);
-      //satisfiedSet.forEach(card => card.sprite.tint = goalTile.info.backgroundColor);
+    if (goalTile !== undefined) {
+      const satisfiedSet = goalTile.satisfiedBy(cardSet);
+      if (satisfiedSet.length > 0) {
+        if (goalTile.info.backgroundColor === 0xffffff) {
+          satisfiedSet.forEach(card => card.sprite.filters = [new PIXI.filters.BloomFilter()]);
+        } else {
+          satisfiedSet.forEach(card => card.sprite.tint = goalTile.info.backgroundColor);
+        }
+      }
     }
+
     renderer.markDirty();
   });
 }
@@ -984,7 +995,17 @@ function setup() {
   const goalChoicesContainer = new GoalChoicesContainer(state, contentScale, {
     height: window.innerHeight - trayHeight - discardBarLayoutParams.height - scoreBarHeight - 64.0 * contentScale,
     width: window.innerWidth
-  }, getCardsInSlots, scoreCardSet);
+  }, (choice: GoalChoice) => {
+    const satisfiedSet = choice.satisfiedBy(getCardsInSlots());
+    if (satisfiedSet.length > 0 &&
+        state.selectedGoal === choice.info.goal) {
+      scoreCardSet(choice, choice.info.goal);
+    } else if (choice.active) {
+      state.selectedGoal = choice.info.goal;
+    } else {
+      state.selectedGoal = null;
+    }
+  });
   goalChoicesContainer.name = 'goalChoicesContainer';
   goalChoicesContainer.position.set(0.0, discardBarLayoutParams.height + 64.0 * contentScale);
   initGoalChoicesContainerEvents(goalChoicesContainer);
