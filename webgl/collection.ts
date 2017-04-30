@@ -254,6 +254,7 @@ class Card implements ICard {
   isActive: boolean = true;
   _tint: number = 0xffffff;
   _isDiscarding: boolean = false;
+  _isScoring: boolean = false;
 
   constructor(team: string, play: string, card: PIXI.Sprite) {
     this.play = play;
@@ -266,6 +267,11 @@ class Card implements ICard {
     this._invalidate();
   }
 
+  set isScoring(value: boolean) {
+    this._isScoring = value;
+    this._invalidate();
+  }
+
   set tint(value: number) {
     this._tint = value;
     this._invalidate();
@@ -274,6 +280,8 @@ class Card implements ICard {
   private _invalidate() {
     if (this._isDiscarding) {
       this.sprite.tint = 0xff0000;
+    } else if (this._isScoring) {
+      this.sprite.tint = 0x00ff00;
     } else {
       this.sprite.tint = this._tint;
     }
@@ -396,12 +404,24 @@ function initCardEvents(card: Card) {
         e.data.global.y
       ));
 
+      // Reset card tint flags.
+      const cardSet = getCardsInSlots();
+      for (const item of cardSet) {
+        item.isDiscarding = false;
+        item.isScoring = false;
+      }
+
       // Tint card red when in the discard zone.
       const discard = stage.getChildByName('discard');
       if (card.dragTarget === discard) {
         card.isDiscarding = true;
-      } else {
-        card.isDiscarding = false;
+      } else if (card.dragTarget instanceof GoalChoice &&
+                 state.activeCard === null) {
+        const choice = card.dragTarget as GoalChoice;
+        const satisfiedSet = choice.satisfiedBy(cardSet);
+        for (const item of satisfiedSet) {
+          item.isScoring = choice.active;
+        }
       }
 
       // Re-render the scene.
@@ -427,7 +447,8 @@ function initCardEvents(card: Card) {
       } else {
         card.moveToOrigPosition();
       }
-    } else if (card.dragTarget instanceof GoalChoice) {
+    } else if (card.dragTarget instanceof GoalChoice &&
+               state.activeCard === null) {
       const choice = card.dragTarget as GoalChoice;
       if (choice.active) {
         scoreCardSet(choice, choice.info.goal);
@@ -1067,8 +1088,8 @@ function setup() {
   stage.addChild(scoreBarShadow);
   stage.addChild(bottomShadow);
   stage.addChild(goalChoicesContainer);
-  stage.addChild(ghostCards);
   stage.addChild(trayTip);
+  stage.addChild(ghostCards);
   stage.addChild(discardBar);
 
   /**
