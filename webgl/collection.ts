@@ -784,7 +784,7 @@ function getRandomGoal() : string {
  */
 function initGhostCardsEvents(ghostCards: GhostCards, container: GoalChoicesContainer) {
   function handler() {
-    if (state.selectedGoal !== null) {
+    if (state.selectedGoal !== null && state.activeCard === null) {
       const cardSet = getCardsInSlots();
       const choice = container.getTileMatchingGoal(state.selectedGoal);
       const satisfiedSet = choice.satisfiedBy(cardSet);
@@ -798,6 +798,7 @@ function initGhostCardsEvents(ghostCards: GhostCards, container: GoalChoicesCont
 
   state.emitter.on(state.EVENT_SELECTED_GOAL_CHANGED, handler);
   state.emitter.on(state.EVENT_CARD_SLOTS_CHANGED, handler);
+  state.emitter.on(state.EVENT_ACTIVE_CARD_CHANGED, handler);
 }
 
 /**
@@ -844,39 +845,34 @@ function initGoalChoicesContainerEvents(container: GoalChoicesContainer) {
     }
   });
 
-  state.emitter.on(state.EVENT_CARD_SLOTS_CHANGED, function (slots: CardSlot[]) {
-    const cardSet = getCardsInSlots();
-    for (const goal of container.children as GoalChoice[]) {
-      const goalCards = goal.satisfiedBy(cardSet as ICard[]);
-      goal.active = goalCards.length > 0;
-    }
-
-    renderer.markDirty();
-  });
-
-  state.emitter.on(state.EVENT_SELECTED_GOAL_CHANGED, (goal: string) => {
+  function handler() {
     const cardSet = getCardsInSlots();
     cardSet.forEach(card => card.sprite.filters = []);
     cardSet.forEach(card => card.tint = 0xffffff);
 
-    container.children.forEach((goalTile: GoalChoice) => {
-      goalTile.selected = goal === goalTile.info.goal;
-    });
-
-    const goalTile = container.getTileMatchingGoal(goal);
-    if (goalTile !== undefined) {
-      const satisfiedSet = goalTile.satisfiedBy(cardSet);
-      if (satisfiedSet.length > 0) {
-        if (goalTile.info.backgroundColor === 0xffffff) {
-          satisfiedSet.forEach(card => card.sprite.filters = [new PIXI.filters.BloomFilter()]);
-        } else {
-          satisfiedSet.forEach(card => card.tint = goalTile.info.backgroundColor);
-        }
-      }
+    for (const choice of container.children as GoalChoice[]) {
+      const satisfiedSet = choice.satisfiedBy(cardSet as ICard[]);
+      choice.active = satisfiedSet.length > 0;
+      choice.selected = choice.active && state.selectedGoal === choice.info.goal;
     }
 
+    const goalTile = container.getTileMatchingGoal(state.selectedGoal!);
+    if (goalTile !== undefined) {
+        const satisfiedSet = goalTile.satisfiedBy(cardSet);
+        if (satisfiedSet.length > 0) {
+          if (goalTile.info.backgroundColor === 0xffffff) {
+            satisfiedSet.forEach(card => card.sprite.filters = [new PIXI.filters.BloomFilter()]);
+          } else {
+            satisfiedSet.forEach(card => card.tint = goalTile.info.backgroundColor);
+          }
+        }
+     }
+
     renderer.markDirty();
-  });
+  }
+
+  state.emitter.on(state.EVENT_CARD_SLOTS_CHANGED, handler);
+  state.emitter.on(state.EVENT_SELECTED_GOAL_CHANGED, handler);
 }
 
 /**

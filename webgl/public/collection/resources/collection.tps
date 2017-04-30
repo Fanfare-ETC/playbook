@@ -72,7 +72,7 @@
             </struct>
         </struct>
         <key>shapePadding</key>
-        <uint>8</uint>
+        <uint>4</uint>
         <key>jpgQuality</key>
         <uint>80</uint>
         <key>pngOptimizationLevel</key>
@@ -86,7 +86,7 @@
         <key>textureFormat</key>
         <enum type="SettingsBase::TextureFormat">png</enum>
         <key>borderPadding</key>
-        <uint>4</uint>
+        <uint>0</uint>
         <key>maxTextureSize</key>
         <QSize>
             <key>width</key>
@@ -199,23 +199,6 @@
         </struct>
         <key>individualSpriteSettings</key>
         <map type="IndividualSpriteSettingsMap">
-            <key type="filename">Collection-Bar-Gold-9x16.png</key>
-            <key type="filename">Collection-Bar-Green-9x16.png</key>
-            <key type="filename">Collection-Bar-Yellow-9x16.png</key>
-            <key type="filename">Collection-Shadow-9x16.png</key>
-            <key type="filename">Collection-Shadow-Overturn.png</key>
-            <struct type="IndividualSpriteSettings">
-                <key>pivotPoint</key>
-                <point_f>0.5,0.5</point_f>
-                <key>scale9Enabled</key>
-                <false/>
-                <key>scale9Borders</key>
-                <rect>0,32,1,64</rect>
-                <key>scale9Paddings</key>
-                <rect>0,32,1,64</rect>
-                <key>scale9FromFile</key>
-                <false/>
-            </struct>
             <key type="filename">Collection-Example-2-2.png</key>
             <struct type="IndividualSpriteSettings">
                 <key>pivotPoint</key>
@@ -338,17 +321,12 @@
         </map>
         <key>fileList</key>
         <array>
-            <filename>Collection-Bar-Gold-9x16.png</filename>
-            <filename>Collection-Bar-Green-9x16.png</filename>
-            <filename>Collection-Bar-Yellow-9x16.png</filename>
             <filename>Collection-Example-2.png</filename>
             <filename>Collection-Example-2-2.png</filename>
             <filename>Collection-Example-2-3.png</filename>
             <filename>Collection-Example-3.png</filename>
             <filename>Collection-Example-4.png</filename>
             <filename>Collection-Example-5.png</filename>
-            <filename>Collection-Shadow-9x16.png</filename>
-            <filename>Collection-Shadow-Overturn.png</filename>
             <filename>Collection-Tray-9x16.png</filename>
             <filename>trophy/empty.png</filename>
             <filename>trophy/trophy1.png</filename>
