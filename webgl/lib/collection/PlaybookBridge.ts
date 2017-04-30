@@ -6,8 +6,7 @@ interface PlaybookBridge {
   notifyGameState: (stateJSON: string) => void,
   notifyLoaded: (state?: any) => void,
   goToLeaderboard: () => void,
-  goToTrophyCase: () => void,
-  showTrophyAcquiredDialog: () => void
+  goToTrophyCase: () => void
 }
 
 declare global {
@@ -99,13 +98,7 @@ if (!window.PlaybookBridge) {
      * Changes to the trophy case.
      * This is a no-op for the mock bridge.
      */
-    goToTrophyCase: function () {},
-
-    /**
-     * Shows an alert dialog that a trophy is acquired.
-     * This is a no-op for the mock bridge.
-     */
-    showTrophyAcquiredDialog: function () {}
+    goToTrophyCase: function () {}
   };
 } else {
   PlaybookBridge = window.PlaybookBridge;

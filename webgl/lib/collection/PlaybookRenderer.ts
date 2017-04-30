@@ -1,8 +1,10 @@
 'use strict';
 import * as PIXI from 'pixi.js';
+import * as particles from 'pixi-particles';
 
 class PlaybookRenderer {
   renderer: PIXI.CanvasRenderer | PIXI.WebGLRenderer;
+  emitters: particles.Emitter[] = [];
 
   _dirty: boolean = false;
 

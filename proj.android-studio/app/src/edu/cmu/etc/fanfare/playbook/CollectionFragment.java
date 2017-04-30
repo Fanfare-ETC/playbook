@@ -344,12 +344,6 @@ public class CollectionFragment extends WebViewFragment {
             intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
             startActivity(intent);
         }
-
-        @JavascriptInterface
-        public void showTrophyAcquiredDialog() {
-            DialogFragment dialog = (DialogFragment) DialogFragment.instantiate(getActivity(), TrophyAcquiredDialogFragment.class.getName());
-            dialog.show(getFragmentManager(), null);
-        }
     }
 
 }

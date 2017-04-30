@@ -1,6 +1,7 @@
 'use strict';
 import * as PIXI from 'pixi.js';
 import 'pixi-action';
+import * as particles from 'pixi-particles';
 import Trophy from './Trophy';
 import GoalTypesMetadata from './GoalTypesMetadata';
 import PlaybookRenderer from './PlaybookRenderer';
@@ -12,6 +13,8 @@ class SetScoredOverlay extends PIXI.Container {
   private _background: PIXI.Graphics;
   private _innerContainer: PIXI.Container;
   private _innerBackground: PIXI.Graphics;
+  private _emitter: particles.Emitter;
+  private _particlesContainer: PIXI.Container;
   private _title: PIXI.Text;
   private _score: PIXI.Text;
   private _trophy: Trophy;
@@ -25,11 +28,63 @@ class SetScoredOverlay extends PIXI.Container {
     this._background = new PIXI.Graphics();
     this.addChild(this._background);
 
+    this._particlesContainer = new PIXI.Container();
+    this.addChild(this._particlesContainer);
+
     this._innerContainer = new PIXI.Container();
     this.addChild(this._innerContainer);
 
     this._innerBackground = new PIXI.Graphics();
     this._innerContainer.addChild(this._innerBackground);
+
+    this._emitter = new particles.Emitter(this._particlesContainer,
+      [PIXI.loader.resources['resources/Item-Ball.png'].texture], {
+					alpha: {
+						start: 1,
+						end: 1
+					},
+					scale: {
+						start: 0.75,
+						end: 1.0,
+						minimumScaleMultiplier: 0.5
+					},
+					color: {
+						start: 'ffffff',
+						end: 'ffffff'
+					},
+					speed: {
+						start: 200,
+						end: 200
+					},
+					startRotation: {
+						min: 80,
+						max: 100
+					},
+					rotationSpeed: {
+						min: 0,
+						max: 50
+					},
+					lifetime: {
+						min: 3.5,
+						max: 4
+					},
+					blendMode: 'normal',
+					frequency: 0.08,
+					emitterLifetime: 0,
+					maxParticles: 500,
+					pos: {
+						x: 0,
+						y: 0
+					},
+					addAtBack: false,
+					spawnType: 'rect',
+					spawnRect: {
+						x: 0,
+						y: -64.0,
+						w: window.innerWidth,
+						h: 0
+					}
+      });
 
     this._title = new PIXI.Text();
     this._innerContainer.addChild(this._title);
@@ -104,12 +159,18 @@ class SetScoredOverlay extends PIXI.Container {
     this.alpha = 1.0;
 
     const contentScale = this._contentScale;
+    const renderer = this._renderer;
     const background = this._background;
     const innerContainer = this._innerContainer;
     const innerBackground = this._innerBackground;
+    const emitter = this._emitter;
     const title = this._title;
     const trophy = this._trophy;
     const score = this._score;
+
+    emitter.cleanup();
+    renderer.emitters.push(emitter);
+    emitter.emit = true;
 
     // Needs to be cleared early to determine correct width for inner container.
     innerBackground.clear();
@@ -182,7 +243,11 @@ class SetScoredOverlay extends PIXI.Container {
 
   hide() {
     const fadeOut = new PIXI.action.FadeOut(0.5);
-    const callFunc = new PIXI.action.CallFunc(() => this.visible = false);
+    const callFunc = new PIXI.action.CallFunc(() => {
+      this.visible = false;
+      this._renderer.emitters.splice(this._renderer.emitters.indexOf(this._emitter), 1);
+      this._emitter.emit = false;
+    });
     const sequence = new PIXI.action.Sequence([fadeOut, callFunc]);
     PIXI.actionManager.runAction(this, sequence);
   }

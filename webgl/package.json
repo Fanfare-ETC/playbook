@@ -15,6 +15,7 @@
     "fontfaceobserver": "^2.0.9",
     "pixi-action": "github:yjwong/pixi-action",
     "pixi-filters": "^1.0.6",
+    "pixi-particles": "^2.1.5",
     "pixi.js": "^4.4.4"
   },
   "devDependencies": {

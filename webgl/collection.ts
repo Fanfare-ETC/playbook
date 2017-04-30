@@ -443,6 +443,7 @@ function initCardEvents(card: Card) {
       ));
 
       // Reset card tint flags.
+      card.isDiscarding = false;
       const cardSet = getCardsInSlots();
       for (const item of cardSet) {
         item.isDiscarding = false;
@@ -518,11 +519,6 @@ function scoreCardSet(choice: GoalChoice, goal: string) {
   // Remove matching cards.
   const satisfiedSet = choice.satisfiedBy(cardSet);
   satisfiedSet.forEach(card => discardCard(card));
-
-  // If the goal matches, we show a dialog.
-  if (goal === state.goal) {
-    PlaybookBridge.showTrophyAcquiredDialog();
-  }
 
   // Send score and achievement to server.
   reportScore(GoalTypesMetadata[goal].score);
@@ -1162,6 +1158,10 @@ function setup() {
       renderer.markDirty();
     }
 
+    if (renderer.emitters.length > 0) {
+      renderer.markDirty();
+    }
+
     // Check if we have cards pending in the queue.
     if (state.activeCard === null && state.incomingCards.length > 0) {
       const play = state.incomingCards.pop();
@@ -1173,6 +1173,9 @@ function setup() {
     // Re-render only if dirty.
     if (renderer.dirty) {
       PIXI.actionManager.update((now - lastRenderTime) / 1000);
+      for (const emitter of renderer.emitters) {
+        emitter.update((now - lastRenderTime) / 1000);
+      }
       renderer.render(stage);
     }
 
@@ -1218,5 +1221,6 @@ configureFonts(['proxima-nova-excn', 'SCOREBOARD', 'rockwell'])
       .add('resources/cards/Card-F-Strikeout.jpg')
       .add('resources/cards/Card-F-TriplePlay.jpg')
       .add('resources/cards/Card-F-UnopposedStrikeout.jpg')
+      .add('resources/Item-Ball.png')
       .load(setup);
   });
