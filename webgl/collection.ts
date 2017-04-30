@@ -994,7 +994,6 @@ function initTrayTipEvents(trayTip: TrayTip) {
  */
 function initSetScoredOverlayEvents(overlay: SetScoredOverlay) {
   state.emitter.on(state.EVENT_LAST_SCORED_GOAL_CHANGED, (goal: string) => {
-    console.log('changed!');
     if (goal !== null) {
       overlay.show(goal);
     }
@@ -1137,9 +1136,8 @@ function setup() {
   initTrayTipEvents(trayTip);
 
   // Add set scored screen.
-  const setScoredOverlay = new SetScoredOverlay(contentScale);
+  const setScoredOverlay = new SetScoredOverlay(contentScale, renderer);
   initSetScoredOverlayEvents(setScoredOverlay);
-  //setScoredOverlay.visible = false;
 
   // Add the items in order of appearance.
   stage.addChild(bg);
