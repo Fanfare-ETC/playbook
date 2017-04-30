@@ -1,12 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@drawable/bg">
     <LinearLayout android:orientation="vertical"
                   android:layout_width="match_parent"
                   android:layout_height="wrap_content">
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="16dp"
+            android:background="@android:color/white" />
+
         <TextView
-            android:id="@+id/onboarding_step_1_three_minigames"
+            android:id="@+id/welcome_three_minigames"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="-8dp"
@@ -28,7 +34,7 @@
 
             <TextView
                 style="@style/onboardingTileStyle"
-                android:id="@+id/onboarding_step_1_prediction"
+                android:id="@+id/welcome_prediction"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:drawableStart="@drawable/ic_betting_board_inverse"
@@ -44,7 +50,7 @@
             android:orientation="horizontal">
             <TextView
                 style="@style/onboardingTileStyle"
-                android:id="@+id/onboarding_step_1_collection"
+                android:id="@+id/welcome_collection"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:drawableStart="@drawable/ic_catch_the_play_game_inverse"
@@ -59,7 +65,7 @@
             android:orientation="horizontal">
             <TextView
                 style="@style/onboardingTileStyle"
-                android:id="@+id/onboarding_step_1_hotcold"
+                android:id="@+id/welcome_hotcold"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:drawableStart="@drawable/menu_icon_hotcold_inverse"
