@@ -5,6 +5,7 @@ import * as particles from 'pixi-particles';
 import Trophy from './Trophy';
 import GoalTypesMetadata from './GoalTypesMetadata';
 import PlaybookRenderer from './PlaybookRenderer';
+import ICard from './ICard';
 
 class SetScoredOverlay extends PIXI.Container {
   private _contentScale: number;
@@ -16,7 +17,9 @@ class SetScoredOverlay extends PIXI.Container {
   private _emitter: particles.Emitter;
   private _particlesContainer: PIXI.Container;
   private _title: PIXI.Text;
+  private _scoreContainer: PIXI.Container;
   private _score: PIXI.Text;
+  private _scorePointsEarned: PIXI.Text;
   private _trophy: Trophy;
 
   constructor(contentScale: number, renderer: PlaybookRenderer) {
@@ -92,15 +95,23 @@ class SetScoredOverlay extends PIXI.Container {
     this._trophy = new Trophy();
     this._innerContainer.addChild(this._trophy);
 
+    this._scoreContainer = new PIXI.Container();
+    this._innerContainer.addChild(this._scoreContainer);
+
     this._score = new PIXI.Text();
-    this._innerContainer.addChild(this._score);
+    this._scoreContainer.addChild(this._score);
+
+    this._scorePointsEarned = new PIXI.Text();
+    this._scoreContainer.addChild(this._scorePointsEarned);
 
     this._initEvents();
     this.visible = false;
   }
 
   private _initEvents() {
-    this.interactive = true;
+    this._background.interactive = true;
+    this._background.on('tap', () => this.hide());
+
     const innerContainer = this._innerContainer;
 
     let origPosition: PIXI.Point | null = null;
@@ -154,7 +165,7 @@ class SetScoredOverlay extends PIXI.Container {
       .on('touchcancel', onTouchEnd);
   }
 
-  show(goal: string) {
+  show(goal: string, cardSet: ICard[]) {
     this.visible = true;
     this.alpha = 1.0;
 
@@ -166,7 +177,9 @@ class SetScoredOverlay extends PIXI.Container {
     const emitter = this._emitter;
     const title = this._title;
     const trophy = this._trophy;
+    const scoreContainer = this._scoreContainer;
     const score = this._score;
+    const scorePointsEarned = this._scorePointsEarned;
 
     emitter.cleanup();
     renderer.emitters.push(emitter);
@@ -198,13 +211,27 @@ class SetScoredOverlay extends PIXI.Container {
     trophy.anchor.set(0.5, 0);
 
     if (goal) {
-      score.position.set(0.0, trophy.position.y + trophy.height + 64.0 * contentScale);
-      score.anchor.set(0.5, 0);
+      scoreContainer.position.set(0.0, trophy.position.y + trophy.height + 64.0 * contentScale);
+
+      score.position.set(0.0, 0.0);
       score.text = GoalTypesMetadata[goal!].score.toString();
       score.style.fill = 0x002b65;
       score.style.fontFamily = 'SCOREBOARD';
       score.style.fontSize = 256.0 * contentScale;
       score.style.align = 'center';
+      const scoreMetrics = PIXI.TextMetrics.measureText(score.text, score.style);
+
+      scorePointsEarned.text = ' points earned.';
+      scorePointsEarned.style.fill = 0x002b65;
+      scorePointsEarned.style.fontFamily = 'rockwell';
+      scorePointsEarned.style.fontWeight = 'bold';
+      scorePointsEarned.style.fontSize = 96.0 * contentScale;
+      scorePointsEarned.style.align = 'center';
+      const scorePointsEarnedMetrics = PIXI.TextMetrics.measureText(scorePointsEarned.text, scorePointsEarned.style);
+      scorePointsEarned.position.set(scoreMetrics.width, scoreMetrics.height / 2 - scorePointsEarnedMetrics.height / 2);
+
+      // Relayout after measurement.
+      scoreContainer.pivot.x = scoreContainer.width / 2;
     }
 
     innerContainer.pivot.set(innerContainer.width / 2, innerContainer.height / 2);
@@ -218,7 +245,7 @@ class SetScoredOverlay extends PIXI.Container {
     const center = innerContainer.width / 2;
     title.position.x = center;
     trophy.position.x = center;
-    score.position.x = center;
+    scoreContainer.position.x = center;
 
     innerBackground.beginFill(0xffffff);
     innerBackground.drawRoundedRect(

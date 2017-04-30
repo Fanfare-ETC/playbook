@@ -19,7 +19,7 @@ import PlaybookRenderer from './lib/collection/PlaybookRenderer';
 
 import CardSlot from './lib/collection/CardSlot';
 import DiscardBar from './lib/collection/DiscardBar';
-import IGameState from './lib/collection/IGameState';
+import IGameState, { ILastScoredGoalInfo } from './lib/collection/IGameState';
 import ICard from './lib/collection/ICard';
 import TrayTip from './lib/collection/TrayTip';
 import SetScoredOverlay from './lib/collection/SetScoredOverlay';
@@ -54,7 +54,7 @@ class GameState implements IGameState {
   EVENT_CARD_SLOTS_CHANGED: string = 'cardSlotsChanged';
   EVENT_SELECTED_GOAL_CHANGED: string = 'selectedGoalChanged';
   EVENT_SCORE_CHANGED: string = 'scoreChanged';
-  EVENT_LAST_SCORED_GOAL_CHANGED: string = 'lastScoredGoalChanged';
+  EVENT_LAST_SCORED_GOAL_INFO_CHANGED: string = 'lastScoredGoalInfoChanged';
 
   emitter: EventEmitter;
 
@@ -66,7 +66,7 @@ class GameState implements IGameState {
   goalSets: { [goal: string]: Card[] } = {};
   _selectedGoal: string | null = null;
   _score: number = 0;
-  _lastScoredGoal: string | null = null;
+  _lastScoredGoalInfo: ILastScoredGoalInfo | null = null;
 
   constructor() {
     this.emitter = new EventEmitter();
@@ -155,15 +155,15 @@ class GameState implements IGameState {
     PlaybookBridge.notifyGameState(this.toJSON());
   }
 
-  get lastScoredGoal() {
-    return this._lastScoredGoal;
+  get lastScoredGoalInfo() {
+    return this._lastScoredGoalInfo;
   }
 
-  set lastScoredGoal(value) {
-    const oldValue = this._lastScoredGoal;
-    this._lastScoredGoal = value;
+  set lastScoredGoalInfo(value) {
+    const oldValue = this._lastScoredGoalInfo;
+    this._lastScoredGoalInfo = value;
     console.log('lastScoredGoal->', value);
-    this.emitter.emit(this.EVENT_LAST_SCORED_GOAL_CHANGED, value, oldValue);
+    this.emitter.emit(this.EVENT_LAST_SCORED_GOAL_INFO_CHANGED, value, oldValue);
     PlaybookBridge.notifyGameState(this.toJSON());
   }
 
@@ -239,7 +239,7 @@ class GameState implements IGameState {
       this.emitter.emit(this.EVENT_CARD_SLOTS_CHANGED, this._cardSlots, null);
       this.emitter.emit(this.EVENT_SELECTED_GOAL_CHANGED, this._selectedGoal, null);
       this.emitter.emit(this.EVENT_SCORE_CHANGED, this._score, null);
-      this.emitter.emit(this.EVENT_LAST_SCORED_GOAL_CHANGED, this._lastScoredGoal, null);
+      this.emitter.emit(this.EVENT_LAST_SCORED_GOAL_INFO_CHANGED, this._lastScoredGoalInfo, null);
     }
   }
 }
@@ -540,7 +540,10 @@ function scoreCardSet(choice: GoalChoice, goal: string) {
 
   // Update score.
   state.score = state.score + GoalTypesMetadata[goal].score;
-  state.lastScoredGoal = goal;
+  state.lastScoredGoalInfo = {
+    goal: goal,
+    cardSet: satisfiedSet
+  };
   state.selectedGoal = null;
   state.goal = getRandomGoal();
 }
@@ -1009,9 +1012,9 @@ function initTrayTipEvents(trayTip: TrayTip, container: GoalChoicesContainer) {
  * Initializes events for the set scored overlay.
  */
 function initSetScoredOverlayEvents(overlay: SetScoredOverlay) {
-  state.emitter.on(state.EVENT_LAST_SCORED_GOAL_CHANGED, (goal: string) => {
-    if (goal !== null) {
-      overlay.show(goal);
+  state.emitter.on(state.EVENT_LAST_SCORED_GOAL_INFO_CHANGED, (info: ILastScoredGoalInfo) => {
+    if (info !== null) {
+      overlay.show(info.goal, info.cardSet);
     }
   });
 }

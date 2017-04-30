@@ -3,6 +3,11 @@ import { EventEmitter } from 'eventemitter3';
 import CardSlot from './CardSlot';
 import ICard from './ICard';
 
+export interface ILastScoredGoalInfo {
+  goal: string;
+  cardSet: ICard[];
+}
+
 interface IGameState {
   EVENT_ACTIVE_CARD_CHANGED: string;
   EVENT_INCOMING_CARDS_CHANGED: string;
