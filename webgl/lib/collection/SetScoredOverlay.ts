@@ -14,6 +14,7 @@ import ICard from './ICard';
 class DismissableCard extends PIXI.Container {
   protected _renderer: PlaybookRenderer;
   private _onDismiss: () => void;
+  private _isAnimating: boolean = false;
 
   constructor(renderer: PlaybookRenderer, onDismiss: () => void) {
     super();
@@ -28,6 +29,7 @@ class DismissableCard extends PIXI.Container {
     let startOffset: PIXI.Point | null = null;
 
     const onTouchStart = (e: PIXI.interaction.InteractionEvent) => {
+      if (this._isAnimating) { return; }
       origPosition = new PIXI.Point(this.position.x, this.position.y);
       startPosition = new PIXI.Point(e.data.global.x, e.data.global.y);
       startOffset = e.data.getLocalPosition(this);
@@ -48,6 +50,7 @@ class DismissableCard extends PIXI.Container {
     }
 
     const onTouchEnd = (e: PIXI.interaction.InteractionEvent) => {
+      if (this._isAnimating) { return; }
       if (origPosition === null) { return; }
 
       const bounds = new PIXI.Rectangle(
@@ -56,12 +59,16 @@ class DismissableCard extends PIXI.Container {
       );
 
       if (bounds.contains(e.data.global.x, e.data.global.y)) {
+        this._isAnimating = true;
         const rotateTo = new PIXI.action.RotateTo(0, 0.25);
         const moveTo = new PIXI.action.MoveTo(origPosition.x, origPosition.y, 0.25);
+        const callFunc = new PIXI.action.CallFunc(() => {
+          this._isAnimating = false;
+        });
+        const sequence = new PIXI.action.Sequence([moveTo, callFunc]);
         PIXI.actionManager.runAction(this, rotateTo);
-        PIXI.actionManager.runAction(this, moveTo);
+        PIXI.actionManager.runAction(this, sequence);
       } else {
-        this._onDismiss();
         this._dismiss();
       }
     }
@@ -76,7 +83,9 @@ class DismissableCard extends PIXI.Container {
 
   private _dismiss() {
     const fadeOut = new PIXI.action.FadeOut(0.5);
-    PIXI.actionManager.runAction(this, fadeOut);
+    const callFunc = new PIXI.action.CallFunc(() => this._onDismiss());
+    const sequence = new PIXI.action.Sequence([fadeOut, callFunc]);
+    PIXI.actionManager.runAction(this, sequence);
   }
 }
 
@@ -117,9 +126,12 @@ class SetScoredCard extends DismissableCard {
 
     this._scorePointsEarned = new PIXI.Text();
     this._scoreContainer.addChild(this._scorePointsEarned);
+
+    this.visible = false;
   }
 
   show(goal: string, cardSet: ICard[]) {
+    this.visible = true;
     const contentScale = this._contentScale;
 
     const background = this._background;
@@ -241,9 +253,12 @@ class NewTrophyCard extends DismissableCard {
 
     this._trophy = new Trophy();
     this.addChild(this._trophy);
+
+    this.visible = false;
   }
 
   show(goal: string) {
+    this.visible = true;
     const contentScale = this._contentScale;
     const background = this._background;
     const title = this._title;
