@@ -6,7 +6,7 @@
         <key>texturePackerVersion</key>
         <string>4.4.0</string>
         <key>fileName</key>
-        <string>/home/yjwong/Documents/fanfare/playbook/webgl/public/prediction/resources/prediction.tps</string>
+        <string>/home/yjwong/Documents/fanfare/playbook/webgl/public/collection/resources/collection.tps</string>
         <key>autoSDSettings</key>
         <array>
             <struct type="AutoSDSettings">
@@ -72,7 +72,7 @@
             </struct>
         </struct>
         <key>shapePadding</key>
-        <uint>0</uint>
+        <uint>4</uint>
         <key>jpgQuality</key>
         <uint>80</uint>
         <key>pngOptimizationLevel</key>
@@ -97,9 +97,9 @@
         <key>fixedTextureSize</key>
         <QSize>
             <key>width</key>
-            <int>-1</int>
+            <int>2048</int>
             <key>height</key>
-            <int>-1</int>
+            <int>2048</int>
         </QSize>
         <key>algorithmSettings</key>
         <struct type="AlgorithmSettings">
@@ -108,9 +108,9 @@
             <key>freeSizeMode</key>
             <enum type="AlgorithmSettings::AlgorithmFreeSizeMode">Best</enum>
             <key>sizeConstraints</key>
-            <enum type="AlgorithmSettings::SizeConstraints">POT</enum>
+            <enum type="AlgorithmSettings::SizeConstraints">AnySize</enum>
             <key>forceSquared</key>
-            <false/>
+            <true/>
             <key>maxRects</key>
             <struct type="AlgorithmMaxRectsSettings">
                 <key>heuristic</key>
@@ -150,7 +150,7 @@
             <key>data</key>
             <struct type="DataFile">
                 <key>name</key>
-                <filename>prediction.json</filename>
+                <filename>collection.json</filename>
             </struct>
         </map>
         <key>multiPack</key>
@@ -199,105 +199,151 @@
         </struct>
         <key>individualSpriteSettings</key>
         <map type="IndividualSpriteSettingsMap">
-            <key type="filename">Ball-Text-x1.png</key>
-            <key type="filename">Ball-Text-x2.png</key>
-            <key type="filename">Ball-Text-x3.png</key>
-            <key type="filename">Ball-Text-x4.png</key>
-            <key type="filename">Ball-Text-x5.png</key>
-            <key type="filename">Item-Ball-Hollow.png</key>
+            <key type="filename">Collection-Example-2-2.png</key>
             <struct type="IndividualSpriteSettings">
                 <key>pivotPoint</key>
                 <point_f>0.5,0.5</point_f>
                 <key>scale9Enabled</key>
                 <false/>
                 <key>scale9Borders</key>
-                <rect>16,16,32,32</rect>
+                <rect>97,47,194,94</rect>
                 <key>scale9Paddings</key>
-                <rect>16,16,32,32</rect>
+                <rect>97,47,194,94</rect>
                 <key>scale9FromFile</key>
                 <false/>
             </struct>
-            <key type="filename">Item-Ball.png</key>
+            <key type="filename">Collection-Example-2-3.png</key>
             <struct type="IndividualSpriteSettings">
                 <key>pivotPoint</key>
                 <point_f>0.5,0.5</point_f>
                 <key>scale9Enabled</key>
                 <false/>
                 <key>scale9Borders</key>
-                <rect>128,128,256,256</rect>
+                <rect>106,53,212,105</rect>
                 <key>scale9Paddings</key>
-                <rect>128,128,256,256</rect>
+                <rect>106,53,212,105</rect>
                 <key>scale9FromFile</key>
                 <false/>
             </struct>
-            <key type="filename">Prediction-Banner.png</key>
+            <key type="filename">Collection-Example-2.png</key>
             <struct type="IndividualSpriteSettings">
                 <key>pivotPoint</key>
                 <point_f>0.5,0.5</point_f>
                 <key>scale9Enabled</key>
                 <false/>
                 <key>scale9Borders</key>
-                <rect>360,20,720,40</rect>
+                <rect>41,46,82,92</rect>
                 <key>scale9Paddings</key>
-                <rect>360,20,720,40</rect>
+                <rect>41,46,82,92</rect>
                 <key>scale9FromFile</key>
                 <false/>
             </struct>
-            <key type="filename">Prediction-Button-Continue.png</key>
+            <key type="filename">Collection-Example-3.png</key>
             <struct type="IndividualSpriteSettings">
                 <key>pivotPoint</key>
                 <point_f>0.5,0.5</point_f>
                 <key>scale9Enabled</key>
                 <false/>
                 <key>scale9Borders</key>
-                <rect>360,40,720,80</rect>
+                <rect>52,48,103,96</rect>
                 <key>scale9Paddings</key>
-                <rect>360,40,720,80</rect>
+                <rect>52,48,103,96</rect>
                 <key>scale9FromFile</key>
                 <false/>
             </struct>
-            <key type="filename">Prediction-Holder-BallsSlot.png</key>
+            <key type="filename">Collection-Example-4.png</key>
             <struct type="IndividualSpriteSettings">
                 <key>pivotPoint</key>
                 <point_f>0.5,0.5</point_f>
                 <key>scale9Enabled</key>
                 <false/>
                 <key>scale9Borders</key>
-                <rect>360,60,720,120</rect>
+                <rect>62,52,124,104</rect>
                 <key>scale9Paddings</key>
-                <rect>360,60,720,120</rect>
+                <rect>62,52,124,104</rect>
                 <key>scale9FromFile</key>
                 <false/>
             </struct>
-            <key type="filename">Prediction-Oddstab.png</key>
-            <key type="filename">Prediction-Scoretab.png</key>
+            <key type="filename">Collection-Example-5.png</key>
             <struct type="IndividualSpriteSettings">
                 <key>pivotPoint</key>
                 <point_f>0.5,0.5</point_f>
                 <key>scale9Enabled</key>
                 <false/>
                 <key>scale9Borders</key>
-                <rect>101,55,202,110</rect>
+                <rect>72,52,145,104</rect>
                 <key>scale9Paddings</key>
-                <rect>101,55,202,110</rect>
+                <rect>72,52,145,104</rect>
+                <key>scale9FromFile</key>
+                <false/>
+            </struct>
+            <key type="filename">Collection-Tray-9x16.png</key>
+            <struct type="IndividualSpriteSettings">
+                <key>pivotPoint</key>
+                <point_f>0.5,0.5</point_f>
+                <key>scale9Enabled</key>
+                <false/>
+                <key>scale9Borders</key>
+                <rect>360,118,720,236</rect>
+                <key>scale9Paddings</key>
+                <rect>360,118,720,236</rect>
+                <key>scale9FromFile</key>
+                <false/>
+            </struct>
+            <key type="filename">trophy/empty.png</key>
+            <key type="filename">trophy/trophy1.png</key>
+            <key type="filename">trophy/trophy10.png</key>
+            <key type="filename">trophy/trophy11.png</key>
+            <key type="filename">trophy/trophy12.png</key>
+            <key type="filename">trophy/trophy13.png</key>
+            <key type="filename">trophy/trophy14.png</key>
+            <key type="filename">trophy/trophy15.png</key>
+            <key type="filename">trophy/trophy2.png</key>
+            <key type="filename">trophy/trophy3.png</key>
+            <key type="filename">trophy/trophy4.png</key>
+            <key type="filename">trophy/trophy5.png</key>
+            <key type="filename">trophy/trophy6.png</key>
+            <key type="filename">trophy/trophy7.png</key>
+            <key type="filename">trophy/trophy8.png</key>
+            <key type="filename">trophy/trophy9.png</key>
+            <struct type="IndividualSpriteSettings">
+                <key>pivotPoint</key>
+                <point_f>0.5,0.5</point_f>
+                <key>scale9Enabled</key>
+                <false/>
+                <key>scale9Borders</key>
+                <rect>83,83,165,165</rect>
+                <key>scale9Paddings</key>
+                <rect>83,83,165,165</rect>
                 <key>scale9FromFile</key>
                 <false/>
             </struct>
         </map>
         <key>fileList</key>
         <array>
-            <filename>Item-Ball.png</filename>
-            <filename>Prediction-Banner.png</filename>
-            <filename>Prediction-Button-Continue.png</filename>
-            <filename>Prediction-Holder-BallsSlot.png</filename>
-            <filename>Prediction-Oddstab.png</filename>
-            <filename>Prediction-Scoretab.png</filename>
-            <filename>Item-Ball-Hollow.png</filename>
-            <filename>Ball-Text-x1.png</filename>
-            <filename>Ball-Text-x2.png</filename>
-            <filename>Ball-Text-x3.png</filename>
-            <filename>Ball-Text-x4.png</filename>
-            <filename>Ball-Text-x5.png</filename>
+            <filename>Collection-Example-2.png</filename>
+            <filename>Collection-Example-2-2.png</filename>
+            <filename>Collection-Example-2-3.png</filename>
+            <filename>Collection-Example-3.png</filename>
+            <filename>Collection-Example-4.png</filename>
+            <filename>Collection-Example-5.png</filename>
+            <filename>Collection-Tray-9x16.png</filename>
+            <filename>trophy/empty.png</filename>
+            <filename>trophy/trophy1.png</filename>
+            <filename>trophy/trophy2.png</filename>
+            <filename>trophy/trophy3.png</filename>
+            <filename>trophy/trophy4.png</filename>
+            <filename>trophy/trophy5.png</filename>
+            <filename>trophy/trophy6.png</filename>
+            <filename>trophy/trophy7.png</filename>
+            <filename>trophy/trophy8.png</filename>
+            <filename>trophy/trophy9.png</filename>
+            <filename>trophy/trophy10.png</filename>
+            <filename>trophy/trophy11.png</filename>
+            <filename>trophy/trophy12.png</filename>
+            <filename>trophy/trophy13.png</filename>
+            <filename>trophy/trophy14.png</filename>
+            <filename>trophy/trophy15.png</filename>
         </array>
         <key>ignoreFileList</key>
         <array/>

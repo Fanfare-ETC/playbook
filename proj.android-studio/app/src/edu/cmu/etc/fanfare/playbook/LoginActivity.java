@@ -18,8 +18,6 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.common.api.GoogleApiClient;
 
-import static edu.cmu.etc.fanfare.playbook.PlaybookApplication.PREF_KEY_IS_ONBOARDING_COMPLETE;
-
 public class LoginActivity extends AppCompatActivity implements GoogleApiClient.OnConnectionFailedListener {
     private static final String TAG = "LoginActivity";
     private static final int RC_SIGN_IN = 1;
@@ -30,17 +28,6 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.login_activity);
-
-        // Is it the first time we're using the app?
-        // If so, show the onboarding flow.
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-        boolean isOnboardingComplete = prefs.getBoolean(PREF_KEY_IS_ONBOARDING_COMPLETE, false);
-        if (!isOnboardingComplete) {
-            Intent intent = new Intent(this, OnboardingActivity.class);
-            startActivity(intent);
-            finish();
-            return;
-        }
 
         // Configure sign-in to request the user's ID, email address, and basic
         // profile. ID and basic profile are included in DEFAULT_SIGN_IN.

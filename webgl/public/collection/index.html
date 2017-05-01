@@ -11,11 +11,20 @@
         font-weight: 900;
         font-style: normal;
       }
-       @font-face {
+
+      @font-face {
         font-family: 'SCOREBOARD';
         src: url('resources/SCOREBOARD.woff2');
         font-variant: normal;
         font-weight: normal;
+        font-style: normal;
+      }
+
+      @font-face {
+        font-family: 'rockwell';
+        src: url('resources/rockwell-bold.woff2');
+        font-variant: normal;
+        font-weight: bold;
         font-style: normal;
       }
 
@@ -26,20 +35,28 @@
         user-select: none;
       }
 
+      .webfont-loading-hack {
+        position: absolute;
+        color: rgba(255, 255, 255, 0);
+      }
+
       .webfont-loading-hack-proxima-nova-excn {
         font-family: 'proxima-nova-excn';
-        position: absolute;
       }
 
       .webfont-loading-hack-SCOREBOARD {
         font-family: 'SCOREBOARD';
-        position: absolute;
+      }
+
+      .webfont-loading-hack-rockwell {
+        font-family: 'rockwell';
       }
     </style>
   </head>
   <body>
-    <div class="webfont-loading-hack-proxima-nova-excn">X</div>
-    <div class="webfont-loading-hack-SCOREBOARD">X</div>
+    <div class="webfont-loading-hack webfont-loading-hack-proxima-nova-excn">X</div>
+    <div class="webfont-loading-hack webfont-loading-hack-SCOREBOARD">X</div>
+    <div class="webfont-loading-hack webfont-loading-hack-rockwell">X</div>
     <script src="collection.js"></script>
   </body>
 </html>

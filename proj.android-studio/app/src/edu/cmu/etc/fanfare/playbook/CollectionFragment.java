@@ -44,7 +44,6 @@ public class CollectionFragment extends WebViewFragment {
 
     private static final String PREF_NAME = "collection";
     private static final String PREF_KEY_GAME_STATE = "gameState";
-    private static final String PREF_KEY_TUTORIAL_SHOWN = "tutorialShown";
 
     private JSONObject mGameState;
     private boolean mIsAttached;
@@ -53,12 +52,11 @@ public class CollectionFragment extends WebViewFragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        SharedPreferences prefs = getActivity().getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
 
         // We use SharedPreference because the savedInstanceState doesn't work
         // if the fragment doesn't have an ID.
         try {
-            prefs = getActivity().getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+            SharedPreferences prefs = getActivity().getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
             String gameState = prefs.getString(PREF_KEY_GAME_STATE, null);
             if (gameState != null) {
                 Log.d(TAG, "Restoring game state from bundle: " + gameState);
@@ -69,12 +67,6 @@ public class CollectionFragment extends WebViewFragment {
             }
         } catch (JSONException e) {
             e.printStackTrace();
-        }
-
-        // Show tutorial for the first time.
-        boolean isTutorialShown = prefs.getBoolean(PREF_KEY_TUTORIAL_SHOWN, false);
-        if (!isTutorialShown) {
-            showTutorial();
         }
 
         // Declare that we have an options menu.
@@ -238,13 +230,6 @@ public class CollectionFragment extends WebViewFragment {
             builder.setView(view);
             return builder.create();
         }
-
-        @Override
-        public void onDismiss(DialogInterface dialog) {
-            super.onDismiss(dialog);
-            SharedPreferences prefs = getActivity().getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
-            prefs.edit().putBoolean(PREF_KEY_TUTORIAL_SHOWN, true).apply();
-        }
     }
 
     public static class TrophyAcquiredDialogFragment extends DialogFragment {
@@ -302,7 +287,7 @@ public class CollectionFragment extends WebViewFragment {
         }
 
         @JavascriptInterface
-        public void notifyLoaded() {
+        public void notifyLoaded(String state) {
             Log.d(TAG, "The JavaScript world has arrived");
             getActivity().runOnUiThread(new Runnable() {
                 @Override
@@ -343,12 +328,6 @@ public class CollectionFragment extends WebViewFragment {
             intent.putExtra(AppActivity.INTENT_EXTRA_DRAWER_ITEM, DrawerItemAdapter.DRAWER_ITEM_TROPHY);
             intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
             startActivity(intent);
-        }
-
-        @JavascriptInterface
-        public void showTrophyAcquiredDialog() {
-            DialogFragment dialog = (DialogFragment) DialogFragment.instantiate(getActivity(), TrophyAcquiredDialogFragment.class.getName());
-            dialog.show(getFragmentManager(), null);
         }
     }
 

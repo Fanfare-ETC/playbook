@@ -29,7 +29,7 @@ module.exports = function (env) {
   return {
     entry: {
       prediction: './prediction.js',
-      collection: './collection.js'
+      collection: './collection.ts'
     },
     output: {
       filename: '[name]/[name].js',
@@ -47,12 +47,28 @@ module.exports = function (env) {
             ]
           }
         }
+      }, {
+        test: /\.tsx?$/,
+        use: [{
+          loader: 'babel-loader',
+          options: {
+            presets: [
+              ['env', { modules: false }]
+            ]
+          }
+        }, {
+          loader: 'ts-loader'
+        }],
+        exclude: /(node_modules)/
       }]
     },
     devtool: env.production ? 'cheap-module-source-map' : 'eval',
     devServer: {
       contentBase: path.join(__dirname, 'public'),
       port: 9050
+    },
+    resolve: {
+      extensions: ['.ts', '.tsx', '.js']
     },
     plugins
   };

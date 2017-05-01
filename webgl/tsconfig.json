@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "module": "es6",
+    "noImplicitAny": true,
+    "noImplicitReturns": true,
+    "noImplicitThis": true,
+    "noUnusedLocals": true,
+    "strictNullChecks": true,
+    "moduleResolution": "node",
+    "target": "es6",
+    "sourceMap": true
+  },
+  "include": [
+    "lib/**/*",
+    "typings/**/*",
+    "collection.ts",
+    "prediction.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}
