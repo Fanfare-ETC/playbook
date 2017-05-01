@@ -199,6 +199,11 @@
         </struct>
         <key>individualSpriteSettings</key>
         <map type="IndividualSpriteSettingsMap">
+            <key type="filename">Ball-Text-x1.png</key>
+            <key type="filename">Ball-Text-x2.png</key>
+            <key type="filename">Ball-Text-x3.png</key>
+            <key type="filename">Ball-Text-x4.png</key>
+            <key type="filename">Ball-Text-x5.png</key>
             <key type="filename">Item-Ball-Hollow.png</key>
             <struct type="IndividualSpriteSettings">
                 <key>pivotPoint</key>
@@ -212,11 +217,6 @@
                 <key>scale9FromFile</key>
                 <false/>
             </struct>
-            <key type="filename">Item-Ball-x1.png</key>
-            <key type="filename">Item-Ball-x2.png</key>
-            <key type="filename">Item-Ball-x3.png</key>
-            <key type="filename">Item-Ball-x4.png</key>
-            <key type="filename">Item-Ball-x5.png</key>
             <key type="filename">Item-Ball.png</key>
             <struct type="IndividualSpriteSettings">
                 <key>pivotPoint</key>
@@ -287,17 +287,17 @@
         <key>fileList</key>
         <array>
             <filename>Item-Ball.png</filename>
-            <filename>Item-Ball-x1.png</filename>
-            <filename>Item-Ball-x2.png</filename>
-            <filename>Item-Ball-x3.png</filename>
-            <filename>Item-Ball-x4.png</filename>
-            <filename>Item-Ball-x5.png</filename>
             <filename>Prediction-Banner.png</filename>
             <filename>Prediction-Button-Continue.png</filename>
             <filename>Prediction-Holder-BallsSlot.png</filename>
             <filename>Prediction-Oddstab.png</filename>
             <filename>Prediction-Scoretab.png</filename>
             <filename>Item-Ball-Hollow.png</filename>
+            <filename>Ball-Text-x1.png</filename>
+            <filename>Ball-Text-x2.png</filename>
+            <filename>Ball-Text-x3.png</filename>
+            <filename>Ball-Text-x4.png</filename>
+            <filename>Ball-Text-x5.png</filename>
         </array>
         <key>ignoreFileList</key>
         <array/>
