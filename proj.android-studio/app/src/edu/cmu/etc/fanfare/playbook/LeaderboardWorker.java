@@ -1,6 +1,5 @@
 package edu.cmu.etc.fanfare.playbook;
 
-import android.app.ListActivity;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.Typeface;
@@ -16,8 +15,6 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
-import android.widget.TableLayout;
-import android.widget.TableRow;
 import android.widget.TextView;
 
 import org.json.JSONArray;
@@ -25,44 +22,58 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-import static android.R.attr.id;
-import static android.R.attr.text;
-import static edu.cmu.etc.fanfare.playbook.R.styleable.View;
-
 /**
+ * Background worker for the leaderboard screen
+ * Connects to the server and retrieves info
+ * of top 10 players in a separate thread
+ * Then display the data to UI thread
  * Created by yqi1 on 3/23/2017.
  */
 
 public class LeaderboardWorker extends AsyncTask<String,Void,String> {
 
+    //current fragment is passed in to get the necessary context
     public LeaderboardFragment activity;
+    //constructor
+    LeaderboardWorker(LeaderboardFragment activity)
+    {
+        this.activity = activity;
+    }
 
+            //url for rank according to total score
     private final String urlStringLeader = "http://" +
             BuildConfig.PLAYBOOK_SECTION_API_HOST + ":" +
             BuildConfig.PLAYBOOK_SECTION_API_PORT + "/" +
             BuildConfig.PLAYBOOK_LEADER_APP;
+            //url for rank according to prediction score
     private final String urlStringLeaderP = "http://" +
             BuildConfig.PLAYBOOK_SECTION_API_HOST + ":" +
             BuildConfig.PLAYBOOK_SECTION_API_PORT + "/" +
             BuildConfig.PLAYBOOK_LEADERP_APP;
+            //url for rank according to collection score
     private final String urlStringLeaderC = "http://" +
             BuildConfig.PLAYBOOK_SECTION_API_HOST + ":" +
             BuildConfig.PLAYBOOK_SECTION_API_PORT + "/" +
             BuildConfig.PLAYBOOK_LEADERC_APP;
-    private int flag = 0; //0 order by total, 1 order by prediction, 2 order by collection
+    //url for rank according to badge
+    private final String urlStringLeaderB = "http://" +
+            BuildConfig.PLAYBOOK_SECTION_API_HOST + ":" +
+            BuildConfig.PLAYBOOK_SECTION_API_PORT + "/" +
+            BuildConfig.PLAYBOOK_LEADERB_APP;
+            //flag to decide on ranking criteria
+            //0 order by total, 1 order by prediction, 2 order by collection, 3 order by badge
+    private int flag = 0;
 
+    /*An instance of Leaders captures all the data of one player*/
     public class Leaders {
         String rank;
         String name;
@@ -71,23 +82,29 @@ public class LeaderboardWorker extends AsyncTask<String,Void,String> {
         int totalScore;
         int badge;
     }
-
+    /*An instance of LeaderboardAdapter enables populating data to an item in listview*/
     public class LeaderboardAdapter extends ArrayAdapter<Leaders> {
+        /*An instance of ViewHolder stores all the views of a listed item in the layout*/
         private class ViewHolder {
             TextView mRank;
             TextView mName;
             TextView mPrediction, mCollection;
             ImageView mBadge;
         }
-
+        /*constructor*/
         public LeaderboardAdapter(@NonNull Context context, @LayoutRes int resource, @NonNull List<Leaders> objects) {
             super(context, resource, objects);
         }
 
         @Override
+        /*In this function the info is assigned to each view of the listed item
+        * according to the position in the listview
+        * so the data is populated through the list
+        * and the list containers are reused*/
         public android.view.View getView(int position, View convertView, ViewGroup parent) {
             Leaders leader = getItem(position);
             LeaderboardAdapter.ViewHolder viewHolder;
+            //find all the views in the layout
             if (convertView == null) {
                 viewHolder = new LeaderboardAdapter.ViewHolder();
                 LayoutInflater inflater = LayoutInflater.from(activity.getActivity());
@@ -103,14 +120,14 @@ public class LeaderboardWorker extends AsyncTask<String,Void,String> {
             }
 
             // Populate data from leader.
-
+            //font for the leaderboard
             Typeface fontCat = Typeface.createFromAsset(activity.getActivity().getAssets(), "fonts/nova2.ttf");
 
-            Log.i("LEAD_LIST", "Name" + leader.name +
+            /*Log.i("LEAD_LIST", "Name" + leader.name +
                     ", Prediction" + leader.predictionScore +
                     ", Collection" + leader.collectionScore +
                     ", Total" + leader.totalScore +
-                    ", Badge" + leader.badge);
+                    ", Badge" + leader.badge);*/
 
             viewHolder.mRank.setText("#" + leader.rank);
             if(Integer.parseInt(leader.rank) == 1){
@@ -129,6 +146,8 @@ public class LeaderboardWorker extends AsyncTask<String,Void,String> {
             viewHolder.mName.setTypeface(fontCat);
             viewHolder.mName.setTextSize(20);
 
+            //adjust the font size of the scores for large numbers to fit in
+            //might want to do this by using scroll bars in the future
             int scoreSize = 20;
             if(leader.predictionScore > 999 | leader.collectionScore > 999 | leader.totalScore > 999){
                 if(leader.predictionScore>9999 | leader.collectionScore> 9999 | leader.totalScore > 9999){
@@ -140,6 +159,8 @@ public class LeaderboardWorker extends AsyncTask<String,Void,String> {
 
             }
 
+            //need to change the font color into yellow if it is the ranking criteria
+            //by default is total scores
             viewHolder.mPrediction.setText(String.valueOf(leader.predictionScore));
             if (flag == 1) {
                 viewHolder.mPrediction.setTextColor(Color.parseColor("#FFC300"));
@@ -162,18 +183,7 @@ public class LeaderboardWorker extends AsyncTask<String,Void,String> {
             viewHolder.mCollection.setGravity(Gravity.RIGHT | Gravity.CENTER);
             viewHolder.mCollection.setTypeface(fontCat);
 
-         /*   viewHolder.mTotal.setText(String.valueOf(leader.totalScore));
-            if (flag == 0) {
-                viewHolder.mTotal.setTextColor(Color.parseColor("#FFC300"));
-            }
-            else{
-                viewHolder.mTotal.setTextColor(Color.WHITE);
-            }
-            viewHolder.mTotal.setTextSize(scoreSize);
-            viewHolder.mTotal.setGravity(Gravity.RIGHT | Gravity.CENTER);
-            viewHolder.mTotal.setTypeface(fontCat);
-*/
-
+            //display the badge
             if(leader.badge == 1){
                 viewHolder.mBadge.setImageResource(R.drawable.badge);
             }
@@ -182,56 +192,31 @@ public class LeaderboardWorker extends AsyncTask<String,Void,String> {
         }
     }
 
-
-    LeaderboardWorker(LeaderboardFragment activity)
-    {
-        this.activity = activity;
-    }
-
     @Override
+    /*do on background thread to retrieve the player data*/
     protected String doInBackground(String... params) {
         String result = null;
 
+        //default ranking by total score
         if (params[0].equals("0")) {
             try {
                 flag = 0;
-                // String sort=Integer.toString(section);
-                //Log.v("sec",Integer.toString(section));
-                //String move = "2";
-                //URL url = new URL("http://10.0.2.2:9000/leaderboard");
 
                 URL url = new URL(urlStringLeader);
                 Log.i("TEST_URL", "String URL: " + url);
                 HttpURLConnection httpURLConnection = (HttpURLConnection)url.openConnection();
                 httpURLConnection.setRequestMethod("GET");
-                //httpURLConnection.setDoOutput(true);
-                //httpURLConnection.setDoInput(false);
+
                 httpURLConnection.setRequestProperty("Accept", "application/json");
                 httpURLConnection.setRequestProperty("Content-type", "application/json");
-                //OutputStream outputStream = httpURLConnection.getOutputStream();
-               // BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(outputStream, "UTF-8"));
-               // JSONObject object = new JSONObject();
-               /* object.put("id", section);
-                Log.d("test", object.toString());*/
-                // String post_data = URLEncoder.encode("sectionNo","UTF-8")+"="+URLEncoder.encode(sec,"UTF-8")+"&"
-                //    + URLEncoder.encode("Move","UTF-8")+"="+URLEncoder.encode(move,"UTF-8");
-                //bufferedWriter.write(object.toString());
-               // bufferedWriter.flush();
-               // bufferedWriter.close();
-               // outputStream.close();
+
                 int responseCode = httpURLConnection.getResponseCode();
                 if(responseCode != 200)
                     return null;
                 Log.d("HTTP", "Leaderboard Response code: " + responseCode);
                 InputStream inputStream = httpURLConnection.getInputStream();
                 BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream,"iso-8859-1"));
-                /*StringBuilder sb = new StringBuilder();
-                String row = null;
-                while((row = bufferedReader.readLine()) != null )
-                {
-                    sb.append(row + "\n");
-                }*/
-                //String result="";
+
                 String line = null;
                 StringBuilder sb = new StringBuilder();
                 while((line = bufferedReader.readLine())!= null) {
@@ -250,44 +235,25 @@ public class LeaderboardWorker extends AsyncTask<String,Void,String> {
             }
         }
 
+        //ranking by prediction score
         else if (params[0].equals("1")) {
             try {
                 flag = 1;
-                // String sort=Integer.toString(section);
-                //Log.v("sec",Integer.toString(section));
-                //String move = "2";
-                //URL url = new URL("http://10.0.2.2:9000/leaderboard");
+
                 URL url = new URL(urlStringLeaderP);
                 HttpURLConnection httpURLConnection = (HttpURLConnection)url.openConnection();
                 httpURLConnection.setRequestMethod("GET");
-                //httpURLConnection.setDoOutput(true);
-                //httpURLConnection.setDoInput(false);
+
                 httpURLConnection.setRequestProperty("Accept", "application/json");
                 httpURLConnection.setRequestProperty("Content-type", "application/json");
-                //OutputStream outputStream = httpURLConnection.getOutputStream();
-                // BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(outputStream, "UTF-8"));
-                // JSONObject object = new JSONObject();
-               /* object.put("id", section);
-                Log.d("test", object.toString());*/
-                // String post_data = URLEncoder.encode("sectionNo","UTF-8")+"="+URLEncoder.encode(sec,"UTF-8")+"&"
-                //    + URLEncoder.encode("Move","UTF-8")+"="+URLEncoder.encode(move,"UTF-8");
-                //bufferedWriter.write(object.toString());
-                // bufferedWriter.flush();
-                // bufferedWriter.close();
-                // outputStream.close();
+
                 int responseCode = httpURLConnection.getResponseCode();
                 if(responseCode != 200)
                     return null;
                 Log.d("HTTP", "LeaderboardP Response code: " + responseCode);
                 InputStream inputStream = httpURLConnection.getInputStream();
                 BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream,"iso-8859-1"));
-                /*StringBuilder sb = new StringBuilder();
-                String row = null;
-                while((row = bufferedReader.readLine()) != null )
-                {
-                    sb.append(row + "\n");
-                }*/
-                //String result="";
+
                 String line = null;
                 StringBuilder sb = new StringBuilder();
                 while((line = bufferedReader.readLine())!= null) {
@@ -306,44 +272,66 @@ public class LeaderboardWorker extends AsyncTask<String,Void,String> {
             }
         }
 
+        //ranking by collection score
         else if (params[0].equals("2")) {
             try {
                 flag = 2;
-                // String sort=Integer.toString(section);
-                //Log.v("sec",Integer.toString(section));
-                //String move = "2";
-                //URL url = new URL("http://10.0.2.2:9000/leaderboard");
+
                 URL url = new URL(urlStringLeaderC);
                 HttpURLConnection httpURLConnection = (HttpURLConnection)url.openConnection();
                 httpURLConnection.setRequestMethod("GET");
-                //httpURLConnection.setDoOutput(true);
-                //httpURLConnection.setDoInput(false);
+
                 httpURLConnection.setRequestProperty("Accept", "application/json");
                 httpURLConnection.setRequestProperty("Content-type", "application/json");
-                //OutputStream outputStream = httpURLConnection.getOutputStream();
-                // BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(outputStream, "UTF-8"));
-                // JSONObject object = new JSONObject();
-               /* object.put("id", section);
-                Log.d("test", object.toString());*/
-                // String post_data = URLEncoder.encode("sectionNo","UTF-8")+"="+URLEncoder.encode(sec,"UTF-8")+"&"
-                //    + URLEncoder.encode("Move","UTF-8")+"="+URLEncoder.encode(move,"UTF-8");
-                //bufferedWriter.write(object.toString());
-                // bufferedWriter.flush();
-                // bufferedWriter.close();
-                // outputStream.close();
+
                 int responseCode = httpURLConnection.getResponseCode();
                 Log.d("HTTP", "LeaderboardC Response code: " + responseCode);
-                if(responseCode != 200)
+                if(responseCode != 200){
                     return null;
+                }
+
                 InputStream inputStream = httpURLConnection.getInputStream();
                 BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream,"iso-8859-1"));
-                /*StringBuilder sb = new StringBuilder();
-                String row = null;
-                while((row = bufferedReader.readLine()) != null )
-                {
-                    sb.append(row + "\n");
-                }*/
-                //String result="";
+
+                String line = null;
+                StringBuilder sb = new StringBuilder();
+                while((line = bufferedReader.readLine())!= null) {
+                    Log.i("LEAD_TR", "Count rows of result object");
+                    sb.append(line);
+                }
+                result = sb.toString();
+                bufferedReader.close();
+                inputStream.close();
+                httpURLConnection.disconnect();
+
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        //ranking by badge
+        else if (params[0].equals("3")) {
+            try {
+                flag = 3;
+
+                URL url = new URL(urlStringLeaderB);
+                HttpURLConnection httpURLConnection = (HttpURLConnection)url.openConnection();
+                httpURLConnection.setRequestMethod("GET");
+
+                httpURLConnection.setRequestProperty("Accept", "application/json");
+                httpURLConnection.setRequestProperty("Content-type", "application/json");
+
+                int responseCode = httpURLConnection.getResponseCode();
+                Log.d("HTTP", "LeaderboardB Response code: " + responseCode);
+                if(responseCode != 200){
+                    return null;
+                }
+
+                InputStream inputStream = httpURLConnection.getInputStream();
+                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream,"iso-8859-1"));
+
                 String line = null;
                 StringBuilder sb = new StringBuilder();
                 while((line = bufferedReader.readLine())!= null) {
@@ -367,11 +355,12 @@ public class LeaderboardWorker extends AsyncTask<String,Void,String> {
 
     @Override
     protected void onPreExecute() {
-
+        //nothing needs to be done before retrieving the data
     }
 
     @Override
     protected void onPostExecute(String result) {
+        //after retrieving data, save them into an arraylist
         JSONArray jArray = null;
         if(result != null) {
             try {
@@ -383,12 +372,6 @@ public class LeaderboardWorker extends AsyncTask<String,Void,String> {
                     JSONObject json_data = null;
                     json_data = jArray.getJSONObject(i);
 
-                    Log.i("LEAD_TR", "Name" + json_data.getString("UserName") +
-                            ", Prediction" + json_data.getInt("PredictionScore") +
-                            ", Collection" + json_data.getString("CollectionScore") +
-                            ", Total" + json_data.getString("Total") +
-                            ", Badge" + json_data.getInt("Badge"));
-                    
                     Leaders leader = new Leaders();
                     leader.rank = Integer.toString(i+1);
                     leader.name = json_data.getString("UserName");
@@ -399,7 +382,7 @@ public class LeaderboardWorker extends AsyncTask<String,Void,String> {
 
                     leaders.add(leader);
                 }
-
+                //create an adapter, and set it to the leaderboard listview
                 LeaderboardAdapter leaderboardAdapter = new LeaderboardAdapter(activity.getActivity(), R.layout.leaderboard_list_item, leaders);
                 ListView listView = (ListView) activity.getView().findViewById(R.id.leaderboardList);
                 listView.setAdapter(leaderboardAdapter);
@@ -409,7 +392,7 @@ public class LeaderboardWorker extends AsyncTask<String,Void,String> {
         }
         else{
 
-            /*Typeface externalFont = Typeface.createFromAsset(activity.getActivity().getAssets(), "fonts/nova2.ttf");
+           /* Typeface externalFont = Typeface.createFromAsset(activity.getActivity().getAssets(), "fonts/nova2.ttf");
 
             TextView b0 = new TextView(activity.getActivity());
             b0.setTypeface(externalFont);
@@ -422,6 +405,7 @@ public class LeaderboardWorker extends AsyncTask<String,Void,String> {
 
     @Override
     protected void onProgressUpdate(Void... values) {
+        //nothing displayed during the background process
         super.onProgressUpdate(values);
     }
 

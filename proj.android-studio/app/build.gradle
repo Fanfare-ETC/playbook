@@ -22,6 +22,7 @@ android {
         buildConfigField 'String', 'PLAYBOOK_LEADER_APP', '"leaderboard"'
         buildConfigField 'String', 'PLAYBOOK_LEADERP_APP', '"leaderboardP"'
         buildConfigField 'String', 'PLAYBOOK_LEADERC_APP', '"leaderboardC"'
+        buildConfigField 'String', 'PLAYBOOK_LEADERB_APP', '"leaderboardB"'
         buildConfigField 'String', 'PLAYBOOK_SELF_APP', '"selfScore"'
         buildConfigField 'String', 'PLAYBOOK_TROPHY_APP', '"myTrophy"'
     }
