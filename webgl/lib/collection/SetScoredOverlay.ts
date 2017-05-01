@@ -83,7 +83,10 @@ class DismissableCard extends PIXI.Container {
 
   private _dismiss() {
     const fadeOut = new PIXI.action.FadeOut(0.5);
-    const callFunc = new PIXI.action.CallFunc(() => this._onDismiss());
+    const callFunc = new PIXI.action.CallFunc(() => {
+      this.visible = false;
+      this._onDismiss();
+    });
     const sequence = new PIXI.action.Sequence([fadeOut, callFunc]);
     PIXI.actionManager.runAction(this, sequence);
   }
