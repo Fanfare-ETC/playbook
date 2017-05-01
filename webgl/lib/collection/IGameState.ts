@@ -6,6 +6,7 @@ import ICard from './ICard';
 export interface ILastScoredGoalInfo {
   goal: string;
   cardSet: ICard[];
+  trophyGained: boolean;
 }
 
 interface IGameState {

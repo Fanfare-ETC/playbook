@@ -1,4 +1,5 @@
 'use strict';
+import 'babel-polyfill';
 import * as PIXI from 'pixi.js';
 import 'pixi-action';
 import 'pixi-filters';
@@ -525,7 +526,7 @@ function initCardEvents(card: Card) {
  * Scores the given card set.
  * @param {string} goal
  */
-function scoreCardSet(choice: GoalChoice, goal: string) {
+async function scoreCardSet(choice: GoalChoice, goal: string) {
   const cardSet = state.cardSlots
     .filter(slot => slot.present)
     .map(slot => slot.card) as ICard[];
@@ -536,13 +537,14 @@ function scoreCardSet(choice: GoalChoice, goal: string) {
 
   // Send score and achievement to server.
   reportScore(GoalTypesMetadata[goal].score);
-  reportGoal(goal);
+  const trophyGained = await reportGoal(goal);
 
   // Update score.
   state.score = state.score + GoalTypesMetadata[goal].score;
   state.lastScoredGoalInfo = {
     goal: goal,
-    cardSet: satisfiedSet
+    cardSet: satisfiedSet,
+    trophyGained: trophyGained
   };
   state.selectedGoal = null;
   state.goal = getRandomGoal();
@@ -975,14 +977,26 @@ function reportScore(score: number) {
  * Reports a trophy achievement to the server.
  * @param {string} goal
  */
-function reportGoal(goal: string) {
-  const request = new XMLHttpRequest();
-  request.open('POST', `${PlaybookBridge.getSectionAPIUrl()}/updateTrophy`);
-  request.setRequestHeader('Content-Type', 'application/json');
-  request.send(JSON.stringify({
-    trophyId: GoalTypesMetadata[goal].serverId,
-    userId: PlaybookBridge.getPlayerID()
-  }));
+async function reportGoal(goal: string) : Promise<boolean> {
+  return new Promise<boolean>((resolve, reject) => {
+    const request = new XMLHttpRequest();
+    request.open('POST', `${PlaybookBridge.getSectionAPIUrl()}/updateTrophy`);
+    request.setRequestHeader('Content-Type', 'application/json');
+    request.send(JSON.stringify({
+      trophyId: GoalTypesMetadata[goal].serverId,
+      userId: PlaybookBridge.getPlayerID()
+    }));
+    request.addEventListener('load', () => {
+      // TODO: Ideally this endpoint should return 409 if a trophy already exists,
+      // but I don't have the luxury of time now to do that.
+      if (request.responseText === 'Trophy already gained') {
+        resolve(false);
+      } else {
+        resolve(true);
+      }
+    });
+    request.addEventListener('error', reject);
+  });
 }
 
 /**
@@ -1014,7 +1028,7 @@ function initTrayTipEvents(trayTip: TrayTip, container: GoalChoicesContainer) {
 function initSetScoredOverlayEvents(overlay: SetScoredOverlay) {
   state.emitter.on(state.EVENT_LAST_SCORED_GOAL_INFO_CHANGED, (info: ILastScoredGoalInfo) => {
     if (info !== null) {
-      overlay.show(info.goal, info.cardSet);
+      overlay.show(info.goal, info.cardSet, info.trophyGained);
     }
   });
 }
