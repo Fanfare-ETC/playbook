@@ -4,7 +4,7 @@ root = true
 end_of_line = lf
 charset = utf-8
 
-[*.{js,json}]
+[*.{js,json,ts}]
 indent_size = 2
 indent_style = space
 trim_trailing_whitespace = true

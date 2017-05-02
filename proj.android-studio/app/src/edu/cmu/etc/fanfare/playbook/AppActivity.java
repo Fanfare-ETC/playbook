@@ -1,6 +1,5 @@
 package edu.cmu.etc.fanfare.playbook;
 
-import android.app.Application;
 import android.app.FragmentManager;
 import android.app.NotificationManager;
 import android.content.Intent;
@@ -40,21 +39,23 @@ import static edu.cmu.etc.fanfare.playbook.DrawerItemAdapter.DRAWER_ITEM_LEADERB
 import static edu.cmu.etc.fanfare.playbook.DrawerItemAdapter.DRAWER_ITEM_PREDICTION;
 import static edu.cmu.etc.fanfare.playbook.DrawerItemAdapter.DRAWER_ITEM_TREASURE_HUNT;
 import static edu.cmu.etc.fanfare.playbook.DrawerItemAdapter.DRAWER_ITEM_TROPHY;
+import static edu.cmu.etc.fanfare.playbook.DrawerItemAdapter.DRAWER_ITEM_WELCOME;
 import static edu.cmu.etc.fanfare.playbook.DrawerItemAdapter.getDrawerItems;
 
 public class AppActivity extends AppCompatActivity {
     public static final String INTENT_EXTRA_DRAWER_ITEM = "intentExtraDrawerItem";
 
-    private static final int FRAGMENT_PREDICTION = 0;
-    private static final int FRAGMENT_COLLECTION = 1;
-    private static final int FRAGMENT_TREASURE_HUNT = 2;
-    private static final int FRAGMENT_LEADERBOARD = 3;
-    private static final int FRAGMENT_TROPHY = 4;
-    private static final int FRAGMENT_SEAT_SELECT = 5;
+    private static final int FRAGMENT_WELCOME = 0;
+    private static final int FRAGMENT_PREDICTION = 1;
+    private static final int FRAGMENT_COLLECTION = 2;
+    private static final int FRAGMENT_TREASURE_HUNT = 3;
+    private static final int FRAGMENT_LEADERBOARD = 4;
+    private static final int FRAGMENT_TROPHY = 5;
+    private static final int FRAGMENT_SEAT_SELECT = 6;
 
     private static final String TAG = "AppActivity";
     private static final String STATE_SELECTED_SECTION = "selected_section";
-    private static final int DEFAULT_ITEM = FRAGMENT_PREDICTION;
+    private static final int DEFAULT_ITEM = FRAGMENT_WELCOME;
     private static final String PLAYBOOK_API_URL = "ws://" +
             BuildConfig.PLAYBOOK_API_HOST + ":" +
             BuildConfig.PLAYBOOK_API_PORT;
@@ -160,6 +161,7 @@ public class AppActivity extends AppCompatActivity {
         }
 
         // Create the fragments.
+        mFragments.put(FRAGMENT_WELCOME, new WelcomeFragment());
         mFragments.put(FRAGMENT_PREDICTION, new PredictionFragment());
         mFragments.put(FRAGMENT_LEADERBOARD, new LeaderboardFragment());
         mFragments.put(FRAGMENT_COLLECTION, new CollectionFragment());
@@ -277,6 +279,7 @@ public class AppActivity extends AppCompatActivity {
         // Create a new fragment based on selected position
         PlaybookFragment fragment;
         switch (position) {
+            case DRAWER_ITEM_WELCOME:
             case DRAWER_ITEM_PREDICTION:
             case DRAWER_ITEM_COLLECTION:
             case DRAWER_ITEM_TROPHY:
@@ -310,8 +313,8 @@ public class AppActivity extends AppCompatActivity {
         // Add the previous selection to the stack.
         if (addToBackStack) {
             mBackStack.push(mLastSelectedItem);
-            mLastSelectedItem = position;
         }
+        mLastSelectedItem = position;
 
         // Close the drawer
         selectedItem = position;

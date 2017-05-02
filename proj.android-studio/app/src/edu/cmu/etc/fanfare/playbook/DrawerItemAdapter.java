@@ -16,11 +16,12 @@ import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
 class DrawerItemAdapter extends ArrayAdapter<DrawerItemAdapter.DrawerItem> {
-    static final int DRAWER_ITEM_PREDICTION = 0;
-    static final int DRAWER_ITEM_COLLECTION = 1;
-    static final int DRAWER_ITEM_TREASURE_HUNT = 2;
-    static final int DRAWER_ITEM_LEADERBOARD = 3;
-    static final int DRAWER_ITEM_TROPHY = 4;
+    static final int DRAWER_ITEM_WELCOME = 0;
+    static final int DRAWER_ITEM_PREDICTION = 1;
+    static final int DRAWER_ITEM_COLLECTION = 2;
+    static final int DRAWER_ITEM_TREASURE_HUNT = 3;
+    static final int DRAWER_ITEM_LEADERBOARD = 4;
+    static final int DRAWER_ITEM_TROPHY = 5;
 
     DrawerItemAdapter(Context context, int resource, DrawerItem[] objects) {
         super(context, resource, objects);

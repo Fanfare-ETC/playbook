@@ -676,7 +676,7 @@ class BallCountSprite extends PIXI.Sprite {
   /** @param {number} value */
   set count(value) {
     if (value > 1) {
-      const texture = PIXI.loader.resources['resources/prediction.json'].textures[`Item-Ball-x${value}.png`];
+      const texture = PIXI.loader.resources['resources/prediction.json'].textures[`Ball-Text-x${value}.png`];
       this.texture = texture;
     } else {
       this.texture = null;
