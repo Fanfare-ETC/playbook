@@ -1,14 +1,25 @@
 'use strict';
 import GenericCard from './GenericCard';
 
+export interface IOverlayBackground extends PIXI.DisplayObject {
+  onShow: () => void;
+  onHide: () => void;
+}
+
 class GenericOverlay extends PIXI.Container {
   private _background: PIXI.Graphics;
+  private _customBackground: IOverlayBackground | null = null;
   private _current: GenericCard | null = null;
   private _cardQueue: GenericCard[] = [];
   private _isAnimating: boolean = false;
 
-  constructor() {
+  constructor(background?: IOverlayBackground) {
     super();
+
+    if (background !== undefined) {
+      this._customBackground = background;
+      this.addChild(this._customBackground);
+    }
 
     this._background = new PIXI.Graphics();
     this.addChild(this._background);
@@ -19,8 +30,9 @@ class GenericOverlay extends PIXI.Container {
   }
 
   private _initEvents() {
-    this._background.interactive = true;
-    this._background.on('tap', () => {
+    const background = this._customBackground !== null ? this._customBackground : this._background;
+    background.interactive = true;
+    background.on('tap', () => {
       if (this._isAnimating) { return; }
       this._hide();
     });
@@ -38,15 +50,33 @@ class GenericOverlay extends PIXI.Container {
     this.alpha = 1.0;
 
     const background = this._background;
-    const cardQueue = this._cardQueue;
 
-    background.clear();
-    background.beginFill(0x000000, 0.75);
-    background.drawRect(0, 0, window.innerWidth, window.innerHeight);
-    background.endFill();
-    background.alpha = 0.0;
+    if (this._customBackground === null) {
+      background.clear();
+      background.beginFill(0x000000, 0.75);
+      background.drawRect(0, 0, window.innerWidth, window.innerHeight);
+      background.endFill();
+      background.alpha = 0.0;
+    } else {
+      this._customBackground.onShow();
+    }
 
-    const card = cardQueue.shift();
+    this._showNextCard();
+
+    // Perform animation
+    this._isAnimating = true;
+    const fadeIn = new PIXI.action.FadeIn(0.25);
+    const callFunc = new PIXI.action.CallFunc(() => this._isAnimating = false);
+    const sequence = new PIXI.action.Sequence([fadeIn, callFunc]);
+    if (this._customBackground === null) {
+      PIXI.actionManager.runAction(background, sequence);
+    } else {
+      PIXI.actionManager.runAction(this._customBackground, sequence);
+    }
+  }
+
+  private _showNextCard() {
+    const card = this._cardQueue.shift();
     const dismissHandler = () => {
       this._hide();
       card!.emitter.off('dismiss', dismissHandler);
@@ -55,21 +85,12 @@ class GenericOverlay extends PIXI.Container {
     this._current = card!;
     this.addChild(this._current);
     card!.show();
-
-    // Perform animation
-    this._isAnimating = true;
-    const fadeIn = new PIXI.action.FadeIn(0.25);
-    const callFunc = new PIXI.action.CallFunc(() => this._isAnimating = false);
-    const sequence = new PIXI.action.Sequence([fadeIn, callFunc]);
-    PIXI.actionManager.runAction(background, sequence);
   }
 
   private _hide() {
     this.removeChild(this._current!);
     if (this._cardQueue.length > 0) {
-      const nextCard = this._cardQueue.shift();
-      this._current = nextCard!;
-      nextCard!.show();
+      this._showNextCard();
     } else {
       this._isAnimating = true;
       this._current = null;
@@ -77,6 +98,9 @@ class GenericOverlay extends PIXI.Container {
       const callFunc = new PIXI.action.CallFunc(() => {
         this._isAnimating = false;
         this.visible = false;
+        if (this._customBackground !== null) {
+          this._customBackground.onHide();
+        }
       });
       const sequence = new PIXI.action.Sequence([fadeOut, callFunc]);
       PIXI.actionManager.runAction(this, sequence);

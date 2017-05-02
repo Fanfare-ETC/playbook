@@ -22,9 +22,11 @@ import DiscardBar from './lib/collection/DiscardBar';
 import IGameState, { ILastScoredGoalInfo } from './lib/collection/IGameState';
 import ICard from './lib/collection/ICard';
 import TrayTip from './lib/collection/TrayTip';
-import SetScoredOverlay from './lib/collection/SetScoredOverlay';
 import GenericCard from './lib/collection/GenericCard';
 import GenericOverlay from './lib/collection/GenericOverlay';
+import BaseballsOverlayBackground from './lib/collection/BaseballsOverlayBackground';
+import SetScoredCard from './lib/collection/SetScoredCard';
+import NewTrophyCard from './lib/collection/NewTrophyCard';
 
 // Receive messages from the hosting application.
 if (window.PlaybookBridge) {
@@ -1026,10 +1028,18 @@ function initTrayTipEvents(trayTip: TrayTip, container: GoalChoicesContainer) {
 /**
  * Initializes events for the set scored overlay.
  */
-function initSetScoredOverlayEvents(overlay: SetScoredOverlay) {
+function initSetScoredOverlayEvents(overlay: GenericOverlay) {
   state.emitter.on(state.EVENT_LAST_SCORED_GOAL_INFO_CHANGED, (info: ILastScoredGoalInfo) => {
     if (info !== null) {
-      overlay.show(info.goal, info.cardSet, info.trophyGained);
+      const content = new SetScoredCard(contentScale!, info.goal, info.cardSet);
+      const card = new GenericCard(contentScale!, renderer, content);
+      overlay.push(card);
+
+      if (info.trophyGained) {
+        const trophyContent = new NewTrophyCard(contentScale!, info.goal);
+        const trophyCard = new GenericCard(contentScale!, renderer, trophyContent);
+        overlay.push(trophyCard);
+      }
     }
   });
 }
@@ -1139,8 +1149,10 @@ function setup() {
   discardBar.name = 'discard';
   initDiscardBarEvents(discardBar);
 
-  // Add generic overlay.
+  // Add overlays overlay.
   const genericOverlay = new GenericOverlay();
+  const baseballsOverlay = new GenericOverlay(new BaseballsOverlayBackground(renderer));
+  initSetScoredOverlayEvents(baseballsOverlay);
 
   // Add goals section.
   const discardBarLayoutParams = discardBar.getChildrenLayoutParams();
@@ -1188,10 +1200,6 @@ function setup() {
   trayTip.visible = false;
   initTrayTipEvents(trayTip, goalChoicesContainer);
 
-  // Add set scored screen.
-  const setScoredOverlay = new SetScoredOverlay(contentScale, renderer);
-  initSetScoredOverlayEvents(setScoredOverlay);
-
   // Add the items in order of appearance.
   stage.addChild(bg);
   stage.addChild(tray);
@@ -1204,8 +1212,8 @@ function setup() {
   stage.addChild(ghostCards);
   stage.addChild(discardBar);
   stage.addChild(cardsContainer);
-  stage.addChild(setScoredOverlay);
   stage.addChild(genericOverlay);
+  stage.addChild(baseballsOverlay);
 
   /**
    * Begin the animation loop.
