@@ -7,7 +7,7 @@ import GoalChoice from './GoalChoice';
 class GhostCards extends PIXI.Container {
   private _cards: ICard[] | null = null;
   private _goalTile: GoalChoice | null = null;
-  private _repeatInterval: number | null = null;
+  private _repeatIntervals: number[] = [];
 
   constructor() {
     super();
@@ -28,9 +28,10 @@ class GhostCards extends PIXI.Container {
     const cards = this._cards;
     const goalTile = this._goalTile;
 
-    if (this._repeatInterval !== null) {
-      clearInterval(this._repeatInterval);
+    for (const interval of this._repeatIntervals) {
+      clearInterval(interval);
     }
+    this._repeatIntervals.length = 0;
 
     this.removeChildren();
     if (cards === null || goalTile === null) { return; }
@@ -41,7 +42,7 @@ class GhostCards extends PIXI.Container {
       ghostCard.anchor.set(0.5, 0.5);
       ghostCard.visible = false;
 
-      this._repeatInterval = setInterval(() => {
+      this._repeatIntervals.push(setInterval(() => {
         const moveTo = new PIXI.action.MoveTo(
           goalTile.position.x + goalTile.width / 2,
           goalTile.position.y + goalTile.height / 2,
@@ -54,7 +55,7 @@ class GhostCards extends PIXI.Container {
         ghostCard.position.set(card.sprite.position.x, card.sprite.position.y);
         PIXI.actionManager.runAction(ghostCard, moveTo);
         PIXI.actionManager.runAction(ghostCard, fadeOut);
-      }, 1500);
+      }, 1500));
 
       this.addChild(ghostCard);
     }
