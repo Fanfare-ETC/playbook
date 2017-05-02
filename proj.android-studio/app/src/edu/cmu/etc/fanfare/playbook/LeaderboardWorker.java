@@ -111,8 +111,8 @@ public class LeaderboardWorker extends AsyncTask<String,Void,String> {
                 convertView = inflater.inflate(R.layout.leaderboard_list_item, parent, false);
                 viewHolder.mRank = (TextView) convertView.findViewById(R.id.rank);
                 viewHolder.mName = (TextView) convertView.findViewById(R.id.name);
-                viewHolder.mPrediction = (TextView) convertView.findViewById(R.id.prediction);
-                viewHolder.mCollection = (TextView) convertView.findViewById(R.id.collection);
+                viewHolder.mPrediction = (TextView) convertView.findViewById(R.id.predictionContent);
+                viewHolder.mCollection = (TextView) convertView.findViewById(R.id.collectionContent);
                 viewHolder.mBadge = (ImageView) convertView.findViewById(R.id.total);
                 convertView.setTag(viewHolder);
             } else {
@@ -149,7 +149,7 @@ public class LeaderboardWorker extends AsyncTask<String,Void,String> {
             //adjust the font size of the scores for large numbers to fit in
             //might want to do this by using scroll bars in the future
             int scoreSize = 20;
-            if(leader.predictionScore > 999 | leader.collectionScore > 999 | leader.totalScore > 999){
+            /*if(leader.predictionScore > 999 | leader.collectionScore > 999 | leader.totalScore > 999){
                 if(leader.predictionScore>9999 | leader.collectionScore> 9999 | leader.totalScore > 9999){
                     scoreSize = 12;
                 }
@@ -158,7 +158,7 @@ public class LeaderboardWorker extends AsyncTask<String,Void,String> {
                 }
 
             }
-
+*/
             //need to change the font color into yellow if it is the ranking criteria
             //by default is total scores
             viewHolder.mPrediction.setText(String.valueOf(leader.predictionScore));
@@ -185,7 +185,13 @@ public class LeaderboardWorker extends AsyncTask<String,Void,String> {
 
             //display the badge
             if(leader.badge == 1){
-                viewHolder.mBadge.setImageResource(R.drawable.badge);
+                if(flag == 3){
+                    viewHolder.mBadge.setImageResource(R.drawable.badge_yellow);
+                }
+                else {
+                    viewHolder.mBadge.setImageResource(R.drawable.badge_white);
+                }
+
             }
 
             return convertView;

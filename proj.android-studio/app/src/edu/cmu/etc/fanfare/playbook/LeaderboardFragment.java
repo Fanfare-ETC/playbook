@@ -43,7 +43,7 @@ public class LeaderboardFragment extends PlaybookFragment {
 
         SharedPreferences settings = this.getActivity().getSharedPreferences("FANFARE_SHARED", 0);
         first_load = settings.getBoolean("first_load", true);
-        first_load = true; //for test purpose
+        //first_load = true; //for test purpose
 
         if(first_load == true){
             showTutorial();
@@ -72,7 +72,7 @@ public class LeaderboardFragment extends PlaybookFragment {
             public void onClick(View v) {
                 LeaderboardWorker backgroundWorker = new LeaderboardWorker(currActivity);
                 backgroundWorker.execute("3");
-                sortTotal.setImageResource(R.drawable.total_yellow);
+                sortTotal.setImageResource(R.drawable.dots_yellow);
                 sortPredict.setImageResource(R.drawable.predict_white);
                 sortCollect.setImageResource(R.drawable.collect_white);
                 Log.i("Button", "Order by total");
@@ -86,7 +86,7 @@ public class LeaderboardFragment extends PlaybookFragment {
             public void onClick(View v) {
                 LeaderboardWorker backgroundWorker = new LeaderboardWorker(currActivity);
                 backgroundWorker.execute("1");
-                sortTotal.setImageResource(R.drawable.total_white);
+                sortTotal.setImageResource(R.drawable.dots_white);
                 sortPredict.setImageResource(R.drawable.predict_yellow);
                 sortCollect.setImageResource(R.drawable.collect_white);
                 Log.i("Button", "Order by prediction");
@@ -100,7 +100,7 @@ public class LeaderboardFragment extends PlaybookFragment {
             public void onClick(View v) {
                 LeaderboardWorker backgroundWorker = new LeaderboardWorker(currActivity);
                 backgroundWorker.execute("2");
-                sortTotal.setImageResource(R.drawable.total_white);
+                sortTotal.setImageResource(R.drawable.dots_white);
                 sortPredict.setImageResource(R.drawable.predict_white);
                 sortCollect.setImageResource(R.drawable.collect_yellow);
                 Log.i("Button", "Order by collection");

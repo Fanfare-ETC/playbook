@@ -148,7 +148,16 @@ public class trophyWorker extends AsyncTask<String,Void,String> {
             if (trophyCat.playerId1 == null) {
                 Log.i("TROPHY", "Player ID 1 is null");
 
-                viewHolder.mImage1.setImageResource(R.drawable.trophy_black);
+                if(trophyCat.id1 <= 15) {
+                    viewHolder.mImage1.setImageResource(R.drawable.trophy_black);
+                }
+                else if(trophyCat.id1 <= 21){
+                    viewHolder.mImage1.setImageResource(R.drawable.trophy_black_prediction);
+                }
+                else{
+                    viewHolder.mImage1.setImageResource(R.drawable.trophy_black_dots);
+                }
+
                 viewHolder.mDescription1.setText(trophyCat.description1);
                 if(trophyCat.description1.length() >= 63){
                     viewHolder.mDescription1.setTextSize(20);
@@ -168,7 +177,17 @@ public class trophyWorker extends AsyncTask<String,Void,String> {
 
                 Log.i("TROPHY", "Player ID 2 is null");
                 viewHolder.mDescription2.setText(trophyCat.description2);
-                viewHolder.mImage2.setImageResource(R.drawable.trophy_black);
+
+                if(trophyCat.id2 <= 15) {
+                    viewHolder.mImage2.setImageResource(R.drawable.trophy_black);
+                }
+                else if(trophyCat.id2 <= 21){
+                    viewHolder.mImage2.setImageResource(R.drawable.trophy_black_prediction);
+                }
+                else{
+                    viewHolder.mImage2.setImageResource(R.drawable.trophy_black_dots);
+                }
+
                 if(trophyCat.description2.length() >= 63){
                     viewHolder.mDescription2.setTextSize(20);
                 }
@@ -187,7 +206,17 @@ public class trophyWorker extends AsyncTask<String,Void,String> {
 
                 Log.i("TROPHY", "Player ID 3 is null");
                 viewHolder.mDescription3.setText(trophyCat.description3);
-                viewHolder.mImage3.setImageResource(R.drawable.trophy_black);
+
+                if(trophyCat.id3 <= 15) {
+                    viewHolder.mImage3.setImageResource(R.drawable.trophy_black);
+                }
+                else if(trophyCat.id3 <= 21){
+                    viewHolder.mImage3.setImageResource(R.drawable.trophy_black_prediction);
+                }
+                else{
+                    viewHolder.mImage3.setImageResource(R.drawable.trophy_black_dots);
+                }
+
                 if(trophyCat.description3.length() >= 63){
                     viewHolder.mDescription3.setTextSize(20);
                 }

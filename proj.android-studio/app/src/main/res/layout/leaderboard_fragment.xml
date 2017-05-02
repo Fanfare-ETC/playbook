@@ -111,7 +111,7 @@
             android:layout_marginTop="2dp"
             android:layout_marginBottom="2dp"
             android:layout_weight="1"
-            android:src="@drawable/total_yellow"
+            android:src="@drawable/dots_white"
             app:layout_constraintLeft_toRightOf="@+id/collection"
             android:layout_marginStart="4dp" />
 
@@ -173,6 +173,23 @@
         app:layout_constraintVertical_bias="0.0"
         app:srcCompat="@drawable/board_holder" />
 
+    <ImageView
+        android:id="@+id/your_score"
+        android:layout_width="90dp"
+        android:layout_height="0dp"
+        android:layout_marginBottom="10dp"
+        android:layout_marginLeft="@dimen/button_margin"
+        android:layout_marginRight="0dp"
+        android:layout_marginTop="10dp"
+        android:contentDescription="@string/app_name"
+        android:scaleType="fitXY"
+
+        app:layout_constraintBottom_toBottomOf="@+id/board_view"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintLeft_toLeftOf="@+id/board_view"
+        app:layout_constraintVertical_bias="0.0"
+        android:src="@drawable/your_score" />
+
     <TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
         android:id="@+id/selfboard"
         android:layout_width="0dp"
@@ -182,7 +199,7 @@
         app:layout_constraintBottom_toBottomOf="@+id/board_view"
         app:layout_constraintTop_toTopOf="@+id/board_view"
         android:layout_marginEnd="@dimen/leaderboard_margin"
-        app:layout_constraintLeft_toLeftOf="@+id/guideline3">
+        app:layout_constraintLeft_toRightOf="@+id/guideline3">
 
     </TableLayout>
 

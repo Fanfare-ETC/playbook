@@ -35,6 +35,7 @@
         app:layout_constraintTop_toTopOf="parent"
         android:layout_marginLeft="10dp"
         android:layout_marginStart="10dp" />
+
 <HorizontalScrollView
     android:id="@+id/nameScroll"
     android:layout_width="0dp"
@@ -63,39 +64,55 @@
         app:layout_constraintLeft_toRightOf="@+id/rank"
         app:layout_constraintTop_toTopOf="parent" />
 </HorizontalScrollView>
-    <TextView
+
+    <HorizontalScrollView
         android:id="@+id/prediction"
-        android:text="@string/app_name"
-        android:layout_height="0dp"
         android:layout_width="0dp"
-        android:gravity="center"
-        android:layout_marginRight="5dp"
-        android:layout_marginTop="@dimen/text_margin"
+        android:layout_height="wrap_content"
         app:layout_constraintRight_toLeftOf="@+id/collection"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintVertical_bias="0.509"
-        android:layout_marginEnd="50dp"
+        app:layout_constraintLeft_toLeftOf="@+id/guideline"
         app:layout_constraintTop_toTopOf="parent"
-        android:layout_marginLeft="10dp"
-        android:layout_marginStart="10dp"
-        app:layout_constraintLeft_toLeftOf="@+id/guideline" />
-
-    <TextView
-        android:id="@+id/collection"
-        android:text="@string/app_name"
-        android:layout_height="0dp"
-        android:layout_width="0dp"
-        android:gravity="center"
+        android:layout_marginLeft="5dp"
         android:layout_marginRight="5dp"
         android:layout_marginTop="@dimen/text_margin"
+        >
+    <TextView
+        android:id="@+id/predictionContent"
+        android:text="@string/app_name"
+        android:layout_height="wrap_content"
+        android:layout_width="0dp"
+        android:layout_gravity="left"
+        app:layout_constraintRight_toLeftOf="@+id/collection"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintLeft_toLeftOf="@+id/guideline" />
+    </HorizontalScrollView>
+
+    <HorizontalScrollView
+        android:id="@+id/collection"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
         app:layout_constraintRight_toLeftOf="@+id/total"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintVertical_bias="0.509"
-        android:layout_marginEnd="50dp"
         app:layout_constraintLeft_toRightOf="@+id/prediction"
         app:layout_constraintTop_toTopOf="parent"
         android:layout_marginLeft="5dp"
-        android:layout_marginStart="10dp" />
+        android:layout_marginRight="5dp"
+        android:layout_marginTop="@dimen/text_margin"
+        >
+    <TextView
+        android:id="@+id/collectionContent"
+        android:text="@string/app_name"
+        android:layout_height="wrap_content"
+        android:layout_width="0dp"
+        android:layout_gravity="left"
+        app:layout_constraintRight_toLeftOf="@+id/total"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintVertical_bias="0.509"
+        app:layout_constraintLeft_toRightOf="@+id/prediction"
+        app:layout_constraintTop_toTopOf="parent" />
+    </HorizontalScrollView>
 
     <ImageView
         android:id="@+id/total"
