@@ -1,5 +1,4 @@
 'use strict';
-import { EventEmitter } from 'eventemitter3';
 import CardSlot from './CardSlot';
 import ICard from './ICard';
 
@@ -17,7 +16,7 @@ interface IGameState {
   EVENT_SELECTED_GOAL_CHANGED: string;
   EVENT_SCORE_CHANGED: string;
 
-  emitter: EventEmitter;
+  emitter: PIXI.utils.EventEmitter;
 
   cards: PIXI.Sprite[];
   goalSets: { [goal: string]: ICard[] };

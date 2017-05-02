@@ -6,91 +6,7 @@ import Trophy from './Trophy';
 import GoalTypesMetadata from './GoalTypesMetadata';
 import PlaybookRenderer from './PlaybookRenderer';
 import ICard from './ICard';
-
-/**
- * A dismissable card is a UI element that can be dismissed from the screen
- * by means of swiping away.
- */
-class DismissableCard extends PIXI.Container {
-  protected _renderer: PlaybookRenderer;
-  private _onDismiss: () => void;
-  private _isAnimating: boolean = false;
-
-  constructor(renderer: PlaybookRenderer, onDismiss: () => void) {
-    super();
-    this._renderer = renderer;
-    this._onDismiss = onDismiss;
-    this._initEvents();
-  }
-
-  private _initEvents() {
-    let origPosition: PIXI.Point | null = null;
-    let startPosition: PIXI.Point | null = null;
-    let startOffset: PIXI.Point | null = null;
-
-    const onTouchStart = (e: PIXI.interaction.InteractionEvent) => {
-      if (this._isAnimating) { return; }
-      origPosition = new PIXI.Point(this.position.x, this.position.y);
-      startPosition = new PIXI.Point(e.data.global.x, e.data.global.y);
-      startOffset = e.data.getLocalPosition(this);
-      startOffset.x -= this.width / 2;
-      startOffset.y -= this.height / 2;
-    }
-
-    const onTouchMove = (e: PIXI.interaction.InteractionEvent) => {
-      if (startPosition === null || startOffset === null) { return; }
-      const deltaX = e.data.global.x - startPosition.x;
-      const angle = deltaX / window.innerWidth * 100;
-      this.rotation = angle * PIXI.DEG_TO_RAD;
-      this.position.set(
-        e.data.global.x - startOffset.x,
-        e.data.global.y - startOffset.y
-      );
-      this._renderer.markDirty();
-    }
-
-    const onTouchEnd = (e: PIXI.interaction.InteractionEvent) => {
-      if (this._isAnimating) { return; }
-      if (origPosition === null) { return; }
-
-      const bounds = new PIXI.Rectangle(
-        window.innerWidth / 4, window.innerHeight / 4,
-        window.innerWidth / 2, window.innerHeight / 2
-      );
-
-      if (bounds.contains(e.data.global.x, e.data.global.y)) {
-        this._isAnimating = true;
-        const rotateTo = new PIXI.action.RotateTo(0, 0.25);
-        const moveTo = new PIXI.action.MoveTo(origPosition.x, origPosition.y, 0.25);
-        const callFunc = new PIXI.action.CallFunc(() => {
-          this._isAnimating = false;
-        });
-        const sequence = new PIXI.action.Sequence([moveTo, callFunc]);
-        PIXI.actionManager.runAction(this, rotateTo);
-        PIXI.actionManager.runAction(this, sequence);
-      } else {
-        this._dismiss();
-      }
-    }
-
-    this.interactive = true;
-    this.on('touchstart', onTouchStart)
-      .on('touchmove', onTouchMove)
-      .on('touchend', onTouchEnd)
-      .on('touchendoutside', onTouchEnd)
-      .on('touchcancel', onTouchEnd);
-  }
-
-  private _dismiss() {
-    const fadeOut = new PIXI.action.FadeOut(0.5);
-    const callFunc = new PIXI.action.CallFunc(() => {
-      this.visible = false;
-      this._onDismiss();
-    });
-    const sequence = new PIXI.action.Sequence([fadeOut, callFunc]);
-    PIXI.actionManager.runAction(this, sequence);
-  }
-}
+import DismissableCard from './DismissableCard';
 
 class SetScoredCard extends DismissableCard {
   private _contentScale: number;
@@ -103,9 +19,8 @@ class SetScoredCard extends DismissableCard {
   private _score: PIXI.Text;
   private _scorePointsEarned: PIXI.Text;
 
-  constructor(contentScale: number, renderer: PlaybookRenderer,
-              onDismiss: () => void) {
-    super(renderer, onDismiss);
+  constructor(contentScale: number, renderer: PlaybookRenderer) {
+    super(renderer);
 
     this._contentScale = contentScale;
 
@@ -242,9 +157,8 @@ class NewTrophyCard extends DismissableCard {
   private _title: PIXI.Text;
   private _trophy: Trophy;
 
-  constructor(contentScale: number, renderer: PlaybookRenderer,
-              onDismiss: () => void) {
-    super(renderer, onDismiss);
+  constructor(contentScale: number, renderer: PlaybookRenderer) {
+    super(renderer);
 
     this._contentScale = contentScale;
 
@@ -341,10 +255,12 @@ class SetScoredOverlay extends PIXI.Container {
     this._particlesContainer = new PIXI.Container();
     this.addChild(this._particlesContainer);
 
-    this._setScoredCard = new SetScoredCard(contentScale, renderer, () => this.hide());
+    this._setScoredCard = new SetScoredCard(contentScale, renderer);
+    this._setScoredCard.emitter.on('dismiss', () => this.hide());
     this.addChild(this._setScoredCard);
 
-    this._newTrophyCard = new NewTrophyCard(contentScale, renderer, () => this.hide());
+    this._newTrophyCard = new NewTrophyCard(contentScale, renderer);
+    this._newTrophyCard.emitter.on('dismiss', () => this.hide());
     this.addChild(this._newTrophyCard);
 
     this._cardQueue = [];
@@ -442,7 +358,7 @@ class SetScoredOverlay extends PIXI.Container {
       const runnable = this._cardQueue.shift();
       runnable!();
     } else {
-      const fadeOut = new PIXI.action.FadeOut(0.5);
+      const fadeOut = new PIXI.action.FadeOut(0.25);
       const callFunc = new PIXI.action.CallFunc(() => {
         this.visible = false;
         this._renderer.emitters.splice(this._renderer.emitters.indexOf(this._emitter), 1);

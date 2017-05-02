@@ -235,8 +235,7 @@ class GoalChoice extends PIXI.Container {
    * Creates a goal tile.
    */
   constructor(state: IGameState, contentScale: number, renderer: PIXI.SystemRenderer,
-              containerParams: ContainerParams, info: GoalChoiceInfo,
-              onChoiceTap: (choice: GoalChoice) => void) {
+              containerParams: ContainerParams, info: GoalChoiceInfo) {
     super();
 
     this._state = state;
@@ -244,10 +243,7 @@ class GoalChoice extends PIXI.Container {
     this._renderer = renderer;
     this._containerParams = containerParams;
     this._info = info;
-    this._onChoiceTap = onChoiceTap;
     this._active = false;
-
-    this._initEvents();
 
     this._glowContainer = new PIXI.Container();
     this.addChild(this._glowContainer);
@@ -306,13 +302,6 @@ class GoalChoice extends PIXI.Container {
 
   satisfiedBy(cardSet: ICard[]) : ICard[] {
     return cardSetMeetsGoal(cardSet, this._info.goal);
-  }
-
-  private _initEvents() {
-    this.interactive = true;
-    this.on('tap', () => {
-      this._onChoiceTap(this);
-    });
   }
 
   private _invalidate() {

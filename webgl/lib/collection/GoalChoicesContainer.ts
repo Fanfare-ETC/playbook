@@ -94,7 +94,9 @@ class GoalChoicesContainer extends PIXI.Container {
       const choice = new GoalChoice(state, contentScale, renderer,  {
         width: choiceWidth,
         height: choiceHeight
-      }, item, onChoiceTap);
+      }, item);
+      choice.interactive = true;
+      choice.on('tap', () => onChoiceTap(choice));
       this.addChild(choice);
     });
   }

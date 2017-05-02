@@ -3,7 +3,6 @@ import 'babel-polyfill';
 import * as PIXI from 'pixi.js';
 import 'pixi-action';
 import 'pixi-filters';
-import { EventEmitter } from 'eventemitter3';
 import * as FontFaceObserver from 'fontfaceobserver';
 
 import PlaybookEvents,
@@ -24,6 +23,8 @@ import IGameState, { ILastScoredGoalInfo } from './lib/collection/IGameState';
 import ICard from './lib/collection/ICard';
 import TrayTip from './lib/collection/TrayTip';
 import SetScoredOverlay from './lib/collection/SetScoredOverlay';
+import GenericCard from './lib/collection/GenericCard';
+import GenericOverlay from './lib/collection/GenericOverlay';
 
 // Receive messages from the hosting application.
 if (window.PlaybookBridge) {
@@ -57,7 +58,7 @@ class GameState implements IGameState {
   EVENT_SCORE_CHANGED: string = 'scoreChanged';
   EVENT_LAST_SCORED_GOAL_INFO_CHANGED: string = 'lastScoredGoalInfoChanged';
 
-  emitter: EventEmitter;
+  emitter: PIXI.utils.EventEmitter;
 
   _activeCard: Card | null = null;
   _incomingCards: string[] = [];
@@ -70,7 +71,7 @@ class GameState implements IGameState {
   _lastScoredGoalInfo: ILastScoredGoalInfo | null = null;
 
   constructor() {
-    this.emitter = new EventEmitter();
+    this.emitter = new PIXI.utils.EventEmitter();
     this.reset();
   }
 
@@ -1138,6 +1139,9 @@ function setup() {
   discardBar.name = 'discard';
   initDiscardBarEvents(discardBar);
 
+  // Add generic overlay.
+  const genericOverlay = new GenericOverlay();
+
   // Add goals section.
   const discardBarLayoutParams = discardBar.getChildrenLayoutParams();
   const goalChoicesContainer = new GoalChoicesContainer(state, contentScale, renderer.renderer, {
@@ -1150,6 +1154,18 @@ function setup() {
       if (choice.active) {
         state.selectedGoal = choice.info.goal;
       } else {
+        const cardContent = new PIXI.Container();
+        const title = new PIXI.Text('These are your goals. Once you have the right cards, drag them here to score.');
+        title.style.fontSize = 72.0 * contentScale!;
+        title.style.fontFamily = 'rockwell';
+        title.style.fontWeight = 'bold';
+        title.style.fill = 0x002b65;
+        title.style.wordWrap = true;
+        title.style.wordWrapWidth = window.innerWidth - 256.0 * contentScale!;
+        cardContent.addChild(title);
+
+        const card = new GenericCard(contentScale!, renderer, cardContent);
+        genericOverlay.push(card);
         state.selectedGoal = null;
       }
     }
@@ -1189,6 +1205,7 @@ function setup() {
   stage.addChild(discardBar);
   stage.addChild(cardsContainer);
   stage.addChild(setScoredOverlay);
+  stage.addChild(genericOverlay);
 
   /**
    * Begin the animation loop.
