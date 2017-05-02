@@ -1,5 +1,6 @@
 'use strict';
 import Trophy from './Trophy';
+import PlaybookBridge from './PlaybookBridge';
 
 class NewTrophyCard extends PIXI.Container {
   constructor(contentScale: number, goal: string) {
@@ -28,6 +29,9 @@ class NewTrophyCard extends PIXI.Container {
     trophy.scale.set(contentScale, contentScale);
     trophy.anchor.set(0.5, 0.0);
     trophy.position.set(0.0, title.position.y + title.height + 64.0 * contentScale);
+
+    trophy.interactive = true;
+    trophy.on('tap', () => PlaybookBridge.goToTrophyCase());
 
     // Relayout horizontally after measurement.
     const center = this.width / 2;

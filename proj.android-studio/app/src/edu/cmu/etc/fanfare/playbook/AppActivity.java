@@ -313,8 +313,8 @@ public class AppActivity extends AppCompatActivity {
         // Add the previous selection to the stack.
         if (addToBackStack) {
             mBackStack.push(mLastSelectedItem);
-            mLastSelectedItem = position;
         }
+        mLastSelectedItem = position;
 
         // Close the drawer
         selectedItem = position;
