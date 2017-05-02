@@ -477,7 +477,8 @@ function initCardEvents(card: Card) {
         const choice = card.dragTarget as GoalChoice;
         const satisfiedSet = choice.satisfiedBy(cardSet);
         for (const item of satisfiedSet) {
-          item.isScoring = choice.active && choice.info.goal === state.selectedGoal;
+          item.isScoring = choice.active && choice.info.goal === state.selectedGoal &&
+                           satisfiedSet.indexOf(card) >= 0;
         }
       }
 
@@ -507,7 +508,9 @@ function initCardEvents(card: Card) {
     } else if (card.dragTarget instanceof GoalChoice &&
                state.activeCard === null) {
       const choice = card.dragTarget as GoalChoice;
-      if (choice.active && choice.info.goal === state.selectedGoal) {
+      const satisfiedSet = choice.satisfiedBy(getCardsInSlots());
+      if (choice.active && choice.info.goal === state.selectedGoal &&
+          satisfiedSet.indexOf(card) >= 0) {
         scoreCardSet(choice, choice.info.goal);
       } else {
         card.moveToOrigPosition();
@@ -888,6 +891,32 @@ function initGhostCardsEvents(ghostCards: GhostCards, container: GoalChoicesCont
 }
 
 /**
+ * Initializes events for the tray.
+ */
+function initTrayEvents(tray: PIXI.DisplayObject) {
+  tray.interactive = true;
+  tray.on('tap', () => {
+    const cards = getCardsInSlots();
+    if (cards.length === 0) {
+      const overlay = stage.getChildByName('overlay') as GenericOverlay;
+
+      const cardContent = new PIXI.Container();
+      const title = new PIXI.Text('Once you recieve a card you can drag it here to collect.');
+      title.style.fontSize = 72.0 * contentScale!;
+      title.style.fontFamily = 'rockwell';
+      title.style.fontWeight = 'bold';
+      title.style.fill = 0x002b65;
+      title.style.wordWrap = true;
+      title.style.wordWrapWidth = window.innerWidth - 256.0 * contentScale!;
+      cardContent.addChild(title);
+
+      const card = new GenericCard(contentScale!, renderer, cardContent);
+      overlay.push(card);
+    }
+  });
+}
+
+/**
  * Initializes events for the score bar.
  * @param {PIXI.extras.TilingSprite} scoreBar
  */
@@ -1080,6 +1109,7 @@ function setup() {
   tray.name = 'tray';
   tray.position.set(0, window.innerHeight - trayHeight);
   tray.scale.set(trayScale, trayScale);
+  initTrayEvents(tray);
 
   // Use the tray scale as a scaling baseline.
   contentScale = tray.scale.x;
@@ -1149,8 +1179,9 @@ function setup() {
   discardBar.name = 'discard';
   initDiscardBarEvents(discardBar);
 
-  // Add overlays overlay.
+  // Add overlays.
   const genericOverlay = new GenericOverlay();
+  genericOverlay.name = 'overlay';
   const baseballsOverlay = new GenericOverlay(new BaseballsOverlayBackground(renderer));
   initSetScoredOverlayEvents(baseballsOverlay);
 
