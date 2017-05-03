@@ -9,8 +9,8 @@ android {
         applicationId 'edu.cmu.etc.fanfare.playbook'
         minSdkVersion 21
         targetSdkVersion 25
-        versionCode 36
-        versionName '1.5.4'
+        versionCode 40
+        versionName '1.5.8'
 
         buildConfigField 'String', 'PLAYBOOK_TREASUREHUNT_API_HOST', '"10.0.2.2"'
         buildConfigField 'Integer', 'PLAYBOOK_TREASUREHUNT_API_PORT', '9000'
@@ -73,11 +73,11 @@ android {
 
         release {
             buildConfigField 'String', 'PLAYBOOK_TREASUREHUNT_API_HOST', '"fanfare.wong.place"'
-            buildConfigField 'Integer', 'PLAYBOOK_TREASUREHUNT_API_PORT', '9000'
+            buildConfigField 'Integer', 'PLAYBOOK_TREASUREHUNT_API_PORT', '10000'
             buildConfigField 'String', 'PLAYBOOK_API_HOST', '"fanfare.wong.place"'
-            buildConfigField 'Integer', 'PLAYBOOK_API_PORT', '9001'
+            buildConfigField 'Integer', 'PLAYBOOK_API_PORT', '10001'
             buildConfigField 'String', 'PLAYBOOK_SECTION_API_HOST', '"fanfare.wong.place"'
-            buildConfigField 'Integer', 'PLAYBOOK_SECTION_API_PORT', '9002'
+            buildConfigField 'Integer', 'PLAYBOOK_SECTION_API_PORT', '10002'
 
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
@@ -98,7 +98,7 @@ dependencies {
     compile 'com.android.support:design:25.3.1'
     compile 'com.google.firebase:firebase-messaging:9.6.0'
     compile 'com.koushikdutta.async:androidasync:2.+'
-
+    compile 'com.jakewharton.threetenabp:threetenabp:1.0.5'
 }
 
 task npmInstall(type: Exec) {

@@ -4,6 +4,6 @@
     <item
         android:id="@+id/menu_prediction_tutorial"
         android:title="@string/tutorial"
-        android:icon="@android:drawable/ic_menu_help"
+        android:icon="@drawable/ic_help_white_24dp"
         app:showAsAction="ifRoom" />
 </menu>

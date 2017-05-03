@@ -1,39 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
               android:orientation="vertical"
-              android:layout_width="wrap_content"
-              android:layout_height="match_parent"
-              android:maxWidth="328dp"
-              android:theme="@style/AppTheme.TutorialDialogTheme"
-              android:padding="16dp">
-
-    <TextView
-        style="@style/tutorialParagraphStyle"
-        android:id="@+id/prediction_tutorial_para_1"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent">
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/prediction_tutorial_para_1"/>
+        android:orientation="vertical">
 
-    <TextView
-        style="@style/tutorialParagraphStyle"
-        android:id="@+id/prediction_tutorial_para_2"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/prediction_tutorial_para_2"/>
+        <TextView
+            android:id="@+id/tutorial_message"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:textAppearance"
+            android:textSize="16sp"
+            android:paddingStart="?attr/dialogPreferredPadding"
+            android:paddingEnd="?attr/dialogPreferredPadding"
+            android:paddingTop="8dp"
+            android:paddingBottom="16dp"
+            android:text="Play this between each half-inning. We'll notify you when your predictions come true." />
 
-    <TextView
-        style="@style/tutorialParagraphStyle"
-        android:id="@+id/prediction_tutorial_para_3"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/prediction_tutorial_para_3"/>
-
-    <TextView
-        style="@style/tutorialParagraphStyle"
-        android:id="@+id/prediction_tutorial_para_4"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
-        android:text="@string/prediction_tutorial_para_4"/>
-
-</LinearLayout>
+        <ImageView
+            android:id="@+id/tutorial_image"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:scaleType="centerInside"
+            android:src="@drawable/prediction_tutorial" />
+    </LinearLayout>
+</ScrollView>

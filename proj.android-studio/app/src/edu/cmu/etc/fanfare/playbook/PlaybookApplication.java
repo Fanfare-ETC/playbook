@@ -5,6 +5,8 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 
+import com.jakewharton.threetenabp.AndroidThreeTen;
+
 public class PlaybookApplication extends Application {
     private static final String TAG = PlaybookApplication.class.getSimpleName();
 
@@ -22,6 +24,7 @@ public class PlaybookApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
+        AndroidThreeTen.init(this);
 
         // Catches uncaught exceptions in background threads.
         Thread.setDefaultUncaughtExceptionHandler(new HoustonWeHaveNoProblemExceptionHandler(new Handler()));

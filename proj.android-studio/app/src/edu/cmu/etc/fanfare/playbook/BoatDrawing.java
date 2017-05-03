@@ -38,15 +38,15 @@ public class BoatDrawing {
 
             super.onDraw(canvas);
 
-            if (section == 1) {
+            if (section == 0) {
                 int[] loc0 = new int[2];
                 int[] loc1 = new int[2];
                 int[] canvasloc = TreasureHuntFragment.LinesView.canvasLocation;
 
                 if (TreasureHuntFragment.gameState.game_on) {
                     ImageView v0 = (ImageView) view.findViewById(R.id.boat_v0);
-                    ImageView v3 = (ImageView) view.findViewById(R.id.boat_v3);
-                    ImageView v5 = (ImageView) view.findViewById(R.id.boat_v5);
+                    ImageView v1 = (ImageView) view.findViewById(R.id.boat_v1);
+                    ImageView v2 = (ImageView) view.findViewById(R.id.boat_v2);
 
                     int mColor = Color.rgb(255, 255, 255);
                     Paint mPaint = new Paint();
@@ -54,43 +54,54 @@ public class BoatDrawing {
                     mPaint.setAntiAlias(true);
                     mPaint.setStrokeWidth(10);
                     mPaint.setStyle(Paint.Style.FILL);
+                    mPaint.setTextSize(48f);
 
-                    //draw a circle at 0,3,5 vertices
+
+                    //draw a circle at 0,1,2 vertices
                     v0.getLocationInWindow(loc0);
                     loc0[0] -= canvasloc[0];
                     loc0[1] -= canvasloc[1];
                     canvas.drawCircle(loc0[0], loc0[1], 15, mPaint);
-                    v5.getLocationInWindow(loc1);
+                    canvas.drawText("1",loc0[0]+10,loc0[1]+30, mPaint);
+
+                    v1.getLocationInWindow(loc1);
                     loc1[0] -= canvasloc[0];
                     loc1[1] -= canvasloc[1];
                     canvas.drawCircle(loc1[0], loc1[1], 15, mPaint);
+                    canvas.drawText("2",loc1[0]-40,loc1[1]+20, mPaint);
 
-                    //draw a line from 0,5
+                    //draw a line from 0,1
                     canvas.drawLine(loc0[0], loc0[1], loc1[0], loc1[1], mPaint);
+
+                    v2.getLocationInWindow(loc0);
+                    loc0[0] -= canvasloc[0];
+                    loc0[1] -= canvasloc[1];
+                    canvas.drawCircle(loc0[0], loc0[1], 15, mPaint);
+                    canvas.drawText("3",loc0[0]-20,loc0[1]+50, mPaint);
+
+                    //draw a line from 1,2
+                    canvas.drawLine(loc1[0], loc1[1], loc0[0], loc0[1], mPaint);
+                }
+
+
+                if (TreasureHuntFragment.gameState.flag1) {
+                    ImageView v2 = (ImageView) view.findViewById(R.id.boat_v2);
+                    ImageView v3 = (ImageView) view.findViewById(R.id.boat_v3);
+
+                    int mColor = Color.rgb(255, 255, 255);
+                    Paint mPaint = new Paint();
+                    mPaint.setColor(mColor);
+                    mPaint.setAntiAlias(true);
+                    mPaint.setStrokeWidth(10);
+                    mPaint.setStyle(Paint.Style.FILL);
+                    mPaint.setTextSize(48f);
 
                     v3.getLocationInWindow(loc0);
                     loc0[0] -= canvasloc[0];
                     loc0[1] -= canvasloc[1];
                     canvas.drawCircle(loc0[0], loc0[1], 15, mPaint);
-                }
-
-
-                if (TreasureHuntFragment.gameState.flag1) {
-                    ImageView v1 = (ImageView) view.findViewById(R.id.boat_v1);
-                    ImageView v5 = (ImageView) view.findViewById(R.id.boat_v5);
-
-                    int mColor = Color.rgb(255, 255, 255);
-                    Paint mPaint = new Paint();
-                    mPaint.setColor(mColor);
-                    mPaint.setAntiAlias(true);
-                    mPaint.setStrokeWidth(10);
-                    mPaint.setStyle(Paint.Style.FILL);
-
-                    v1.getLocationInWindow(loc0);
-                    loc0[0] -= canvasloc[0];
-                    loc0[1] -= canvasloc[1];
-                    canvas.drawCircle(loc0[0], loc0[1], 15, mPaint);
-                    v5.getLocationInWindow(loc1);
+                    canvas.drawText("4",loc0[0]+10,loc0[1]+50, mPaint);
+                    v2.getLocationInWindow(loc1);
                     loc1[0] -= canvasloc[0];
                     loc1[1] -= canvasloc[1];
                     canvas.drawLine(loc0[0], loc0[1], loc1[0], loc1[1], mPaint);
@@ -98,7 +109,6 @@ public class BoatDrawing {
 
                 if (TreasureHuntFragment.gameState.flag2) {
 
-                    ImageView v0 = (ImageView) view.findViewById(R.id.boat_v0);
                     ImageView v3 = (ImageView) view.findViewById(R.id.boat_v3);
                     ImageView v4 = (ImageView) view.findViewById(R.id.boat_v4);
 
@@ -109,16 +119,13 @@ public class BoatDrawing {
                     mPaint.setAntiAlias(true);
                     mPaint.setStrokeWidth(10);
                     mPaint.setStyle(Paint.Style.FILL);
+                    mPaint.setTextSize(48f);
 
                     v4.getLocationInWindow(loc0);
                     loc0[0] -= canvasloc[0];
                     loc0[1] -= canvasloc[1];
                     canvas.drawCircle(loc0[0], loc0[1], 15, mPaint);
-
-                    v0.getLocationInWindow(loc1);
-                    loc1[0] -= canvasloc[0];
-                    loc1[1] -= canvasloc[1];
-                    canvas.drawLine(loc0[0], loc0[1], loc1[0], loc1[1], mPaint);
+                    canvas.drawText("5",loc0[0]+20,loc0[1]+20, mPaint);
 
                     v3.getLocationInWindow(loc1);
                     loc1[0] -= canvasloc[0];
@@ -129,9 +136,9 @@ public class BoatDrawing {
 
                 if (TreasureHuntFragment.gameState.flag3) {
 
-                    ImageView v1 = (ImageView) view.findViewById(R.id.boat_v1);
-                    ImageView v2 = (ImageView) view.findViewById(R.id.boat_v2);
-                    ImageView v3 = (ImageView) view.findViewById(R.id.boat_v3);
+                    ImageView v4 = (ImageView) view.findViewById(R.id.boat_v4);
+                    ImageView v5 = (ImageView) view.findViewById(R.id.boat_v5);
+                    ImageView v0 = (ImageView) view.findViewById(R.id.boat_v0);
 
                     int mColor = Color.rgb(255, 255, 255);
                     Paint mPaint = new Paint();
@@ -139,24 +146,26 @@ public class BoatDrawing {
                     mPaint.setAntiAlias(true);
                     mPaint.setStrokeWidth(10);
                     mPaint.setStyle(Paint.Style.FILL);
-                    v2.getLocationInWindow(loc0);
+                    mPaint.setTextSize(48f);
+
+                    v5.getLocationInWindow(loc0);
                     loc0[0] -= canvasloc[0];
                     loc0[1] -= canvasloc[1];
                     canvas.drawCircle(loc0[0], loc0[1], 15, mPaint);
+                    canvas.drawText("6",loc0[0]+20,loc0[1]-20, mPaint);
 
-                    v1.getLocationInWindow(loc1);
+                    v4.getLocationInWindow(loc1);
                     loc1[0] -= canvasloc[0];
                     loc1[1] -= canvasloc[1];
                     canvas.drawLine(loc0[0], loc0[1], loc1[0], loc1[1], mPaint);
 
-                    v3.getLocationInWindow(loc1);
+                    v0.getLocationInWindow(loc1);
                     loc1[0] -= canvasloc[0];
                     loc1[1] -= canvasloc[1];
                     canvas.drawLine(loc0[0], loc0[1], loc1[0], loc1[1], mPaint);
                 }
                 if (!TreasureHuntFragment.gameState.flag1 || !TreasureHuntFragment.gameState.flag2 || !TreasureHuntFragment.gameState.flag3)
                     invalidate();
-
 
             } //section
         }

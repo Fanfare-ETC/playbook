@@ -9,22 +9,18 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Typeface;
 import android.os.Bundle;
-import android.support.v4.content.ContextCompat;
+import android.support.design.widget.CoordinatorLayout;
+import android.support.design.widget.Snackbar;
 import android.support.v7.app.AlertDialog;
-import android.text.SpannableString;
-import android.text.Spanned;
-import android.text.style.ForegroundColorSpan;
-import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.SparseArray;
-import android.util.TypedValue;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebView;
 import android.widget.TextView;
@@ -32,8 +28,11 @@ import android.widget.TextView;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.threeten.bp.LocalDateTime;
+import org.threeten.bp.ZonedDateTime;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
@@ -43,19 +42,24 @@ public class PredictionFragment extends WebViewFragment {
 
     private static final String PREF_NAME = "prediction";
     private static final String PREF_KEY_GAME_STATE = "gameState";
+    private static final String PREF_KEY_FIRST_LOAD = "firstLoad";
 
     private static final SparseArray<String> PLAYBOOK_EVENTS = new SparseArray<String>();
+    private static final HashMap<String, String> PLAYBOOK_EVENT_NAMES = new HashMap<>();
 
     private JSONObject mGameState;
     private boolean mIsAttached;
     private Queue<JSONObject> mPendingEvents = new LinkedList<>();
 
-    private AlertDialog mCorrectDialog;
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         SharedPreferences prefs = getActivity().getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+
+        if (prefs.getBoolean(PREF_KEY_FIRST_LOAD, true)) {
+            showTutorial();
+            prefs.edit().putBoolean(PREF_KEY_FIRST_LOAD, false).apply();
+        }
 
         // We use SharedPreference because the savedInstanceState doesn't work
         // if the fragment doesn't have an ID.
@@ -73,7 +77,7 @@ public class PredictionFragment extends WebViewFragment {
         }
 
         // Populate the events.
-        PLAYBOOK_EVENTS.append(0, "SHUTOUT_INNING");
+        PLAYBOOK_EVENTS.append(0, "NO_RUNS");
         PLAYBOOK_EVENTS.append(1, "RUN_SCORED");
         PLAYBOOK_EVENTS.append(2, "FLY_OUT");
         PLAYBOOK_EVENTS.append(3, "TRIPLE_PLAY");
@@ -98,6 +102,32 @@ public class PredictionFragment extends WebViewFragment {
         PLAYBOOK_EVENTS.append(22, "MOST_FIELDED_BY_INFIELDERS");
         PLAYBOOK_EVENTS.append(23, "MOST_FIELDED_BY_CENTER");
         PLAYBOOK_EVENTS.append(24, "UNKNOWN");
+
+        PLAYBOOK_EVENT_NAMES.put("NO_RUNS", "No Runs");
+        PLAYBOOK_EVENT_NAMES.put("RUN_SCORED", "Run Scored");
+        PLAYBOOK_EVENT_NAMES.put("FLY_OUT", "Fly Out");
+        PLAYBOOK_EVENT_NAMES.put("TRIPLE_PLAY", "Triple Play");
+        PLAYBOOK_EVENT_NAMES.put("DOUBLE_PLAY", "Double Play");
+        PLAYBOOK_EVENT_NAMES.put("GROUND_OUT", "Ground Out");
+        PLAYBOOK_EVENT_NAMES.put("STEAL", "Steal");
+        PLAYBOOK_EVENT_NAMES.put("PICK_OFF", "Pick Off");
+        PLAYBOOK_EVENT_NAMES.put("WALK", "Walk");
+        PLAYBOOK_EVENT_NAMES.put("BLOCKED_RUN", "Blocked Run");
+        PLAYBOOK_EVENT_NAMES.put("STRIKEOUT", "Strike Out");
+        PLAYBOOK_EVENT_NAMES.put("HIT_BY_PITCH", "Hit By Pitch");
+        PLAYBOOK_EVENT_NAMES.put("HOME_RUN", "Home Run");
+        PLAYBOOK_EVENT_NAMES.put("PITCH_COUNT_16", "Pitch Count: 15 & Under");
+        PLAYBOOK_EVENT_NAMES.put("PITCH_COUNT_17", "Pitch Count: 16 & Over");
+        PLAYBOOK_EVENT_NAMES.put("SINGLE", "Single");
+        PLAYBOOK_EVENT_NAMES.put("DOUBLE", "Double");
+        PLAYBOOK_EVENT_NAMES.put("TRIPLE", "Triple");
+        PLAYBOOK_EVENT_NAMES.put("BATTER_COUNT_4", "Batter Count: 4 & Under");
+        PLAYBOOK_EVENT_NAMES.put("BATTER_COUNT_5", "Batter Count: 5 & Over");
+        PLAYBOOK_EVENT_NAMES.put("MOST_FIELDED_BY_LEFT", "Most Balls Fielded By: Left");
+        PLAYBOOK_EVENT_NAMES.put("MOST_FIELDED_BY_RIGHT", "Most Balls Fielded By: Right");
+        PLAYBOOK_EVENT_NAMES.put("MOST_FIELDED_BY_INFIELDERS", "Most Balls Fielded By: Infielders");
+        PLAYBOOK_EVENT_NAMES.put("MOST_FIELDED_BY_CENTER", "Most Balls Fielded By: Center");
+        PLAYBOOK_EVENT_NAMES.put("UNKNOWN", "Unknown");
 
         // Declare that we have an options menu.
         setHasOptionsMenu(true);
@@ -162,6 +192,12 @@ public class PredictionFragment extends WebViewFragment {
                     String event = s.getString("event");
                     if (event.equals("server:playsCreated")) {
                         handlePlaysCreated(context, s);
+                    } else if (event.equals("server:notifyLockPredictions")) {
+                        handleNotifyLockPredictions(context, s);
+                    } else if (event.equals("server:lockPredictions")) {
+                        handleLockPredictions(context);
+                    } else if (event.equals("server:clearPredictions")) {
+                        handleClearPredictions(context);
                     }
                 }
                 Log.d(TAG, "Received event while fragment is not attached, adding to queue");
@@ -200,7 +236,7 @@ public class PredictionFragment extends WebViewFragment {
         getWebView().evaluateJavascript(js, null);
     }
 
-    private void handlePlaysCreated(final Activity context, JSONObject s) throws JSONException {
+    private void handlePlaysCreated(Activity context, JSONObject s) throws JSONException {
         // If mGameState is null, we are not even in the app, so ignore.
         if (mGameState == null) {
             return;
@@ -220,45 +256,46 @@ public class PredictionFragment extends WebViewFragment {
                 JSONObject ball = balls.getJSONObject(i);
                 String selectedTarget = ball.getString("selectedTarget");
                 if (selectedTarget != null && event.equals(selectedTarget)) {
-                    showCorrectDialog(context);
+                    showCorrectSnackbar(context, event);
                 }
             }
         }
     }
 
-    private void showCorrectDialog(final Activity context) {
+    private void handleNotifyLockPredictions(Activity context, JSONObject s) throws JSONException {
+        JSONObject data = s.getJSONObject("data");
+        String lockTimeString = data.getString("lockTime");
+        ZonedDateTime lockTime = ZonedDateTime.parse(lockTimeString);
+        if (ZonedDateTime.now().isBefore(lockTime)) {
+            CoordinatorLayout layout = (CoordinatorLayout) context.findViewById(R.id.content_frame);
+            Snackbar.make(layout, "Predictions will be locked in 10 seconds.", Snackbar.LENGTH_LONG).show();
+        }
+    }
+
+    private void handleLockPredictions(Activity context) {
+        CoordinatorLayout layout = (CoordinatorLayout) context.findViewById(R.id.content_frame);
+        Snackbar.make(layout, "Predictions have been locked. We'll notify you if your prediction succeeds.", Snackbar.LENGTH_LONG).show();
+    }
+
+    private void handleClearPredictions(Activity context) {
+        CoordinatorLayout layout = (CoordinatorLayout) context.findViewById(R.id.content_frame);
+        Snackbar.make(layout, "Half-inning has ended. Predictions have been cleared.", Snackbar.LENGTH_LONG).show();
+    }
+
+    private void showCorrectSnackbar(final Activity context, String event) {
         final Intent intent = new Intent(context, AppActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
         intent.putExtra(AppActivity.INTENT_EXTRA_DRAWER_ITEM, DrawerItemAdapter.DRAWER_ITEM_PREDICTION);
 
-        context.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                if (mCorrectDialog == null) {
-                    mCorrectDialog = new AlertDialog.Builder(context)
-                            .setTitle("Bravo!")
-                            .setMessage("You got a prediction right.")
-                            .setPositiveButton("Check it out!", new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    dialog.dismiss();
-                                    context.startActivity(intent);
-                                }
-                            })
-                            .setNegativeButton("Dismiss", new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    dialog.dismiss();
-                                }
-                            })
-                            .create();
-                }
-
-                if (!mCorrectDialog.isShowing()) {
-                    mCorrectDialog.show();
-                }
-            }
-        });
+        CoordinatorLayout layout = (CoordinatorLayout) context.findViewById(R.id.content_frame);
+        Snackbar.make(layout, "Prediction correct: " + PLAYBOOK_EVENT_NAMES.get(event), Snackbar.LENGTH_INDEFINITE)
+                .setAction("Show Me", new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        context.startActivity(intent);
+                    }
+                })
+                .show();
     }
 
     private void showTutorial() {
@@ -268,65 +305,26 @@ public class PredictionFragment extends WebViewFragment {
 
     public static class TutorialDialogFragment extends DialogFragment {
         @Override
-        public void onStart() {
-            super.onStart();
-            if (getDialog() == null) {
-                return;
-            }
-
-            // This is in dp unit.
-            DisplayMetrics displayMetrics = getActivity().getResources().getDisplayMetrics();
-            float dpWidth = displayMetrics.widthPixels / displayMetrics.density;
-            float targetWidth = Math.min(382, dpWidth - 16);
-
-            // For some reason, Android doesn't honor layout parameters in the layout file.
-            getDialog().getWindow().setLayout(
-                    (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, targetWidth, getResources().getDisplayMetrics()),
-                    WindowManager.LayoutParams.WRAP_CONTENT
-            );
-            getDialog().getWindow().setBackgroundDrawable(null);
-        }
-
-        @Override
         public Dialog onCreateDialog(Bundle savedInstanceState) {
-            LayoutInflater inflater = getActivity().getLayoutInflater();
-            View view = inflater.inflate(R.layout.prediction_fragment_tutorial_dialog, null);
-            view.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    TutorialDialogFragment.this.dismiss();
-                }
-            });
+            Typeface typeface = Typeface.createFromAsset(getActivity().getAssets(), "nova_excblack.otf");
+            TextView title = new TextView(getActivity());
+            title.setText("Prediction".toUpperCase());
+            title.setTextSize(36);
+            title.setTypeface(typeface);
+            title.setGravity(Gravity.CENTER);
 
-            // Set custom fonts for our dialog.
-            Typeface typeface = Typeface.createFromAsset(getActivity().getAssets(), "nova3.ttf");
-            TextView para1 = (TextView) view.findViewById(R.id.prediction_tutorial_para_1);
-            TextView para2 = (TextView) view.findViewById(R.id.prediction_tutorial_para_2);
-            TextView para3 = (TextView) view.findViewById(R.id.prediction_tutorial_para_3);
-            TextView para4 = (TextView) view.findViewById(R.id.prediction_tutorial_para_4);
-            para1.setLineSpacing(0, 1.25f);
-            para1.setTypeface(typeface);
-            para2.setLineSpacing(0, 1.25f);
-            para2.setTypeface(typeface);
-            para3.setLineSpacing(0, 1.25f);
-            para3.setTypeface(typeface);
-            para4.setLineSpacing(0, 1.25f);
-            para4.setTypeface(typeface);
-
-            // Append an arrow after the paragraph.
-            SpannableString lastPara = new SpannableString(para4.getText() + " \u22b2");
-            lastPara.setSpan(new ForegroundColorSpan(
-                    ContextCompat.getColor(getActivity(), R.color.primary)),
-                    para4.getText().length() + 1,
-                    para4.getText().length() + 2,
-                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
-            );
-            para4.setText(lastPara, TextView.BufferType.SPANNABLE);
-
-            // Use the Builder class for convenient dialog construction
-            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-            builder.setView(view);
-            return builder.create();
+            View view = getActivity().getLayoutInflater().inflate(R.layout.prediction_fragment_tutorial_dialog, null);
+            return new AlertDialog.Builder(getActivity())
+                    .setCustomTitle(title)
+                    .setCancelable(false)
+                    .setPositiveButton("Got it!", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            dismiss();
+                        }
+                    })
+                    .setView(view)
+                    .create();
         }
     }
 

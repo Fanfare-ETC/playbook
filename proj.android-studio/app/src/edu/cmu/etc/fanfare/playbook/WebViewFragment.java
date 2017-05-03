@@ -31,6 +31,7 @@ public class WebViewFragment extends PlaybookFragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         mWebView = new WebView(getActivity());
+        mWebView.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
         mWebView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
         checkWebViewVersion();
 
