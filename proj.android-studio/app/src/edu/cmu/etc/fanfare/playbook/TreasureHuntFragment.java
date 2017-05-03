@@ -1,19 +1,17 @@
 package edu.cmu.etc.fanfare.playbook;
 
+import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.Vibrator;
 import android.support.constraint.ConstraintLayout;
-import android.support.v7.app.AlertDialog;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -54,7 +52,7 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
     private ConstraintLayout layout;
     private int plusoneId,plustenWarmerId,plustenColderId,plustenMarkerId;
     private int warmerSectionId,colderSectionId,markerSectionId;
-    private ImageView warmerView,colderView,markerView;
+    private ImageView warmerView,colderView,markerView,aggregateView,mapView;
     private static boolean firstLoad=true;
     private Vibrator myVib;
     private BirdDrawing birdDrawing;
@@ -76,14 +74,14 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
 
     public static class LinesView extends View {
 
-        private View mWarmerView;
-        private View mColderView;
-        private View mMarkerView;
+        private View mWarmerView,mColderView,mMarkerView,mAggregateView,mMapView;
 
         public static int[] warmerLocation = new int[2];
         public static int[] colderLocation = new int[2];
         public static int[] markerLocation = new int[2];
         public static int[] canvasLocation = new int[2];
+        public static int[] mapLocation = new int[2];
+
 
         public LinesView(Context context) {
             super(context);
@@ -104,6 +102,13 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
         public void setMarkerView(View markerView) {
             mMarkerView = markerView;
         }
+        public void setAggregateView(View aggView) {
+            mAggregateView = aggView;
+        }
+        public void setMapView(View mapView) {
+            mMapView = mapView;
+        }
+
 
         @Override
         public void onDraw(Canvas canvas) {
@@ -115,10 +120,14 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
                 return;
             }
             int minwidth=(int)view.getWidth()/3;
+            int minheight=116;
 
             mWarmerView.setMinimumWidth(minwidth);
+            mWarmerView.setMinimumHeight(minheight);
             mColderView.setMinimumWidth(minwidth);
+            mColderView.setMinimumHeight(minheight);
             mMarkerView.setMinimumWidth(minwidth);
+            mMarkerView.setMinimumHeight(minheight);
 
             mWarmerView.getLocationInWindow(warmerLocation);
             mColderView.getLocationInWindow(colderLocation);
@@ -132,6 +141,13 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
             colderLocation[1] = colderLocation[1] + mColderView.getHeight() / 2 - canvasLocation[1];
             markerLocation[0] = markerLocation[0] + mMarkerView.getWidth() / 2 - canvasLocation[0];
             markerLocation[1] = markerLocation[1] + mMarkerView.getHeight() / 2 - canvasLocation[1];
+
+            int bottom = warmerLocation[1]+ mWarmerView.getHeight()/2 ;
+            mMapView.getLocationInWindow(mapLocation);
+            int top = mapLocation[1]+(mMapView.getHeight()/2);
+            Log.d("height",Float.toString((float)(bottom-top)/mAggregateView.getHeight()));
+            mAggregateView.setY(top);
+            mAggregateView.setScaleY((float)(bottom-top)/mAggregateView.getHeight());
             /*
             for(int i =0;i<5;i++)
             {
@@ -187,9 +203,9 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
         colderView.setOnClickListener(this);
         markerView = (ImageView) view.findViewById(markerSectionId);
         markerView.setOnClickListener(this);
+        aggregateView=(ImageView) view.findViewById(R.id.aggregate);
+        mapView=(ImageView) view.findViewById(R.id.map);
 
-        ImageView MapView = (ImageView) view.findViewById(R.id.map);
-        MapView.setOnClickListener(this);
         ImageView agg = (ImageView) view.findViewById(R.id.aggregate);
         agg.setOnTouchListener(this);
 
@@ -204,6 +220,8 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
                 linesView.setWarmerView(warmerView);
                 linesView.setColderView(colderView);
                 linesView.setMarkerView(markerView);
+                linesView.setAggregateView(aggregateView);
+                linesView.setMapView(mapView);
                 linesView.invalidate();
             }
         });
@@ -269,94 +287,84 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
             @Override
             public void run() {
                 if(gameState.game_off) {
-                    if(section==0)
-                        stopGame(R.drawable.bird_drawing);
                     if(section==1)
+                        stopGame(R.drawable.bird_drawing);
+                    if(section==0)
                         stopGame(R.drawable.boat_drawing);
                 }
                 else {
                     if (gameState.flag1) {
-                        if(section==0)
-                            updateMarker_1(R.id.bird_v3);
                         if(section==1)
-                            updateMarker_1(R.id.boat_v4);
+                            updateMarker(R.id.bird_v3);
+                        if(section==0)
+                            updateMarker(R.id.boat_v4);
                     }
                     if (gameState.flag2) {
-                        if(section==0)
-                            updateMarker_2(R.id.bird_v1);
                         if(section==1)
-                            updateMarker_2(R.id.boat_v2);
+                            updateMarker(R.id.bird_v1);
+                        if(section==0)
+                            updateMarker(R.id.boat_v5);
                     }
                     if (gameState.flag3)
                         updateMarker_3();
-                            else
-                            {
-                                if (!gameState.game_on && !gameState.game_off) {
+                    else
+                    {
+                        if (!gameState.game_on && !gameState.game_off) {
+                            showTutorial();
+                            firstLoad = true;
+                        }
+                        else {
+                            if (gameState.game_on && (!gameState.flag1 && !gameState.flag2 && !gameState.flag3 && !gameState.game_off)) {
+                                if(firstLoad) {
                                     showTutorial();
-                                    firstLoad = true;
+                                    firstLoad = false;
                                 }
-                                else {
-                                    if (gameState.game_on && (!gameState.flag1 && !gameState.flag2 && !gameState.flag3 && !gameState.game_off)) {
-                                        if(firstLoad) {
-                                            showTutorial();
-                                            firstLoad = false;
-                                        }
-                                        if(section==0)
-                                            startGame(R.id.bird_v0);
-                                        if(section==1)
-                                            startGame(R.id.boat_v1);
-                                    }
-                                }
+                                if(section==1)
+                                    startGame(R.id.bird_v0);
+                                if(section==0)
+                                    startGame(R.id.boat_v3);
 
                             }
+                        }
+
+                    }
                 }
-                if(section==0) {
+                if(section==1) {
                     BirdDrawing.connectDots cd1 = (BirdDrawing.connectDots) view.findViewById(R.id.bird_connectDots);
                     cd1.invalidate();
                 }
-                if(section==1) {
+                if(section==0) {
                     BoatDrawing.connectDots cd2 = (BoatDrawing.connectDots) view.findViewById(R.id.boat_connectDots);
                     cd2.invalidate();
                 }
-
-
             }
         });
     }
-    public void  updateMarker_1(int vertex_id)
+    public void  updateMarker(int vertex_id)
     {
-        //move marker to vertex 3
         ImageView v3 = ((ImageView) view.findViewById(vertex_id));
         int[] loc0 = new int[2];
         int[] canvasLocation = new int[2];
         view.getLocationInWindow(canvasLocation);
         ImageView ex = (ImageView) view.findViewById(R.id.ex);
         v3.getLocationInWindow(loc0);
-        loc0[0] -= canvasLocation[0] + 50;
-        loc0[1] -= canvasLocation[1] + 50;
+        loc0[0] -= canvasLocation[0]+50 ;
+        loc0[1] -= canvasLocation[1]+50 ;
         ex.setX(loc0[0]);
         ex.setY(loc0[1]);
-
-    }
-    public void  updateMarker_2(int vertex_id)
-    {
-        //move marker to vertex 1
-        ImageView v1 = ((ImageView) view.findViewById(vertex_id));
-        int[] loc0 = new int[2];
-        int[] canvasLocation = new int[2];
-        view.getLocationInWindow(canvasLocation);
-        ImageView ex = (ImageView) view.findViewById(R.id.ex);
-        v1.getLocationInWindow(loc0);
-        loc0[0] -= canvasLocation[0] + 50;
-        loc0[1] -= canvasLocation[1] + 50;
-        ex.setX(loc0[0]);
-        ex.setY(loc0[1]);
+        int h=ex.getHeight()/2;
+        int w=ex.getWidth()/2;
+        ImageView glow = (ImageView) view.findViewById(R.id.glow);
+        glow.setX(loc0[0]-w);
+        glow.setY(loc0[1]-h);
 
     }
     public void  updateMarker_3()
     {
         ImageView ex = (ImageView) view.findViewById(R.id.ex);
         ex.setVisibility(View.INVISIBLE);
+        ImageView glow = (ImageView) view.findViewById(R.id.glow);
+        glow.setVisibility(View.INVISIBLE);
     }
     public void startGame(int vertex_id)
     {
@@ -372,10 +380,51 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
         ImageView ex = (ImageView) view.findViewById(R.id.ex);
         ex.setVisibility(View.VISIBLE);
         v0.getLocationInWindow(loc0);
-        loc0[0] -= canvasLocation[0] + 50;
-        loc0[1] -= canvasLocation[1] + 50;
+        loc0[0] -= canvasLocation[0]+50 ;
+        loc0[1] -= canvasLocation[1]+50 ;
         ex.setX(loc0[0]);
         ex.setY(loc0[1]);
+
+        int h=ex.getHeight()/2;
+        int w=ex.getWidth()/2;
+        ImageView glow = (ImageView) view.findViewById(R.id.glow);
+        glow.setVisibility(View.VISIBLE);
+        glow.setX(loc0[0]-w);
+        glow.setY(loc0[1]-h);
+
+        ObjectAnimator scaleGlow_x= ObjectAnimator.ofFloat(glow, "scaleX", 0.0f, 0.75f);
+        ObjectAnimator scaleGlow_y= ObjectAnimator.ofFloat(glow, "scaleY", 0.0f, 0.75f);
+        scaleGlow_x.setDuration(2000);
+        scaleGlow_y.setDuration(2000);
+        scaleGlow_x.setRepeatCount(500);
+        scaleGlow_y.setRepeatCount(500);
+        AnimatorSet scale= new AnimatorSet();
+        scale.play(scaleGlow_x).with(scaleGlow_y);
+        scale.start();
+    }
+    public void timer()
+    {
+        Typeface tf = Typeface.createFromAsset(getActivity().getAssets(), "fonts/nova1.ttf");
+
+        final TextView text = (TextView) view.findViewById(R.id.timer);
+        int mTimerColor = Color.rgb(255, 255, 255);
+        text.setTextColor(mTimerColor);
+        text.setTextSize(20.0f);
+        text.setTextAlignment(View.TEXT_ALIGNMENT_TEXT_END);
+        text.setTypeface(tf);
+
+        new CountDownTimer(90000, 1000) {
+            public void onTick(long millisUntilFinished) {
+                long time = millisUntilFinished / 1000;
+                //if (time == 1)
+                //text.setText("GO!");
+                //else
+                text.setText(Long.toString(time - 1)+" secs left");
+            }
+            public void onFinish() {
+                text.setText("Quicker!");
+            }
+        }.start();
 
     }
     public void stopGame(int drawingResId)
@@ -385,9 +434,20 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
         ImageView drawing= (ImageView)view.findViewById(R.id.drawing);
         drawing.setImageResource(drawingResId);
         drawing.setVisibility(View.VISIBLE);
+
+        ObjectAnimator blink_drawing = ObjectAnimator.ofFloat(drawing, "alpha", 0.0f, 1.0f);
+        blink_drawing.setDuration(3000);
+        blink_drawing.start();
+
+        ObjectAnimator rotate_drawing = ObjectAnimator.ofFloat(drawing, "rotationX", 90.0f, 0.0f);
+        rotate_drawing.setDuration(3000);
+        rotate_drawing.start();
+
         drawing.setZ(1.0f);
+
         ImageView translucent = (ImageView) view.findViewById(R.id.translucentlayer);
         translucent.setVisibility(View.VISIBLE);
+
         TextView text = (TextView) view.findViewById(R.id.aggregate_text);
         Typeface tf = Typeface.createFromAsset(getActivity().getAssets(), "fonts/nova2.ttf");
         text.setZ(1.0f);
@@ -397,6 +457,12 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
         text.setBackgroundColor(getResources().getColor(R.color.green));
         //text.setBackgroundColor(colorResId);
         text.setText("      Hurray! Game Over!");
+
+        //send id to leaderboard
+
+        String type = "connectthedotsleaderboard";
+        BackgroundWorker backgroundWorker = new BackgroundWorker();
+        backgroundWorker.execute(type);
 
     }
 
@@ -469,124 +535,125 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
                 blink_plusone_w.cancel();
                 newone.setAnimation(null);
                 ((ViewGroup) newone.getParent()).removeView(newone);
-                }
-            };
+            }
+        };
         handler.postDelayed(task,500);
 
     }
     public void onClick(View v) {
-     if(gameState.game_on) {
-         final JSONObject obj = new JSONObject();
+        if(gameState.game_on) {
+            final JSONObject obj = new JSONObject();
 
-         switch (v.getId()) {
-             case R.id.treasurehunt_tutorial:
-                 myVib.vibrate(50);
-                 if (gameState.game_on) {
-                     ImageView tut = (ImageView) view.findViewById(R.id.treasurehunt_tutorial);
-                     tut.setVisibility(View.INVISIBLE);
-                 }
-                 break;
-             case R.id.warmer:
-                 myVib.vibrate(30);
-                 try {
-                     obj.put("selection", 0);
-                     obj.put("method", "post");
-
-                 } catch (JSONException e) {
-                     e.printStackTrace();
-                 }
-
-                 plusoneanimation(LinesView.warmerLocation, LinesView.canvasLocation);
-
-                 break;
-             case R.id.colder:
-                 myVib.vibrate(30);
-                 try {
-                     obj.put("selection", 1);
-                     obj.put("method", "post");
-
-                 } catch (JSONException e) {
-                     e.printStackTrace();
-                 }
-                 plusoneanimation(LinesView.colderLocation, LinesView.canvasLocation);
-                 break;
-             case R.id.marker:
-                 myVib.vibrate(30);
-                 try {
-                     obj.put("selection", 2);
-                     obj.put("method", "post");
-
-                 } catch (JSONException e) {
-                     e.printStackTrace();
-                 }
-                 plusoneanimation(LinesView.markerLocation, LinesView.canvasLocation);
-                 break;
-
-         }
-         callbackWs[0].send(obj.toString());
-     }
-    }
-public boolean onTouch(View v, MotionEvent event)
-{
-    if(gameState.game_on) {
-        switch (v.getId()) {
-            case R.id.aggregate:
-                if (event.getAction() == MotionEvent.ACTION_DOWN) {
-
+            switch (v.getId()) {
+                case R.id.treasurehunt_tutorial:
+                    myVib.vibrate(50);
+                    if (gameState.game_on) {
+                        ImageView tut = (ImageView) view.findViewById(R.id.treasurehunt_tutorial);
+                        tut.setVisibility(View.INVISIBLE);
+                        timer();
+                    }
+                    break;
+                case R.id.warmer:
                     myVib.vibrate(30);
+                    try {
+                        obj.put("selection", 0);
+                        obj.put("method", "post");
 
-                    float width = v.getWidth();
-                    float tx = event.getX();
-                    float ty = event.getY();
-
-                    int[] values = new int[2];
-                    v.getLocationInWindow(values);
-
-
-                    if (tx <= width / 3) {
-
-                        try {
-                            obj.put("selection", 0);
-                            obj.put("method", "post");
-
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
-
-                    } else if (tx >= width / 3 && tx <= width * 2 / 3) {
-
-                        try {
-                            obj.put("selection", 2);
-                            obj.put("method", "post");
-
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
-                    } else if (tx >= 2 * width / 3 && tx <= width) {
-                        try {
-                            obj.put("selection", 1);
-                            obj.put("method", "post");
-
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
-
+                    } catch (JSONException e) {
+                        e.printStackTrace();
                     }
 
-                    callbackWs[0].send(obj.toString());
+                    plusoneanimation(LinesView.warmerLocation, LinesView.canvasLocation);
 
-                    int[] clickpos = new int[2];
-                    clickpos[0] = (int) tx + 2 * (values[0]);
-                    clickpos[1] = (int) ty + 2 * (values[1]);
+                    break;
+                case R.id.colder:
+                    myVib.vibrate(30);
+                    try {
+                        obj.put("selection", 1);
+                        obj.put("method", "post");
 
-                    plusoneanimation(clickpos, values);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                    plusoneanimation(LinesView.colderLocation, LinesView.canvasLocation);
+                    break;
+                case R.id.marker:
+                    myVib.vibrate(30);
+                    try {
+                        obj.put("selection", 2);
+                        obj.put("method", "post");
 
-                }
-                break;
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                    plusoneanimation(LinesView.markerLocation, LinesView.canvasLocation);
+                    break;
+
+            }
+            callbackWs[0].send(obj.toString());
         }
     }
-    return true;
-}
+    public boolean onTouch(View v, MotionEvent event)
+    {
+        if(gameState.game_on) {
+            switch (v.getId()) {
+                case R.id.aggregate:
+                    if (event.getAction() == MotionEvent.ACTION_DOWN) {
+
+                        myVib.vibrate(30);
+
+                        float width = v.getWidth();
+                        float tx = event.getX();
+                        float ty = event.getY();
+
+                        int[] values = new int[2];
+                        v.getLocationInWindow(values);
+
+
+                        if (tx <= width / 3) {
+
+                            try {
+                                obj.put("selection", 0);
+                                obj.put("method", "post");
+
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+
+                        } else if (tx >= width / 3 && tx <= width * 2 / 3) {
+
+                            try {
+                                obj.put("selection", 2);
+                                obj.put("method", "post");
+
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+                        } else if (tx >= 2 * width / 3 && tx <= width) {
+                            try {
+                                obj.put("selection", 1);
+                                obj.put("method", "post");
+
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+
+                        }
+
+                        callbackWs[0].send(obj.toString());
+
+                        int[] clickpos = new int[2];
+                        clickpos[0] = (int) tx + 2 * (values[0]);
+                        clickpos[1] = (int) ty + 2 * (values[1]);
+
+                        plusoneanimation(clickpos, values);
+
+                    }
+                    break;
+            }
+        }
+        return true;
+    }
 
     public class websocketHandler implements AsyncHttpClient.WebSocketConnectCallback, WebSocket.StringCallback {
 
@@ -694,6 +761,7 @@ public boolean onTouch(View v, MotionEvent event)
                                     Typeface tf = Typeface.createFromAsset(getActivity().getAssets(), "fonts/nova2.ttf");
                                     text.setTypeface(tf);
                                     text.setTextSize(30);
+                                    text.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
                                     if (w > m && w > c) {
                                         text.setTextColor(Color.WHITE);
                                         text.setBackgroundColor(getResources().getColor(R.color.tertiary_dark));
@@ -706,7 +774,8 @@ public boolean onTouch(View v, MotionEvent event)
                                         text.setBackgroundColor(getResources().getColor(R.color.secondary));
                                         text.setText("   Your Section Says : COLDER!");
                                     } else {
-                                        text.setBackgroundColor(getResources().getColor(R.color.common_google_signin_btn_text_light_disabled));
+                                        //text.setBackgroundColor(getResources().getColor(R.color.common_google_signin_btn_text_light_disabled));
+                                        text.setBackgroundColor(Color.WHITE);
                                         text.setText(null);
                                     }
                                 }
@@ -718,3 +787,4 @@ public boolean onTouch(View v, MotionEvent event)
         }//onstringavilable
     }
 }
+

@@ -39,7 +39,7 @@ public class BirdDrawing {
 
             super.onDraw(canvas);
 
-            if (section == 0) {
+            if (section == 1) {
 
                 int[] loc0 = new int[2];
                 int[] loc1 = new int[2];
