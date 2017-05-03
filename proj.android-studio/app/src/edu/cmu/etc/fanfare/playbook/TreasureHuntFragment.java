@@ -153,8 +153,9 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
                 Log.d("height", Integer.toString(top) + " " + Integer.toString(bottom));
                 mAggregateView.setY(bottom - top);
 
-                // Log.d("height",Float.toString((float)(bottom-top)/mAggregateView.getHeight()));
-                //mAggregateView.setScaleY((float)(bottom-top)/mAggregateView.getHeight());
+                float scale_y=(float)(bottom+top)/mAggregateView.getHeight();
+                Log.d("height",Float.toString(scale_y));
+                mAggregateView.setScaleY(scale_y);
                 /*
                 for(int i =0;i<5;i++)
                 {
