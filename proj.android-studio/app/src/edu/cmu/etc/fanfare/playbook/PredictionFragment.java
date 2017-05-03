@@ -18,6 +18,7 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.SparseArray;
 import android.util.TypedValue;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -43,6 +44,7 @@ public class PredictionFragment extends WebViewFragment {
 
     private static final String PREF_NAME = "prediction";
     private static final String PREF_KEY_GAME_STATE = "gameState";
+    private static final String PREF_KEY_FIRST_LOAD = "firstLoad";
 
     private static final SparseArray<String> PLAYBOOK_EVENTS = new SparseArray<String>();
 
@@ -56,6 +58,11 @@ public class PredictionFragment extends WebViewFragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         SharedPreferences prefs = getActivity().getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+
+        if (prefs.getBoolean(PREF_KEY_FIRST_LOAD, true)) {
+            showTutorial();
+            prefs.edit().putBoolean(PREF_KEY_FIRST_LOAD, false).apply();
+        }
 
         // We use SharedPreference because the savedInstanceState doesn't work
         // if the fragment doesn't have an ID.
@@ -268,65 +275,25 @@ public class PredictionFragment extends WebViewFragment {
 
     public static class TutorialDialogFragment extends DialogFragment {
         @Override
-        public void onStart() {
-            super.onStart();
-            if (getDialog() == null) {
-                return;
-            }
-
-            // This is in dp unit.
-            DisplayMetrics displayMetrics = getActivity().getResources().getDisplayMetrics();
-            float dpWidth = displayMetrics.widthPixels / displayMetrics.density;
-            float targetWidth = Math.min(382, dpWidth - 16);
-
-            // For some reason, Android doesn't honor layout parameters in the layout file.
-            getDialog().getWindow().setLayout(
-                    (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, targetWidth, getResources().getDisplayMetrics()),
-                    WindowManager.LayoutParams.WRAP_CONTENT
-            );
-            getDialog().getWindow().setBackgroundDrawable(null);
-        }
-
-        @Override
         public Dialog onCreateDialog(Bundle savedInstanceState) {
-            LayoutInflater inflater = getActivity().getLayoutInflater();
-            View view = inflater.inflate(R.layout.prediction_fragment_tutorial_dialog, null);
-            view.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    TutorialDialogFragment.this.dismiss();
-                }
-            });
+            Typeface typeface = Typeface.createFromAsset(getActivity().getAssets(), "nova_excblack.otf");
+            TextView title = new TextView(getActivity());
+            title.setText("Prediction".toUpperCase());
+            title.setTextSize(36);
+            title.setTypeface(typeface);
+            title.setGravity(Gravity.CENTER);
 
-            // Set custom fonts for our dialog.
-            Typeface typeface = Typeface.createFromAsset(getActivity().getAssets(), "nova3.ttf");
-            TextView para1 = (TextView) view.findViewById(R.id.prediction_tutorial_para_1);
-            TextView para2 = (TextView) view.findViewById(R.id.prediction_tutorial_para_2);
-            TextView para3 = (TextView) view.findViewById(R.id.prediction_tutorial_para_3);
-            TextView para4 = (TextView) view.findViewById(R.id.prediction_tutorial_para_4);
-            para1.setLineSpacing(0, 1.25f);
-            para1.setTypeface(typeface);
-            para2.setLineSpacing(0, 1.25f);
-            para2.setTypeface(typeface);
-            para3.setLineSpacing(0, 1.25f);
-            para3.setTypeface(typeface);
-            para4.setLineSpacing(0, 1.25f);
-            para4.setTypeface(typeface);
-
-            // Append an arrow after the paragraph.
-            SpannableString lastPara = new SpannableString(para4.getText() + " \u22b2");
-            lastPara.setSpan(new ForegroundColorSpan(
-                    ContextCompat.getColor(getActivity(), R.color.primary)),
-                    para4.getText().length() + 1,
-                    para4.getText().length() + 2,
-                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
-            );
-            para4.setText(lastPara, TextView.BufferType.SPANNABLE);
-
-            // Use the Builder class for convenient dialog construction
-            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-            builder.setView(view);
-            return builder.create();
+            return new AlertDialog.Builder(getActivity())
+                    .setCustomTitle(title)
+                    .setMessage("Play this between each half-inning. We'll notify you when your predictions come true.")
+                    .setCancelable(false)
+                    .setPositiveButton("Got it!", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            dismiss();
+                        }
+                    })
+                    .create();
         }
     }
 

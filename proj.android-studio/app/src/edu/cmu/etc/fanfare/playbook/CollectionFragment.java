@@ -9,21 +9,15 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Typeface;
 import android.os.Bundle;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
-import android.text.SpannableString;
-import android.text.Spanned;
-import android.text.style.ForegroundColorSpan;
-import android.util.DisplayMetrics;
 import android.util.Log;
-import android.util.TypedValue;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebView;
 import android.widget.TextView;
@@ -44,6 +38,7 @@ public class CollectionFragment extends WebViewFragment {
 
     private static final String PREF_NAME = "collection";
     private static final String PREF_KEY_GAME_STATE = "gameState";
+    private static final String PREF_KEY_FIRST_LOAD = "firstLoad";
 
     private JSONObject mGameState;
     private boolean mIsAttached;
@@ -52,11 +47,18 @@ public class CollectionFragment extends WebViewFragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        SharedPreferences prefs = getActivity().getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+
+        // Show short description on first load.
+        if (prefs.getBoolean(PREF_KEY_FIRST_LOAD, true)) {
+            showTutorial();
+            prefs.edit().putBoolean(PREF_KEY_FIRST_LOAD, false).apply();
+        }
 
         // We use SharedPreference because the savedInstanceState doesn't work
         // if the fragment doesn't have an ID.
         try {
-            SharedPreferences prefs = getActivity().getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+            prefs = getActivity().getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
             String gameState = prefs.getString(PREF_KEY_GAME_STATE, null);
             if (gameState != null) {
                 Log.d(TAG, "Restoring game state from bundle: " + gameState);
@@ -173,82 +175,19 @@ public class CollectionFragment extends WebViewFragment {
 
     public static class TutorialDialogFragment extends DialogFragment {
         @Override
-        public void onStart() {
-            super.onStart();
-            if (getDialog() == null) {
-                return;
-            }
-
-            // This is in dp unit.
-            DisplayMetrics displayMetrics = getActivity().getResources().getDisplayMetrics();
-            float dpWidth = displayMetrics.widthPixels / displayMetrics.density;
-            float targetWidth = Math.min(382, dpWidth - 16);
-
-            // For some reason, Android doesn't honor layout parameters in the layout file.
-            getDialog().getWindow().setLayout(
-                    (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, targetWidth, getResources().getDisplayMetrics()),
-                    WindowManager.LayoutParams.WRAP_CONTENT
-            );
-            getDialog().getWindow().setBackgroundDrawable(null);
-        }
-
-        @Override
         public Dialog onCreateDialog(Bundle savedInstanceState) {
-            LayoutInflater inflater = getActivity().getLayoutInflater();
-            View view = inflater.inflate(R.layout.collection_fragment_tutorial_dialog, null);
-            view.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    TutorialDialogFragment.this.dismiss();
-                }
-            });
+            Typeface typeface = Typeface.createFromAsset(getActivity().getAssets(), "nova_excblack.otf");
+            TextView title = new TextView(getActivity());
+            title.setText("Collect Sets".toUpperCase());
+            title.setTextSize(36);
+            title.setTypeface(typeface);
+            title.setGravity(Gravity.CENTER);
 
-            // Set custom fonts for our dialog.
-            Typeface typeface = Typeface.createFromAsset(getActivity().getAssets(), "nova3.ttf");
-            TextView para1 = (TextView) view.findViewById(R.id.collection_tutorial_para_1);
-            TextView para2 = (TextView) view.findViewById(R.id.collection_tutorial_para_2);
-            TextView para3 = (TextView) view.findViewById(R.id.collection_tutorial_para_3);
-            para1.setLineSpacing(0, 1.25f);
-            para1.setTypeface(typeface);
-            para2.setLineSpacing(0, 1.25f);
-            para2.setTypeface(typeface);
-            para3.setLineSpacing(0, 1.25f);
-            para3.setTypeface(typeface);
-
-            // Append an arrow after the paragraph.
-            SpannableString lastPara = new SpannableString(para3.getText() + " \u22b2");
-            lastPara.setSpan(new ForegroundColorSpan(
-                            ContextCompat.getColor(getActivity(), R.color.primary)),
-                    para3.getText().length() + 1,
-                    para3.getText().length() + 2,
-                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
-            );
-            para3.setText(lastPara, TextView.BufferType.SPANNABLE);
-
-            // Use the Builder class for convenient dialog construction
-            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-            builder.setView(view);
-            return builder.create();
-        }
-    }
-
-    public static class TrophyAcquiredDialogFragment extends DialogFragment {
-        @Override
-        public Dialog onCreateDialog(Bundle savedInstanceState) {
             return new AlertDialog.Builder(getActivity())
-                    .setTitle("You got a trophy!")
-                    .setMessage("Do you want to see it in the Trophy Case?")
-                    .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            Intent intent = new Intent(getActivity(), AppActivity.class);
-                            intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
-                            intent.putExtra(AppActivity.INTENT_EXTRA_DRAWER_ITEM, DrawerItemAdapter.DRAWER_ITEM_TROPHY);
-                            startActivity(intent);
-                            dismiss();
-                        }
-                    })
-                    .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                    .setCustomTitle(title)
+                    .setMessage("Play this during the inning. Each time a play happens in the baseball game we'll send a card to this app.")
+                    .setCancelable(false)
+                    .setPositiveButton("Got it!", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             dismiss();
