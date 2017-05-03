@@ -19,5 +19,6 @@
     <dimen name="button_margin">38dp</dimen>
     <dimen name="bottom_margin">35dp</dimen>
     <dimen name="left_margin">52dp</dimen>
+    <dimen name="right_margin">30dp</dimen>
     <item name="guideline3" format="float" type="dimen">0.69</item>
 </resources>

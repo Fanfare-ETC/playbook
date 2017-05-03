@@ -9,6 +9,8 @@ import android.graphics.Typeface;
 import android.os.AsyncTask;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.View;
+import android.widget.ImageView;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
@@ -62,8 +64,8 @@ public class selfScoreWorker extends AsyncTask<String,Void,String> {
                 OutputStream outputStream = httpURLConnection.getOutputStream();
                 BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(outputStream, "UTF-8"));
                 JSONObject object = new JSONObject();
-                //object.put("id", LoginActivity.acct.getId().toString());
-                object.put("id", "1");
+                object.put("id", LoginActivity.acct.getId().toString());
+                //object.put("id", "it");
                 Log.d("acct_no", object.toString());
                 // String post_data = URLEncoder.encode("sectionNo","UTF-8")+"="+URLEncoder.encode(sec,"UTF-8")+"&"
                 //    + URLEncoder.encode("Move","UTF-8")+"="+URLEncoder.encode(move,"UTF-8");
@@ -176,7 +178,7 @@ public class selfScoreWorker extends AsyncTask<String,Void,String> {
                     b3.setText("0" + collection);
                 }
                 else{
-                    b3.setText(prediction);
+                    b3.setText(collection);
                 }
                 b3.setTextColor(Color.WHITE);
                 b3.setTypeface(externalFont);
@@ -187,7 +189,7 @@ public class selfScoreWorker extends AsyncTask<String,Void,String> {
                 b3.setGravity(Gravity.RIGHT | Gravity.BOTTOM);
                 b3.setLayoutParams(params2);
                 tr.addView(b3);
-
+/*
                 TextView b4 = new TextView(activity.getActivity());
                 String total = String.valueOf(jo.getInt("Total"));
                 if(jo.getInt("Total") < 10){
@@ -205,8 +207,15 @@ public class selfScoreWorker extends AsyncTask<String,Void,String> {
                 b4.setTextColor(Color.WHITE);
                 b4.setLayoutParams(params2);
                 tr.addView(b4);
-
+*/
                 tv.addView(tr);
+
+                ImageView myBadge = (ImageView) activity.getView().findViewById(R.id.your_badge);
+                Log.i("SELFBOARD", Integer.toString(jo.getInt("Badge")));
+                if (jo.getInt("Badge") == 0){
+                    Log.i("SELFBOARD", "no badge");
+                    myBadge.setVisibility(View.INVISIBLE);
+                }
                 // final View vline = new View(activity);
                 //vline.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.FILL_PARENT, 2));
                 //vline.setBackgroundColor(Color.BLUE);

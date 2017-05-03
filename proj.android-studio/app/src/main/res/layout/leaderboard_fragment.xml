@@ -190,12 +190,30 @@
         app:layout_constraintVertical_bias="0.0"
         android:src="@drawable/your_score" />
 
+    <ImageView
+        android:id="@+id/your_badge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="10dp"
+        android:layout_marginLeft="@dimen/button_margin"
+        android:layout_marginRight="@dimen/right_margin"
+        android:contentDescription="@string/app_name"
+        android:scaleType="fitXY"
+
+        app:layout_constraintBottom_toBottomOf="@+id/board_view"
+        app:layout_constraintTop_toTopOf="@+id/selfboard"
+        app:layout_constraintRight_toRightOf="@+id/board_view"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintLeft_toRightOf="@+id/selfboard"
+        app:layout_constraintVertical_bias="0.0"
+        android:src="@drawable/badge_yellow" />
+
     <TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
         android:id="@+id/selfboard"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginRight="@dimen/leaderboard_margin"
-        app:layout_constraintRight_toRightOf="@+id/board_view"
+        app:layout_constraintRight_toLeftOf="@+id/your_badge"
         app:layout_constraintBottom_toBottomOf="@+id/board_view"
         app:layout_constraintTop_toTopOf="@+id/board_view"
         android:layout_marginEnd="@dimen/leaderboard_margin"
