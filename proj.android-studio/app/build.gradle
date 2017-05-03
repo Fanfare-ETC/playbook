@@ -12,7 +12,7 @@ android {
         versionCode 36
         versionName '1.5.4'
 
-        buildConfigField 'String', 'PLAYBOOK_TREASUREHUNT_API_HOST', '"128.2.238.137"'
+        buildConfigField 'String', 'PLAYBOOK_TREASUREHUNT_API_HOST', '"10.0.2.2"'
         buildConfigField 'Integer', 'PLAYBOOK_TREASUREHUNT_API_PORT', '9000'
         buildConfigField 'String', 'PLAYBOOK_API_HOST', '"10.0.2.2"'
         buildConfigField 'Integer', 'PLAYBOOK_API_PORT', '9001'
