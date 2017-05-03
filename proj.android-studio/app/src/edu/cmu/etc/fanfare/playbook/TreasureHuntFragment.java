@@ -392,12 +392,12 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
         glow.setX(loc0[0]-w);
         glow.setY(loc0[1]-h);
 
-        ObjectAnimator scaleGlow_x= ObjectAnimator.ofFloat(glow, "scaleX", 0.0f, 0.75f);
-        ObjectAnimator scaleGlow_y= ObjectAnimator.ofFloat(glow, "scaleY", 0.0f, 0.75f);
-        scaleGlow_x.setDuration(2000);
-        scaleGlow_y.setDuration(2000);
-        scaleGlow_x.setRepeatCount(500);
-        scaleGlow_y.setRepeatCount(500);
+        ObjectAnimator scaleGlow_x= ObjectAnimator.ofFloat(glow, "scaleX", 0.75f, 0.25f);
+        ObjectAnimator scaleGlow_y= ObjectAnimator.ofFloat(glow, "scaleY", 0.75f, 0.25f);
+        scaleGlow_x.setDuration(1000);
+        scaleGlow_y.setDuration(1000);
+        scaleGlow_x.setRepeatCount(5000);
+        scaleGlow_y.setRepeatCount(5000);
         AnimatorSet scale= new AnimatorSet();
         scale.play(scaleGlow_x).with(scaleGlow_y);
         scale.start();
@@ -455,7 +455,7 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
         text.setTextSize(30);
         text.setTextColor(Color.WHITE);
         text.setBackgroundColor(getResources().getColor(R.color.green));
-        //text.setBackgroundColor(colorResId);
+        text.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
         text.setText("      Hurray! Game Over!");
 
         //send id to leaderboard
