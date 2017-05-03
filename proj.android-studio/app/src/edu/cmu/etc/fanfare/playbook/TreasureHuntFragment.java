@@ -784,8 +784,8 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
                                         text.setBackgroundColor(getResources().getColor(R.color.secondary));
                                         text.setText("   Your Section Says : COLDER!");
                                     } else {
-                                        text.setBackgroundColor(getResources().getColor(R.color.common_google_signin_btn_text_light_disabled));
-                                        //text.setBackgroundColor(Color.WHITE);
+                                        //text.setBackgroundColor(getResources().getColor(R.color.common_google_signin_btn_text_light_disabled));
+                                        text.setBackgroundColor(Color.WHITE);
                                         text.setText(null);
                                     }
                                 }
