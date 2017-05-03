@@ -8,6 +8,8 @@ import android.graphics.Typeface;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.design.widget.CoordinatorLayout;
+import android.support.design.widget.Snackbar;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
@@ -69,6 +71,8 @@ public class AppActivity extends AppCompatActivity {
     private Stack<Integer> mBackStack = new Stack<>();
     private int mLastSelectedItem = DEFAULT_ITEM;
     private SparseArray<PlaybookFragment> mFragments = new SparseArray<>();
+
+    private CoordinatorLayout mCoordinatorLayout;
 
     private int mSection = -1;
     public static boolean isInForeground = false;
@@ -168,6 +172,9 @@ public class AppActivity extends AppCompatActivity {
         mFragments.put(FRAGMENT_TROPHY, new TrophyFragment());
         mFragments.put(FRAGMENT_SEAT_SELECT, new SeatSelectFragment());
         mFragments.put(FRAGMENT_TREASURE_HUNT, new TreasureHuntFragment());
+
+        // Get the coordinator layout (needed for displaying Snackbars).
+        mCoordinatorLayout = (CoordinatorLayout) findViewById(R.id.content_frame);
 
         // Set the home screen.
         Intent intent = getIntent();

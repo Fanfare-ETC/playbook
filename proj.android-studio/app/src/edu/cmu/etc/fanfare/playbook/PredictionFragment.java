@@ -9,15 +9,11 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Typeface;
 import android.os.Bundle;
-import android.support.v4.content.ContextCompat;
+import android.support.design.widget.CoordinatorLayout;
+import android.support.design.widget.Snackbar;
 import android.support.v7.app.AlertDialog;
-import android.text.SpannableString;
-import android.text.Spanned;
-import android.text.style.ForegroundColorSpan;
-import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.SparseArray;
-import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -25,7 +21,6 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebView;
 import android.widget.TextView;
@@ -35,6 +30,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
@@ -47,12 +43,11 @@ public class PredictionFragment extends WebViewFragment {
     private static final String PREF_KEY_FIRST_LOAD = "firstLoad";
 
     private static final SparseArray<String> PLAYBOOK_EVENTS = new SparseArray<String>();
+    private static final HashMap<String, String> PLAYBOOK_EVENT_NAMES = new HashMap<>();
 
     private JSONObject mGameState;
     private boolean mIsAttached;
     private Queue<JSONObject> mPendingEvents = new LinkedList<>();
-
-    private AlertDialog mCorrectDialog;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -80,7 +75,7 @@ public class PredictionFragment extends WebViewFragment {
         }
 
         // Populate the events.
-        PLAYBOOK_EVENTS.append(0, "SHUTOUT_INNING");
+        PLAYBOOK_EVENTS.append(0, "NO_RUNS");
         PLAYBOOK_EVENTS.append(1, "RUN_SCORED");
         PLAYBOOK_EVENTS.append(2, "FLY_OUT");
         PLAYBOOK_EVENTS.append(3, "TRIPLE_PLAY");
@@ -105,6 +100,32 @@ public class PredictionFragment extends WebViewFragment {
         PLAYBOOK_EVENTS.append(22, "MOST_FIELDED_BY_INFIELDERS");
         PLAYBOOK_EVENTS.append(23, "MOST_FIELDED_BY_CENTER");
         PLAYBOOK_EVENTS.append(24, "UNKNOWN");
+
+        PLAYBOOK_EVENT_NAMES.put("NO_RUNS", "No Runs");
+        PLAYBOOK_EVENT_NAMES.put("RUN_SCORED", "Run Scored");
+        PLAYBOOK_EVENT_NAMES.put("FLY_OUT", "Fly Out");
+        PLAYBOOK_EVENT_NAMES.put("TRIPLE_PLAY", "Triple Play");
+        PLAYBOOK_EVENT_NAMES.put("DOUBLE_PLAY", "Double Play");
+        PLAYBOOK_EVENT_NAMES.put("GROUND_OUT", "Ground Out");
+        PLAYBOOK_EVENT_NAMES.put("STEAL", "Steal");
+        PLAYBOOK_EVENT_NAMES.put("PICK_OFF", "Pick Off");
+        PLAYBOOK_EVENT_NAMES.put("WALK", "Walk");
+        PLAYBOOK_EVENT_NAMES.put("BLOCKED_RUN", "Blocked Run");
+        PLAYBOOK_EVENT_NAMES.put("STRIKEOUT", "Strike Out");
+        PLAYBOOK_EVENT_NAMES.put("HIT_BY_PITCH", "Hit By Pitch");
+        PLAYBOOK_EVENT_NAMES.put("HOME_RUN", "Home Run");
+        PLAYBOOK_EVENT_NAMES.put("PITCH_COUNT_16", "Pitch Count: 15 & Under");
+        PLAYBOOK_EVENT_NAMES.put("PITCH_COUNT_17", "Pitch Count: 16 & Over");
+        PLAYBOOK_EVENT_NAMES.put("SINGLE", "Single");
+        PLAYBOOK_EVENT_NAMES.put("DOUBLE", "Double");
+        PLAYBOOK_EVENT_NAMES.put("TRIPLE", "Triple");
+        PLAYBOOK_EVENT_NAMES.put("BATTER_COUNT_4", "Batter Count: 4 & Under");
+        PLAYBOOK_EVENT_NAMES.put("BATTER_COUNT_5", "Batter Count: 5 & Over");
+        PLAYBOOK_EVENT_NAMES.put("MOST_FIELDED_BY_LEFT", "Most Balls Fielded By: Left");
+        PLAYBOOK_EVENT_NAMES.put("MOST_FIELDED_BY_RIGHT", "Most Balls Fielded By: Right");
+        PLAYBOOK_EVENT_NAMES.put("MOST_FIELDED_BY_INFIELDERS", "Most Balls Fielded By: Infielders");
+        PLAYBOOK_EVENT_NAMES.put("MOST_FIELDED_BY_CENTER", "Most Balls Fielded By: Center");
+        PLAYBOOK_EVENT_NAMES.put("UNKNOWN", "Unknown");
 
         // Declare that we have an options menu.
         setHasOptionsMenu(true);
@@ -227,45 +248,26 @@ public class PredictionFragment extends WebViewFragment {
                 JSONObject ball = balls.getJSONObject(i);
                 String selectedTarget = ball.getString("selectedTarget");
                 if (selectedTarget != null && event.equals(selectedTarget)) {
-                    showCorrectDialog(context);
+                    showCorrectSnackbar(context, event);
                 }
             }
         }
     }
 
-    private void showCorrectDialog(final Activity context) {
+    private void showCorrectSnackbar(final Activity context, String event) {
         final Intent intent = new Intent(context, AppActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
         intent.putExtra(AppActivity.INTENT_EXTRA_DRAWER_ITEM, DrawerItemAdapter.DRAWER_ITEM_PREDICTION);
 
-        context.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                if (mCorrectDialog == null) {
-                    mCorrectDialog = new AlertDialog.Builder(context)
-                            .setTitle("Bravo!")
-                            .setMessage("You got a prediction right.")
-                            .setPositiveButton("Check it out!", new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    dialog.dismiss();
-                                    context.startActivity(intent);
-                                }
-                            })
-                            .setNegativeButton("Dismiss", new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    dialog.dismiss();
-                                }
-                            })
-                            .create();
-                }
-
-                if (!mCorrectDialog.isShowing()) {
-                    mCorrectDialog.show();
-                }
-            }
-        });
+        CoordinatorLayout layout = (CoordinatorLayout) context.findViewById(R.id.content_frame);
+        Snackbar.make(layout, "Prediction correct: " + PLAYBOOK_EVENT_NAMES.get(event), Snackbar.LENGTH_LONG)
+                .setAction("Show Me", new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        context.startActivity(intent);
+                    }
+                })
+                .show();
     }
 
     private void showTutorial() {
