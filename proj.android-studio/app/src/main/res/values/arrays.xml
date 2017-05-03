@@ -18,7 +18,7 @@
     </array>
     <array name="menu_item_fragment_title">
         <item>Welcome</item>
-        <item>Place Your Bets</item>
+        <item>Make Predictions</item>
         <item>Collect Sets</item>
         <item>Connect The Dots</item>
         <item>Leaderboard</item>

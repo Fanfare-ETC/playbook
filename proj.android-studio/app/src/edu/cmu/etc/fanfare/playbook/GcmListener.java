@@ -72,9 +72,7 @@ public class GcmListener extends FirebaseMessagingService {
     }
 
     private void handlePlaysCreated(String message) {
-        if (AppActivity.isInForeground &&
-                (AppActivity.selectedItem == DrawerItemAdapter.DRAWER_ITEM_PREDICTION ||
-                AppActivity.selectedItem == DrawerItemAdapter.DRAWER_ITEM_COLLECTION)) {
+        if (AppActivity.isInForeground) {
             return;
         }
 
@@ -128,8 +126,7 @@ public class GcmListener extends FirebaseMessagingService {
     }
 
     private void handleClearPredictions(String message) {
-        if (AppActivity.isInForeground &&
-            AppActivity.selectedItem == DrawerItemAdapter.DRAWER_ITEM_PREDICTION) {
+        if (AppActivity.isInForeground) {
             return;
         }
 

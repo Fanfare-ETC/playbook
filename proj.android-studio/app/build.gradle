@@ -9,8 +9,8 @@ android {
         applicationId 'edu.cmu.etc.fanfare.playbook'
         minSdkVersion 21
         targetSdkVersion 25
-        versionCode 38
-        versionName '1.5.6'
+        versionCode 39
+        versionName '1.5.7'
 
         buildConfigField 'String', 'PLAYBOOK_TREASUREHUNT_API_HOST', '"10.0.2.2"'
         buildConfigField 'Integer', 'PLAYBOOK_TREASUREHUNT_API_PORT', '9000'
@@ -98,7 +98,7 @@ dependencies {
     compile 'com.android.support:design:25.3.1'
     compile 'com.google.firebase:firebase-messaging:9.6.0'
     compile 'com.koushikdutta.async:androidasync:2.+'
-
+    compile 'com.jakewharton.threetenabp:threetenabp:1.0.5'
 }
 
 task npmInstall(type: Exec) {

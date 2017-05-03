@@ -28,6 +28,8 @@ import android.widget.TextView;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.threeten.bp.LocalDateTime;
+import org.threeten.bp.ZonedDateTime;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -190,6 +192,12 @@ public class PredictionFragment extends WebViewFragment {
                     String event = s.getString("event");
                     if (event.equals("server:playsCreated")) {
                         handlePlaysCreated(context, s);
+                    } else if (event.equals("server:notifyLockPredictions")) {
+                        handleNotifyLockPredictions(context, s);
+                    } else if (event.equals("server:lockPredictions")) {
+                        handleLockPredictions(context);
+                    } else if (event.equals("server:clearPredictions")) {
+                        handleClearPredictions(context);
                     }
                 }
                 Log.d(TAG, "Received event while fragment is not attached, adding to queue");
@@ -228,7 +236,7 @@ public class PredictionFragment extends WebViewFragment {
         getWebView().evaluateJavascript(js, null);
     }
 
-    private void handlePlaysCreated(final Activity context, JSONObject s) throws JSONException {
+    private void handlePlaysCreated(Activity context, JSONObject s) throws JSONException {
         // If mGameState is null, we are not even in the app, so ignore.
         if (mGameState == null) {
             return;
@@ -254,13 +262,33 @@ public class PredictionFragment extends WebViewFragment {
         }
     }
 
+    private void handleNotifyLockPredictions(Activity context, JSONObject s) throws JSONException {
+        JSONObject data = s.getJSONObject("data");
+        String lockTimeString = data.getString("lockTime");
+        ZonedDateTime lockTime = ZonedDateTime.parse(lockTimeString);
+        if (ZonedDateTime.now().isBefore(lockTime)) {
+            CoordinatorLayout layout = (CoordinatorLayout) context.findViewById(R.id.content_frame);
+            Snackbar.make(layout, "Predictions will be locked in 10 seconds.", Snackbar.LENGTH_LONG).show();
+        }
+    }
+
+    private void handleLockPredictions(Activity context) {
+        CoordinatorLayout layout = (CoordinatorLayout) context.findViewById(R.id.content_frame);
+        Snackbar.make(layout, "Predictions have been locked. We'll notify you if your prediction succeeds.", Snackbar.LENGTH_LONG).show();
+    }
+
+    private void handleClearPredictions(Activity context) {
+        CoordinatorLayout layout = (CoordinatorLayout) context.findViewById(R.id.content_frame);
+        Snackbar.make(layout, "Half-inning has ended. Predictions have been cleared.", Snackbar.LENGTH_LONG).show();
+    }
+
     private void showCorrectSnackbar(final Activity context, String event) {
         final Intent intent = new Intent(context, AppActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
         intent.putExtra(AppActivity.INTENT_EXTRA_DRAWER_ITEM, DrawerItemAdapter.DRAWER_ITEM_PREDICTION);
 
         CoordinatorLayout layout = (CoordinatorLayout) context.findViewById(R.id.content_frame);
-        Snackbar.make(layout, "Prediction correct: " + PLAYBOOK_EVENT_NAMES.get(event), Snackbar.LENGTH_LONG)
+        Snackbar.make(layout, "Prediction correct: " + PLAYBOOK_EVENT_NAMES.get(event), Snackbar.LENGTH_INDEFINITE)
                 .setAction("Show Me", new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
