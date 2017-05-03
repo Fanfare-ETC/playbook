@@ -80,8 +80,9 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
         public static int[] colderLocation = new int[2];
         public static int[] markerLocation = new int[2];
         public static int[] canvasLocation = new int[2];
-        public static int[] mapLocation = new int[2];
+        public static int[] mapLocation    = new int[2];
 
+        private static boolean firstLoad = true;
 
         public LinesView(Context context) {
             super(context);
@@ -114,60 +115,70 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
         public void onDraw(Canvas canvas) {
             super.onDraw(canvas);
 
-            // Draw lines only when everything is set up.
-            if ( mWarmerView == null || mColderView == null ||
-                    mMarkerView == null) {
-                return;
+            if (firstLoad) {
+                // Draw lines only when everything is set up.
+                if (mWarmerView == null || mColderView == null ||
+                        mMarkerView == null) {
+                    return;
+                }
+                int minwidth = (int) view.getWidth() / 3;
+                int minheight = 116;
+
+                mWarmerView.setMinimumWidth(minwidth);
+                mWarmerView.setMinimumHeight(minheight);
+                mColderView.setMinimumWidth(minwidth);
+                mColderView.setMinimumHeight(minheight);
+                mMarkerView.setMinimumWidth(minwidth);
+                mMarkerView.setMinimumHeight(minheight);
+
+                mWarmerView.getLocationInWindow(warmerLocation);
+                mColderView.getLocationInWindow(colderLocation);
+                mMarkerView.getLocationInWindow(markerLocation);
+                this.getLocationInWindow(canvasLocation);
+
+                // Compute the midpoints of these locations.
+                warmerLocation[0] = warmerLocation[0] + mWarmerView.getWidth() / 2 - canvasLocation[0];
+                warmerLocation[1] = warmerLocation[1] + mWarmerView.getHeight() / 2 - canvasLocation[1];
+                colderLocation[0] = colderLocation[0] + mColderView.getWidth() / 2 - canvasLocation[0];
+                colderLocation[1] = colderLocation[1] + mColderView.getHeight() / 2 - canvasLocation[1];
+                markerLocation[0] = markerLocation[0] + mMarkerView.getWidth() / 2 - canvasLocation[0];
+                markerLocation[1] = markerLocation[1] + mMarkerView.getHeight() / 2 - canvasLocation[1];
+
+                mMarkerView.getLocationInWindow(markerLocation);
+                int bottom = markerLocation[1] - canvasLocation[1]; //(mMarkerView.getHeight())
+
+                mMapView.getLocationInWindow(mapLocation);
+                int top = mapLocation[1] + (mMapView.getHeight()) - canvasLocation[1];
+
+                Log.d("height", Integer.toString(top) + " " + Integer.toString(bottom));
+                mAggregateView.setY(bottom - top);
+
+                // Log.d("height",Float.toString((float)(bottom-top)/mAggregateView.getHeight()));
+                //mAggregateView.setScaleY((float)(bottom-top)/mAggregateView.getHeight());
+                /*
+                for(int i =0;i<5;i++)
+                {
+                    vertex.get(i).getLocationInWindow(loc0);
+                    vertex.get(i+1).getLocationInWindow(loc1);
+                    loc0[0] -= canvasLocation[0];
+                    loc0[1] -= canvasLocation[1];
+                    loc1[0] -= canvasLocation[0];
+                    loc1[1] -= canvasLocation[1];
+                    canvas.drawLine(loc0[0], loc0[1], loc1[0], loc1[1], mPaint);
+                }
+                */
+                firstLoad=false;
             }
-            int minwidth=(int)view.getWidth()/3;
-            int minheight=116;
-
-            mWarmerView.setMinimumWidth(minwidth);
-            mWarmerView.setMinimumHeight(minheight);
-            mColderView.setMinimumWidth(minwidth);
-            mColderView.setMinimumHeight(minheight);
-            mMarkerView.setMinimumWidth(minwidth);
-            mMarkerView.setMinimumHeight(minheight);
-
-            mWarmerView.getLocationInWindow(warmerLocation);
-            mColderView.getLocationInWindow(colderLocation);
-            mMarkerView.getLocationInWindow(markerLocation);
-            this.getLocationInWindow(canvasLocation);
-
-            // Compute the midpoints of these locations.
-            warmerLocation[0] = warmerLocation[0] + mWarmerView.getWidth() / 2 - canvasLocation[0];
-            warmerLocation[1] = warmerLocation[1] + mWarmerView.getHeight() / 2 - canvasLocation[1];
-            colderLocation[0] = colderLocation[0] + mColderView.getWidth() / 2 - canvasLocation[0];
-            colderLocation[1] = colderLocation[1] + mColderView.getHeight() / 2 - canvasLocation[1];
-            markerLocation[0] = markerLocation[0] + mMarkerView.getWidth() / 2 - canvasLocation[0];
-            markerLocation[1] = markerLocation[1] + mMarkerView.getHeight() / 2 - canvasLocation[1];
-
-            int bottom = warmerLocation[1]+ mWarmerView.getHeight()/2 ;
-            mMapView.getLocationInWindow(mapLocation);
-            int top = mapLocation[1]+(mMapView.getHeight()/2);
-            Log.d("height",Float.toString((float)(bottom-top)/mAggregateView.getHeight()));
-            mAggregateView.setY(top);
-            mAggregateView.setScaleY((float)(bottom-top)/mAggregateView.getHeight());
-            /*
-            for(int i =0;i<5;i++)
-            {
-                vertex.get(i).getLocationInWindow(loc0);
-                vertex.get(i+1).getLocationInWindow(loc1);
-                loc0[0] -= canvasLocation[0];
-                loc0[1] -= canvasLocation[1];
-                loc1[0] -= canvasLocation[0];
-                loc1[1] -= canvasLocation[1];
-                canvas.drawLine(loc0[0], loc0[1], loc1[0], loc1[1], mPaint);
-            }
-            */
         }
     }
 
     @Override
     public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
                              Bundle savedInstanceState) {
+
         super.onCreateView(inflater, container, savedInstanceState);
         view=inflater.inflate(R.layout.treasurehunt_fragment, container, false);
+
         SharedPreferences settings = this.getActivity().getSharedPreferences("FANFARE_SHARED", 0);
         section = settings.getInt("section", 0) - 1;
 
@@ -203,11 +214,10 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
         colderView.setOnClickListener(this);
         markerView = (ImageView) view.findViewById(markerSectionId);
         markerView.setOnClickListener(this);
-        aggregateView=(ImageView) view.findViewById(R.id.aggregate);
-        mapView=(ImageView) view.findViewById(R.id.map);
 
-        ImageView agg = (ImageView) view.findViewById(R.id.aggregate);
-        agg.setOnTouchListener(this);
+        aggregateView = (ImageView) view.findViewById(R.id.aggregate);
+        aggregateView.setOnTouchListener(this);
+        mapView=(ImageView) view.findViewById(R.id.map);
 
         setHasOptionsMenu(true);
 
@@ -323,7 +333,6 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
                                     startGame(R.id.bird_v0);
                                 if(section==0)
                                     startGame(R.id.boat_v3);
-
                             }
                         }
 
@@ -396,8 +405,8 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
         ObjectAnimator scaleGlow_y= ObjectAnimator.ofFloat(glow, "scaleY", 0.75f, 0.25f);
         scaleGlow_x.setDuration(1000);
         scaleGlow_y.setDuration(1000);
-        scaleGlow_x.setRepeatCount(5000);
-        scaleGlow_y.setRepeatCount(5000);
+        scaleGlow_x.setRepeatCount(1000);
+        scaleGlow_y.setRepeatCount(1000);
         AnimatorSet scale= new AnimatorSet();
         scale.play(scaleGlow_x).with(scaleGlow_y);
         scale.start();
@@ -774,8 +783,8 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
                                         text.setBackgroundColor(getResources().getColor(R.color.secondary));
                                         text.setText("   Your Section Says : COLDER!");
                                     } else {
-                                        //text.setBackgroundColor(getResources().getColor(R.color.common_google_signin_btn_text_light_disabled));
-                                        text.setBackgroundColor(Color.WHITE);
+                                        text.setBackgroundColor(getResources().getColor(R.color.common_google_signin_btn_text_light_disabled));
+                                        //text.setBackgroundColor(Color.WHITE);
                                         text.setText(null);
                                     }
                                 }

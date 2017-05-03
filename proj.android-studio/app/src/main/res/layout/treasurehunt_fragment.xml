@@ -86,72 +86,71 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:scaleType="fitCenter"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintHorizontal_bias="0.476"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.036" />
+        app:layout_constraintBottom_toBottomOf="@+id/map"
+        app:layout_constraintLeft_toLeftOf="@+id/map"
+        app:layout_constraintRight_toRightOf="@+id/map"
+        app:layout_constraintTop_toTopOf="@+id/map"
+        app:layout_constraintHorizontal_bias="0.474"
+        app:layout_constraintVertical_bias="0.077" />
 
     <ImageView
         android:id="@+id/boat_v1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:scaleType="fitCenter"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintHorizontal_bias="0.25"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.204" />
+        app:layout_constraintBottom_toBottomOf="@+id/map"
+        app:layout_constraintLeft_toLeftOf="@+id/map"
+        app:layout_constraintRight_toRightOf="@+id/map"
+        app:layout_constraintTop_toTopOf="@+id/map"
+        app:layout_constraintHorizontal_bias="0.204" />
 
     <ImageView
         android:id="@+id/boat_v2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:scaleType="fitCenter"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintHorizontal_bias="0.369"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.282" />
+        app:layout_constraintBottom_toBottomOf="@+id/map"
+        app:layout_constraintLeft_toLeftOf="@+id/map"
+        app:layout_constraintRight_toRightOf="@+id/map"
+        app:layout_constraintTop_toTopOf="@+id/map"
+        app:layout_constraintHorizontal_bias="0.35"
+        app:layout_constraintVertical_bias="0.849" />
 
     <ImageView
         android:id="@+id/boat_v3"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:scaleType="fitCenter"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintHorizontal_bias="0.615"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.282" />
+        app:layout_constraintBottom_toBottomOf="@+id/map"
+        app:layout_constraintLeft_toLeftOf="@+id/map"
+        app:layout_constraintRight_toRightOf="@+id/map"
+        app:layout_constraintTop_toTopOf="@+id/map"
+        app:layout_constraintHorizontal_bias="0.583"
+        app:layout_constraintVertical_bias="0.844" />
 
     <ImageView
         android:id="@+id/boat_v4"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:scaleType="fitCenter"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintHorizontal_bias="0.751"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.203" />
+        app:layout_constraintBottom_toBottomOf="@+id/map"
+        app:layout_constraintLeft_toLeftOf="@+id/map"
+        app:layout_constraintRight_toRightOf="@+id/map"
+        app:layout_constraintTop_toTopOf="@+id/map"
+        app:layout_constraintHorizontal_bias="0.744"
+        app:layout_constraintVertical_bias="0.548" />
 
     <ImageView
         android:id="@+id/boat_v5"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:scaleType="fitCenter"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintHorizontal_bias="0.435"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.174" />
+        app:layout_constraintBottom_toBottomOf="@+id/map"
+        app:layout_constraintLeft_toLeftOf="@+id/map"
+        app:layout_constraintRight_toRightOf="@+id/map"
+        app:layout_constraintTop_toTopOf="@+id/map"
+        app:layout_constraintHorizontal_bias="0.445"
+        app:layout_constraintVertical_bias="0.456" />
 
     <ImageView
         android:id="@+id/aggregate"
@@ -365,18 +364,18 @@
         android:id="@+id/aggregate_text"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginBottom="0dp"
+        android:layout_marginTop="0dp"
         android:ems="10"
         android:inputType="textPersonName"
         android:textAppearance="@style/TextAppearance.AppCompat.Display1"
         android:visibility="visible"
         app:layout_constraintBottom_toTopOf="@+id/aggregate"
-        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/map"
-        app:layout_constraintVertical_bias="0.459" />
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintVertical_bias="0.0" />
 
     <view
         android:id="@+id/linesView"
