@@ -285,9 +285,9 @@ public class PredictionFragment extends WebViewFragment {
             title.setTypeface(typeface);
             title.setGravity(Gravity.CENTER);
 
+            View view = getActivity().getLayoutInflater().inflate(R.layout.prediction_fragment_tutorial_dialog, null);
             return new AlertDialog.Builder(getActivity())
                     .setCustomTitle(title)
-                    .setMessage("Play this between each half-inning. We'll notify you when your predictions come true.")
                     .setCancelable(false)
                     .setPositiveButton("Got it!", new DialogInterface.OnClickListener() {
                         @Override
@@ -295,6 +295,7 @@ public class PredictionFragment extends WebViewFragment {
                             dismiss();
                         }
                     })
+                    .setView(view)
                     .create();
         }
     }
