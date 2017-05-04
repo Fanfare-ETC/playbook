@@ -4,8 +4,7 @@
   "description": "WebGL implementation of Fanfare Playbook.",
   "scripts": {
     "serve": "webpack-dev-server --env.development",
-    "build": "webpack --env.production --optimize-minimize",
-    "build-unminified": "webpack --env.production",
+    "build": "webpack --env.production",
     "stats": "webpack --env.production --profile --json > stats.json",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

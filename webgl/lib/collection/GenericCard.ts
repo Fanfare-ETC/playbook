@@ -1,5 +1,5 @@
 'use strict';
-import PlaybookRenderer from './PlaybookRenderer';
+import PlaybookRenderer from '../PlaybookRenderer';
 import DismissableCard from './DismissableCard';
 
 class GenericCard extends DismissableCard {

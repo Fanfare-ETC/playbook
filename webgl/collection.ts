@@ -15,7 +15,8 @@ import GoalChoicesContainer from './lib/collection/GoalChoicesContainer';
 import GoalTypesMetadata from './lib/collection/GoalTypesMetadata';
 import GhostCards from './lib/collection/GhostCards';
 import PlaybookBridge from './lib/collection/PlaybookBridge';
-import PlaybookRenderer from './lib/collection/PlaybookRenderer';
+import PlaybookRenderer from './lib/PlaybookRenderer';
+import IIncomingMessage from './lib/IIncomingMessage';
 
 import CardSlot from './lib/collection/CardSlot';
 import DiscardBar from './lib/collection/DiscardBar';
@@ -29,31 +30,29 @@ import SetScoredCard from './lib/collection/SetScoredCard';
 import NewTrophyCard from './lib/collection/NewTrophyCard';
 
 // Receive messages from the hosting application.
-if (window.PlaybookBridge) {
-  window.addEventListener('message', function (e) {
-    const message = e.data;
-    switch (message.action) {
-      case 'RESTORE_GAME_STATE':
-        console.log('Restoring state from hosting application: ');
-        try {
-          state.fromJSON(message.payload);
-        } catch (e) {
-          console.error('Error restoring state due to exception: ', e);
-          state.reset(true);
-          window.location.href = window.location.href;
-        }
-        break;
-      case 'HANDLE_MESSAGE':
-        console.log('Handling message from hosting application: ');
-        handleIncomingMessage(message.payload);
-        break;
-      case 'HANDLE_BACK_PRESSED':
-        console.log('Handling back pressed from hosting application');
-        handleBackPressed();
-        break;
-    }
-  });
-}
+window.addEventListener('message', function (e) {
+  const message = e.data;
+  switch (message.action) {
+    case 'RESTORE_GAME_STATE':
+      console.log('Restoring state from hosting application: ');
+      try {
+        state.fromJSON(message.payload);
+      } catch (e) {
+        console.error('Error restoring state due to exception: ', e);
+        state.reset(true);
+        window.location.href = window.location.href;
+      }
+      break;
+    case 'HANDLE_MESSAGE':
+      console.log('Handling message from hosting application: ');
+      handleIncomingMessage(message.payload);
+      break;
+    case 'HANDLE_BACK_PRESSED':
+      console.log('Handling back pressed from hosting application');
+      handleBackPressed();
+      break;
+  }
+});
 
 class GameState implements IGameState {
   EVENT_ACTIVE_CARD_CHANGED: string = 'activeCardChanged';
@@ -273,6 +272,92 @@ const state = new GameState();
 
 // Content scale will be updated on first draw.
 let contentScale: number | null = null;
+
+/**
+ * Sets up the renderer. Adjusts the renderer according to the size of the
+ * viewport, and adds it to the DOM tree.
+ * @param renderer
+ */
+function configureRenderer(renderer: PlaybookRenderer) {
+  const resizeToFitWindow = function (renderer: PlaybookRenderer) {
+    renderer.renderer.resize(window.innerWidth, window.innerHeight);
+  };
+
+  renderer.renderer.view.style.position = 'absolute';
+  renderer.renderer.view.style.display = 'block';
+  renderer.renderer.autoResize = true;
+  resizeToFitWindow(renderer);
+  document.body.appendChild(renderer.renderer.view);
+  window.addEventListener('resize', () => {
+    resizeToFitWindow(renderer);
+  });
+};
+
+/**
+ * Sets up the WebSocket connection.
+ * @param connection
+ */
+function configureWebSocket(connection: WebSocket) {
+  connection.addEventListener('open', function () {
+    console.log(`Connected to ${connection.url}`);
+  });
+
+  // TODO: Use more stringent type check here.
+  connection.addEventListener('message', function (message: any) {
+    message = JSON.parse(message.data);
+    handleIncomingMessage(message);
+  });
+};
+
+/**
+ * Sets up web fonts.
+ * @param fonts Names of fonts to configure
+ */
+function configureFonts(fonts: string[]) {
+  // Load the required font files.
+  return Promise.all(fonts.map(font => new FontFaceObserver(font).load()));
+}
+
+/**
+ * Handles incoming messages from the server.
+ * @param message
+ */
+function handleIncomingMessage(message: IIncomingMessage) {
+  switch (message.event) {
+    case 'server:playsCreated':
+      handlePlaysCreated(message.data);
+      break;
+    default:
+  }
+}
+
+/**
+ * Handles back button presses.
+ */
+function handleBackPressed() {
+  const overlay = stage.getChildByName('overlay') as GenericOverlay;
+  const baseballsOverlay = stage.getChildByName('baseballsOverlay') as GenericOverlay;
+  if (overlay.active) {
+    overlay.pop();
+  } else if (baseballsOverlay.active) {
+    baseballsOverlay.pop();
+  } else {
+    console.warn('Need to handle back pressed, but none of the overlays were active!');
+  }
+}
+
+/**
+ * Handles plays created event.
+ * @param events An array of event IDs
+ */
+function handlePlaysCreated(events: number[]) {
+  const plays = events.map(PlaybookEvents.getById);
+  for (const play of plays) {
+    state.incomingCards.push(play);
+    state.incomingCards = state.incomingCards.slice();
+    renderer.markDirty();
+  }
+}
 
 /**
  * Card.
@@ -653,40 +738,6 @@ function getTargetByPoint(card: Card, position: PIXI.Point) : any {
   }
 }
 
-function handleIncomingMessage(message: any) {
-  switch (message.event) {
-    case 'server:playsCreated':
-      handlePlaysCreated(message.data);
-      break;
-    default:
-  }
-}
-
-function handleBackPressed() {
-  const overlay = stage.getChildByName('overlay') as GenericOverlay;
-  const baseballsOverlay = stage.getChildByName('baseballsOverlay') as GenericOverlay;
-  if (overlay.active) {
-    overlay.pop();
-  } else if (baseballsOverlay.active) {
-    baseballsOverlay.pop();
-  } else {
-    console.warn('Need to handle back pressed, but none of the overlays were active!');
-  }
-}
-
-/**
- * Handles plays created event.
- * @param {Array.<number>} events
- */
-function handlePlaysCreated(events: number[]) {
-  const plays = events.map(PlaybookEvents.getById);
-  for (const play of plays) {
-    state.incomingCards.push(play);
-    state.incomingCards = state.incomingCards.slice();
-    renderer.markDirty();
-  }
-}
-
 /**
  * Receives a card from the server.
  * @param {string} play
@@ -765,51 +816,6 @@ function createCard(play: string, isActive: boolean = true, slot?: number) : Car
   container.addChild(card);
 
   return cardObj;
-}
-/**
- * Sets up the renderer. Adjusts the renderer according to the size of the
- * viewport, and adds it to the DOM tree.
- * @param {PIXI.WebGLRenderer} renderer
- */
-function configureRenderer(renderer: PlaybookRenderer) {
-  const resizeToFitWindow = function (renderer: PlaybookRenderer) {
-    renderer.renderer.resize(window.innerWidth, window.innerHeight);
-  };
-
-  renderer.renderer.view.style.position = 'absolute';
-  renderer.renderer.view.style.display = 'block';
-  renderer.renderer.autoResize = true;
-  resizeToFitWindow(renderer);
-  document.body.appendChild(renderer.renderer.view);
-  window.addEventListener('resize', () => {
-    resizeToFitWindow(renderer);
-  });
-};
-
-/**
- * Sets up the WebSocket connection.
- * @param {WebSocket} connection
- */
-function configureWebSocket(connection: WebSocket) {
-  connection.addEventListener('open', function () {
-    console.log(`Connected to ${connection.url}`);
-  });
-
-  // TODO: Use more stringent type check here.
-  connection.addEventListener('message', function (message: any) {
-    message = JSON.parse(message.data);
-    handleIncomingMessage(message);
-  });
-};
-
-/**
- * Sets up web fonts.
- * @param {Array.<string>} fonts
- * @returns {Promise}
- */
-function configureFonts(fonts: string[]) {
-  // Load the required font files.
-  return Promise.all(fonts.map(font => new FontFaceObserver(font).load()));
 }
 
 /**
@@ -1022,7 +1028,7 @@ function initGoalChoicesContainerEvents(container: GoalChoicesContainer) {
 
 /**
  * Report a scoring event to the server.
- * @param {number} score
+ * @param score
  */
 function reportScore(score: number) {
   const request = new XMLHttpRequest();

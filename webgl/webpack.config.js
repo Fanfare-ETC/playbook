@@ -28,7 +28,7 @@ module.exports = function (env) {
 
   return {
     entry: {
-      prediction: './prediction.js',
+      prediction: './prediction.ts',
       collection: './collection.ts'
     },
     output: {

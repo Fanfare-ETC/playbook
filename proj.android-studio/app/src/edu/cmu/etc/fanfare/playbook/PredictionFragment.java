@@ -356,7 +356,7 @@ public class PredictionFragment extends WebViewFragment {
         }
 
         @JavascriptInterface
-        public void notifyLoaded() {
+        public void notifyLoaded(String state) {
             Log.d(TAG, "The JavaScript world has arrived");
             getActivity().runOnUiThread(new Runnable() {
                 @Override

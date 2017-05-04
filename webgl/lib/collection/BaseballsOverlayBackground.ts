@@ -1,6 +1,6 @@
 'use strict';
 import * as particles from 'pixi-particles';
-import PlaybookRenderer from './PlaybookRenderer';
+import PlaybookRenderer from '../PlaybookRenderer';
 import { IOverlayBackground } from './GenericOverlay';
 
 class BaseballsOverlayBackground extends PIXI.Container implements IOverlayBackground {
