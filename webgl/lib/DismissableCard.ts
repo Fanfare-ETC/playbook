@@ -1,7 +1,7 @@
 'use strict';
 import * as PIXI from 'pixi.js';
 import 'pixi-action';
-import PlaybookRenderer from '../PlaybookRenderer';
+import PlaybookRenderer from './PlaybookRenderer';
 
 /**
  * A dismissable card is a UI element that can be dismissed from the screen

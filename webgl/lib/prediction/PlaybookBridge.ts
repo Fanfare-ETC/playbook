@@ -6,7 +6,8 @@ interface PlaybookBridge {
   notifyGameState: (stateJSON: string) => void,
   notifyLoaded: (state?: any) => void
   goToLeaderboard: () => void,
-  goToCollection: () => void
+  goToCollection: () => void,
+  setShouldHandleBackPressed: (shouldHandle: boolean) => void
 }
 
 export interface PlaybookWindow extends Window {
@@ -79,7 +80,12 @@ if (!window.PlaybookBridge) {
      */
     goToCollection: function () {
       window.location.href = window.location.href.replace('prediction', 'collection');
-    }
+    },
+
+    /**
+     * Tells the hosting application that we should handle back button presses.
+     */
+    setShouldHandleBackPressed: function () {}
   };
 } else {
   PlaybookBridge = window.PlaybookBridge;

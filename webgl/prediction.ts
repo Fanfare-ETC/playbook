@@ -15,6 +15,7 @@ import FieldOverlay from './lib/prediction/FieldOverlay';
 import FieldOverlayArea from './lib/prediction/FieldOverlayArea';
 import BallCountSprite from './lib/prediction/BallCountSprite';
 import PredictionCorrectOverlay from './lib/prediction/PredictionCorrectOverlay';
+import GenericOverlay from './lib/GenericOverlay';
 
 // Receive messages from the hosting application.
 window.addEventListener('message', function (e) {
@@ -22,11 +23,21 @@ window.addEventListener('message', function (e) {
   switch (message.action) {
     case 'RESTORE_GAME_STATE':
       console.log('Restoring state from hosting application: ');
-      state.fromJSON(message.payload);
+      try {
+        state.fromJSON(message.payload);
+      } catch (e) {
+        console.error('Error restoring state due to exception: ', e);
+        state.reset(true);
+        window.location.href = window.location.href;
+      }
       break;
     case 'HANDLE_MESSAGE':
       console.log('Handling message from hosting application: ');
       handleIncomingMessage(message.payload);
+      break;
+    case 'HANDLE_BACK_PRESSED':
+      console.log('Handling back pressed from hosting application');
+      handleBackPressed();
       break;
   }
 });
@@ -65,6 +76,7 @@ class GameState implements IGameState {
   EVENT_STAGE_CHANGED: string = 'stageChanged';
   EVENT_PREDICTION_COUNTS_CHANGED = 'predictionCountsChanged';
   EVENT_SCORE_CHANGED = 'scoreChanged';
+  EVENT_OVERLAY_COUNT_CHANGED: string = 'overlayCountChanged';
 
   emitter: PIXI.utils.EventEmitter;
 
@@ -72,6 +84,7 @@ class GameState implements IGameState {
   _stage: string = GameStages.INITIAL;
   balls: Ball[] = [];
   _score: number = 0;
+  _overlayCount: number = 0;
 
   constructor() {
     this.emitter = new PIXI.utils.EventEmitter();
@@ -123,6 +136,18 @@ class GameState implements IGameState {
     PlaybookBridge.notifyGameState(this.toJSON());
   }
 
+  get overlayCount() {
+    return this._overlayCount;
+  }
+
+  set overlayCount(value) {
+    const oldValue = this._overlayCount;
+    this._overlayCount = value;
+    console.log('overlayCount->', value);
+    this.emitter.emit(this.EVENT_OVERLAY_COUNT_CHANGED, value, oldValue);
+    PlaybookBridge.notifyGameState(this.toJSON());
+  }
+
   toJSON() {
     const savedState = {
       stage: this._stage,
@@ -155,6 +180,9 @@ class GameState implements IGameState {
     // Restore this later because makePrediction changes the state.
     this.stage = restoredState.stage;
     this.score = restoredState.score;
+
+    // Trigger initial updates.
+    this.emitter.emit(this.EVENT_OVERLAY_COUNT_CHANGED, this._overlayCount, null);
   }
 }
 
@@ -229,6 +257,18 @@ function handleIncomingMessage(message: IIncomingMessage) {
       handleClearPredictions();
       break;
     default:
+  }
+}
+
+/**
+ * Handles back button presses.
+ */
+function handleBackPressed() {
+  const overlay = stage.getChildByName('overlay') as GenericOverlay;
+  if (overlay.active) {
+    overlay.pop();
+  } else {
+    console.warn('Need to handle back pressed, but none of the overlays were active!');
   }
 }
 
@@ -445,6 +485,23 @@ function initContinueBannerEvents(continueBanner: PIXI.Graphics) {
   continueBanner.interactive = true;
   continueBanner.on('tap', function () {
     PlaybookBridge.goToCollection();
+  });
+}
+
+/**
+ * Initializes events for the generic overlay.
+ */
+function initGenericOverlayEvents(overlay: GenericOverlay) {
+  overlay.on('push', () => {
+    state.overlayCount++;
+  });
+
+  overlay.on('pop', () => {
+    state.overlayCount--;
+  });
+
+  state.emitter.on(state.EVENT_OVERLAY_COUNT_CHANGED, (count: number) => {
+    PlaybookBridge.setShouldHandleBackPressed(count > 0);
   });
 }
 
@@ -979,6 +1036,11 @@ function setup() {
     continueBanner.height / 2
   );
   continueBanner.addChild(continueBannerLabel);
+
+  // Add overlays.
+  const genericOverlay = new GenericOverlay();
+  genericOverlay.name = 'overlay';
+  initGenericOverlayEvents(genericOverlay);
 
   // Add the items in order of appearance.
   stage.addChild(grass);

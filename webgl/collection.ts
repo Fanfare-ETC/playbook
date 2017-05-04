@@ -23,8 +23,8 @@ import DiscardBar from './lib/collection/DiscardBar';
 import IGameState, { ILastScoredGoalInfo } from './lib/collection/IGameState';
 import ICard from './lib/collection/ICard';
 import TrayTip from './lib/collection/TrayTip';
-import GenericCard from './lib/collection/GenericCard';
-import GenericOverlay from './lib/collection/GenericOverlay';
+import GenericCard from './lib/GenericCard';
+import GenericOverlay from './lib/GenericOverlay';
 import BaseballsOverlayBackground from './lib/collection/BaseballsOverlayBackground';
 import SetScoredCard from './lib/collection/SetScoredCard';
 import NewTrophyCard from './lib/collection/NewTrophyCard';
@@ -261,6 +261,7 @@ class GameState implements IGameState {
       this.emitter.emit(this.EVENT_SELECTED_GOAL_CHANGED, this._selectedGoal, null);
       this.emitter.emit(this.EVENT_SCORE_CHANGED, this._score, null);
       this.emitter.emit(this.EVENT_LAST_SCORED_GOAL_INFO_CHANGED, this._lastScoredGoalInfo, null);
+      this.emitter.emit(this.EVENT_OVERLAY_COUNT_CHANGED, this._overlayCount, null);
     }
   }
 }
