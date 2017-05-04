@@ -2,7 +2,7 @@
 <resources>
     <string-array name="menu_items">
         <item>Welcome</item>
-        <item>Prediction</item>
+        <item>Predictions</item>
         <item>Collection</item>
         <item>Connect The Dots</item>
         <item>Leaderboard</item>

@@ -9,7 +9,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.design.widget.CoordinatorLayout;
-import android.support.design.widget.Snackbar;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
@@ -254,8 +253,20 @@ public class AppActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         if (mBackStack.size() > 1) {
-            int lastItem = mBackStack.pop();
-            selectItem(lastItem, false);
+            PlaybookFragment fragment = null;
+            for (int i = 0; i < mFragments.size(); i++) {
+                fragment = mFragments.valueAt(i);
+                if (fragment.isVisible()) {
+                    break;
+                }
+            }
+
+            if (fragment != null) {
+                if (!fragment.onBackPressed()) {
+                    int lastItem = mBackStack.pop();
+                    selectItem(lastItem, false);
+                }
+            }
         } else {
             super.onBackPressed();
         }
