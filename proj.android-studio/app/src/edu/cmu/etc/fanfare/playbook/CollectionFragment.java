@@ -42,6 +42,7 @@ public class CollectionFragment extends WebViewFragment {
 
     private JSONObject mGameState;
     private boolean mIsAttached;
+    private boolean mShouldHandleBackPressed = false;
     private Queue<JSONObject> mPendingEvents = new LinkedList<>();
 
     @Override
@@ -132,6 +133,21 @@ public class CollectionFragment extends WebViewFragment {
             Log.d(TAG, "Received event while fragment is not attached, adding to queue");
             mPendingEvents.add(s);
         }
+    }
+
+    @Override
+    public boolean onBackPressed() {
+        if (mShouldHandleBackPressed) {
+            try {
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("action", "HANDLE_BACK_PRESSED");
+                jsonObject.put("payload", JSONObject.NULL);
+                this.sendMessage(jsonObject);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+        return mShouldHandleBackPressed;
     }
 
     private JSONObject createInitialGameState() throws JSONException {
@@ -267,6 +283,11 @@ public class CollectionFragment extends WebViewFragment {
             intent.putExtra(AppActivity.INTENT_EXTRA_DRAWER_ITEM, DrawerItemAdapter.DRAWER_ITEM_TROPHY);
             intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
             startActivity(intent);
+        }
+
+        @JavascriptInterface
+        public void setShouldHandleBackPressed(boolean shouldHandle) {
+            mShouldHandleBackPressed = shouldHandle;
         }
     }
 

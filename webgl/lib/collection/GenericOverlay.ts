@@ -40,9 +40,19 @@ class GenericOverlay extends PIXI.Container {
 
   push(card: GenericCard) {
     this._cardQueue.push(card);
+    this.emit('push');
     if (this._current === null) {
       this._show();
     }
+  }
+
+  pop() {
+    if (this._isAnimating) { return; }
+    this._hide();
+  }
+
+  get active() {
+    return this._current !== null;
   }
 
   private _show() {
@@ -105,6 +115,7 @@ class GenericOverlay extends PIXI.Container {
       const sequence = new PIXI.action.Sequence([fadeOut, callFunc]);
       PIXI.actionManager.runAction(this, sequence);
     }
+    this.emit('pop');
   }
 }
 

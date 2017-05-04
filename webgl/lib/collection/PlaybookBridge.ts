@@ -6,7 +6,8 @@ interface PlaybookBridge {
   notifyGameState: (stateJSON: string) => void,
   notifyLoaded: (state?: any) => void,
   goToLeaderboard: () => void,
-  goToTrophyCase: () => void
+  goToTrophyCase: () => void,
+  setShouldHandleBackPressed: (shouldHandle: boolean) => void
 }
 
 declare global {
@@ -98,7 +99,12 @@ if (!window.PlaybookBridge) {
      * Changes to the trophy case.
      * This is a no-op for the mock bridge.
      */
-    goToTrophyCase: function () {}
+    goToTrophyCase: function () {},
+
+    /**
+     * Tells the hosting application that we should handle back button presses.
+     */
+    setShouldHandleBackPressed: function () {}
   };
 } else {
   PlaybookBridge = window.PlaybookBridge;

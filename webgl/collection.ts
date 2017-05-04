@@ -47,6 +47,10 @@ if (window.PlaybookBridge) {
         console.log('Handling message from hosting application: ');
         handleIncomingMessage(message.payload);
         break;
+      case 'HANDLE_BACK_PRESSED':
+        console.log('Handling back pressed from hosting application');
+        handleBackPressed();
+        break;
     }
   });
 }
@@ -59,6 +63,7 @@ class GameState implements IGameState {
   EVENT_SELECTED_GOAL_CHANGED: string = 'selectedGoalChanged';
   EVENT_SCORE_CHANGED: string = 'scoreChanged';
   EVENT_LAST_SCORED_GOAL_INFO_CHANGED: string = 'lastScoredGoalInfoChanged';
+  EVENT_OVERLAY_COUNT_CHANGED: string = 'overlayCountChanged';
 
   emitter: PIXI.utils.EventEmitter;
 
@@ -71,6 +76,7 @@ class GameState implements IGameState {
   _selectedGoal: string | null = null;
   _score: number = 0;
   _lastScoredGoalInfo: ILastScoredGoalInfo | null = null;
+  _overlayCount: number = 0;
 
   constructor() {
     this.emitter = new PIXI.utils.EventEmitter();
@@ -168,6 +174,18 @@ class GameState implements IGameState {
     this._lastScoredGoalInfo = value;
     console.log('lastScoredGoal->', value);
     this.emitter.emit(this.EVENT_LAST_SCORED_GOAL_INFO_CHANGED, value, oldValue);
+    PlaybookBridge.notifyGameState(this.toJSON());
+  }
+
+  get overlayCount() {
+    return this._overlayCount;
+  }
+
+  set overlayCount(value) {
+    const oldValue = this._overlayCount;
+    this._overlayCount = value;
+    console.log('overlayCount->', value);
+    this.emitter.emit(this.EVENT_OVERLAY_COUNT_CHANGED, value, oldValue);
     PlaybookBridge.notifyGameState(this.toJSON());
   }
 
@@ -644,6 +662,18 @@ function handleIncomingMessage(message: any) {
   }
 }
 
+function handleBackPressed() {
+  const overlay = stage.getChildByName('overlay') as GenericOverlay;
+  const baseballsOverlay = stage.getChildByName('baseballsOverlay') as GenericOverlay;
+  if (overlay.active) {
+    overlay.pop();
+  } else if (baseballsOverlay.active) {
+    baseballsOverlay.pop();
+  } else {
+    console.warn('Need to handle back pressed, but none of the overlays were active!');
+  }
+}
+
 /**
  * Handles plays created event.
  * @param {Array.<number>} events
@@ -1049,9 +1079,28 @@ function initTrayTipEvents(trayTip: TrayTip, container: GoalChoicesContainer) {
     }
   }
 
-  state.emitter.on(state.EVENT_ACTIVE_CARD_CHANGED, handler);
+state.emitter.on(state.EVENT_ACTIVE_CARD_CHANGED, handler);
   state.emitter.on(state.EVENT_CARD_SLOTS_CHANGED, handler);
   state.emitter.on(state.EVENT_SELECTED_GOAL_CHANGED, handler);
+}
+
+/**
+ * Initializes events for the generic overlay.
+ */
+function initGenericOverlaysEvents(overlays: GenericOverlay[]) {
+  for (const overlay of overlays) {
+    overlay.on('push', () => {
+      state.overlayCount++;
+    });
+
+    overlay.on('pop', () => {
+      state.overlayCount--;
+    });
+  }
+
+  state.emitter.on(state.EVENT_OVERLAY_COUNT_CHANGED, (count: number) => {
+    PlaybookBridge.setShouldHandleBackPressed(count > 0);
+  });
 }
 
 /**
@@ -1183,6 +1232,8 @@ function setup() {
   const genericOverlay = new GenericOverlay();
   genericOverlay.name = 'overlay';
   const baseballsOverlay = new GenericOverlay(new BaseballsOverlayBackground(renderer));
+  baseballsOverlay.name = 'baseballsOverlay';
+  initGenericOverlaysEvents([genericOverlay, baseballsOverlay]);
   initSetScoredOverlayEvents(baseballsOverlay);
 
   // Add goals section.
