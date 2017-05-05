@@ -6,7 +6,7 @@ import FieldOverlayArea from './FieldOverlayArea';
  * Ball count sprite.
  */
 class BallCountSprite extends PIXI.Sprite {
-  _count: number = 0;
+  private _count: number = 0;
 
   /**
    * Creates a sprite that is used to represent the number of balls in a

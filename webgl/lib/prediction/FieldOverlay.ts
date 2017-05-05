@@ -7,9 +7,9 @@ import FieldOverlayArea from './FieldOverlayArea';
  * Field overlay.
  */
 class FieldOverlay extends PIXI.Sprite {
-  _defaultTexture: PIXI.Texture;
-  _payoutsTexture: PIXI.Texture;
-  _balls: Ball[];
+  private _defaultTexture: PIXI.Texture;
+  private _payoutsTexture: PIXI.Texture;
+  private _balls: Ball[];
 
   /**
    * Constructs the field overlay given the overlay areas.

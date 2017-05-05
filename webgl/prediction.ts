@@ -14,6 +14,8 @@ import Ball from './lib/prediction/Ball';
 import FieldOverlay from './lib/prediction/FieldOverlay';
 import FieldOverlayArea from './lib/prediction/FieldOverlayArea';
 import BallCountSprite from './lib/prediction/BallCountSprite';
+import ScoreTab from './lib/prediction/ScoreTab';
+import PayoutsTab from './lib/prediction/PayoutsTab';
 import PredictionCorrectOverlay from './lib/prediction/PredictionCorrectOverlay';
 import GenericOverlay from './lib/GenericOverlay';
 
@@ -286,8 +288,8 @@ function handlePlaysCreated(events: number[]) {
         reportScore(addedScore);
 
         const overlay = new PredictionCorrectOverlay(contentScale!, play, addedScore);
-        const scoreTab = stage.getChildByName('scoreTab') as PIXI.Container;
-        const score = scoreTab.getChildByName('score');
+        const scoreTab = stage.getChildByName('scoreTab') as ScoreTab;
+        const score = scoreTab.score;
         const scoreTabGlobalPosition = scoreTab.toGlobal(score.position);
         initPredictionCorrectOverlayEvents(overlay, scoreTabGlobalPosition);
         stage.addChild(overlay);
@@ -583,16 +585,16 @@ function initScoreEvents(scoreText: PIXI.Text) {
  * @param fieldOverlay
  * @param grassBackground
  */
-function initPayoutsTabEvents(payoutsTab: PIXI.Sprite, label: PIXI.Text,
-                              fieldOverlay: FieldOverlay, grassBackground: PIXI.Sprite) {
+function initPayoutsTabEvents(payoutsTab: PayoutsTab, fieldOverlay: FieldOverlay,
+                              grassBackground: PIXI.Sprite) {
   payoutsTab.interactive = true;
   payoutsTab.on('tap', () => {
     if (fieldOverlay.isShowingPayouts()) {
-      label.text = 'Payouts'.toUpperCase();
+      payoutsTab.selectLabels();
       grassBackground.texture = PIXI.loader.resources['resources/Prediction-BG.jpg'].texture;
       fieldOverlay.hidePayouts();
     } else {
-      label.text = 'Labels'.toUpperCase();
+      payoutsTab.selectPayouts();
       grassBackground.texture = PIXI.loader.resources['resources/Prediction-BG-Payout.jpg'].texture;
       fieldOverlay.showPayouts();
     }
@@ -929,70 +931,16 @@ function setup() {
   countdownBanner.addChild(countdownBannerText);
 
   // Add score tab.
-  const scoreTabTexture = PIXI.loader.resources['resources/prediction.json'].textures!['Prediction-Scoretab.png'];
-  const scoreTab = new PIXI.Sprite(scoreTabTexture);
-  const scoreTabScale = ballSlot.height / scoreTabTexture.height;
+  const scoreTab = new ScoreTab(contentScale);
   scoreTab.name = 'scoreTab';
-  scoreTab.scale.set(scoreTabScale, scoreTabScale);
-  scoreTab.position.set(0, ballSlot.position.y - scoreTab.height);
   initScoreTabEvents(scoreTab);
-
-  const scoreTabLabel = new PIXI.Text('Score:'.toUpperCase());
-  const scoreTabLabelFontSize = 32.0;
-  const scoreTabLabelScale = ((scoreTab.height / 2 - 8.0) / scoreTabLabelFontSize) * (1 / scoreTabScale);
-  scoreTabLabel.style.fill = 0xffffff;
-  scoreTabLabel.style.fontSize = scoreTabLabelFontSize;
-  scoreTabLabel.style.fontFamily = 'proxima-nova-excn';
-  scoreTabLabel.style.fontWeight = '900';
-  scoreTabLabel.anchor.set(0.0, 1.0);
-  scoreTabLabel.position.set(16.0 * scoreTabLabelScale, scoreTabTexture.height / 2);
-  scoreTabLabel.scale.set(scoreTabLabelScale, scoreTabLabelScale);
-  scoreTab.addChild(scoreTabLabel);
-
-  const score = new PIXI.Text('000');
-  const scoreScale = scoreTabLabelScale;
-  score.name = 'score';
-  score.style.fill = 0xffffff;
-  score.style.fontSize = 32.0;
-  score.style.fontFamily = 'SCOREBOARD';
-  score.anchor.set(0.0, 0.0);
-  score.position.set(16.0 * scoreScale, scoreTabTexture.height / 2);
-  score.scale.set(scoreScale, scoreScale);
-  initScoreEvents(score);
-  scoreTab.addChild(score);
+  initScoreEvents(scoreTab.score);
+  scoreTab.position.set(0, ballSlot.position.y - scoreTab.height);
 
   // Add payouts tab.
-  const payoutsTabTexture = PIXI.loader.resources['resources/prediction.json'].textures!['Prediction-Oddstab.png'];
-  const payoutsTab = new PIXI.Sprite(payoutsTabTexture);
-  const payoutsTabScale = ballSlot.height / payoutsTabTexture.height;
-  payoutsTab.scale.set(payoutsTabScale, payoutsTabScale);
+  const payoutsTab = new PayoutsTab(contentScale);
+  initPayoutsTabEvents(payoutsTab, fieldOverlay, grass);
   payoutsTab.position.set(window.innerWidth - payoutsTab.width, ballSlot.position.y - payoutsTab.height);
-
-  const payoutsTabLabel = new PIXI.Text('Payouts'.toUpperCase());
-  const payoutsTabFontSize = 32.0;
-  const payoutsTabLabelScale = ((payoutsTab.height / 2 - 8.0) / payoutsTabFontSize) * (1 / payoutsTabScale);
-  payoutsTabLabel.style.fill = 0xffffff;
-  payoutsTabLabel.style.fontSize = payoutsTabFontSize;
-  payoutsTabLabel.style.fontFamily = 'proxima-nova-excn';
-  payoutsTabLabel.style.fontWeight = '900';
-  payoutsTabLabel.anchor.set(1.0, 1.0);
-  payoutsTabLabel.position.set((payoutsTab.width - 16.0) * (1 / payoutsTabScale), payoutsTabTexture.height / 2);
-  payoutsTabLabel.scale.set(payoutsTabLabelScale, payoutsTabLabelScale);
-  payoutsTab.addChild(payoutsTabLabel);
-
-  const payoutsTabArrow = new PIXI.Text('\u22b3');
-  const payoutsTabArrowScale = payoutsTabLabelScale;
-  payoutsTabArrow.style.fill = 0xffffff;
-  payoutsTabArrow.style.fontSize = 32.0;
-  payoutsTabArrow.style.fontFamily = 'proxima-nova-excn';
-  payoutsTabArrow.anchor.set(1.0, 0.0);
-  payoutsTabArrow.scale.set(-payoutsTabArrowScale, payoutsTabArrowScale);
-  payoutsTabArrow.position.set(
-    (payoutsTab.width - 16.0) * (1 / payoutsTabScale) - payoutsTabArrow.width,
-    (payoutsTabTexture.height / 2)
-  );
-  initPayoutsTabEvents(payoutsTab, payoutsTabLabel, fieldOverlay, grass);
-  payoutsTab.addChild(payoutsTabArrow);
 
   // Add balls to scene.
   const ballSprites = [];

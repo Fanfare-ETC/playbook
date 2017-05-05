@@ -48,6 +48,7 @@ public class PredictionFragment extends WebViewFragment {
 
     private JSONObject mGameState;
     private boolean mIsAttached;
+    private boolean mShouldHandleBackPressed = false;
     private Queue<JSONObject> mPendingEvents = new LinkedList<>();
 
     @Override
@@ -205,6 +206,21 @@ public class PredictionFragment extends WebViewFragment {
         } catch (JSONException e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public boolean onBackPressed() {
+        if (mShouldHandleBackPressed) {
+            try {
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("action", "HANDLE_BACK_PRESSED");
+                jsonObject.put("payload", JSONObject.NULL);
+                this.sendMessage(jsonObject);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+        return mShouldHandleBackPressed;
     }
 
     private JSONObject createInitialGameState() throws JSONException {
@@ -397,6 +413,11 @@ public class PredictionFragment extends WebViewFragment {
             intent.putExtra(AppActivity.INTENT_EXTRA_DRAWER_ITEM, DrawerItemAdapter.DRAWER_ITEM_COLLECTION);
             intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
             startActivity(intent);
+        }
+
+        @JavascriptInterface
+        public void setShouldHandleBackPressed(boolean shouldHandle) {
+            mShouldHandleBackPressed = shouldHandle;
         }
     }
 }

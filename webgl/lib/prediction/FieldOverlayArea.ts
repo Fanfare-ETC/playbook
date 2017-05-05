@@ -6,10 +6,11 @@ import BallCountSprite from './BallCountSprite';
  * Field overlay highlighted area.
  */
 class FieldOverlayArea extends PIXI.Graphics {
+  private _highlighted: boolean = false;
+  private _renderer: PlaybookRenderer;
+
   ballCountSprite: BallCountSprite | null = null;
   centroidOffset: PIXI.Point = new PIXI.Point(0, 0);
-  _highlighted: boolean = false;
-  _renderer: PlaybookRenderer;
 
   /**
    * Constructs a field overlay area defined by the given polygon.
