@@ -242,7 +242,7 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
         //mEndpoint="ws://128.2.238.137:9000";
         Future<WebSocket> webSocket= AsyncHttpClient.getDefaultInstance().websocket(mEndpoint, null, wsh);
 
-        birdDrawing = new BirdDrawing(view,section);
+        //birdDrawing = new BirdDrawing(view,section);
         boatDrawing = new BoatDrawing(view,section);
 
         return view;
@@ -298,22 +298,22 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
             @Override
             public void run() {
                 if(gameState.game_off) {
-                    if(section==1)
-                        stopGame(R.drawable.bird_drawing);
-                    if(section==0)
+                    //if(section==1)
+                        //stopGame(R.drawable.bird_drawing);
+                    //if(section==0)
                         stopGame(R.drawable.boat_drawing);
                 }
                 else {
                     if (gameState.flag1) {
-                        if(section==1)
-                            updateMarker(R.id.bird_v3);
-                        if(section==0)
+                        //if(section==1)
+                            //updateMarker(R.id.bird_v3);
+                        //if(section==0)
                             updateMarker(R.id.boat_v4);
                     }
                     if (gameState.flag2) {
-                        if(section==1)
-                            updateMarker(R.id.bird_v1);
-                        if(section==0)
+                       // if(section==1)
+                            //updateMarker(R.id.bird_v1);
+                        //if(section==0)
                             updateMarker(R.id.boat_v5);
                     }
                     if (gameState.flag3)
@@ -330,23 +330,23 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
                                     showTutorial();
                                     firstLoad = false;
                                 }
-                                if(section==1)
-                                    startGame(R.id.bird_v0);
-                                if(section==0)
+                               // if(section==1)
+                                    //startGame(R.id.bird_v0);
+                                //if(section==0)
                                     startGame(R.id.boat_v3);
                             }
                         }
 
                     }
                 }
-                if(section==1) {
-                    BirdDrawing.connectDots cd1 = (BirdDrawing.connectDots) view.findViewById(R.id.bird_connectDots);
-                    cd1.invalidate();
-                }
-                if(section==0) {
+                //if(section==1) {
+                    //BirdDrawing.connectDots cd1 = (BirdDrawing.connectDots) view.findViewById(R.id.bird_connectDots);
+                    //cd1.invalidate();
+                //}
+                //if(section==0) {
                     BoatDrawing.connectDots cd2 = (BoatDrawing.connectDots) view.findViewById(R.id.boat_connectDots);
                     cd2.invalidate();
-                }
+               // }
             }
         });
     }
@@ -367,6 +367,7 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
         ImageView glow = (ImageView) view.findViewById(R.id.glow);
         glow.setX(loc0[0]-w);
         glow.setY(loc0[1]-h);
+        glowanimation(glow);
 
     }
     public void  updateMarker_3()
@@ -402,15 +403,7 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
         glow.setX(loc0[0]-w);
         glow.setY(loc0[1]-h);
 
-        ObjectAnimator scaleGlow_x= ObjectAnimator.ofFloat(glow, "scaleX", 0.75f, 0.25f);
-        ObjectAnimator scaleGlow_y= ObjectAnimator.ofFloat(glow, "scaleY", 0.75f, 0.25f);
-        scaleGlow_x.setDuration(1000);
-        scaleGlow_y.setDuration(1000);
-        scaleGlow_x.setRepeatCount(1000);
-        scaleGlow_y.setRepeatCount(1000);
-        AnimatorSet scale= new AnimatorSet();
-        scale.play(scaleGlow_x).with(scaleGlow_y);
-        scale.start();
+        glowanimation(glow);
     }
     public void timer()
     {
@@ -475,7 +468,18 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
         backgroundWorker.execute(type);
 
     }
-
+    public void glowanimation(ImageView glow)
+    {
+        ObjectAnimator scaleGlow_x= ObjectAnimator.ofFloat(glow, "scaleX", 0.75f, 0.25f);
+        ObjectAnimator scaleGlow_y= ObjectAnimator.ofFloat(glow, "scaleY", 0.75f, 0.25f);
+        scaleGlow_x.setDuration(1000);
+        scaleGlow_y.setDuration(1000);
+        scaleGlow_x.setRepeatCount(1000);
+        scaleGlow_y.setRepeatCount(1000);
+        AnimatorSet scale= new AnimatorSet();
+        scale.play(scaleGlow_x).with(scaleGlow_y);
+        scale.start();
+    }
     public void plustenaimation(Vector<ImageView> plustens,Vector<ObjectAnimator> anim_plustens,int plustenId,int sectionId)
     {
 
