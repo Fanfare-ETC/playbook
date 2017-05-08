@@ -179,11 +179,21 @@
         app:layout_constraintTop_toBottomOf="@+id/trophy1" />
     </HorizontalScrollView>
 
+    <Button
+        android:id="@+id/name_arrow1"
+        android:layout_width="10dp"
+        android:layout_height="15dp"
+        android:scaleType="fitXY"
+        android:visibility="invisible"
+
+        app:layout_constraintBottom_toBottomOf="@+id/trophyName1"
+        app:layout_constraintRight_toRightOf="@+id/trophyName1"
+        android:background="@drawable/arrow1" />
+
     <HorizontalScrollView
         android:id="@+id/trophyDescrp1"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:fadeScrollbars="false"
         android:layout_gravity="center"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
@@ -206,11 +216,21 @@
             app:layout_constraintVertical_bias="0.509" />
     </HorizontalScrollView>
 
+    <Button
+        android:id="@+id/descrip_arrow1"
+        android:layout_width="10dp"
+        android:layout_height="15dp"
+        android:scaleType="fitXY"
+        android:visibility="invisible"
+
+        app:layout_constraintBottom_toBottomOf="@+id/trophyDescrp1"
+        app:layout_constraintRight_toRightOf="@+id/trophyDescrp1"
+        android:background="@drawable/arrow1" />
+
     <HorizontalScrollView
         android:id="@+id/trophyName2"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:fadeScrollbars="false"
         android:layout_gravity="center"
         android:layout_marginRight="@dimen/shadow_margin"
         android:layout_marginTop="10dp"
@@ -233,11 +253,21 @@
         app:layout_constraintTop_toBottomOf="@+id/trophy2" />
 </HorizontalScrollView>
 
+    <Button
+        android:id="@+id/name_arrow2"
+        android:layout_width="10dp"
+        android:layout_height="15dp"
+        android:scaleType="fitXY"
+        android:visibility="invisible"
+
+        app:layout_constraintBottom_toBottomOf="@+id/trophyName2"
+        app:layout_constraintRight_toRightOf="@+id/trophyName2"
+        android:background="@drawable/arrow1" />
+
     <HorizontalScrollView
         android:id="@+id/trophyDescrp2"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:fadeScrollbars="false"
         android:layout_gravity="center"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toRightOf="@+id/trophyDescrp1"
@@ -260,11 +290,21 @@
             app:layout_constraintVertical_bias="0.509" />
     </HorizontalScrollView>
 
+    <Button
+        android:id="@+id/descrip_arrow2"
+        android:layout_width="10dp"
+        android:layout_height="15dp"
+        android:scaleType="fitXY"
+        android:visibility="invisible"
+
+        app:layout_constraintBottom_toBottomOf="@+id/trophyDescrp2"
+        app:layout_constraintRight_toRightOf="@+id/trophyDescrp2"
+        android:background="@drawable/arrow1" />
+
     <HorizontalScrollView
         android:id="@+id/trophyName3"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:fadeScrollbars="false"
         android:layout_gravity="center"
         android:layout_marginRight="@dimen/left_margin"
         android:layout_marginLeft="@dimen/shadow_margin"
@@ -287,11 +327,21 @@
         app:layout_constraintTop_toBottomOf="@+id/trophy3" />
 </HorizontalScrollView>
 
+    <Button
+        android:id="@+id/name_arrow3"
+        android:layout_width="10dp"
+        android:layout_height="15dp"
+        android:scaleType="fitXY"
+        android:visibility="invisible"
+
+        app:layout_constraintBottom_toBottomOf="@+id/trophyName3"
+        app:layout_constraintRight_toRightOf="@+id/trophyName3"
+        android:background="@drawable/arrow1" />
+
     <HorizontalScrollView
         android:id="@+id/trophyDescrp3"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:fadeScrollbars="false"
         android:layout_gravity="center"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toRightOf="@+id/trophyDescrp2"
@@ -313,5 +363,16 @@
             app:layout_constraintTop_toBottomOf="@+id/trophyName3"
             app:layout_constraintVertical_bias="0.509" />
 </HorizontalScrollView>
+
+    <Button
+        android:id="@+id/descrip_arrow3"
+        android:layout_width="10dp"
+        android:layout_height="15dp"
+        android:scaleType="fitXY"
+        android:visibility="invisible"
+
+        app:layout_constraintBottom_toBottomOf="@+id/trophyDescrp3"
+        app:layout_constraintRight_toRightOf="@+id/trophyDescrp3"
+        android:background="@drawable/arrow1" />
 
 </android.support.constraint.ConstraintLayout>

@@ -53,22 +53,29 @@
         android:layout_height="wrap_content"
         android:layout_width="0dp"
         android:gravity="center"
-        android:maxLines="1"
         android:layout_marginTop="@dimen/text_margin"
         app:layout_constraintVertical_bias="0.509"
-
-
-
         app:layout_constraintRight_toLeftOf="@+id/guideline"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toRightOf="@+id/rank"
         app:layout_constraintTop_toTopOf="parent" />
 </HorizontalScrollView>
 
+    <Button
+        android:id="@+id/name_arrow"
+        android:layout_width="10dp"
+        android:layout_height="15dp"
+        android:scaleType="fitXY"
+
+        app:layout_constraintBottom_toBottomOf="@+id/nameScroll"
+        app:layout_constraintRight_toRightOf="@+id/nameScroll"
+        android:background="@drawable/arrow1" />
+
     <HorizontalScrollView
         android:id="@+id/prediction"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:ellipsize="marquee"
         app:layout_constraintRight_toLeftOf="@+id/collection"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="@+id/guideline"
@@ -83,16 +90,28 @@
         android:layout_height="wrap_content"
         android:layout_width="0dp"
         android:layout_gravity="left"
+        android:maxLines = "1"
         app:layout_constraintRight_toLeftOf="@+id/collection"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintLeft_toLeftOf="@+id/guideline" />
     </HorizontalScrollView>
 
+    <Button
+        android:id="@+id/predict_arrow"
+        android:layout_width="10dp"
+        android:layout_height="15dp"
+        android:scaleType="fitXY"
+
+        app:layout_constraintBottom_toBottomOf="@+id/prediction"
+        app:layout_constraintRight_toRightOf="@+id/prediction"
+        android:background="@drawable/arrow1" />
+
     <HorizontalScrollView
         android:id="@+id/collection"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:ellipsize="marquee"
         app:layout_constraintRight_toLeftOf="@+id/total"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toRightOf="@+id/prediction"
@@ -107,12 +126,23 @@
         android:layout_height="wrap_content"
         android:layout_width="0dp"
         android:layout_gravity="left"
+        android:maxLines = "1"
         app:layout_constraintRight_toLeftOf="@+id/total"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintVertical_bias="0.509"
         app:layout_constraintLeft_toRightOf="@+id/prediction"
         app:layout_constraintTop_toTopOf="parent" />
     </HorizontalScrollView>
+
+    <Button
+        android:id="@+id/collect_arrow"
+        android:layout_width="10dp"
+        android:layout_height="15dp"
+        android:scaleType="fitXY"
+
+        app:layout_constraintBottom_toBottomOf="@+id/collection"
+        app:layout_constraintRight_toRightOf="@+id/collection"
+        android:background="@drawable/arrow1" />
 
     <ImageView
         android:id="@+id/total"

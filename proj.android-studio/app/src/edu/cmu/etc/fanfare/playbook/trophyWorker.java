@@ -1,6 +1,5 @@
 package edu.cmu.etc.fanfare.playbook;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.Color;
@@ -9,19 +8,17 @@ import android.os.AsyncTask;
 import android.support.annotation.LayoutRes;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
-import android.text.Layout;
-import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.HorizontalScrollView;
 import android.widget.ImageView;
 import android.widget.ListView;
-import android.widget.TableLayout;
-import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -67,6 +64,41 @@ public class trophyWorker extends AsyncTask<String,Void,String> {
         String playerId1, playerId2, playerId3;
     }
 
+    public class myOnGlobalLayoutListener implements ViewTreeObserver.OnPreDrawListener {
+        HorizontalScrollView scrollView;
+        String scrollString;
+        Button button;
+        ViewTreeObserver observer;
+        public myOnGlobalLayoutListener(ViewTreeObserver observer, HorizontalScrollView scrollView, Button button, String scrollString){
+            this.scrollView = scrollView;
+            this.scrollString = scrollString;
+            this.button = button;
+            this.observer = observer;
+        }
+        @Override
+        public boolean onPreDraw() {
+            int viewWidth = scrollView.getMeasuredWidth();
+            int contentWidth = scrollView.getChildAt(0).getWidth();
+            //Log.i("TROPHY", "view width " + Integer.toString(viewWidth));
+            //Log.i("TROPHY", "content width " + Integer.toString(contentWidth));
+            if(viewWidth - contentWidth >= 0) {
+                // not scrollable
+                //Log.i("SCROLL", scrollString + " seems not scrollable");
+                //viewHolder.mNameButton3.setVisibility(View.INVISIBLE);
+                button.setVisibility(View.INVISIBLE);
+
+            }
+            else {
+                //Log.i("SCROLL", scrollString + " seems scrollable");
+                button.setVisibility(View.VISIBLE);
+
+            }
+
+            //observer.removeOnGlobalLayoutListener(this);
+            return true;
+        }
+    }
+
     public class TrophyAdapter extends ArrayAdapter<TrophyCat> {
         private class ViewHolder {
             ImageView mImage1, mImage2, mImage3;
@@ -76,6 +108,8 @@ public class trophyWorker extends AsyncTask<String,Void,String> {
             TextView mName1, mName2, mName3;
             TextView mDescription1, mDescription2, mDescription3;
             Button mButton1, mButton2, mButton3;
+            Button mNameButton1, mDescripButton1, mNameButton2, mDescripButton2, mNameButton3, mDescripButton3;
+            HorizontalScrollView scrollView1, scrollView2, scrollView3, scrollViewName1, scrollViewName2, scrollViewName3;
         }
 
         public TrophyAdapter(@NonNull Context context, @LayoutRes int resource, @NonNull List<TrophyCat> objects) {
@@ -105,6 +139,20 @@ public class trophyWorker extends AsyncTask<String,Void,String> {
                 viewHolder.mButton1 = (Button) convertView.findViewById(R.id.trophyButton1);
                 viewHolder.mButton2 = (Button) convertView.findViewById(R.id.trophyButton2);
                 viewHolder.mButton3 = (Button) convertView.findViewById(R.id.trophyButton3);
+                viewHolder.mNameButton1 = (Button) convertView.findViewById(R.id.name_arrow1);
+                viewHolder.mNameButton2 = (Button) convertView.findViewById(R.id.name_arrow2);
+                viewHolder.mNameButton3 = (Button) convertView.findViewById(R.id.name_arrow3);
+                viewHolder.mDescripButton1 = (Button) convertView.findViewById(R.id.descrip_arrow1);
+                viewHolder.mDescripButton2 = (Button) convertView.findViewById(R.id.descrip_arrow2);
+                viewHolder.mDescripButton3 = (Button) convertView.findViewById(R.id.descrip_arrow3);
+                viewHolder.scrollView1 = (HorizontalScrollView) convertView.findViewById(R.id.trophyDescrp1);
+                viewHolder.scrollView2 = (HorizontalScrollView) convertView.findViewById(R.id.trophyDescrp2);
+                viewHolder.scrollView3 = (HorizontalScrollView) convertView.findViewById(R.id.trophyDescrp3);
+                viewHolder.scrollViewName1 = (HorizontalScrollView) convertView.findViewById(R.id.trophyName1);
+                viewHolder.scrollViewName2 = (HorizontalScrollView) convertView.findViewById(R.id.trophyName2);
+                viewHolder.scrollViewName3 = (HorizontalScrollView) convertView.findViewById(R.id.trophyName3);
+
+
                 convertView.setTag(viewHolder);
             } else {
                 viewHolder = (ViewHolder) convertView.getTag();
@@ -171,6 +219,43 @@ public class trophyWorker extends AsyncTask<String,Void,String> {
                 viewHolder.mDescription1.setTextSize(20);
             }
 
+            //HorizontalScrollView scrollView = (HorizontalScrollView)convertView.findViewById(R.id.trophyDescrp1);
+          /*  ViewTreeObserver observer = viewHolder.scrollView.getViewTreeObserver();
+            observer.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+                @Override
+                public void onGlobalLayout() {
+                    int viewWidth = viewHolder.scrollView.getMeasuredWidth();
+                    int contentWidth = viewHolder.scrollView.getChildAt(0).getWidth();
+                    Log.i("TROPHY", "view width " + Integer.toString(viewWidth));
+                    Log.i("TROPHY", "content width " + Integer.toString(contentWidth));
+                    if(viewWidth - contentWidth > 0) {
+                        // not scrollable
+                        Log.i("SCROLL", trophyCat.description1 + " seems not scrollable");
+                       // viewHolder.mDescripButton1.setVisibility(View.INVISIBLE);
+
+                    }
+                    else {
+                        Log.i("SCROLL", trophyCat.description1 + " seems scrollable");
+                        viewHolder.mDescripButton1.setVisibility(View.VISIBLE);
+
+                    }
+                }
+            });*/
+            ViewTreeObserver observer1 = viewHolder.scrollView1.getViewTreeObserver();
+            myOnGlobalLayoutListener listenerDescrip1 = new myOnGlobalLayoutListener(observer1, viewHolder.scrollView1, viewHolder.mDescripButton1, trophyCat.description1);
+            observer1.addOnPreDrawListener(listenerDescrip1);
+
+            viewHolder.mDescripButton1.setOnClickListener(new View.OnClickListener(){
+                @Override
+                public void onClick(View v){
+
+                    Log.i("LEADERBOARD", "Button Clicked");
+                    //scrollView.scrollTo((int)scrollView.getScrollX() + 20, (int)scrollView.getScrollY());
+                    viewHolder.scrollView1.fullScroll(View.FOCUS_RIGHT);
+                }
+            });
+
+
             final String trophyIndex2 = "trophy"+Integer.toString(trophyCat.id2);
             Log.i("TROPHY", "Trophy2 ID is: " + trophyIndex2);
             if (trophyCat.playerId2 == null) {
@@ -199,6 +284,44 @@ public class trophyWorker extends AsyncTask<String,Void,String> {
                 viewHolder.mDescription2.setText(trophyCat.date2);
                 viewHolder.mDescription2.setTextSize(20);
             }
+
+            //final HorizontalScrollView scrollView1 = (HorizontalScrollView)convertView.findViewById(R.id.trophyDescrp2);
+         /*   ViewTreeObserver observer1 = viewHolder.scrollView1.getViewTreeObserver();
+            observer1.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+                @Override
+                public void onGlobalLayout() {
+                    int viewWidth = viewHolder.scrollView1.getMeasuredWidth();
+                    int contentWidth = viewHolder.scrollView1.getChildAt(0).getWidth();
+                    Log.i("TROPHY", "view width " + Integer.toString(viewWidth));
+                    Log.i("TROPHY", "content width " + Integer.toString(contentWidth));
+                    if(viewWidth - contentWidth > 0) {
+                        // not scrollable
+                        Log.i("SCROLL", trophyCat.description2 + " seems not scrollable");
+                        //viewHolder.mDescripButton2.setVisibility(View.INVISIBLE);
+
+                    }
+                    else {
+                        Log.i("SCROLL", trophyCat.description2 + " seems scrollable");
+                        viewHolder.mDescripButton2.setVisibility(View.VISIBLE);
+
+                    }
+
+                }
+            });*/
+
+            ViewTreeObserver observer2 = viewHolder.scrollView2.getViewTreeObserver();
+            myOnGlobalLayoutListener listenerDescrip2 = new myOnGlobalLayoutListener(observer2, viewHolder.scrollView2, viewHolder.mDescripButton2, trophyCat.description2);
+            observer2.addOnPreDrawListener(listenerDescrip2);
+            viewHolder.mDescripButton2.setOnClickListener(new View.OnClickListener(){
+                @Override
+                public void onClick(View v){
+
+                    Log.i("TROPHY", "Button Clicked");
+                    //scrollView.scrollTo((int)scrollView.getScrollX() + 20, (int)scrollView.getScrollY());
+                    viewHolder.scrollView2.fullScroll(View.FOCUS_RIGHT);
+                }
+            });
+
 
             final String trophyIndex3 = "trophy"+Integer.toString(trophyCat.id3);
             Log.i("TROPHY", "Trophy3 ID is: " + trophyIndex3);
@@ -229,6 +352,44 @@ public class trophyWorker extends AsyncTask<String,Void,String> {
                 viewHolder.mDescription3.setTextSize(20);
             }
 
+           // final HorizontalScrollView scrollView2 = (HorizontalScrollView)convertView.findViewById(R.id.trophyDescrp3);
+           /* ViewTreeObserver observer2 = viewHolder.scrollView2.getViewTreeObserver();
+            observer2.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+                @Override
+                public void onGlobalLayout() {
+                    int viewWidth = viewHolder.scrollView2.getMeasuredWidth();
+                    int contentWidth = viewHolder.scrollView2.getChildAt(0).getWidth();
+                    Log.i("TROPHY", "view width " + Integer.toString(viewWidth));
+                    Log.i("TROPHY", "content width " + Integer.toString(contentWidth));
+                    if(viewWidth - contentWidth > 0) {
+                        // not scrollable
+                        Log.i("SCROLL", trophyCat.description3 + " seems not scrollable");
+                        //viewHolder.mDescripButton3.setVisibility(View.INVISIBLE);
+
+                    }
+                    else {
+                        Log.i("SCROLL", trophyCat.description3 + " seems scrollable");
+                        viewHolder.mDescripButton3.setVisibility(View.VISIBLE);
+
+                    }
+                }
+            });*/
+            ViewTreeObserver observer3 = viewHolder.scrollView3.getViewTreeObserver();
+            myOnGlobalLayoutListener listenerDescrip3 = new myOnGlobalLayoutListener(observer3, viewHolder.scrollView3, viewHolder.mDescripButton3, trophyCat.description3);
+            observer3.addOnPreDrawListener(listenerDescrip3);
+
+            viewHolder.mDescripButton3.setOnClickListener(new View.OnClickListener(){
+                @Override
+                public void onClick(View v){
+
+                    Log.i("TROPHY", "Button Clicked");
+                    //scrollView.scrollTo((int)scrollView.getScrollX() + 20, (int)scrollView.getScrollY());
+                    viewHolder.scrollView3.fullScroll(View.FOCUS_RIGHT);
+                }
+            });
+
+
+
             if(light == true){
                 viewHolder.mLight.setImageResource(R.drawable.light_layer);
             }
@@ -245,17 +406,60 @@ public class trophyWorker extends AsyncTask<String,Void,String> {
 
             viewHolder.mName1.setTextSize(nameTextSize);
 
+            //final HorizontalScrollView scrollViewName = (HorizontalScrollView)convertView.findViewById(R.id.trophyName1);
+            ViewTreeObserver observerName1 = viewHolder.scrollViewName1.getViewTreeObserver();
+            myOnGlobalLayoutListener listener1 = new myOnGlobalLayoutListener(observerName1, viewHolder.scrollViewName1, viewHolder.mNameButton1, trophyCat.name1);
+            observerName1.addOnPreDrawListener(listener1);
+            viewHolder.mNameButton1.setOnClickListener(new View.OnClickListener(){
+                @Override
+                public void onClick(View v){
+
+                    Log.i("TROPHY", "Button Clicked");
+                    //scrollView.scrollTo((int)scrollView.getScrollX() + 20, (int)scrollView.getScrollY());
+                    viewHolder.scrollViewName1.fullScroll(View.FOCUS_RIGHT);
+                }
+            });
+
+
             viewHolder.mName2.setTextColor(Color.BLACK);
             viewHolder.mName2.setText(trophyCat.name2.toUpperCase());
             viewHolder.mName2.setTypeface(nameFont);
 
             viewHolder.mName2.setTextSize(nameTextSize);
 
+            //final HorizontalScrollView scrollViewName1 = (HorizontalScrollView)convertView.findViewById(R.id.trophyName2);
+            ViewTreeObserver observerName2 = viewHolder.scrollViewName2.getViewTreeObserver();
+            myOnGlobalLayoutListener listener2 = new myOnGlobalLayoutListener(observerName2, viewHolder.scrollViewName2, viewHolder.mNameButton2, trophyCat.name2);
+            observerName2.addOnPreDrawListener(listener2);
+            viewHolder.mNameButton2.setOnClickListener(new View.OnClickListener(){
+                @Override
+                public void onClick(View v){
+
+                    Log.i("TROPHY", "Button Clicked");
+                    //scrollView.scrollTo((int)scrollView.getScrollX() + 20, (int)scrollView.getScrollY());
+                    viewHolder.scrollViewName2.fullScroll(View.FOCUS_RIGHT);
+                }
+            });
+
             viewHolder.mName3.setTextColor(Color.BLACK);
             viewHolder.mName3.setText(trophyCat.name3.toUpperCase());
             viewHolder.mName3.setTypeface(nameFont);
 
             viewHolder.mName3.setTextSize(nameTextSize);
+
+            //final HorizontalScrollView scrollViewName2 = (HorizontalScrollView)convertView.findViewById(R.id.trophyName3);
+            ViewTreeObserver observerName3 = viewHolder.scrollViewName3.getViewTreeObserver();
+            myOnGlobalLayoutListener listener3 = new myOnGlobalLayoutListener(observerName3, viewHolder.scrollViewName3, viewHolder.mNameButton3, trophyCat.name3);
+            observerName3.addOnPreDrawListener(listener3);
+            viewHolder.mNameButton3.setOnClickListener(new View.OnClickListener(){
+                @Override
+                public void onClick(View v){
+
+                    Log.i("TROPHY", "Button Clicked");
+                    //scrollView.scrollTo((int)scrollView.getScrollX() + 20, (int)scrollView.getScrollY());
+                    viewHolder.scrollViewName3.fullScroll(View.FOCUS_RIGHT);
+                }
+            });
 
             Typeface descripFont = Typeface.createFromAsset(activity.getActivity().getAssets(), "nova_excthin.otf");
             //descripTextSize = 11;

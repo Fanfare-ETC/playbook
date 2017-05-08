@@ -7,12 +7,17 @@ import android.os.AsyncTask;
 import android.support.annotation.LayoutRes;
 import android.support.annotation.NonNull;
 import android.test.suitebuilder.TestMethod;
+import android.text.TextPaint;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.HorizontalScrollView;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -82,6 +87,42 @@ public class LeaderboardWorker extends AsyncTask<String,Void,String> {
         int totalScore;
         int badge;
     }
+
+    public class myOnGlobalLayoutListener implements ViewTreeObserver.OnPreDrawListener {
+        HorizontalScrollView scrollView;
+        String scrollString;
+        Button button;
+        ViewTreeObserver observer;
+        public myOnGlobalLayoutListener(ViewTreeObserver observer, HorizontalScrollView scrollView, Button button, String scrollString){
+            this.scrollView = scrollView;
+            this.scrollString = scrollString;
+            this.button = button;
+            this.observer = observer;
+        }
+        @Override
+        public boolean onPreDraw() {
+            int viewWidth = scrollView.getMeasuredWidth();
+            int contentWidth = scrollView.getChildAt(0).getWidth();
+            //Log.i("TROPHY", "view width " + Integer.toString(viewWidth));
+            //Log.i("TROPHY", "content width " + Integer.toString(contentWidth));
+            if(viewWidth - contentWidth >= 0) {
+                // not scrollable
+                //Log.i("SCROLL", scrollString + " seems not scrollable");
+                //viewHolder.mNameButton3.setVisibility(View.INVISIBLE);
+                button.setVisibility(View.INVISIBLE);
+
+            }
+            else {
+                //Log.i("SCROLL", scrollString + " seems scrollable");
+                button.setVisibility(View.VISIBLE);
+
+            }
+
+            //observer.removeOnGlobalLayoutListener(this);
+            return true;
+        }
+    }
+
     /*An instance of LeaderboardAdapter enables populating data to an item in listview*/
     public class LeaderboardAdapter extends ArrayAdapter<Leaders> {
         /*An instance of ViewHolder stores all the views of a listed item in the layout*/
@@ -90,6 +131,8 @@ public class LeaderboardWorker extends AsyncTask<String,Void,String> {
             TextView mName;
             TextView mPrediction, mCollection;
             ImageView mBadge;
+            Button mArrow, mPredictArrow, mCollectArrow;
+            HorizontalScrollView scrollView, scrollView1, scrollView2;
         }
         /*constructor*/
         public LeaderboardAdapter(@NonNull Context context, @LayoutRes int resource, @NonNull List<Leaders> objects) {
@@ -102,8 +145,8 @@ public class LeaderboardWorker extends AsyncTask<String,Void,String> {
         * so the data is populated through the list
         * and the list containers are reused*/
         public android.view.View getView(int position, View convertView, ViewGroup parent) {
-            Leaders leader = getItem(position);
-            LeaderboardAdapter.ViewHolder viewHolder;
+            final Leaders leader = getItem(position);
+            final LeaderboardAdapter.ViewHolder viewHolder;
             //find all the views in the layout
             if (convertView == null) {
                 viewHolder = new LeaderboardAdapter.ViewHolder();
@@ -114,6 +157,12 @@ public class LeaderboardWorker extends AsyncTask<String,Void,String> {
                 viewHolder.mPrediction = (TextView) convertView.findViewById(R.id.predictionContent);
                 viewHolder.mCollection = (TextView) convertView.findViewById(R.id.collectionContent);
                 viewHolder.mBadge = (ImageView) convertView.findViewById(R.id.total);
+                viewHolder.mArrow = (Button) convertView.findViewById(R.id.name_arrow);
+                viewHolder.mCollectArrow = (Button) convertView.findViewById(R.id.collect_arrow);
+                viewHolder.mPredictArrow = (Button) convertView.findViewById(R.id.predict_arrow);
+                viewHolder.scrollView = (HorizontalScrollView) convertView.findViewById(R.id.nameScroll);
+                viewHolder.scrollView1 = (HorizontalScrollView) convertView.findViewById(R.id.prediction);
+                viewHolder.scrollView2 = (HorizontalScrollView) convertView.findViewById(R.id.collection);
                 convertView.setTag(viewHolder);
             } else {
                 viewHolder = (LeaderboardAdapter.ViewHolder) convertView.getTag();
@@ -140,11 +189,60 @@ public class LeaderboardWorker extends AsyncTask<String,Void,String> {
             viewHolder.mRank.setGravity(Gravity.LEFT);
             viewHolder.mRank.setTypeface(null, fontCat.ITALIC);
 
+
             viewHolder.mName.setText(leader.name);
+
             viewHolder.mName.setTextColor(Color.WHITE);
             viewHolder.mName.setGravity(Gravity.LEFT | Gravity.CENTER);
             viewHolder.mName.setTypeface(fontCat);
             viewHolder.mName.setTextSize(20);
+
+            TextPaint paint = new TextPaint();
+            paint.setTextSize(20);
+            float width = paint.measureText(leader.name);
+            Log.i("Text Width", "For Name " + leader.name);
+            Log.i("Text Width", Float.toString(width));
+
+            //activity.getView().findViewById(R.id.nameScroll).measure();
+            float nameWidth = viewHolder.mName.getMeasuredWidth();
+
+            Log.i("Text_Width", "Wrap content " + Float.toString(nameWidth));
+
+            float viewWidth = convertView.getMeasuredWidth();
+
+            Log.i("View_Width", "For View? " + Float.toString(viewWidth));
+
+
+            //final HorizontalScrollView scrollView = (HorizontalScrollView)convertView.findViewById(R.id.nameScroll);
+            ViewTreeObserver observer = viewHolder.scrollView.getViewTreeObserver();
+            myOnGlobalLayoutListener listener = new myOnGlobalLayoutListener(observer, viewHolder.scrollView, viewHolder.mArrow, leader.name);
+            observer.addOnPreDrawListener(listener);
+
+           /* ViewTreeObserver observer = viewHolder.scrollView.getViewTreeObserver();
+            observer.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+                @Override
+                public void onGlobalLayout() {
+                    int viewWidth = scrollView.getMeasuredWidth();
+                    int contentWidth = scrollView.getChildAt(0).getWidth();
+                    Log.i("LEADERBOARD", "view width " + Integer.toString(viewWidth));
+                    Log.i("LEADERBOARD", "content width " + Integer.toString(contentWidth));
+                    if(viewWidth - contentWidth > 0) {
+                        // not scrollable
+                        Log.i("SCROLL", leader.name + "seems not scrollable");
+                        viewHolder.mArrow.setVisibility(View.INVISIBLE);
+
+                    }
+                }
+            });*/
+            viewHolder.mArrow.setOnClickListener(new View.OnClickListener(){
+                @Override
+                public void onClick(View v){
+
+                    Log.i("LEADERBOARD", "Button Clicked");
+                    //scrollView.scrollTo((int)scrollView.getScrollX() + 20, (int)scrollView.getScrollY());
+                    viewHolder.scrollView.fullScroll(View.FOCUS_RIGHT);
+                }
+            });
 
             //adjust the font size of the scores for large numbers to fit in
             //might want to do this by using scroll bars in the future
@@ -172,6 +270,39 @@ public class LeaderboardWorker extends AsyncTask<String,Void,String> {
             viewHolder.mPrediction.setGravity(Gravity.RIGHT | Gravity.CENTER);
             viewHolder.mPrediction.setTypeface(fontCat);
 
+            /*final HorizontalScrollView scrollView1 = (HorizontalScrollView)convertView.findViewById(R.id.prediction);
+            ViewTreeObserver observer1 = scrollView1.getViewTreeObserver();
+            observer1.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+                @Override
+                public void onGlobalLayout() {
+                    int viewWidth = scrollView1.getMeasuredWidth();
+                    int contentWidth = scrollView1.getChildAt(0).getWidth();
+                    Log.i("LEADERBOARD", "Predict view width " + Integer.toString(viewWidth));
+                    Log.i("LEADERBOARD", "Predict Content width " + Integer.toString(contentWidth));
+                    if(viewWidth - contentWidth >= 0) {
+                        // not scrollable
+                        Log.i("SCROLL", leader.predictionScore + " seems not scrollable");
+                        viewHolder.mPredictArrow.setVisibility(View.INVISIBLE);
+
+                    }
+                }
+            });
+*/
+            ViewTreeObserver observer1 = viewHolder.scrollView.getViewTreeObserver();
+            myOnGlobalLayoutListener listener1 = new myOnGlobalLayoutListener(observer1, viewHolder.scrollView1, viewHolder.mPredictArrow, Integer.toString(leader.predictionScore));
+            observer1.addOnPreDrawListener(listener1);
+
+            viewHolder.mPredictArrow.setOnClickListener(new View.OnClickListener(){
+                @Override
+                public void onClick(View v){
+
+                    Log.i("LEADERBOARD", "Button 1 Clicked");
+                    //scrollView1.scrollTo((int)scrollView1.getScrollX() + 20, (int)scrollView1.getScrollY());
+                    viewHolder.scrollView1.fullScroll(View.FOCUS_RIGHT);
+                }
+            });
+
+
             viewHolder.mCollection.setText(String.valueOf(leader.collectionScore));
             if (flag == 2) {
                 viewHolder.mCollection.setTextColor(Color.parseColor("#FFC300"));
@@ -182,6 +313,38 @@ public class LeaderboardWorker extends AsyncTask<String,Void,String> {
             viewHolder.mCollection.setTextSize(scoreSize);
             viewHolder.mCollection.setGravity(Gravity.RIGHT | Gravity.CENTER);
             viewHolder.mCollection.setTypeface(fontCat);
+
+            /*final HorizontalScrollView scrollView2 = (HorizontalScrollView)convertView.findViewById(R.id.collection);
+            ViewTreeObserver observer2 = scrollView2.getViewTreeObserver();
+            observer2.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+                @Override
+                public void onGlobalLayout() {
+                    int viewWidth = scrollView2.getMeasuredWidth();
+                    int contentWidth = scrollView2.getChildAt(0).getWidth();
+                    Log.i("LEADERBOARD", "Predict view width " + Integer.toString(viewWidth));
+                    Log.i("LEADERBOARD", "Predict Content width " + Integer.toString(contentWidth));
+                    if(viewWidth - contentWidth >= 0) {
+                        // not scrollable
+                        Log.i("SCROLL", leader.collectionScore + " seems not scrollable");
+                        viewHolder.mCollectArrow.setVisibility(View.INVISIBLE);
+
+                    }
+                }
+            });
+*/
+            ViewTreeObserver observer2 = viewHolder.scrollView2.getViewTreeObserver();
+            myOnGlobalLayoutListener listener2 = new myOnGlobalLayoutListener(observer, viewHolder.scrollView2, viewHolder.mCollectArrow, Integer.toString(leader.collectionScore));
+            observer2.addOnPreDrawListener(listener2);
+
+            viewHolder.mCollectArrow.setOnClickListener(new View.OnClickListener(){
+                @Override
+                public void onClick(View v){
+
+                    Log.i("LEADERBOARD", "Button 2 Clicked");
+                    //scrollView2.scrollTo(scrollView2.getScrollX() + 20, scrollView2.getScrollY());
+                    viewHolder.scrollView2.fullScroll(View.FOCUS_RIGHT);
+                }
+            });
 
             //display the badge
             if(leader.badge == 1){
@@ -196,7 +359,9 @@ public class LeaderboardWorker extends AsyncTask<String,Void,String> {
 
             return convertView;
         }
+
     }
+
 
     @Override
     /*do on background thread to retrieve the player data*/
@@ -392,6 +557,8 @@ public class LeaderboardWorker extends AsyncTask<String,Void,String> {
                 LeaderboardAdapter leaderboardAdapter = new LeaderboardAdapter(activity.getActivity(), R.layout.leaderboard_list_item, leaders);
                 ListView listView = (ListView) activity.getView().findViewById(R.id.leaderboardList);
                 listView.setAdapter(leaderboardAdapter);
+
+
             } catch (JSONException e) {
                 e.printStackTrace();
             }
