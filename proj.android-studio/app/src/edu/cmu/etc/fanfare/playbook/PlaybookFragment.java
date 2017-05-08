@@ -9,4 +9,8 @@ public abstract class PlaybookFragment extends Fragment {
     public void onWebSocketMessageReceived(Activity context, JSONObject s) {
         // Empty default implementation.
     }
+
+    public boolean onBackPressed() {
+        return false;
+    }
 }

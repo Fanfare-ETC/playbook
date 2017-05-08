@@ -1,12 +1,12 @@
 'use strict';
 interface PlaybookBridge {
   getAPIUrl: () => string,
-  getSectionAPIUrl: () => string,
+  getSectionAPIUrl: () => string
   getPlayerID: () => string,
   notifyGameState: (stateJSON: string) => void,
-  notifyLoaded: (state?: any) => void,
+  notifyLoaded: (state?: any) => void
   goToLeaderboard: () => void,
-  goToTrophyCase: () => void,
+  goToCollection: () => void,
   setShouldHandleBackPressed: (shouldHandle: boolean) => void
 }
 
@@ -49,42 +49,23 @@ if (!window.PlaybookBridge) {
 
     /**
      * Notifies the hosting application of the new state of the game.
-     * This is a no-op for the mock bridge.
+     * This saves to localStorage in the mock bridge.
      * @type {string} stateJSON
      */
-    notifyGameState: function (stateJSON: string) {
+    notifyGameState: function (stateJSON) {
       console.log('Saving state: ', stateJSON);
-      localStorage.setItem('collection', stateJSON);
+      localStorage.setItem('prediction', stateJSON);
     },
 
     /**
      * Notifies the hosting application that we have finished loading.
-     * This is a no-op for the mock bridge.
+     * This restores from localStorage in the mock bridge.
      */
     notifyLoaded: function (state?: any) {
-      let restoredState = localStorage.getItem('collection');
-      if (restoredState === null) {
-        restoredState = JSON.stringify({
-          cardSlots: [
-            { present: false, card: null },
-            { present: false, card: null },
-            { present: false, card: null },
-            { present: false, card: null },
-            { present: false, card: null }
-          ],
-          goal: null,
-          score: 0,
-          selectedGoal: null
-        });
-      }
-
+      const restoredState = localStorage.getItem('prediction');
       console.log('Loading state: ', restoredState);
-      try {
+      if (restoredState != null) {
         state.fromJSON(restoredState);
-      } catch (e) {
-        console.error('Error restoring state due to exception: ', e);
-        state.reset(true);
-        //window.location.href = window.location.href;
       }
     },
 
@@ -95,10 +76,11 @@ if (!window.PlaybookBridge) {
     goToLeaderboard: function () {},
 
     /**
-     * Changes to the trophy case.
-     * This is a no-op for the mock bridge.
+     * Changes to the set collection screen.
      */
-    goToTrophyCase: function () {},
+    goToCollection: function () {
+      window.location.href = window.location.href.replace('prediction', 'collection');
+    },
 
     /**
      * Tells the hosting application that we should handle back button presses.
