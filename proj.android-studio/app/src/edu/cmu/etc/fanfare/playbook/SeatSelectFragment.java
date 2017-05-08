@@ -103,10 +103,11 @@ public class SeatSelectFragment extends PlaybookFragment implements AdapterView.
                 //backgroundWorker.execute("section");
 
                 //Show alert if no section is selected
-                if(section == 0){
+                //also check if section 1 is selected for playtest purpose
+                if(section == 0 || section != 1){
                     Log.i("Section", "Section not selected: " + section);
                     AlertDialog.Builder builder = new AlertDialog.Builder(v.getContext());
-                    builder.setMessage("Please select a section!");
+                    builder.setMessage("Please select section 1!");
                     builder.setCancelable(false);
 
                     builder.setPositiveButton(
@@ -233,15 +234,15 @@ public class SeatSelectFragment extends PlaybookFragment implements AdapterView.
                  mStadiumMap.setImageResource(R.drawable.stadium_map_1);
                  break;
              case "Section 2":
-                 section = 2;
+                 section = 1; //for playtest purpose change all into section 1
                  mStadiumMap.setImageResource(R.drawable.stadium_map_2);
                  break;
              case "Section 3":
-                 section = 3;
+                 section = 1;
                  mStadiumMap.setImageResource(R.drawable.stadium_map_3);
                  break;
              case "Section 4":
-                 section = 4;
+                 section = 1;
                  mStadiumMap.setImageResource(R.drawable.stadium_map_4);
                  break;
              default:
