@@ -16,8 +16,11 @@ import FieldOverlayArea from './lib/prediction/FieldOverlayArea';
 import BallCountSprite from './lib/prediction/BallCountSprite';
 import ScoreTab from './lib/prediction/ScoreTab';
 import PayoutsTab from './lib/prediction/PayoutsTab';
-import PredictionCorrectOverlay from './lib/prediction/PredictionCorrectOverlay';
+import GameStageBanner from './lib/prediction/GameStageBanner';
+import PredictionCorrectCard from './lib/prediction/PredictionCorrectCard';
+import BaseballsOverlayBackground from './lib/BaseballsOverlayBackground';
 import GenericOverlay from './lib/GenericOverlay';
+import GenericCard from './lib/GenericCard';
 
 // Receive messages from the hosting application.
 window.addEventListener('message', function (e) {
@@ -267,8 +270,11 @@ function handleIncomingMessage(message: IIncomingMessage) {
  */
 function handleBackPressed() {
   const overlay = stage.getChildByName('overlay') as GenericOverlay;
+  const baseballsOverlay = stage.getChildByName('baseballsOverlay') as GenericOverlay;
   if (overlay.active) {
     overlay.pop();
+  } else if (baseballsOverlay.active) {
+    baseballsOverlay.pop();
   } else {
     console.warn('Need to handle back pressed, but none of the overlays were active!');
   }
@@ -287,13 +293,9 @@ function handlePlaysCreated(events: number[]) {
         state.score += addedScore;
         reportScore(addedScore);
 
-        const overlay = new PredictionCorrectOverlay(contentScale!, play, addedScore);
-        const scoreTab = stage.getChildByName('scoreTab') as ScoreTab;
-        const score = scoreTab.score;
-        const scoreTabGlobalPosition = scoreTab.toGlobal(score.position);
-        initPredictionCorrectOverlayEvents(overlay, scoreTabGlobalPosition);
-        stage.addChild(overlay);
-        renderer.markDirty();
+        const overlay = stage.getChildByName('baseballsOverlay') as GenericOverlay;
+        const card = new PredictionCorrectCard(contentScale!, renderer, play, addedScore);
+        overlay.push(card);
 
         navigator.vibrate(200);
       }
@@ -475,32 +477,64 @@ function initBallEvents(ball: Ball, ballSlot: PIXI.Sprite, fieldOverlay: FieldOv
 }
 
 /**
- * Initializes events for the continue banner.
- * @param continueBanner
+ * Initializes events for the game stage banner.
+ * @param banner
  */
-function initContinueBannerEvents(continueBanner: PIXI.Graphics) {
+function initGameStageBannerEvents(banner: GameStageBanner) {
   state.emitter.on(state.EVENT_STAGE_CHANGED, function (stage: string) {
-    continueBanner.visible = stage === GameStages.CONTINUE || stage === GameStages.CONFIRMED;
+    banner.visible = stage === GameStages.CONTINUE || stage === GameStages.CONFIRMED;
+    switch (stage) {
+      case GameStages.CONTINUE:
+        banner.text = 'Waiting for half-inning\u2026'.toUpperCase();
+        break;
+      case GameStages.CONFIRMED:
+        banner.text = 'Predictions locked'.toUpperCase();
+        break;
+      default:
+    }
+
     renderer.markDirty();
   });
 
-  continueBanner.interactive = true;
-  continueBanner.on('tap', function () {
-    PlaybookBridge.goToCollection();
+  banner.interactive = true;
+  banner.on('tap', function () {
+    if (state.stage === GameStages.CONFIRMED) {
+      const overlay = stage.getChildByName('overlay') as GenericOverlay;
+
+      const cardContent = new PIXI.Container();
+
+      const title = new PIXI.Text(
+        'Predictions are locked until the end of the half-inning. You\'ll be ' +
+        'notified whenever any of them come true.\n\nIn the meantime, why not ' +
+        'collect some cards?'
+      );
+      title.style.fontSize = 72.0 * contentScale!;
+      title.style.fontFamily = 'rockwell';
+      title.style.fontWeight = 'bold';
+      title.style.fill = 0x002b65;
+      title.style.wordWrap = true;
+      title.style.wordWrapWidth = window.innerWidth - 256.0 * contentScale!;
+      cardContent.addChild(title);
+
+      const card = new GenericCard(contentScale!, renderer, cardContent);
+      overlay.push(card);
+    }
   });
 }
 
 /**
  * Initializes events for the generic overlay.
  */
-function initGenericOverlayEvents(overlay: GenericOverlay) {
-  overlay.on('push', () => {
-    state.overlayCount++;
-  });
+function initGenericOverlaysEvents(overlays: GenericOverlay[]) {
+  for (const overlay of overlays) {
+    overlay.on('push', () => {
+      state.overlayCount++;
+    });
 
-  overlay.on('pop', () => {
-    state.overlayCount--;
-  });
+    overlay.on('pop', () => {
+      state.overlayCount--;
+    });
+  }
 
   state.emitter.on(state.EVENT_OVERLAY_COUNT_CHANGED, (count: number) => {
     PlaybookBridge.setShouldHandleBackPressed(count > 0);
@@ -599,34 +633,6 @@ function initPayoutsTabEvents(payoutsTab: PayoutsTab, fieldOverlay: FieldOverlay
       fieldOverlay.showPayouts();
     }
     renderer.markDirty();
-  });
-}
-
-/**
- * Initializes events for the prediction correct overlay.
- * @param overlay
- * @param scoreTextPosition
- */
-function initPredictionCorrectOverlayEvents(overlay: PredictionCorrectOverlay, scoreTextPosition: PIXI.Point) {
-  overlay.interactive = true;
-  overlay.on('tap', () => {
-    const backgroundFadeOut = new PIXI.action.FadeOut(0.25);
-    const backgroundCallFunc = new PIXI.action.CallFunc(() => overlay.destroy());
-    const backgroundSequence = new PIXI.action.Sequence([backgroundFadeOut, backgroundCallFunc]);
-
-    const ballMoveTo = new PIXI.action.MoveTo(
-      scoreTextPosition.x, scoreTextPosition.y, 0.25
-    );
-    const ballScaleTo = new PIXI.action.ScaleTo(0, 0, 0.25);
-    const ballFadeOut = new PIXI.action.FadeOut(0.50);
-
-    PIXI.actionManager.runAction(overlay.ball, ballMoveTo);
-    PIXI.actionManager.runAction(overlay.ball, ballScaleTo);
-    PIXI.actionManager.runAction(overlay.ball, ballFadeOut);
-    PIXI.actionManager.runAction(overlay.textContainer, ballMoveTo);
-    PIXI.actionManager.runAction(overlay.textContainer, ballScaleTo);
-    PIXI.actionManager.runAction(overlay.textContainer, ballFadeOut);
-    PIXI.actionManager.runAction(overlay.background, backgroundSequence);
   });
 }
 
@@ -965,30 +971,15 @@ function setup() {
   const ballCountSprites = createBallCountSprites(fieldOverlay, state.balls[0].sprite!);
 
   // Add continue banner.
-  const continueBanner = new PIXI.Graphics();
-  continueBanner.beginFill(0xc53626);
-  continueBanner.drawRect(0, 0, window.innerWidth, ballSlot.height);
-  continueBanner.endFill();
-  continueBanner.position.set(0, window.innerHeight - ballSlot.height);
-  continueBanner.visible = false;
-  initContinueBannerEvents(continueBanner);
-
-  const continueBannerLabel = new PIXI.Text('Continue \u22b2'.toUpperCase());
-  continueBannerLabel.style.fontFamily = 'proxima-nova-excn';
-  continueBannerLabel.style.fontWeight = '900';
-  continueBannerLabel.style.fontSize = 104.0 * contentScale;
-  continueBannerLabel.style.fill = 0xffffff;
-  continueBannerLabel.anchor.set(1.0, 0.5);
-  continueBannerLabel.position.set(
-    window.innerWidth - (64.0 * contentScale),
-    continueBanner.height / 2
-  );
-  continueBanner.addChild(continueBannerLabel);
+  const gameStageBanner = new GameStageBanner(contentScale, { height: ballSlot.height });
+  initGameStageBannerEvents(gameStageBanner);
 
   // Add overlays.
   const genericOverlay = new GenericOverlay();
   genericOverlay.name = 'overlay';
-  initGenericOverlayEvents(genericOverlay);
+  const baseballsOverlay = new GenericOverlay(new BaseballsOverlayBackground(renderer));
+  baseballsOverlay.name = 'baseballsOverlay';
+  initGenericOverlaysEvents([genericOverlay, baseballsOverlay]);
 
   // Add the items in order of appearance.
   stage.addChild(grass);
@@ -1000,7 +991,9 @@ function setup() {
   stage.addChild(payoutsTab);
   ballSprites.forEach(sprite => stage.addChild(sprite));
   ballCountSprites.forEach(sprite => stage.addChild(sprite));
-  stage.addChild(continueBanner);
+  stage.addChild(gameStageBanner);
+  stage.addChild(genericOverlay);
+  stage.addChild(baseballsOverlay);
 
   /**
    * Begin the animation loop.
@@ -1012,10 +1005,17 @@ function setup() {
       renderer.markDirty();
     }
 
+    if (renderer.emitters.length > 0) {
+      renderer.markDirty();
+    }
+
     // For mobile phones, we don't go full-blast at 60 fps.
     // Re-render only if dirty.
     if (renderer.dirty) {
       PIXI.actionManager.update((now - lastRenderTime) / 1000);
+      for (const emitter of renderer.emitters) {
+        emitter.update((now - lastRenderTime) / 1000);
+      }
       fieldOverlay.update();
       renderer.render(stage);
     }
@@ -1043,6 +1043,7 @@ configureFonts(['proxima-nova', 'proxima-nova-excn', 'SCOREBOARD', 'rockwell'])
       .add('resources/Prediction-BG-Payout.jpg')
       .add('resources/Prediction-Overlay.png')
       .add('resources/Prediction-Overlay-Payout.png')
+      .add('resources/Item-Ball.png')
       .add('resources/Item-Ball-Rotated.png')
       .load(setup);
   });

@@ -19,7 +19,7 @@ class DismissableCard extends PIXI.Container {
     this._initEvents();
   }
 
-  private _initEvents() {
+  protected _initEvents() {
     let origPosition: PIXI.Point | null = null;
     let startPosition: PIXI.Point | null = null;
     let startOffset: PIXI.Point | null = null;
@@ -47,14 +47,20 @@ class DismissableCard extends PIXI.Container {
 
     const onTouchEnd = (e: PIXI.interaction.InteractionEvent) => {
       if (this._isAnimating) { return; }
-      if (origPosition === null) { return; }
+      if (origPosition === null || startPosition === null) { return; }
 
       const bounds = new PIXI.Rectangle(
         window.innerWidth / 4, window.innerHeight / 4,
         window.innerWidth / 2, window.innerHeight / 2
       );
 
-      if (bounds.contains(e.data.global.x, e.data.global.y)) {
+      // Compute distance from original position.
+      const distance = Math.sqrt(
+        Math.pow(e.data.global.x - startPosition.x, 2) +
+        Math.pow(e.data.global.y - startPosition.y, 2)
+      );
+
+      if (bounds.contains(e.data.global.x, e.data.global.y) || distance < 128.0) {
         this._isAnimating = true;
         const rotateTo = new PIXI.action.RotateTo(0, 0.25);
         const moveTo = new PIXI.action.MoveTo(origPosition.x, origPosition.y, 0.25);
@@ -73,7 +79,6 @@ class DismissableCard extends PIXI.Container {
     this.on('touchstart', onTouchStart)
       .on('touchmove', onTouchMove)
       .on('touchend', onTouchEnd)
-      .on('touchendoutside', onTouchEnd)
       .on('touchcancel', onTouchEnd);
   }
 

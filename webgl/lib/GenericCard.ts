@@ -1,8 +1,9 @@
 'use strict';
 import PlaybookRenderer from './PlaybookRenderer';
 import DismissableCard from './DismissableCard';
+import { IOverlayCard } from './GenericOverlay';
 
-class GenericCard extends DismissableCard {
+class GenericCard extends DismissableCard implements IOverlayCard {
   private _contentScale: number;
   private _background: PIXI.Graphics;
   private _content: PIXI.Container;
@@ -42,6 +43,10 @@ class GenericCard extends DismissableCard {
       64.0 * contentScale
     )
     background.endFill();
+
+    // Prevent events from going into the background.
+    background.interactive = true;
+    background.hitArea = background.getBounds();
 
     // Perform animation.
     this.alpha = 0;

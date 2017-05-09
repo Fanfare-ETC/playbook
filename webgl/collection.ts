@@ -25,7 +25,7 @@ import ICard from './lib/collection/ICard';
 import TrayTip from './lib/collection/TrayTip';
 import GenericCard from './lib/GenericCard';
 import GenericOverlay from './lib/GenericOverlay';
-import BaseballsOverlayBackground from './lib/collection/BaseballsOverlayBackground';
+import BaseballsOverlayBackground from './lib/BaseballsOverlayBackground';
 import SetScoredCard from './lib/collection/SetScoredCard';
 import NewTrophyCard from './lib/collection/NewTrophyCard';
 
@@ -764,6 +764,7 @@ function receiveCard(play: string) {
   card.dragOrigRotation = cardNode.rotation;
   card.dragOrigScale = cardScale;
 
+  navigator.vibrate(200);
   initCardEvents(card);
 }
 
