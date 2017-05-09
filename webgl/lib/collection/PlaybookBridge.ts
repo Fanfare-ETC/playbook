@@ -79,13 +79,12 @@ if (!window.PlaybookBridge) {
       }
 
       console.log('Loading state: ', restoredState);
-      try {
-        state.fromJSON(restoredState);
-      } catch (e) {
-        console.error('Error restoring state due to exception: ', e);
-        state.reset(true);
-        //window.location.href = window.location.href;
-      }
+      window.dispatchEvent(new MessageEvent('message', {
+        data: {
+          action: 'RESTORE_GAME_STATE',
+          payload: restoredState
+        }
+      }));
     },
 
     /**
