@@ -113,7 +113,7 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
         public void onDraw(Canvas canvas) {
             super.onDraw(canvas);
 
-            if (firstLoad) {
+            //if (firstLoad) {
                 // Draw lines only when everything is set up.
                 if (mWarmerView == null || mColderView == null ||
                         mMarkerView == null) {
@@ -166,8 +166,8 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
                     canvas.drawLine(loc0[0], loc0[1], loc1[0], loc1[1], mPaint);
                 }
                 */
-                firstLoad=false;
-            }
+                //firstLoad=false;
+            //}
         }
     }
 
