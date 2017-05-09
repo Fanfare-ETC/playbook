@@ -16,7 +16,7 @@ import FieldOverlayArea from './lib/prediction/FieldOverlayArea';
 import BallCountSprite from './lib/prediction/BallCountSprite';
 import ScoreTab from './lib/prediction/ScoreTab';
 import PayoutsTab from './lib/prediction/PayoutsTab';
-import PredictionCorrectOverlay from './lib/prediction/PredictionCorrectOverlay';
+import PredictionCorrectCard from './lib/prediction/PredictionCorrectCard';
 import GenericOverlay from './lib/GenericOverlay';
 
 // Receive messages from the hosting application.
@@ -287,13 +287,9 @@ function handlePlaysCreated(events: number[]) {
         state.score += addedScore;
         reportScore(addedScore);
 
-        const overlay = new PredictionCorrectOverlay(contentScale!, play, addedScore);
-        const scoreTab = stage.getChildByName('scoreTab') as ScoreTab;
-        const score = scoreTab.score;
-        const scoreTabGlobalPosition = scoreTab.toGlobal(score.position);
-        initPredictionCorrectOverlayEvents(overlay, scoreTabGlobalPosition);
-        stage.addChild(overlay);
-        renderer.markDirty();
+        const overlay = stage.getChildByName('overlay') as GenericOverlay;
+        const card = new PredictionCorrectCard(contentScale!, renderer, play, addedScore);
+        overlay.push(card);
 
         navigator.vibrate(200);
       }
@@ -599,34 +595,6 @@ function initPayoutsTabEvents(payoutsTab: PayoutsTab, fieldOverlay: FieldOverlay
       fieldOverlay.showPayouts();
     }
     renderer.markDirty();
-  });
-}
-
-/**
- * Initializes events for the prediction correct overlay.
- * @param overlay
- * @param scoreTextPosition
- */
-function initPredictionCorrectOverlayEvents(overlay: PredictionCorrectOverlay, scoreTextPosition: PIXI.Point) {
-  overlay.interactive = true;
-  overlay.on('tap', () => {
-    const backgroundFadeOut = new PIXI.action.FadeOut(0.25);
-    const backgroundCallFunc = new PIXI.action.CallFunc(() => overlay.destroy());
-    const backgroundSequence = new PIXI.action.Sequence([backgroundFadeOut, backgroundCallFunc]);
-
-    const ballMoveTo = new PIXI.action.MoveTo(
-      scoreTextPosition.x, scoreTextPosition.y, 0.25
-    );
-    const ballScaleTo = new PIXI.action.ScaleTo(0, 0, 0.25);
-    const ballFadeOut = new PIXI.action.FadeOut(0.50);
-
-    PIXI.actionManager.runAction(overlay.ball, ballMoveTo);
-    PIXI.actionManager.runAction(overlay.ball, ballScaleTo);
-    PIXI.actionManager.runAction(overlay.ball, ballFadeOut);
-    PIXI.actionManager.runAction(overlay.textContainer, ballMoveTo);
-    PIXI.actionManager.runAction(overlay.textContainer, ballScaleTo);
-    PIXI.actionManager.runAction(overlay.textContainer, ballFadeOut);
-    PIXI.actionManager.runAction(overlay.background, backgroundSequence);
   });
 }
 
@@ -1001,6 +969,7 @@ function setup() {
   ballSprites.forEach(sprite => stage.addChild(sprite));
   ballCountSprites.forEach(sprite => stage.addChild(sprite));
   stage.addChild(continueBanner);
+  stage.addChild(genericOverlay);
 
   /**
    * Begin the animation loop.
