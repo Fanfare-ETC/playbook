@@ -17,6 +17,7 @@ import BallCountSprite from './lib/prediction/BallCountSprite';
 import ScoreTab from './lib/prediction/ScoreTab';
 import PayoutsTab from './lib/prediction/PayoutsTab';
 import PredictionCorrectCard from './lib/prediction/PredictionCorrectCard';
+import BaseballsOverlayBackground from './lib/BaseballsOverlayBackground';
 import GenericOverlay from './lib/GenericOverlay';
 
 // Receive messages from the hosting application.
@@ -954,7 +955,7 @@ function setup() {
   continueBanner.addChild(continueBannerLabel);
 
   // Add overlays.
-  const genericOverlay = new GenericOverlay();
+  const genericOverlay = new GenericOverlay(new BaseballsOverlayBackground(renderer));
   genericOverlay.name = 'overlay';
   initGenericOverlayEvents(genericOverlay);
 
@@ -981,10 +982,17 @@ function setup() {
       renderer.markDirty();
     }
 
+    if (renderer.emitters.length > 0) {
+      renderer.markDirty();
+    }
+
     // For mobile phones, we don't go full-blast at 60 fps.
     // Re-render only if dirty.
     if (renderer.dirty) {
       PIXI.actionManager.update((now - lastRenderTime) / 1000);
+      for (const emitter of renderer.emitters) {
+        emitter.update((now - lastRenderTime) / 1000);
+      }
       fieldOverlay.update();
       renderer.render(stage);
     }
@@ -1012,6 +1020,7 @@ configureFonts(['proxima-nova', 'proxima-nova-excn', 'SCOREBOARD', 'rockwell'])
       .add('resources/Prediction-BG-Payout.jpg')
       .add('resources/Prediction-Overlay.png')
       .add('resources/Prediction-Overlay-Payout.png')
+      .add('resources/Item-Ball.png')
       .add('resources/Item-Ball-Rotated.png')
       .load(setup);
   });

@@ -1,9 +1,10 @@
 'use strict';
 import PlaybookRenderer from '../PlaybookRenderer';
+import DismissableCard from '../DismissableCard';
 import { FriendlyNames } from '../PlaybookEvents';
 import { IOverlayCard } from '../GenericOverlay';
 
-class PredictionCorrectCard extends PIXI.Container implements IOverlayCard {
+class PredictionCorrectCard extends DismissableCard implements IOverlayCard {
   private _contentScale: number;
   private _event: string;
   private _addedScore: number;
@@ -20,7 +21,7 @@ class PredictionCorrectCard extends PIXI.Container implements IOverlayCard {
 
   constructor(contentScale: number, renderer: PlaybookRenderer, event: string,
               addedScore: number) {
-    super();
+    super(renderer);
 
     this._contentScale = contentScale;
     this._event = event;
@@ -47,7 +48,13 @@ class PredictionCorrectCard extends PIXI.Container implements IOverlayCard {
     this._score3 = new PIXI.Text();
     this._scoreContainer.addChild(this._score3);
 
+    this._initEvents();
     this.visible = false;
+  }
+
+  protected _initEvents() {
+    super._initEvents();
+    this.on('tap', () => this.emitter.emit('dismiss'));
   }
 
   show() {
@@ -64,10 +71,8 @@ class PredictionCorrectCard extends PIXI.Container implements IOverlayCard {
     const textContainer = this._textContainer;
     const scoreContainer = this._scoreContainer;
 
-    const ballScale = window.innerWidth / ball.texture.width;
+    const ballScale = (window.innerWidth - 128.0 * contentScale) / ball.texture.width;
     ball.scale.set(ballScale, ballScale);
-    ball.position.set(window.innerWidth / 2, window.innerHeight / 2);
-    ball.anchor.set(0.5, 0.5);
 
     const textStyle = new PIXI.TextStyle({
       fontFamily: 'rockwell',
@@ -101,14 +106,25 @@ class PredictionCorrectCard extends PIXI.Container implements IOverlayCard {
     score3.position.set(textMetricsScore1.width + textMetricsScore2.width, textMetrics.height);
 
     textContainer.position.set(
-      window.innerWidth / 2 - textContainer.width / 2,
-      window.innerHeight / 2 - textContainer.height / 2
+      ball.width / 2 - textContainer.width / 2,
+      ball.height / 2 - textContainer.height / 2
     );
 
     // Reposition the text to the center of the window.
     const center = new PIXI.Point(window.innerWidth / 2, window.innerHeight / 2);
     const scoreContainerCenter = scoreContainer.toLocal(center);
     scoreContainer.position.x = scoreContainerCenter.x - (scoreContainer.width / 2);
+
+    this.pivot.set(this.width / 2, this.height / 2);
+    this.position.set(window.innerWidth / 2, window.innerHeight / 2);
+
+    // Perform animation.
+    this.alpha = 0;
+    this.scale.set(0.0, 0.0);
+    const fadeIn = new PIXI.action.FadeIn(0.5);
+    const scaleTo = new PIXI.action.ScaleTo(1.0, 1.0, 0.5);
+    PIXI.actionManager.runAction(this, fadeIn);
+    PIXI.actionManager.runAction(this, scaleTo);
   }
 }
 

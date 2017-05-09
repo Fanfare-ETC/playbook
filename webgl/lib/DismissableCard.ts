@@ -19,7 +19,7 @@ class DismissableCard extends PIXI.Container {
     this._initEvents();
   }
 
-  private _initEvents() {
+  protected _initEvents() {
     let origPosition: PIXI.Point | null = null;
     let startPosition: PIXI.Point | null = null;
     let startOffset: PIXI.Point | null = null;
