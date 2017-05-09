@@ -20,6 +20,7 @@ import GameStageBanner from './lib/prediction/GameStageBanner';
 import PredictionCorrectCard from './lib/prediction/PredictionCorrectCard';
 import BaseballsOverlayBackground from './lib/BaseballsOverlayBackground';
 import GenericOverlay from './lib/GenericOverlay';
+import GenericCard from './lib/GenericCard';
 
 // Receive messages from the hosting application.
 window.addEventListener('message', function (e) {
@@ -269,8 +270,11 @@ function handleIncomingMessage(message: IIncomingMessage) {
  */
 function handleBackPressed() {
   const overlay = stage.getChildByName('overlay') as GenericOverlay;
+  const baseballsOverlay = stage.getChildByName('baseballsOverlay') as GenericOverlay;
   if (overlay.active) {
     overlay.pop();
+  } else if (baseballsOverlay.active) {
+    baseballsOverlay.pop();
   } else {
     console.warn('Need to handle back pressed, but none of the overlays were active!');
   }
@@ -289,7 +293,7 @@ function handlePlaysCreated(events: number[]) {
         state.score += addedScore;
         reportScore(addedScore);
 
-        const overlay = stage.getChildByName('overlay') as GenericOverlay;
+        const overlay = stage.getChildByName('baseballsOverlay') as GenericOverlay;
         const card = new PredictionCorrectCard(contentScale!, renderer, play, addedScore);
         overlay.push(card);
 
@@ -494,21 +498,43 @@ function initGameStageBannerEvents(banner: GameStageBanner) {
 
   banner.interactive = true;
   banner.on('tap', function () {
-    PlaybookBridge.goToCollection();
+    if (state.stage === GameStages.CONFIRMED) {
+      const overlay = stage.getChildByName('overlay') as GenericOverlay;
+
+      const cardContent = new PIXI.Container();
+
+      const title = new PIXI.Text(
+        'Predictions are locked until the end of the half-inning. You\'ll be ' +
+        'notified whenever any of them come true.\n\nIn the meantime, why not ' +
+        'collect some cards?'
+      );
+      title.style.fontSize = 72.0 * contentScale!;
+      title.style.fontFamily = 'rockwell';
+      title.style.fontWeight = 'bold';
+      title.style.fill = 0x002b65;
+      title.style.wordWrap = true;
+      title.style.wordWrapWidth = window.innerWidth - 256.0 * contentScale!;
+      cardContent.addChild(title);
+
+      const card = new GenericCard(contentScale!, renderer, cardContent);
+      overlay.push(card);
+    }
   });
 }
 
 /**
  * Initializes events for the generic overlay.
  */
-function initGenericOverlayEvents(overlay: GenericOverlay) {
-  overlay.on('push', () => {
-    state.overlayCount++;
-  });
+function initGenericOverlaysEvents(overlays: GenericOverlay[]) {
+  for (const overlay of overlays) {
+    overlay.on('push', () => {
+      state.overlayCount++;
+    });
 
-  overlay.on('pop', () => {
-    state.overlayCount--;
-  });
+    overlay.on('pop', () => {
+      state.overlayCount--;
+    });
+  }
 
   state.emitter.on(state.EVENT_OVERLAY_COUNT_CHANGED, (count: number) => {
     PlaybookBridge.setShouldHandleBackPressed(count > 0);
@@ -949,9 +975,11 @@ function setup() {
   initGameStageBannerEvents(gameStageBanner);
 
   // Add overlays.
-  const genericOverlay = new GenericOverlay(new BaseballsOverlayBackground(renderer));
+  const genericOverlay = new GenericOverlay();
   genericOverlay.name = 'overlay';
-  initGenericOverlayEvents(genericOverlay);
+  const baseballsOverlay = new GenericOverlay(new BaseballsOverlayBackground(renderer));
+  baseballsOverlay.name = 'baseballsOverlay';
+  initGenericOverlaysEvents([genericOverlay, baseballsOverlay]);
 
   // Add the items in order of appearance.
   stage.addChild(grass);
@@ -965,6 +993,7 @@ function setup() {
   ballCountSprites.forEach(sprite => stage.addChild(sprite));
   stage.addChild(gameStageBanner);
   stage.addChild(genericOverlay);
+  stage.addChild(baseballsOverlay);
 
   /**
    * Begin the animation loop.

@@ -44,6 +44,10 @@ class GenericCard extends DismissableCard implements IOverlayCard {
     )
     background.endFill();
 
+    // Prevent events from going into the background.
+    background.interactive = true;
+    background.hitArea = background.getBounds();
+
     // Perform animation.
     this.alpha = 0;
     this.position.y += this.height / 2;
