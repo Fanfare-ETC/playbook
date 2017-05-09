@@ -16,6 +16,7 @@ import FieldOverlayArea from './lib/prediction/FieldOverlayArea';
 import BallCountSprite from './lib/prediction/BallCountSprite';
 import ScoreTab from './lib/prediction/ScoreTab';
 import PayoutsTab from './lib/prediction/PayoutsTab';
+import GameStageBanner from './lib/prediction/GameStageBanner';
 import PredictionCorrectCard from './lib/prediction/PredictionCorrectCard';
 import BaseballsOverlayBackground from './lib/BaseballsOverlayBackground';
 import GenericOverlay from './lib/GenericOverlay';
@@ -472,17 +473,27 @@ function initBallEvents(ball: Ball, ballSlot: PIXI.Sprite, fieldOverlay: FieldOv
 }
 
 /**
- * Initializes events for the continue banner.
- * @param continueBanner
+ * Initializes events for the game stage banner.
+ * @param banner
  */
-function initContinueBannerEvents(continueBanner: PIXI.Graphics) {
+function initGameStageBannerEvents(banner: GameStageBanner) {
   state.emitter.on(state.EVENT_STAGE_CHANGED, function (stage: string) {
-    continueBanner.visible = stage === GameStages.CONTINUE || stage === GameStages.CONFIRMED;
+    banner.visible = stage === GameStages.CONTINUE || stage === GameStages.CONFIRMED;
+    switch (stage) {
+      case GameStages.CONTINUE:
+        banner.text = 'Waiting for half-inning\u2026'.toUpperCase();
+        break;
+      case GameStages.CONFIRMED:
+        banner.text = 'Predictions locked'.toUpperCase();
+        break;
+      default:
+    }
+
     renderer.markDirty();
   });
 
-  continueBanner.interactive = true;
-  continueBanner.on('tap', function () {
+  banner.interactive = true;
+  banner.on('tap', function () {
     PlaybookBridge.goToCollection();
   });
 }
@@ -934,25 +945,8 @@ function setup() {
   const ballCountSprites = createBallCountSprites(fieldOverlay, state.balls[0].sprite!);
 
   // Add continue banner.
-  const continueBanner = new PIXI.Graphics();
-  continueBanner.beginFill(0xc53626);
-  continueBanner.drawRect(0, 0, window.innerWidth, ballSlot.height);
-  continueBanner.endFill();
-  continueBanner.position.set(0, window.innerHeight - ballSlot.height);
-  continueBanner.visible = false;
-  initContinueBannerEvents(continueBanner);
-
-  const continueBannerLabel = new PIXI.Text('Continue \u22b2'.toUpperCase());
-  continueBannerLabel.style.fontFamily = 'proxima-nova-excn';
-  continueBannerLabel.style.fontWeight = '900';
-  continueBannerLabel.style.fontSize = 104.0 * contentScale;
-  continueBannerLabel.style.fill = 0xffffff;
-  continueBannerLabel.anchor.set(1.0, 0.5);
-  continueBannerLabel.position.set(
-    window.innerWidth - (64.0 * contentScale),
-    continueBanner.height / 2
-  );
-  continueBanner.addChild(continueBannerLabel);
+  const gameStageBanner = new GameStageBanner(contentScale, { height: ballSlot.height });
+  initGameStageBannerEvents(gameStageBanner);
 
   // Add overlays.
   const genericOverlay = new GenericOverlay(new BaseballsOverlayBackground(renderer));
@@ -969,7 +963,7 @@ function setup() {
   stage.addChild(payoutsTab);
   ballSprites.forEach(sprite => stage.addChild(sprite));
   ballCountSprites.forEach(sprite => stage.addChild(sprite));
-  stage.addChild(continueBanner);
+  stage.addChild(gameStageBanner);
   stage.addChild(genericOverlay);
 
   /**
