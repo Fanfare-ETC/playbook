@@ -271,6 +271,8 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
         }
         else
         {
+            ImageView trans = (ImageView) view.findViewById(R.id.translucentlayer);
+            trans.setVisibility(View.VISIBLE);
             tut.setImageResource(R.drawable.connectdots_tutorial_unskippable);
         }
 
