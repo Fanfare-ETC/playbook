@@ -284,6 +284,26 @@
         android:layout_marginRight="0dp"
         android:visibility="visible"/>
 
+    <ImageView
+        android:id="@+id/warmer_on"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="0dp"
+        android:layout_marginLeft="0dp"
+        android:layout_marginRight="0dp"
+        android:layout_marginTop="0dp"
+        android:adjustViewBounds="true"
+        android:cropToPadding="true"
+        android:hapticFeedbackEnabled="true"
+        android:scaleType="fitXY"
+        android:visibility="visible"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@+id/marker"
+        app:layout_constraintVertical_bias="0.33"
+        app:srcCompat="@drawable/buttonon" />
+
     <TextView
         android:id="@+id/warmer_text"
         android:layout_width="wrap_content"
@@ -320,6 +340,24 @@
         app:layout_constraintVertical_bias="1.0"
         app:srcCompat="@drawable/colder" />
 
+    <ImageView
+        android:id="@+id/colder_onn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="0dp"
+        android:layout_marginLeft="0dp"
+        android:layout_marginRight="0dp"
+        android:layout_marginTop="0dp"
+        android:hapticFeedbackEnabled="true"
+        android:scaleType="fitXY"
+        android:visibility="visible"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintLeft_toRightOf="@+id/marker"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintVertical_bias="1.0"
+        app:srcCompat="@drawable/buttonon" />
+
     <TextView
         android:id="@+id/colder_text"
         android:layout_width="wrap_content"
@@ -349,6 +387,21 @@
         app:layout_constraintRight_toLeftOf="@+id/colder"
         app:layout_constraintVertical_bias="0.0"
         app:srcCompat="@drawable/plant" />
+
+    <ImageView
+        android:id="@+id/marker_on"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="0dp"
+        android:hapticFeedbackEnabled="true"
+        android:scaleType="fitXY"
+        android:scaleX="1"
+        android:visibility="visible"
+        app:layout_constraintBottom_toTopOf="parent"
+        app:layout_constraintLeft_toRightOf="@+id/warmer"
+        app:layout_constraintRight_toLeftOf="@+id/colder"
+        app:layout_constraintVertical_bias="0.0"
+        app:srcCompat="@drawable/buttonon" />
 
     <TextView
         android:id="@+id/marker_text"

@@ -95,11 +95,9 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
         public void setWarmerView(View warmerView) {
             mWarmerView = warmerView;
         }
-
         public void setColderView(View colderView) {
             mColderView = colderView;
         }
-
         public void setMarkerView(View markerView) {
             mMarkerView = markerView;
         }
