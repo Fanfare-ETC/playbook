@@ -20,7 +20,7 @@
             android:paddingBottom="16dp"
             android:text="Play this between each half-inning. We'll notify you when your predictions come true." />
 
-        <ImageView
+        <pl.droidsonroids.gif.GifImageView
             android:id="@+id/tutorial_image"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
