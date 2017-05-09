@@ -764,6 +764,7 @@ function receiveCard(play: string) {
   card.dragOrigRotation = cardNode.rotation;
   card.dragOrigScale = cardScale;
 
+  navigator.vibrate(200);
   initCardEvents(card);
 }
 
