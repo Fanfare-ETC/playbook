@@ -43,6 +43,12 @@ class DismissableCard extends PIXI.Container {
         e.data.global.y - startOffset.y
       );
       this._renderer.markDirty();
+
+      // Cancel the touch if we're out of bounds.
+      if (e.data.global.x < 0 || e.data.global.y < 0 ||
+          e.data.global.x > window.innerWidth || e.data.global.y > window.innerHeight) {
+          onTouchEnd(e);
+      }
     }
 
     const onTouchEnd = (e: PIXI.interaction.InteractionEvent) => {
