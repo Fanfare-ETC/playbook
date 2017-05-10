@@ -82,14 +82,17 @@ class GameState implements IGameState {
   EVENT_PREDICTION_COUNTS_CHANGED = 'predictionCountsChanged';
   EVENT_SCORE_CHANGED = 'scoreChanged';
   EVENT_OVERLAY_COUNT_CHANGED: string = 'overlayCountChanged';
+  EVENT_IS_SHOWING_PAYOUTS_CHANGED: string = 'isShowingPayoutsChanged';
 
   emitter: PIXI.utils.EventEmitter;
 
-  _predictionCounts: { [play: string]: number } = {};
-  _stage: string = GameStages.INITIAL;
+  private _initialized: boolean = false;
+  private _predictionCounts: { [play: string]: number } = {};
+  private _stage: string = GameStages.INITIAL;
   balls: Ball[] = [];
-  _score: number = 0;
-  _overlayCount: number = 0;
+  private _score: number = 0;
+  private _overlayCount: number = 0;
+  private _isShowingPayouts: boolean = false;
 
   constructor() {
     this.emitter = new PIXI.utils.EventEmitter();
@@ -113,8 +116,10 @@ class GameState implements IGameState {
     const oldValue = this._stage;
     this._stage = value;
     console.log('stage->', value);
-    this.emitter.emit(this.EVENT_STAGE_CHANGED, value, oldValue);
-    PlaybookBridge.notifyGameState(this.toJSON());
+    if (this._initialized) {
+      this.emitter.emit(this.EVENT_STAGE_CHANGED, value, oldValue);
+      PlaybookBridge.notifyGameState(this.toJSON());
+    }
   }
 
   get predictionCounts() {
@@ -125,8 +130,10 @@ class GameState implements IGameState {
     const oldValue = this._predictionCounts;
     this._predictionCounts = value;
     console.log('predictionCounts->', value);
-    this.emitter.emit(this.EVENT_PREDICTION_COUNTS_CHANGED, value, oldValue);
-    PlaybookBridge.notifyGameState(this.toJSON());
+    if (this._initialized) {
+      this.emitter.emit(this.EVENT_PREDICTION_COUNTS_CHANGED, value, oldValue);
+      PlaybookBridge.notifyGameState(this.toJSON());
+    }
   }
 
   get score() {
@@ -153,6 +160,18 @@ class GameState implements IGameState {
     PlaybookBridge.notifyGameState(this.toJSON());
   }
 
+  get isShowingPayouts() {
+    return this._isShowingPayouts;
+  }
+
+  set isShowingPayouts(value) {
+    const oldValue = this._isShowingPayouts;
+    this._isShowingPayouts = value;
+    console.log('isShowingPayouts->', value);
+    this.emitter.emit(this.EVENT_IS_SHOWING_PAYOUTS_CHANGED, value, oldValue);
+    PlaybookBridge.notifyGameState(this.toJSON());
+  }
+
   toJSON() {
     const savedState = {
       stage: this._stage,
@@ -161,7 +180,8 @@ class GameState implements IGameState {
         return {
           selectedTarget: ball.selectedTarget ? ball.selectedTarget.name : null
         };
-      })
+      }),
+      isShowingPayouts: this._isShowingPayouts
     };
 
     return JSON.stringify(savedState);
@@ -183,11 +203,17 @@ class GameState implements IGameState {
     });
 
     // Restore this later because makePrediction changes the state.
-    this.stage = restoredState.stage;
-    this.score = restoredState.score;
+    this._stage = restoredState.stage;
+    this._score = restoredState.score;
+    this._isShowingPayouts = restoredState.isShowingPayouts;
+    this._initialized = true;
 
     // Trigger initial updates.
+    this.emitter.emit(this.EVENT_PREDICTION_COUNTS_CHANGED, this._predictionCounts, null);
+    this.emitter.emit(this.EVENT_STAGE_CHANGED, this._stage, null);
+    this.emitter.emit(this.EVENT_SCORE_CHANGED, this._score, null);
     this.emitter.emit(this.EVENT_OVERLAY_COUNT_CHANGED, this._overlayCount, null);
+    this.emitter.emit(this.EVENT_IS_SHOWING_PAYOUTS_CHANGED, this._isShowingPayouts, null);
   }
 }
 
@@ -413,6 +439,14 @@ function initBallEvents(ball: Ball, ballSlot: PIXI.Sprite, fieldOverlay: FieldOv
     }
   });
 
+  state.emitter.on(state.EVENT_IS_SHOWING_PAYOUTS_CHANGED, (isShowingPayouts: boolean) => {
+    ball.setHollow(isShowingPayouts && ball.selectedTarget !== null);
+  });
+
+  state.emitter.on(state.EVENT_PREDICTION_COUNTS_CHANGED, () => {
+    ball.setHollow(state.isShowingPayouts && ball.selectedTarget !== null);
+  });
+
   const onTouchStart = function (e: PIXI.interaction.InteractionEvent) {
     // Don't allow interaction if ball is being animated.
     if (ball.isAnimating) { return; }
@@ -553,16 +587,30 @@ function initScoreTabEvents(scoreTab: PIXI.Sprite) {
 }
 
 /**
+ * Initializes events for the grass.
+ */
+function initGrassEvents(grass: PIXI.Sprite) {
+  state.emitter.on(state.EVENT_IS_SHOWING_PAYOUTS_CHANGED, (isShowingPayouts: boolean) => {
+    if (isShowingPayouts) {
+      grass.texture = PIXI.loader.resources['resources/Prediction-BG-Payout.jpg'].texture;
+    } else {
+      grass.texture = PIXI.loader.resources['resources/Prediction-BG.jpg'].texture;
+    }
+    renderer.markDirty();
+  });
+}
+
+/**
  * Initializes events for the field overlay.
  */
 function initFieldOverlayEvents(fieldOverlay: FieldOverlay) {
   // When prediction count changes, we need to update the ball counts.
   state.emitter.on(state.EVENT_PREDICTION_COUNTS_CHANGED, (value: { [name: string]: number }, oldValue: { [name: string]: number }) => {
     const events = new Set(Object.keys(value));
-    const oldEvents = new Set(Object.keys(oldValue));
+    const oldEvents = oldValue === null ? new Set() : new Set(Object.keys(oldValue));
 
     // Compute the difference between the two counts.
-    const changed = [...events].filter(x => oldEvents.has(x));
+    const changed = [...events].filter(x => oldEvents.has(x) || oldValue === null);
     changed.forEach(name => {
       const area = fieldOverlay.getAreaByName(name);
       const count = value[name];
@@ -574,6 +622,14 @@ function initFieldOverlayEvents(fieldOverlay: FieldOverlay) {
       }
       renderer.markDirty();
     });
+  });
+
+  state.emitter.on(state.EVENT_IS_SHOWING_PAYOUTS_CHANGED, (isShowingPayouts: boolean) => {
+    if (isShowingPayouts) {
+      fieldOverlay.showPayouts();
+    } else {
+      fieldOverlay.hidePayouts();
+    }
   });
 }
 
@@ -623,16 +679,15 @@ function initPayoutsTabEvents(payoutsTab: PayoutsTab, fieldOverlay: FieldOverlay
                               grassBackground: PIXI.Sprite) {
   payoutsTab.interactive = true;
   payoutsTab.on('tap', () => {
-    if (fieldOverlay.isShowingPayouts()) {
-      payoutsTab.selectLabels();
-      grassBackground.texture = PIXI.loader.resources['resources/Prediction-BG.jpg'].texture;
-      fieldOverlay.hidePayouts();
-    } else {
+    state.isShowingPayouts = !state.isShowingPayouts;
+  });
+
+  state.emitter.on(state.EVENT_IS_SHOWING_PAYOUTS_CHANGED, (isShowingPayouts: boolean) => {
+    if (isShowingPayouts) {
       payoutsTab.selectPayouts();
-      grassBackground.texture = PIXI.loader.resources['resources/Prediction-BG-Payout.jpg'].texture;
-      fieldOverlay.showPayouts();
+    } else {
+      payoutsTab.selectLabels();
     }
-    renderer.markDirty();
   });
 }
 
@@ -883,6 +938,7 @@ function setup() {
   const grass = new PIXI.Sprite(grassTexture);
   grass.scale.x = window.innerWidth / grassTexture.width;
   grass.scale.y = window.innerHeight / grassTexture.height;
+  initGrassEvents(grass);
 
   // Add banner on top to screen.
   const bannerTexture = PIXI.loader.resources['resources/prediction.json'].textures!['Prediction-Banner.png'];
