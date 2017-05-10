@@ -88,6 +88,7 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
     aggregate section,warmer,colder and marker buttons
     depending on screen resolution
     */
+    
     public static class positionView extends View {
 
         private View mWarmerView,mColderView,mMarkerView,mAggregateView,mMapView;
@@ -277,24 +278,11 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
                 return super.onOptionsItemSelected(item);
         }
     }
-    void showTutorial()
-    {
-        ImageView tut = (ImageView) view.findViewById(R.id.treasurehunt_tutorial);
-        tut.setVisibility(View.VISIBLE);
-        tut.setZ(1.0f);
-        if(gameState.game_on)
-        {
-            tut.setImageResource(R.drawable.connectdots_tutorial_skippable);
-            tut.setOnClickListener(this);
-        }
-        else
-        {
-            ImageView trans = (ImageView) view.findViewById(R.id.translucentlayer);
-            trans.setVisibility(View.VISIBLE);
-            tut.setImageResource(R.drawable.connectdots_tutorial_unskippable);
-        }
 
-    }
+    /*
+     Method to call helper functions on any state change signal received
+     form the server
+    */
 
     public void processState(JSONObject jsonObject)
     {
@@ -320,6 +308,7 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
                 {
                     reset();
                     showTutorial();
+                    timer();
                     firstLoad = true;
                 }
                 else if(gameState.game_off) {
@@ -374,42 +363,14 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
             }
         });
     }
-    public void reset()
-    {
-        ImageView translucent = (ImageView) view.findViewById(R.id.translucentlayer);
-        translucent.setVisibility(View.VISIBLE);
-        ImageView drawing = (ImageView) view.findViewById(R.id.drawing);
-        drawing.setVisibility(View.INVISIBLE);
-        //showTutorial();
-        //translucent.setZ(1.0f);
-    }
-    public void  updateMarker(int vertex_id)
-    {
-        ImageView v3 = ((ImageView) view.findViewById(vertex_id));
-        int[] loc0 = new int[2];
-        int[] canvasLocation = new int[2];
-        view.getLocationInWindow(canvasLocation);
-        ImageView ex = (ImageView) view.findViewById(R.id.ex);
-        v3.getLocationInWindow(loc0);
-        loc0[0] -= canvasLocation[0]+50 ;
-        loc0[1] -= canvasLocation[1]+50 ;
-        ex.setX(loc0[0]);
-        ex.setY(loc0[1]);
-        int h=ex.getHeight()/2;
-        int w=ex.getWidth()/2;
-        ImageView glow = (ImageView) view.findViewById(R.id.glow);
-        glow.setX(loc0[0]-w);
-        glow.setY(loc0[1]-h);
-        glowanimation(glow);
 
-    }
-    public void  updateMarker_3()
-    {
-        ImageView ex = (ImageView) view.findViewById(R.id.ex);
-        ex.setVisibility(View.INVISIBLE);
-        ImageView glow = (ImageView) view.findViewById(R.id.glow);
-        glow.setVisibility(View.INVISIBLE);
-    }
+    /*
+      Method to handle starting a game by
+      1. Making the translucent layer invisible
+      2. Placing the 'x' in the right position
+      3. Adding glow animation to 'x'
+     */
+
     public void startGame(int vertex_id)
     {
         ImageView translucent = (ImageView) view.findViewById(R.id.translucentlayer);
@@ -438,28 +399,52 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
 
         glowanimation(glow);
     }
-    public void timer()
+
+    /*
+     Method to handle state change after a marker is positioned right by
+     moving the 'x' to the next marker spot
+    */
+
+    public void  updateMarker(int vertex_id)
     {
-        Typeface tf = Typeface.createFromAsset(getActivity().getAssets(), "fonts/nova1.ttf");
-
-        final TextView text = (TextView) view.findViewById(R.id.timer);
-        int mTimerColor = Color.rgb(255, 255, 255);
-        text.setTextColor(mTimerColor);
-        text.setTextSize(20.0f);
-        text.setTextAlignment(View.TEXT_ALIGNMENT_TEXT_END);
-        text.setTypeface(tf);
-
-        new CountDownTimer(gameState.current_time*1000, 1000) {
-            public void onTick(long millisUntilFinished) {
-                long time = millisUntilFinished / 1000;
-                text.setText(Long.toString(time - 1)+" secs left");
-            }
-            public void onFinish() {
-                text.setText("Quicker!");
-            }
-        }.start();
-
+        ImageView v3 = ((ImageView) view.findViewById(vertex_id));
+        int[] loc0 = new int[2];
+        int[] canvasLocation = new int[2];
+        view.getLocationInWindow(canvasLocation);
+        ImageView ex = (ImageView) view.findViewById(R.id.ex);
+        v3.getLocationInWindow(loc0);
+        loc0[0] -= canvasLocation[0]+50 ;
+        loc0[1] -= canvasLocation[1]+50 ;
+        ex.setX(loc0[0]);
+        ex.setY(loc0[1]);
+        int h=ex.getHeight()/2;
+        int w=ex.getWidth()/2;
+        ImageView glow = (ImageView) view.findViewById(R.id.glow);
+        glow.setX(loc0[0]-w);
+        glow.setY(loc0[1]-h);
+        glowanimation(glow);
     }
+
+    /*
+     Method to handle state change after Marker 3 is positioned right by
+     making the 'x' and its glow animation invisible
+    */
+
+    public void  updateMarker_3()
+    {
+        ImageView ex = (ImageView) view.findViewById(R.id.ex);
+        ex.setVisibility(View.INVISIBLE);
+        ImageView glow = (ImageView) view.findViewById(R.id.glow);
+        glow.setVisibility(View.INVISIBLE);
+    }
+
+    /*
+     Method to stop the game  by
+     1. Setting the 'x' invisible and the translucent layer visible
+     2. Animating the drawing to replace the map
+     3. Adding user to the leaderboard
+    */
+
     public void stopGame(int drawingResId)
     {
         ImageView ex = (ImageView) view.findViewById(R.id.ex);
@@ -496,6 +481,73 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
         backgroundWorker.execute(type);
 
     }
+
+    /*
+    Method to reset to default state by making the
+    drawing invisble and translucent layer visible
+     */
+
+    public void reset()
+    {
+        ImageView translucent = (ImageView) view.findViewById(R.id.translucentlayer);
+        translucent.setVisibility(View.VISIBLE);
+        ImageView drawing = (ImageView) view.findViewById(R.id.drawing);
+        drawing.setVisibility(View.INVISIBLE);
+    }
+
+    /*
+    Method to display tutorial based on game state
+     */
+
+    void showTutorial()
+    {
+        ImageView tut = (ImageView) view.findViewById(R.id.treasurehunt_tutorial);
+        tut.setVisibility(View.VISIBLE);
+        tut.setZ(1.0f);
+        if(gameState.game_on)
+        {
+            tut.setImageResource(R.drawable.connectdots_tutorial_skippable);
+            tut.setOnClickListener(this);
+        }
+        else
+        {
+            ImageView trans = (ImageView) view.findViewById(R.id.translucentlayer);
+            trans.setVisibility(View.VISIBLE);
+            tut.setImageResource(R.drawable.connectdots_tutorial_unskippable);
+        }
+
+    }
+
+    /*
+    Timer function
+     */
+
+    public void timer()
+    {
+        Typeface tf = Typeface.createFromAsset(getActivity().getAssets(), "fonts/nova1.ttf");
+
+        final TextView text = (TextView) view.findViewById(R.id.timer);
+        int mTimerColor = Color.rgb(255, 255, 255);
+        text.setTextColor(mTimerColor);
+        text.setTextSize(20.0f);
+        text.setTextAlignment(View.TEXT_ALIGNMENT_TEXT_END);
+        text.setTypeface(tf);
+
+        new CountDownTimer(gameState.current_time*1000, 1000) {
+            public void onTick(long millisUntilFinished) {
+                long time = millisUntilFinished / 1000;
+                text.setText(Long.toString(time - 1)+" secs left");
+            }
+            public void onFinish() {
+                text.setText("Quicker!");
+            }
+        }.start();
+    }
+
+    /*
+    Helper function for initializing and starting glow animation
+     */
+
     public void glowanimation(ImageView glow)
     {
         ObjectAnimator scaleGlow_x= ObjectAnimator.ofFloat(glow, "scaleX", 0.75f, 0.25f);
@@ -508,6 +560,12 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
         scale.play(scaleGlow_x).with(scaleGlow_y);
         scale.start();
     }
+
+    /*
+    Helper function for initializing and starting plus ten animation
+    appearing on the warmer,marker or colder sections on touch
+     */
+
     public void plustenaimation(Vector<ImageView> plustens,Vector<ObjectAnimator> anim_plustens,int plustenId,int sectionId)
     {
         int[] location = new int[2];
@@ -552,6 +610,12 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
             anim_plustens.get(j).start();
         }
     }
+
+    /*
+    Helper function for initializing and starting plus one animation
+    starting from the warmer,marker or colder buttons and sections on touch
+   */
+
     public void plusoneanimation(int[] position,int[] offset)
     {
         final ImageView newone = new ImageView(getActivity());
@@ -579,6 +643,11 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
         };
         handler.postDelayed(task,500);
     }
+
+    /*
+    Click listener for tutorial screen and warmer,marker and colder buttons
+     */
+
     public void onClick(View v) {
 
         if(gameState.game_on) {
@@ -589,10 +658,8 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
 
                 case R.id.treasurehunt_tutorial:
                     myVib.vibrate(50);
-                    //if (gameState.game_on) {
                         ImageView tut = (ImageView) view.findViewById(R.id.treasurehunt_tutorial);
                         tut.setVisibility(View.INVISIBLE);
-                    //}
                     break;
 
                 case R.id.warmer:
@@ -637,6 +704,11 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
             callbackWs[0].send(obj.toString());
         }
     }
+
+    /*
+    Touch listeners for warmer,marker and colder sections
+     */
+
     public boolean onTouch(View v, MotionEvent event)
     {
         if(gameState.game_on) {
@@ -701,6 +773,12 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
         }
         return true;
     }
+
+    /*
+    Websocket handler to
+    1. Request state of the game from the server everytime the fragment loads
+    2. Process any state change notification from server
+     */
 
     public class websocketHandler implements AsyncHttpClient.WebSocketConnectCallback, WebSocket.StringCallback {
 
