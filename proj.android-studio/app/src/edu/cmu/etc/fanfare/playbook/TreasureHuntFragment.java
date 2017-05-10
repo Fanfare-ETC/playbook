@@ -41,27 +41,38 @@ import static android.content.Context.VIBRATOR_SERVICE;
 
 public class TreasureHuntFragment extends PlaybookFragment implements View.OnClickListener,View.OnTouchListener{
 
-
+    /* Websocket handlers*/
     private final JSONObject obj = new JSONObject();
     private final Exception callbackException[] = {null};
     private final WebSocket callbackWs[] = {null};
     private websocketHandler wsh = new websocketHandler();
 
+    /* Section number of the user */
     private static int section;
+
+    /* Views and layouts */
     private static View view;
     private ConstraintLayout layout;
     private int plusoneId,plustenWarmerId,plustenColderId,plustenMarkerId;
     private int warmerSectionId,colderSectionId,markerSectionId;
     private ImageView warmerView,colderView,markerView,aggregateView,mapView;
-    private static boolean firstLoad=true;
+
+    /* Vibrator object*/
     private Vibrator myVib;
+
+    /* Flag to keep tarck of firstload */
+    private static boolean firstLoad=true;
+
+    /* Objects of drawing class*/
     private BirdDrawing birdDrawing;
     private BoatDrawing boatDrawing;
 
+    /* Websocket URL*/
     private  String mEndpoint = "ws://" +
             BuildConfig.PLAYBOOK_TREASUREHUNT_API_HOST + ":" +
             BuildConfig.PLAYBOOK_TREASUREHUNT_API_PORT;
 
+    /* Gamestate flags*/
     public static class gameState
     {
         public static boolean game_on=false;
@@ -69,10 +80,15 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
         public static boolean flag2=false;
         public static boolean flag3=false;
         public static boolean game_off=true;
+        public static long current_time=0;
     }
 
-
-    public static class LinesView extends View {
+    /*
+    Inner class to width, height and position of
+    aggregate section,warmer,colder and marker buttons
+    depending on screen resolution
+    */
+    public static class positionView extends View {
 
         private View mWarmerView,mColderView,mMarkerView,mAggregateView,mMapView;
 
@@ -84,11 +100,11 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
 
         private static boolean firstLoad = true;
 
-        public LinesView(Context context) {
+        public positionView(Context context) {
             super(context);
         }
 
-        public LinesView(Context context, AttributeSet attributeSet) {
+        public positionView(Context context, AttributeSet attributeSet) {
             super(context, attributeSet);
         }
 
@@ -111,49 +127,49 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
 
         @Override
         public void onDraw(Canvas canvas) {
+
             super.onDraw(canvas);
 
-            //if (firstLoad) {
-                // Draw lines only when everything is set up.
-                if (mWarmerView == null || mColderView == null ||
+            if (mWarmerView == null || mColderView == null ||
                         mMarkerView == null) {
                     return;
-                }
-                int minwidth = (int) view.getWidth() / 3;
-                int minheight = 116;
+            }
+            int minwidth = (int) view.getWidth() / 3;
+            int minheight = 116;
 
-                mWarmerView.setMinimumWidth(minwidth);
-                mWarmerView.setMinimumHeight(minheight);
-                mColderView.setMinimumWidth(minwidth);
-                mColderView.setMinimumHeight(minheight);
-                mMarkerView.setMinimumWidth(minwidth);
-                mMarkerView.setMinimumHeight(minheight);
+            mWarmerView.setMinimumWidth(minwidth);
+            mWarmerView.setMinimumHeight(minheight);
+            mColderView.setMinimumWidth(minwidth);
+            mColderView.setMinimumHeight(minheight);
+            mMarkerView.setMinimumWidth(minwidth);
+            mMarkerView.setMinimumHeight(minheight);
 
-                mWarmerView.getLocationInWindow(warmerLocation);
-                mColderView.getLocationInWindow(colderLocation);
-                mMarkerView.getLocationInWindow(markerLocation);
-                this.getLocationInWindow(canvasLocation);
+            mWarmerView.getLocationInWindow(warmerLocation);
+            mColderView.getLocationInWindow(colderLocation);
+            mMarkerView.getLocationInWindow(markerLocation);
+            this.getLocationInWindow(canvasLocation);
 
-                // Compute the midpoints of these locations.
-                warmerLocation[0] = warmerLocation[0] + mWarmerView.getWidth() / 2 - canvasLocation[0];
-                warmerLocation[1] = warmerLocation[1] + mWarmerView.getHeight() / 2 - canvasLocation[1];
-                colderLocation[0] = colderLocation[0] + mColderView.getWidth() / 2 - canvasLocation[0];
-                colderLocation[1] = colderLocation[1] + mColderView.getHeight() / 2 - canvasLocation[1];
-                markerLocation[0] = markerLocation[0] + mMarkerView.getWidth() / 2 - canvasLocation[0];
-                markerLocation[1] = markerLocation[1] + mMarkerView.getHeight() / 2 - canvasLocation[1];
+            // Compute the midpoints of these locations.
+            warmerLocation[0] = warmerLocation[0] + mWarmerView.getWidth() / 2 - canvasLocation[0];
+            warmerLocation[1] = warmerLocation[1] + mWarmerView.getHeight() / 2 - canvasLocation[1];
+            colderLocation[0] = colderLocation[0] + mColderView.getWidth() / 2 - canvasLocation[0];
+            colderLocation[1] = colderLocation[1] + mColderView.getHeight() / 2 - canvasLocation[1];
+            markerLocation[0] = markerLocation[0] + mMarkerView.getWidth() / 2 - canvasLocation[0];
+            markerLocation[1] = markerLocation[1] + mMarkerView.getHeight() / 2 - canvasLocation[1];
 
-                mMarkerView.getLocationInWindow(markerLocation);
-                int bottom = markerLocation[1] - canvasLocation[1]; //(mMarkerView.getHeight())
+            mMarkerView.getLocationInWindow(markerLocation);
+            int bottom = markerLocation[1] - canvasLocation[1]; //(mMarkerView.getHeight())
 
-                mMapView.getLocationInWindow(mapLocation);
-                int top = mapLocation[1] + (mMapView.getHeight()) - canvasLocation[1];
+            mMapView.getLocationInWindow(mapLocation);
+            int top = mapLocation[1] + (mMapView.getHeight()) - canvasLocation[1];
 
-                Log.d("height", Integer.toString(top) + " " + Integer.toString(bottom));
-                mAggregateView.setY(bottom - top);
+            Log.d("height", Integer.toString(top) + " " + Integer.toString(bottom));
+            mAggregateView.setY(bottom - top);
 
-                float scale_y=(float)(bottom+top)/mAggregateView.getHeight();
-                Log.d("height",Float.toString(scale_y));
-                mAggregateView.setScaleY(scale_y);
+            float scale_y=(float)(bottom+top)/mAggregateView.getHeight();
+            Log.d("height",Float.toString(scale_y));
+            mAggregateView.setScaleY(scale_y);
+
                 /*
                 for(int i =0;i<5;i++)
                 {
@@ -166,8 +182,6 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
                     canvas.drawLine(loc0[0], loc0[1], loc1[0], loc1[1], mPaint);
                 }
                 */
-                //firstLoad=false;
-            //}
         }
     }
 
@@ -225,13 +239,13 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
             public void onGlobalLayout() {
                 view.getViewTreeObserver().removeOnGlobalLayoutListener(this);
 
-                LinesView linesView = (LinesView) view.findViewById(R.id.linesView);
-                linesView.setWarmerView(warmerView);
-                linesView.setColderView(colderView);
-                linesView.setMarkerView(markerView);
-                linesView.setAggregateView(aggregateView);
-                linesView.setMapView(mapView);
-                linesView.invalidate();
+                positionView posView = (positionView) view.findViewById(R.id.positionView);
+                posView.setWarmerView(warmerView);
+                posView.setColderView(colderView);
+                posView.setMarkerView(markerView);
+                posView.setAggregateView(aggregateView);
+                posView.setMapView(mapView);
+                posView.invalidate();
             }
         });
 
@@ -245,6 +259,10 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
 
         return view;
 
+    }
+    public View onResumeView(final LayoutInflater inflater, final ViewGroup container,
+                             Bundle savedInstanceState) {
+        return view;
     }
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
@@ -277,10 +295,7 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
         }
 
     }
-    public View onResumeView(final LayoutInflater inflater, final ViewGroup container,
-                             Bundle savedInstanceState) {
-        return view;
-    }
+
     public void processState(JSONObject jsonObject)
     {
         try {
@@ -289,7 +304,10 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
             gameState.flag2=jsonObject.getBoolean("flag2");
             gameState.flag3=jsonObject.getBoolean("flag3");
             gameState.game_off=jsonObject.getBoolean("game_off");
+            gameState.current_time=jsonObject.getLong("current_time");
+
             Log.d("tstate", Boolean.toString(gameState.game_on)+" 1: "+Boolean.toString(gameState.flag1)+" 2: "+Boolean.toString(gameState.flag2)+" 3: "+Boolean.toString(gameState.flag3)+" "+Boolean.toString(gameState.game_off));
+
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -297,6 +315,7 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
         getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
+
                 if(gameState.game_off) {
                     //if(section==1)
                         //stopGame(R.drawable.bird_drawing);
@@ -304,6 +323,10 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
                         stopGame(R.drawable.boat_drawing);
                 }
                 else {
+                    if(gameState.game_on ) {
+                        Log.d("timer",Long.toString(gameState.current_time));
+                        timer();
+                    }
                     if (gameState.flag1) {
                         //if(section==1)
                             //updateMarker(R.id.bird_v3);
@@ -383,7 +406,7 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
         translucent.setVisibility(View.INVISIBLE);
         ImageView drawing= (ImageView)view.findViewById(R.id.drawing);
         drawing.setVisibility(View.INVISIBLE);
-        //move marker to vertex 0
+
         ImageView v0 = ((ImageView) view.findViewById(vertex_id));
         int[] loc0 = new int[2];
         int[] canvasLocation = new int[2];
@@ -416,12 +439,9 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
         text.setTextAlignment(View.TEXT_ALIGNMENT_TEXT_END);
         text.setTypeface(tf);
 
-        new CountDownTimer(90000, 1000) {
+        new CountDownTimer(gameState.current_time*1000, 1000) {
             public void onTick(long millisUntilFinished) {
                 long time = millisUntilFinished / 1000;
-                //if (time == 1)
-                //text.setText("GO!");
-                //else
                 text.setText(Long.toString(time - 1)+" secs left");
             }
             public void onFinish() {
@@ -462,7 +482,6 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
         text.setText("      Hurray! Game Over!");
 
         //send id to leaderboard
-
         String type = "connectthedotsleaderboard";
         BackgroundWorker backgroundWorker = new BackgroundWorker();
         backgroundWorker.execute(type);
@@ -482,7 +501,6 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
     }
     public void plustenaimation(Vector<ImageView> plustens,Vector<ObjectAnimator> anim_plustens,int plustenId,int sectionId)
     {
-
         int[] location = new int[2];
         ImageView new_plusten= new ImageView(getActivity());
         new_plusten.setImageResource(plustenId);
@@ -519,8 +537,7 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
         else {
             anim_plustens.add(blink_plusten);
         }
-
-        //add animation to plusten
+        
         for(int j=0;j<plustens.size();j++) {
             layout.addView(plustens.get(j));
             anim_plustens.get(j).start();
@@ -552,22 +569,26 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
             }
         };
         handler.postDelayed(task,500);
-
     }
     public void onClick(View v) {
+
         if(gameState.game_on) {
+
             final JSONObject obj = new JSONObject();
 
             switch (v.getId()) {
+
                 case R.id.treasurehunt_tutorial:
+
                     myVib.vibrate(50);
                     if (gameState.game_on) {
                         ImageView tut = (ImageView) view.findViewById(R.id.treasurehunt_tutorial);
                         tut.setVisibility(View.INVISIBLE);
-                        timer();
                     }
                     break;
+
                 case R.id.warmer:
+
                     myVib.vibrate(30);
                     try {
                         obj.put("selection", 0);
@@ -576,11 +597,11 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
-
-                    plusoneanimation(LinesView.warmerLocation, LinesView.canvasLocation);
-
+                    plusoneanimation(positionView.warmerLocation, positionView.canvasLocation);
                     break;
+
                 case R.id.colder:
+
                     myVib.vibrate(30);
                     try {
                         obj.put("selection", 1);
@@ -589,9 +610,11 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
-                    plusoneanimation(LinesView.colderLocation, LinesView.canvasLocation);
+                    plusoneanimation(positionView.colderLocation, positionView.canvasLocation);
                     break;
+
                 case R.id.marker:
+
                     myVib.vibrate(30);
                     try {
                         obj.put("selection", 2);
@@ -600,9 +623,8 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
-                    plusoneanimation(LinesView.markerLocation, LinesView.canvasLocation);
+                    plusoneanimation(positionView.markerLocation, positionView.canvasLocation);
                     break;
-
             }
             callbackWs[0].send(obj.toString());
         }
@@ -610,8 +632,11 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
     public boolean onTouch(View v, MotionEvent event)
     {
         if(gameState.game_on) {
+
             switch (v.getId()) {
+
                 case R.id.aggregate:
+
                     if (event.getAction() == MotionEvent.ACTION_DOWN) {
 
                         myVib.vibrate(30);

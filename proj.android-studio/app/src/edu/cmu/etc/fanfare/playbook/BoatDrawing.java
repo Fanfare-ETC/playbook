@@ -13,7 +13,11 @@ import android.widget.TextView;
 /**
  * Created by ramya on 4/25/17.
  */
-
+/*
+Class to draw lines and dots on the canvas based
+on the drawing and order of markers.
+This class is customized for the boat drawing
+*/
 public class BoatDrawing {
     private static View view;
     private static int section;
@@ -41,7 +45,7 @@ public class BoatDrawing {
             if (section == 0) {
                 int[] loc0 = new int[2];
                 int[] loc1 = new int[2];
-                int[] canvasloc = TreasureHuntFragment.LinesView.canvasLocation;
+                int[] canvasloc = TreasureHuntFragment.positionView.canvasLocation;
 
                 if (TreasureHuntFragment.gameState.game_on) {
                     ImageView v0 = (ImageView) view.findViewById(R.id.boat_v0);
