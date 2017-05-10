@@ -9,6 +9,7 @@ interface PlaybookBridge {
   notifyLoaded: (state?: any) => void
   goToLeaderboard: () => void,
   goToCollection: () => void,
+  goToTrophyCase: () => void,
   setShouldHandleBackPressed: (shouldHandle: boolean) => void
 }
 
@@ -95,6 +96,12 @@ if (!window.PlaybookBridge) {
     goToCollection: function () {
       window.location.href = window.location.href.replace('prediction', 'collection');
     },
+
+    /**
+     * Changes to the trophy case.
+     * This is a no-op for the mock bridge.
+     */
+    goToTrophyCase: function () {},
 
     /**
      * Tells the hosting application that we should handle back button presses.

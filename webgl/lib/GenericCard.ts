@@ -28,18 +28,20 @@ class GenericCard extends DismissableCard implements IOverlayCard {
 
     const contentScale = this._contentScale;
     const background = this._background;
+    const content = this._content;
+    const padding = 64.0 * contentScale;
 
     background.clear();
 
-    this.pivot.set(this.width / 2, this.height / 2);
+    this.pivot.set(this.width / 2 + padding, this.height / 2 + padding);
     this.rotation = 0;
     this.position.set(window.innerWidth / 2, window.innerHeight / 2);
 
     background.beginFill(0xffffff);
     background.drawRoundedRect(
-      -64.0 * contentScale, -64.0 * contentScale,
-      this.width + 128.0 * contentScale,
-      this.height + 128.0 * contentScale,
+      0, 0,
+      this.width + padding * 2,
+      this.height + padding * 2,
       64.0 * contentScale
     )
     background.endFill();
@@ -47,6 +49,9 @@ class GenericCard extends DismissableCard implements IOverlayCard {
     // Prevent events from going into the background.
     background.interactive = true;
     background.hitArea = background.getBounds();
+
+    // Position the content.
+    content.position.set(padding, padding);
 
     // Perform animation.
     this.alpha = 0;

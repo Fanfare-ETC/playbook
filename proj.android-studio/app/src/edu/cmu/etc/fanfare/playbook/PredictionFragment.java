@@ -417,6 +417,14 @@ public class PredictionFragment extends WebViewFragment {
         }
 
         @JavascriptInterface
+        public void goToTrophyCase() {
+            Intent intent = new Intent(getActivity(), AppActivity.class);
+            intent.putExtra(AppActivity.INTENT_EXTRA_DRAWER_ITEM, DrawerItemAdapter.DRAWER_ITEM_TROPHY);
+            intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+            startActivity(intent);
+        }
+
+        @JavascriptInterface
         public void setShouldHandleBackPressed(boolean shouldHandle) {
             mShouldHandleBackPressed = shouldHandle;
         }

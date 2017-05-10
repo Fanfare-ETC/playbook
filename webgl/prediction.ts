@@ -1,9 +1,12 @@
 'use strict';
+import 'babel-polyfill';
 import * as PIXI from 'pixi.js';
 import 'pixi-action';
 import * as FontFaceObserver from 'fontfaceobserver';
 
 import PlaybookBridge from './lib/prediction/PlaybookBridge';
+import GoalTypes from './lib/prediction/GoalTypes';
+import GoalTypesMetadata from './lib/prediction/GoalTypesMetadata';
 import PlaybookRenderer from './lib/PlaybookRenderer';
 import IIncomingMessage from './lib/IIncomingMessage';
 import PlaybookEvents from './lib/PlaybookEvents';
@@ -18,6 +21,7 @@ import ScoreTab from './lib/prediction/ScoreTab';
 import PayoutsTab from './lib/prediction/PayoutsTab';
 import GameStageBanner from './lib/prediction/GameStageBanner';
 import PredictionCorrectCard from './lib/prediction/PredictionCorrectCard';
+import NewTrophyCard from './lib/prediction/NewTrophyCard';
 import BaseballsOverlayBackground from './lib/BaseballsOverlayBackground';
 import GenericOverlay from './lib/GenericOverlay';
 import GenericCard from './lib/GenericCard';
@@ -310,7 +314,7 @@ function handleBackPressed() {
  * Handles plays created event.
  * @param events An array of event IDs
  */
-function handlePlaysCreated(events: number[]) {
+async function handlePlaysCreated(events: number[]) {
   if (state.stage === GameStages.CONFIRMED) {
     const plays = events.map(PlaybookEvents.getById);
     for (const play of plays) {
@@ -322,6 +326,24 @@ function handlePlaysCreated(events: number[]) {
         const overlay = stage.getChildByName('baseballsOverlay') as GenericOverlay;
         const card = new PredictionCorrectCard(contentScale!, renderer, play, addedScore);
         overlay.push(card);
+
+        // Process the trophies.
+        let goal = null;
+        if (state.predictionCounts[play] === 3) {
+          goal = GoalTypes.GOOD_EYE;
+        } else if (state.predictionCounts[play] === 4) {
+          goal = GoalTypes.HIGH_ROLLER;
+        } else if (state.predictionCounts[play] === 5) {
+          goal = GoalTypes.ALL_IN;
+        }
+
+        if (goal !== null) {
+          const trophyGained = await reportGoal(goal);
+          if (trophyGained) {
+            const trophyCard = new NewTrophyCard(contentScale!, goal);
+            overlay.push(new GenericCard(contentScale!, renderer, trophyCard));
+          }
+        }
 
         navigator.vibrate(200);
       }
@@ -374,7 +396,6 @@ function handleLockPredictions(data: any) {
  */
 function handleClearPredictions() {
   const ballSlot = stage.getChildByName('ballSlot') as PIXI.Sprite;
-  //renderer.resetLastRenderTime = true;
   state.balls.forEach((ball, i) => {
     if (ball.selectedTarget !== null) {
       undoPrediction(state, ball.selectedTarget, ball);
@@ -398,6 +419,32 @@ function reportScore(score: number) {
     predictScore: score,
     id: PlaybookBridge.getPlayerID()
   }));
+}
+
+/**
+ * Report a trophy achievement to the server.
+ * @param goal
+ */
+async function reportGoal(goal: string) : Promise<boolean> {
+  return new Promise<boolean>((resolve, reject) => {
+    const request = new XMLHttpRequest();
+    request.open('POST', `${PlaybookBridge.getSectionAPIUrl()}/updateTrophy`);
+    request.setRequestHeader('Content-Type', 'application/json');
+    request.send(JSON.stringify({
+      trophyId: GoalTypesMetadata[goal].serverId,
+      userId: PlaybookBridge.getPlayerID()
+    }));
+    request.addEventListener('load', () => {
+      // TODO: Ideally this endpoint should return 409 if a trophy already exists,
+      // but I don't have the luxury of time now to do that.
+      if (request.responseText === 'Trophy already gained') {
+        resolve(false);
+      } else {
+        resolve(true);
+      }
+    });
+    request.addEventListener('error', reject);
+  });
 }
 
 /**
