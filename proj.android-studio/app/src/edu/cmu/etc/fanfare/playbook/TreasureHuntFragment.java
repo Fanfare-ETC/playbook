@@ -316,13 +316,20 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
             @Override
             public void run() {
 
-                if(gameState.game_off) {
+                if(!gameState.game_off && !gameState.game_on)
+                {
+                    reset();
+                    showTutorial();
+                    firstLoad = true;
+                }
+                else if(gameState.game_off) {
                     //if(section==1)
                         //stopGame(R.drawable.bird_drawing);
                     //if(section==0)
                         stopGame(R.drawable.boat_drawing);
                 }
                 else {
+
                     if(gameState.game_on ) {
                         Log.d("timer",Long.toString(gameState.current_time));
                         timer();
@@ -343,11 +350,6 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
                         updateMarker_3();
                     else
                     {
-                        if (!gameState.game_on && !gameState.game_off) {
-                            showTutorial();
-                            firstLoad = true;
-                        }
-                        else {
                             if (gameState.game_on && (!gameState.flag1 && !gameState.flag2 && !gameState.flag3 && !gameState.game_off)) {
                                 if(firstLoad) {
                                     showTutorial();
@@ -358,7 +360,6 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
                                 //if(section==0)
                                     startGame(R.id.boat_v3);
                             }
-                        }
 
                     }
                 }
@@ -372,6 +373,15 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
                // }
             }
         });
+    }
+    public void reset()
+    {
+        ImageView translucent = (ImageView) view.findViewById(R.id.translucentlayer);
+        translucent.setVisibility(View.VISIBLE);
+        ImageView drawing = (ImageView) view.findViewById(R.id.drawing);
+        drawing.setVisibility(View.INVISIBLE);
+        //showTutorial();
+        //translucent.setZ(1.0f);
     }
     public void  updateMarker(int vertex_id)
     {
@@ -454,9 +464,13 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
     {
         ImageView ex = (ImageView) view.findViewById(R.id.ex);
         ex.setVisibility(View.INVISIBLE);
+        ImageView translucent = (ImageView) view.findViewById(R.id.translucentlayer);
+        translucent.setVisibility(View.VISIBLE);
+
         ImageView drawing= (ImageView)view.findViewById(R.id.drawing);
         drawing.setImageResource(drawingResId);
         drawing.setVisibility(View.VISIBLE);
+        drawing.setZ(1.0f);
 
         ObjectAnimator blink_drawing = ObjectAnimator.ofFloat(drawing, "alpha", 0.0f, 1.0f);
         blink_drawing.setDuration(3000);
@@ -465,11 +479,6 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
         ObjectAnimator rotate_drawing = ObjectAnimator.ofFloat(drawing, "rotationX", 90.0f, 0.0f);
         rotate_drawing.setDuration(3000);
         rotate_drawing.start();
-
-        drawing.setZ(1.0f);
-
-        ImageView translucent = (ImageView) view.findViewById(R.id.translucentlayer);
-        translucent.setVisibility(View.VISIBLE);
 
         TextView text = (TextView) view.findViewById(R.id.aggregate_text);
         Typeface tf = Typeface.createFromAsset(getActivity().getAssets(), "fonts/nova2.ttf");
@@ -579,12 +588,11 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
             switch (v.getId()) {
 
                 case R.id.treasurehunt_tutorial:
-
                     myVib.vibrate(50);
-                    if (gameState.game_on) {
+                    //if (gameState.game_on) {
                         ImageView tut = (ImageView) view.findViewById(R.id.treasurehunt_tutorial);
                         tut.setVisibility(View.INVISIBLE);
-                    }
+                    //}
                     break;
 
                 case R.id.warmer:
