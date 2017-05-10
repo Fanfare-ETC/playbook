@@ -235,6 +235,7 @@ public class PredictionFragment extends WebViewFragment {
         state.put("score", 0);
         state.put("balls", balls);
         state.put("isShowingPayouts", false);
+        state.put("correctBets", new JSONArray());
         return state;
     }
 
@@ -412,6 +413,14 @@ public class PredictionFragment extends WebViewFragment {
         public void goToCollection() {
             Intent intent = new Intent(getActivity(), AppActivity.class);
             intent.putExtra(AppActivity.INTENT_EXTRA_DRAWER_ITEM, DrawerItemAdapter.DRAWER_ITEM_COLLECTION);
+            intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+            startActivity(intent);
+        }
+
+        @JavascriptInterface
+        public void goToTrophyCase() {
+            Intent intent = new Intent(getActivity(), AppActivity.class);
+            intent.putExtra(AppActivity.INTENT_EXTRA_DRAWER_ITEM, DrawerItemAdapter.DRAWER_ITEM_TROPHY);
             intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
             startActivity(intent);
         }

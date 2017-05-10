@@ -1,9 +1,12 @@
 'use strict';
+import 'babel-polyfill';
 import * as PIXI from 'pixi.js';
 import 'pixi-action';
 import * as FontFaceObserver from 'fontfaceobserver';
 
 import PlaybookBridge from './lib/prediction/PlaybookBridge';
+import GoalTypes from './lib/prediction/GoalTypes';
+import GoalTypesMetadata from './lib/prediction/GoalTypesMetadata';
 import PlaybookRenderer from './lib/PlaybookRenderer';
 import IIncomingMessage from './lib/IIncomingMessage';
 import PlaybookEvents from './lib/PlaybookEvents';
@@ -18,6 +21,7 @@ import ScoreTab from './lib/prediction/ScoreTab';
 import PayoutsTab from './lib/prediction/PayoutsTab';
 import GameStageBanner from './lib/prediction/GameStageBanner';
 import PredictionCorrectCard from './lib/prediction/PredictionCorrectCard';
+import NewTrophyCard from './lib/prediction/NewTrophyCard';
 import BaseballsOverlayBackground from './lib/BaseballsOverlayBackground';
 import GenericOverlay from './lib/GenericOverlay';
 import GenericCard from './lib/GenericCard';
@@ -83,6 +87,7 @@ class GameState implements IGameState {
   EVENT_SCORE_CHANGED = 'scoreChanged';
   EVENT_OVERLAY_COUNT_CHANGED: string = 'overlayCountChanged';
   EVENT_IS_SHOWING_PAYOUTS_CHANGED: string = 'isShowingPayoutsChanged';
+  EVENT_CORRECT_BETS_CHANGED: string = 'correctBetsChanged';
 
   emitter: PIXI.utils.EventEmitter;
 
@@ -93,6 +98,7 @@ class GameState implements IGameState {
   private _score: number = 0;
   private _overlayCount: number = 0;
   private _isShowingPayouts: boolean = false;
+  private _correctBets: string[] = [];
 
   constructor() {
     this.emitter = new PIXI.utils.EventEmitter();
@@ -172,6 +178,18 @@ class GameState implements IGameState {
     PlaybookBridge.notifyGameState(this.toJSON());
   }
 
+  get correctBets() {
+    return this._correctBets;
+  }
+
+  set correctBets(value) {
+    const oldValue = this._correctBets;
+    this._correctBets = value;
+    console.log('correctBets->', value);
+    this.emitter.emit(this.EVENT_CORRECT_BETS_CHANGED, value, oldValue);
+    PlaybookBridge.notifyGameState(this.toJSON());
+  }
+
   toJSON() {
     const savedState = {
       stage: this._stage,
@@ -181,7 +199,8 @@ class GameState implements IGameState {
           selectedTarget: ball.selectedTarget ? ball.selectedTarget.name : null
         };
       }),
-      isShowingPayouts: this._isShowingPayouts
+      isShowingPayouts: this._isShowingPayouts,
+      correctBets: this._correctBets
     };
 
     return JSON.stringify(savedState);
@@ -206,6 +225,7 @@ class GameState implements IGameState {
     this._stage = restoredState.stage;
     this._score = restoredState.score;
     this._isShowingPayouts = restoredState.isShowingPayouts;
+    this._correctBets = restoredState.correctBets;
     this._initialized = true;
 
     // Trigger initial updates.
@@ -214,6 +234,7 @@ class GameState implements IGameState {
     this.emitter.emit(this.EVENT_SCORE_CHANGED, this._score, null);
     this.emitter.emit(this.EVENT_OVERLAY_COUNT_CHANGED, this._overlayCount, null);
     this.emitter.emit(this.EVENT_IS_SHOWING_PAYOUTS_CHANGED, this._isShowingPayouts, null);
+    this.emitter.emit(this.EVENT_CORRECT_BETS_CHANGED, this._correctBets, null);
   }
 }
 
@@ -310,7 +331,7 @@ function handleBackPressed() {
  * Handles plays created event.
  * @param events An array of event IDs
  */
-function handlePlaysCreated(events: number[]) {
+async function handlePlaysCreated(events: number[]) {
   if (state.stage === GameStages.CONFIRMED) {
     const plays = events.map(PlaybookEvents.getById);
     for (const play of plays) {
@@ -322,6 +343,38 @@ function handlePlaysCreated(events: number[]) {
         const overlay = stage.getChildByName('baseballsOverlay') as GenericOverlay;
         const card = new PredictionCorrectCard(contentScale!, renderer, play, addedScore);
         overlay.push(card);
+
+        // Add this play to the list of correct bets.
+        if (state.correctBets.indexOf(play) < 0) {
+          state.correctBets.push(play);
+          state.correctBets = state.correctBets.slice();
+        }
+
+        // Process the trophies.
+        const goals = [];
+        if (state.predictionCounts[play] === 3) {
+          goals.push(GoalTypes.GOOD_EYE);
+        } else if (state.predictionCounts[play] === 4) {
+          goals.push(GoalTypes.HIGH_ROLLER);
+        } else if (state.predictionCounts[play] === 5) {
+          goals.push(GoalTypes.ALL_IN);
+        }
+
+        if (state.correctBets.length === 3) {
+          goals.push(GoalTypes.LUCKY_GUESS);
+        } else if (state.correctBets.length === 4) {
+          goals.push(GoalTypes.SMARTY_PANTS);
+        } else if (state.correctBets.length === 5) {
+          goals.push(GoalTypes.MASTERMIND);
+        }
+
+        for (const goal of goals) {
+          const trophyGained = await reportGoal(goal);
+          if (trophyGained) {
+            const trophyCard = new NewTrophyCard(contentScale!, goal);
+            overlay.push(new GenericCard(contentScale!, renderer, trophyCard));
+          }
+        }
 
         navigator.vibrate(200);
       }
@@ -374,7 +427,6 @@ function handleLockPredictions(data: any) {
  */
 function handleClearPredictions() {
   const ballSlot = stage.getChildByName('ballSlot') as PIXI.Sprite;
-  //renderer.resetLastRenderTime = true;
   state.balls.forEach((ball, i) => {
     if (ball.selectedTarget !== null) {
       undoPrediction(state, ball.selectedTarget, ball);
@@ -383,6 +435,7 @@ function handleClearPredictions() {
   });
 
   state.stage = GameStages.INITIAL;
+  state.correctBets = [];
 }
 
 /**
@@ -398,6 +451,32 @@ function reportScore(score: number) {
     predictScore: score,
     id: PlaybookBridge.getPlayerID()
   }));
+}
+
+/**
+ * Report a trophy achievement to the server.
+ * @param goal
+ */
+async function reportGoal(goal: string) : Promise<boolean> {
+  return new Promise<boolean>((resolve, reject) => {
+    const request = new XMLHttpRequest();
+    request.open('POST', `${PlaybookBridge.getSectionAPIUrl()}/updateTrophy`);
+    request.setRequestHeader('Content-Type', 'application/json');
+    request.send(JSON.stringify({
+      trophyId: GoalTypesMetadata[goal].serverId,
+      userId: PlaybookBridge.getPlayerID()
+    }));
+    request.addEventListener('load', () => {
+      // TODO: Ideally this endpoint should return 409 if a trophy already exists,
+      // but I don't have the luxury of time now to do that.
+      if (request.responseText === 'Trophy already gained') {
+        resolve(false);
+      } else {
+        resolve(true);
+      }
+    });
+    request.addEventListener('error', reject);
+  });
 }
 
 /**
