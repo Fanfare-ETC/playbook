@@ -7,6 +7,7 @@ interface IGameState {
   EVENT_SCORE_CHANGED: string;
   EVENT_OVERLAY_COUNT_CHANGED: string;
   EVENT_IS_SHOWING_PAYOUTS_CHANGED: string;
+  EVENT_CORRECT_BETS_CHANGED: string;
 
   emitter: PIXI.utils.EventEmitter;
 

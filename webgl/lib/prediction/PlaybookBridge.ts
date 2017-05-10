@@ -71,7 +71,8 @@ if (!window.PlaybookBridge) {
           stage: GameStages.INITIAL,
           score: 0,
           balls: new Array(5).fill({ selectedTarget: null }),
-          isShowingPayouts: false
+          isShowingPayouts: false,
+          correctBets: []
         });
       }
 

@@ -235,6 +235,7 @@ public class PredictionFragment extends WebViewFragment {
         state.put("score", 0);
         state.put("balls", balls);
         state.put("isShowingPayouts", false);
+        state.put("correctBets", new JSONArray());
         return state;
     }
 

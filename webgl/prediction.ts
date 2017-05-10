@@ -87,6 +87,7 @@ class GameState implements IGameState {
   EVENT_SCORE_CHANGED = 'scoreChanged';
   EVENT_OVERLAY_COUNT_CHANGED: string = 'overlayCountChanged';
   EVENT_IS_SHOWING_PAYOUTS_CHANGED: string = 'isShowingPayoutsChanged';
+  EVENT_CORRECT_BETS_CHANGED: string = 'correctBetsChanged';
 
   emitter: PIXI.utils.EventEmitter;
 
@@ -97,6 +98,7 @@ class GameState implements IGameState {
   private _score: number = 0;
   private _overlayCount: number = 0;
   private _isShowingPayouts: boolean = false;
+  private _correctBets: string[] = [];
 
   constructor() {
     this.emitter = new PIXI.utils.EventEmitter();
@@ -176,6 +178,18 @@ class GameState implements IGameState {
     PlaybookBridge.notifyGameState(this.toJSON());
   }
 
+  get correctBets() {
+    return this._correctBets;
+  }
+
+  set correctBets(value) {
+    const oldValue = this._correctBets;
+    this._correctBets = value;
+    console.log('correctBets->', value);
+    this.emitter.emit(this.EVENT_CORRECT_BETS_CHANGED, value, oldValue);
+    PlaybookBridge.notifyGameState(this.toJSON());
+  }
+
   toJSON() {
     const savedState = {
       stage: this._stage,
@@ -185,7 +199,8 @@ class GameState implements IGameState {
           selectedTarget: ball.selectedTarget ? ball.selectedTarget.name : null
         };
       }),
-      isShowingPayouts: this._isShowingPayouts
+      isShowingPayouts: this._isShowingPayouts,
+      correctBets: this._correctBets
     };
 
     return JSON.stringify(savedState);
@@ -210,6 +225,7 @@ class GameState implements IGameState {
     this._stage = restoredState.stage;
     this._score = restoredState.score;
     this._isShowingPayouts = restoredState.isShowingPayouts;
+    this._correctBets = restoredState.correctBets;
     this._initialized = true;
 
     // Trigger initial updates.
@@ -218,6 +234,7 @@ class GameState implements IGameState {
     this.emitter.emit(this.EVENT_SCORE_CHANGED, this._score, null);
     this.emitter.emit(this.EVENT_OVERLAY_COUNT_CHANGED, this._overlayCount, null);
     this.emitter.emit(this.EVENT_IS_SHOWING_PAYOUTS_CHANGED, this._isShowingPayouts, null);
+    this.emitter.emit(this.EVENT_CORRECT_BETS_CHANGED, this._correctBets, null);
   }
 }
 
@@ -327,17 +344,31 @@ async function handlePlaysCreated(events: number[]) {
         const card = new PredictionCorrectCard(contentScale!, renderer, play, addedScore);
         overlay.push(card);
 
-        // Process the trophies.
-        let goal = null;
-        if (state.predictionCounts[play] === 3) {
-          goal = GoalTypes.GOOD_EYE;
-        } else if (state.predictionCounts[play] === 4) {
-          goal = GoalTypes.HIGH_ROLLER;
-        } else if (state.predictionCounts[play] === 5) {
-          goal = GoalTypes.ALL_IN;
+        // Add this play to the list of correct bets.
+        if (state.correctBets.indexOf(play) < 0) {
+          state.correctBets.push(play);
+          state.correctBets = state.correctBets.slice();
         }
 
-        if (goal !== null) {
+        // Process the trophies.
+        const goals = [];
+        if (state.predictionCounts[play] === 3) {
+          goals.push(GoalTypes.GOOD_EYE);
+        } else if (state.predictionCounts[play] === 4) {
+          goals.push(GoalTypes.HIGH_ROLLER);
+        } else if (state.predictionCounts[play] === 5) {
+          goals.push(GoalTypes.ALL_IN);
+        }
+
+        if (state.correctBets.length === 3) {
+          goals.push(GoalTypes.LUCKY_GUESS);
+        } else if (state.correctBets.length === 4) {
+          goals.push(GoalTypes.SMARTY_PANTS);
+        } else if (state.correctBets.length === 5) {
+          goals.push(GoalTypes.MASTERMIND);
+        }
+
+        for (const goal of goals) {
           const trophyGained = await reportGoal(goal);
           if (trophyGained) {
             const trophyCard = new NewTrophyCard(contentScale!, goal);
@@ -404,6 +435,7 @@ function handleClearPredictions() {
   });
 
   state.stage = GameStages.INITIAL;
+  state.correctBets = [];
 }
 
 /**
