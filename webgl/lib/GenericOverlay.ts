@@ -35,7 +35,7 @@ class GenericOverlay extends PIXI.Container {
   private _initEvents() {
     const background = this._customBackground !== null ? this._customBackground : this._background;
     background.interactive = true;
-    background.on('tap', () => {
+    background.on('touchend', (e: PIXI.interaction.InteractionEvent) => {
       if (this._isAnimating) { return; }
       this._hide();
     });
