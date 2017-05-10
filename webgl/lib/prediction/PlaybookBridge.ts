@@ -1,4 +1,6 @@
 'use strict';
+import GameStages from './GameStages';
+
 interface PlaybookBridge {
   getAPIUrl: () => string,
   getSectionAPIUrl: () => string
@@ -62,16 +64,23 @@ if (!window.PlaybookBridge) {
      * This restores from localStorage in the mock bridge.
      */
     notifyLoaded: function () {
-      const restoredState = localStorage.getItem('prediction');
-      console.log('Loading state: ', restoredState);
-      if (restoredState !== null) {
-        window.dispatchEvent(new MessageEvent('message', {
-          data: {
-            action: 'RESTORE_GAME_STATE',
-            payload: restoredState
-          }
-        }));
+      let restoredState = localStorage.getItem('prediction');
+      if (restoredState === null) {
+        restoredState = JSON.stringify({
+          stage: GameStages.INITIAL,
+          score: 0,
+          balls: new Array(5).fill({ selectedTarget: null }),
+          isShowingPayouts: false
+        });
       }
+
+      console.log('Loading state: ', restoredState);
+      window.dispatchEvent(new MessageEvent('message', {
+        data: {
+          action: 'RESTORE_GAME_STATE',
+          payload: restoredState
+        }
+      }));
     },
 
     /**
