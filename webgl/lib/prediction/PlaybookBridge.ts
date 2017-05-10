@@ -61,11 +61,16 @@ if (!window.PlaybookBridge) {
      * Notifies the hosting application that we have finished loading.
      * This restores from localStorage in the mock bridge.
      */
-    notifyLoaded: function (state?: any) {
+    notifyLoaded: function () {
       const restoredState = localStorage.getItem('prediction');
       console.log('Loading state: ', restoredState);
-      if (restoredState != null) {
-        state.fromJSON(restoredState);
+      if (restoredState !== null) {
+        window.dispatchEvent(new MessageEvent('message', {
+          data: {
+            action: 'RESTORE_GAME_STATE',
+            payload: restoredState
+          }
+        }));
       }
     },
 

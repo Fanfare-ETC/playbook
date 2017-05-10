@@ -1026,7 +1026,7 @@ function setup() {
 
   let lastRenderTime = performance.now();
   renderer.markDirty();
-  PlaybookBridge.notifyLoaded(state);
+  PlaybookBridge.notifyLoaded();
   beginDrawLoop(lastRenderTime);
 };
 
