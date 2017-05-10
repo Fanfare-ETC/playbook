@@ -79,7 +79,9 @@ class PredictionCorrectCard extends DismissableCard implements IOverlayCard {
       fontWeight: 'bold',
       fontSize: 104.0 * contentScale,
       align: 'center',
-      fill: 0x002b65
+      fill: 0x002b65,
+      wordWrap: true,
+      wordWrapWidth: window.innerWidth - 128.0 * contentScale
     });
 
     text.text = `Prediction Correct:\n ${FriendlyNames[event]}\n`;
