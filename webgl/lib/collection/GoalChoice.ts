@@ -162,15 +162,15 @@ function cardSetMeetsGoal(cardSet: ICard[], goal: string) : ICard[] {
     }
     case GoalTypes.UNIQUE_OUT_CARDS_3: {
       const uniqueOutPlays = Object.keys(cardCounts).filter(play => PlaybookEventsIsOut[play]);
-      if (uniqueOutPlays.length === 3) {
-        return uniqueOutPlays.map(play => cardSet.find(card => card.play === play) as ICard);
+      if (uniqueOutPlays.length >= 3) {
+        return uniqueOutPlays.map(play => cardSet.find(card => card.play === play) as ICard).slice(0, 3);
       }
       break;
     }
     case GoalTypes.UNIQUE_OUT_CARDS_4: {
       const uniqueOutPlays = Object.keys(cardCounts).filter(play => PlaybookEventsIsOut[play]);
-      if (uniqueOutPlays.length === 4) {
-        return uniqueOutPlays.map(play => cardSet.find(card => card.play === play) as ICard);
+      if (uniqueOutPlays.length >= 4) {
+        return uniqueOutPlays.map(play => cardSet.find(card => card.play === play) as ICard).slice(0, 4);
       }
       break;
     }
