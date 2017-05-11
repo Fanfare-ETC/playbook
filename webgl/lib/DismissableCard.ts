@@ -35,6 +35,8 @@ class DismissableCard extends PIXI.Container {
 
     const onTouchMove = (e: PIXI.interaction.InteractionEvent) => {
       if (startPosition === null || startOffset === null) { return; }
+      if (!this.getBounds().contains(e.data.global.x, e.data.global.y)) { return; }
+
       const deltaX = e.data.global.x - startPosition.x;
       const angle = deltaX / window.innerWidth * 100;
       this.rotation = angle * PIXI.DEG_TO_RAD;
@@ -77,6 +79,9 @@ class DismissableCard extends PIXI.Container {
         PIXI.actionManager.runAction(this, rotateTo);
         PIXI.actionManager.runAction(this, sequence);
       } else {
+        origPosition = null;
+        startPosition = null;
+        startOffset = null;
         this._dismiss();
       }
     }
