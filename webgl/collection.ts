@@ -946,7 +946,7 @@ function initTrayEvents(tray: PIXI.DisplayObject) {
       const overlay = stage.getChildByName('overlay') as GenericOverlay;
 
       const cardContent = new PIXI.Container();
-      const title = new PIXI.Text('Once you recieve a card you can drag it here to collect.');
+      const title = new PIXI.Text('Once you receive a card you can drag it here to collect.');
       title.style.fontSize = 72.0 * contentScale!;
       title.style.fontFamily = 'rockwell';
       title.style.fontWeight = 'bold';
