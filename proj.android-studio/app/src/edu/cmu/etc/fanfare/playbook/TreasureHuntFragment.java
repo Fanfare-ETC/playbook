@@ -12,6 +12,7 @@ import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.Vibrator;
 import android.support.constraint.ConstraintLayout;
+import android.support.v4.content.ContextCompat;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -60,7 +61,7 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
     /* Vibrator object*/
     private Vibrator myVib;
 
-    /* Flag to keep tarck of firstload */
+    /* Flag to keep track of firstload */
     private static boolean firstLoad=true;
 
     /* Objects of drawing class*/
@@ -475,7 +476,7 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
         text.setTypeface(tf);
         text.setTextSize(30);
         text.setTextColor(Color.WHITE);
-        text.setBackgroundColor(getResources().getColor(R.color.green));
+        text.setBackgroundColor(ContextCompat.getColor(getActivity(), R.color.green));
         text.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
         text.setText("      Hurray! Game Over!");
 
@@ -544,7 +545,7 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
 
     /*
     Method to reset to default state by making the
-    drawing invisble and translucent layer visible
+    drawing invisible and translucent layer visible
      */
 
     public void reset()
@@ -878,7 +879,7 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
 
             if (s != null) {
                 if (s.contains("state")) {
-                    Log.d("tstate", "Recieved state from server");
+                    Log.d("tstate", "Received state from server");
                     try {
                         JSONObject jsonObject = new JSONObject(s);
                         processState(jsonObject);

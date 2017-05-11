@@ -59,7 +59,7 @@ public class LeaderboardFragment extends PlaybookFragment {
 
         LeaderboardWorker backgroundWorker = new LeaderboardWorker(currActivity);
         backgroundWorker.execute("0");
-        //0 is default, 1 is sortiing by prediction, 2 is sorting by collection
+        //0 is default, 1 is sorting by prediction, 2 is sorting by collection
         //move to a variable after the soring buttons are implemented
        // backgroundWorker.execute(Integer.toString(flag));
 
