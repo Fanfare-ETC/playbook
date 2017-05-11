@@ -67,6 +67,8 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
     private BirdDrawing birdDrawing;
     private BoatDrawing boatDrawing;
 
+    private CountDownTimer secondsTimer=null;
+
     /* Websocket URL*/
     private  String mEndpoint = "ws://" +
             BuildConfig.PLAYBOOK_TREASUREHUNT_API_HOST + ":" +
@@ -88,7 +90,7 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
     aggregate section,warmer,colder and marker buttons
     depending on screen resolution
     */
-    
+
     public static class positionView extends View {
 
         private View mWarmerView,mColderView,mMarkerView,mAggregateView,mMapView;
@@ -308,7 +310,6 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
                 {
                     reset();
                     showTutorial();
-                    timer();
                     firstLoad = true;
                 }
                 else if(gameState.game_off) {
@@ -320,7 +321,6 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
                 else {
 
                     if(gameState.game_on ) {
-                        Log.d("timer",Long.toString(gameState.current_time));
                         timer();
                     }
                     if (gameState.flag1) {
@@ -373,10 +373,9 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
 
     public void startGame(int vertex_id)
     {
+
         ImageView translucent = (ImageView) view.findViewById(R.id.translucentlayer);
         translucent.setVisibility(View.INVISIBLE);
-        ImageView drawing= (ImageView)view.findViewById(R.id.drawing);
-        drawing.setVisibility(View.INVISIBLE);
 
         ImageView v0 = ((ImageView) view.findViewById(vertex_id));
         int[] loc0 = new int[2];
@@ -449,6 +448,9 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
     {
         ImageView ex = (ImageView) view.findViewById(R.id.ex);
         ex.setVisibility(View.INVISIBLE);
+        ImageView glow = (ImageView) view.findViewById(R.id.glow);
+        glow.setVisibility(View.INVISIBLE);
+        glow.setAnimation(null);
         ImageView translucent = (ImageView) view.findViewById(R.id.translucentlayer);
         translucent.setVisibility(View.VISIBLE);
 
@@ -480,6 +482,10 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
         BackgroundWorker backgroundWorker = new BackgroundWorker();
         backgroundWorker.execute(type);
 
+        //if(secondsTimer != null) {
+          //  secondsTimer.cancel();
+        //}
+
     }
 
     /*
@@ -493,8 +499,12 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
         translucent.setVisibility(View.VISIBLE);
         ImageView drawing = (ImageView) view.findViewById(R.id.drawing);
         drawing.setVisibility(View.INVISIBLE);
-    }
+        if(secondsTimer != null) {
+            secondsTimer.cancel();
+            secondsTimer=null;
+        }
 
+    }
     /*
     Method to display tutorial based on game state
      */
@@ -533,15 +543,22 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
         text.setTextAlignment(View.TEXT_ALIGNMENT_TEXT_END);
         text.setTypeface(tf);
 
-        new CountDownTimer(gameState.current_time*1000, 1000) {
-            public void onTick(long millisUntilFinished) {
-                long time = millisUntilFinished / 1000;
-                text.setText(Long.toString(time - 1)+" secs left");
-            }
-            public void onFinish() {
-                text.setText("Quicker!");
-            }
-        }.start();
+        if(secondsTimer != null) {
+            secondsTimer.cancel();
+            secondsTimer=null;
+        }
+
+            secondsTimer = new CountDownTimer(gameState.current_time * 1000, 1000) {
+                public void onTick(long millisUntilFinished) {
+                    long time = millisUntilFinished / 1000;
+                    text.setText(Long.toString(time - 1) + " secs left");
+                }
+
+                public void onFinish() {
+                    text.setText("Quicker!");
+                }
+            }.start();
+       // }
     }
 
     /*
