@@ -87,7 +87,7 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
                 PlaybookApplication.setPlayerName(acct.getDisplayName());
                 PlaybookApplication.setPlayerID(acct.getId());
                 //insert player
-                BackgroundWorker backgroundWorker = new BackgroundWorker();
+                BackgroundWorker backgroundWorker = new BackgroundWorker(0);
                 backgroundWorker.execute("section");
 
                 Intent intent = new Intent(this, AppActivity.class);

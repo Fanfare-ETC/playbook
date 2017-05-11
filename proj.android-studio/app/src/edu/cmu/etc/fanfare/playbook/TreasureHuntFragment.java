@@ -68,6 +68,8 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
     private BoatDrawing boatDrawing;
 
     private CountDownTimer secondsTimer=null;
+    private static int tapCount=0;
+    private static int timeTaken=0;
 
     /* Websocket URL*/
     private  String mEndpoint = "ws://" +
@@ -478,13 +480,65 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
         text.setText("      Hurray! Game Over!");
 
         //send id to leaderboard
-        String type = "connectthedotsleaderboard";
-        BackgroundWorker backgroundWorker = new BackgroundWorker();
-        backgroundWorker.execute(type);
+        String type0 = "connectthedotsleaderboard";
+        BackgroundWorker backgroundWorker0 = new BackgroundWorker(0);
+        backgroundWorker0.execute(type0);
 
-        //if(secondsTimer != null) {
-          //  secondsTimer.cancel();
-        //}
+        //send content to Trophy case
+
+        Log.d("trophy",Long.toString(tapCount));
+        Log.d("trophy",Long.toString(timeTaken));
+
+        int trophyid_0=0,trophyid_1=0;
+        boolean noTrophy_0 = false,noTrophy_1=false;
+
+        if(timeTaken <90 && timeTaken>=80)
+        {
+            trophyid_0=25;
+        }
+        else if (timeTaken <80 && timeTaken>=70)
+        {
+            trophyid_0=26;
+        }
+        else if (timeTaken <70 && timeTaken>=60)
+        {
+            trophyid_0=27;
+        }
+        else{noTrophy_0 = true;}
+
+        if(!noTrophy_0) {
+            String type1 = "connectthedotstrophy";
+            BackgroundWorker backgroundWorker1 = new BackgroundWorker(trophyid_0);
+            backgroundWorker1.execute(type1);
+        }
+
+        //Calculate taps per minute
+
+        float timeTaken_Inmins = (float) timeTaken/60;
+        Log.d("trophycd",Float.toString(timeTaken_Inmins));
+        float tapsPerminute = tapCount/timeTaken_Inmins;
+        Log.d("trophycd",Float.toString(tapsPerminute));
+        if(tapsPerminute <150.0 && tapsPerminute>=100.0)
+        {
+            trophyid_1=22;
+        }
+        else if (tapsPerminute <100.0 && tapsPerminute>=50.0)
+        {
+            trophyid_1=23;
+        }
+        else if (tapsPerminute <50.0)
+        {
+            trophyid_1=24;
+        }
+        else{noTrophy_1 = true;}
+
+        trophyid_1=23;
+
+        if(!noTrophy_1) {
+            String type1 = "connectthedotstrophy";
+            BackgroundWorker backgroundWorker1 = new BackgroundWorker(trophyid_1);
+            backgroundWorker1.execute(type1);
+        }
 
     }
 
@@ -503,7 +557,6 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
             secondsTimer.cancel();
             secondsTimer=null;
         }
-
     }
     /*
     Method to display tutorial based on game state
@@ -547,18 +600,17 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
             secondsTimer.cancel();
             secondsTimer=null;
         }
+        secondsTimer = new CountDownTimer(gameState.current_time * 1000, 1000) {
+            public void onTick(long millisUntilFinished) {
+                long time = millisUntilFinished / 1000;
+                timeTaken=(int)time;
+                text.setText(Long.toString(time) + " secs left");
+            }
 
-            secondsTimer = new CountDownTimer(gameState.current_time * 1000, 1000) {
-                public void onTick(long millisUntilFinished) {
-                    long time = millisUntilFinished / 1000;
-                    text.setText(Long.toString(time - 1) + " secs left");
-                }
-
-                public void onFinish() {
+            public void onFinish() {
                     text.setText("Quicker!");
                 }
             }.start();
-       // }
     }
 
     /*
@@ -669,6 +721,8 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
 
         if(gameState.game_on) {
 
+            tapCount++;
+
             final JSONObject obj = new JSONObject();
 
             switch (v.getId()) {
@@ -729,6 +783,8 @@ public class TreasureHuntFragment extends PlaybookFragment implements View.OnCli
     public boolean onTouch(View v, MotionEvent event)
     {
         if(gameState.game_on) {
+
+            tapCount++;
 
             switch (v.getId()) {
 
