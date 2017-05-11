@@ -657,7 +657,7 @@ async function scoreCardSet(choice: GoalChoice, goal: string) {
     trophyGained: trophyGained
   };
   state.selectedGoal = null;
-  state.goal = getRandomGoal();
+  state.goal = getRandomGoal(goal);
 }
 
 /**
@@ -893,10 +893,17 @@ function getCardsInSlots() : ICard[] {
 
 /**
  * Returns a random goal from the list of goals.
+ * @param exclude
  */
-function getRandomGoal() : string {
-  const visibleGoals = Object.keys(GoalTypesMetadata)
+function getRandomGoal(exclude?: string) : string {
+  let visibleGoals = Object.keys(GoalTypesMetadata)
     .filter(goal => !GoalTypesMetadata[goal].isHidden);
+
+  // Exclude a specific goal if needed.
+  if (exclude !== undefined) {
+    visibleGoals = visibleGoals.filter(goal => goal !== exclude);
+  }
+
   const randomChoice = Math.floor((Math.random() * visibleGoals.length));
   return visibleGoals[randomChoice];
 }
