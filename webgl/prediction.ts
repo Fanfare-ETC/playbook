@@ -1,9 +1,12 @@
 'use strict';
+import 'babel-polyfill';
 import * as PIXI from 'pixi.js';
 import 'pixi-action';
 import * as FontFaceObserver from 'fontfaceobserver';
 
 import PlaybookBridge from './lib/prediction/PlaybookBridge';
+import GoalTypes from './lib/prediction/GoalTypes';
+import GoalTypesMetadata from './lib/prediction/GoalTypesMetadata';
 import PlaybookRenderer from './lib/PlaybookRenderer';
 import IIncomingMessage from './lib/IIncomingMessage';
 import PlaybookEvents from './lib/PlaybookEvents';
@@ -16,8 +19,12 @@ import FieldOverlayArea from './lib/prediction/FieldOverlayArea';
 import BallCountSprite from './lib/prediction/BallCountSprite';
 import ScoreTab from './lib/prediction/ScoreTab';
 import PayoutsTab from './lib/prediction/PayoutsTab';
-import PredictionCorrectOverlay from './lib/prediction/PredictionCorrectOverlay';
+import GameStageBanner from './lib/prediction/GameStageBanner';
+import PredictionCorrectCard from './lib/prediction/PredictionCorrectCard';
+import NewTrophyCard from './lib/prediction/NewTrophyCard';
+import BaseballsOverlayBackground from './lib/BaseballsOverlayBackground';
 import GenericOverlay from './lib/GenericOverlay';
+import GenericCard from './lib/GenericCard';
 
 // Receive messages from the hosting application.
 window.addEventListener('message', function (e) {
@@ -79,14 +86,19 @@ class GameState implements IGameState {
   EVENT_PREDICTION_COUNTS_CHANGED = 'predictionCountsChanged';
   EVENT_SCORE_CHANGED = 'scoreChanged';
   EVENT_OVERLAY_COUNT_CHANGED: string = 'overlayCountChanged';
+  EVENT_IS_SHOWING_PAYOUTS_CHANGED: string = 'isShowingPayoutsChanged';
+  EVENT_CORRECT_BETS_CHANGED: string = 'correctBetsChanged';
 
   emitter: PIXI.utils.EventEmitter;
 
-  _predictionCounts: { [play: string]: number } = {};
-  _stage: string = GameStages.INITIAL;
+  private _initialized: boolean = false;
+  private _predictionCounts: { [play: string]: number } = {};
+  private _stage: string = GameStages.INITIAL;
   balls: Ball[] = [];
-  _score: number = 0;
-  _overlayCount: number = 0;
+  private _score: number = 0;
+  private _overlayCount: number = 0;
+  private _isShowingPayouts: boolean = false;
+  private _correctBets: string[] = [];
 
   constructor() {
     this.emitter = new PIXI.utils.EventEmitter();
@@ -110,8 +122,10 @@ class GameState implements IGameState {
     const oldValue = this._stage;
     this._stage = value;
     console.log('stage->', value);
-    this.emitter.emit(this.EVENT_STAGE_CHANGED, value, oldValue);
-    PlaybookBridge.notifyGameState(this.toJSON());
+    if (this._initialized) {
+      this.emitter.emit(this.EVENT_STAGE_CHANGED, value, oldValue);
+      PlaybookBridge.notifyGameState(this.toJSON());
+    }
   }
 
   get predictionCounts() {
@@ -122,8 +136,10 @@ class GameState implements IGameState {
     const oldValue = this._predictionCounts;
     this._predictionCounts = value;
     console.log('predictionCounts->', value);
-    this.emitter.emit(this.EVENT_PREDICTION_COUNTS_CHANGED, value, oldValue);
-    PlaybookBridge.notifyGameState(this.toJSON());
+    if (this._initialized) {
+      this.emitter.emit(this.EVENT_PREDICTION_COUNTS_CHANGED, value, oldValue);
+      PlaybookBridge.notifyGameState(this.toJSON());
+    }
   }
 
   get score() {
@@ -150,6 +166,30 @@ class GameState implements IGameState {
     PlaybookBridge.notifyGameState(this.toJSON());
   }
 
+  get isShowingPayouts() {
+    return this._isShowingPayouts;
+  }
+
+  set isShowingPayouts(value) {
+    const oldValue = this._isShowingPayouts;
+    this._isShowingPayouts = value;
+    console.log('isShowingPayouts->', value);
+    this.emitter.emit(this.EVENT_IS_SHOWING_PAYOUTS_CHANGED, value, oldValue);
+    PlaybookBridge.notifyGameState(this.toJSON());
+  }
+
+  get correctBets() {
+    return this._correctBets;
+  }
+
+  set correctBets(value) {
+    const oldValue = this._correctBets;
+    this._correctBets = value;
+    console.log('correctBets->', value);
+    this.emitter.emit(this.EVENT_CORRECT_BETS_CHANGED, value, oldValue);
+    PlaybookBridge.notifyGameState(this.toJSON());
+  }
+
   toJSON() {
     const savedState = {
       stage: this._stage,
@@ -158,7 +198,9 @@ class GameState implements IGameState {
         return {
           selectedTarget: ball.selectedTarget ? ball.selectedTarget.name : null
         };
-      })
+      }),
+      isShowingPayouts: this._isShowingPayouts,
+      correctBets: this._correctBets
     };
 
     return JSON.stringify(savedState);
@@ -180,11 +222,19 @@ class GameState implements IGameState {
     });
 
     // Restore this later because makePrediction changes the state.
-    this.stage = restoredState.stage;
-    this.score = restoredState.score;
+    this._stage = restoredState.stage;
+    this._score = restoredState.score;
+    this._isShowingPayouts = restoredState.isShowingPayouts;
+    this._correctBets = restoredState.correctBets;
+    this._initialized = true;
 
     // Trigger initial updates.
+    this.emitter.emit(this.EVENT_PREDICTION_COUNTS_CHANGED, this._predictionCounts, null);
+    this.emitter.emit(this.EVENT_STAGE_CHANGED, this._stage, null);
+    this.emitter.emit(this.EVENT_SCORE_CHANGED, this._score, null);
     this.emitter.emit(this.EVENT_OVERLAY_COUNT_CHANGED, this._overlayCount, null);
+    this.emitter.emit(this.EVENT_IS_SHOWING_PAYOUTS_CHANGED, this._isShowingPayouts, null);
+    this.emitter.emit(this.EVENT_CORRECT_BETS_CHANGED, this._correctBets, null);
   }
 }
 
@@ -267,8 +317,11 @@ function handleIncomingMessage(message: IIncomingMessage) {
  */
 function handleBackPressed() {
   const overlay = stage.getChildByName('overlay') as GenericOverlay;
+  const baseballsOverlay = stage.getChildByName('baseballsOverlay') as GenericOverlay;
   if (overlay.active) {
     overlay.pop();
+  } else if (baseballsOverlay.active) {
+    baseballsOverlay.pop();
   } else {
     console.warn('Need to handle back pressed, but none of the overlays were active!');
   }
@@ -278,7 +331,7 @@ function handleBackPressed() {
  * Handles plays created event.
  * @param events An array of event IDs
  */
-function handlePlaysCreated(events: number[]) {
+async function handlePlaysCreated(events: number[]) {
   if (state.stage === GameStages.CONFIRMED) {
     const plays = events.map(PlaybookEvents.getById);
     for (const play of plays) {
@@ -287,13 +340,41 @@ function handlePlaysCreated(events: number[]) {
         state.score += addedScore;
         reportScore(addedScore);
 
-        const overlay = new PredictionCorrectOverlay(contentScale!, play, addedScore);
-        const scoreTab = stage.getChildByName('scoreTab') as ScoreTab;
-        const score = scoreTab.score;
-        const scoreTabGlobalPosition = scoreTab.toGlobal(score.position);
-        initPredictionCorrectOverlayEvents(overlay, scoreTabGlobalPosition);
-        stage.addChild(overlay);
-        renderer.markDirty();
+        const overlay = stage.getChildByName('baseballsOverlay') as GenericOverlay;
+        const card = new PredictionCorrectCard(contentScale!, renderer, play, addedScore);
+        overlay.push(card);
+
+        // Add this play to the list of correct bets.
+        if (state.correctBets.indexOf(play) < 0) {
+          state.correctBets.push(play);
+          state.correctBets = state.correctBets.slice();
+        }
+
+        // Process the trophies.
+        const goals = [];
+        if (state.predictionCounts[play] === 3) {
+          goals.push(GoalTypes.GOOD_EYE);
+        } else if (state.predictionCounts[play] === 4) {
+          goals.push(GoalTypes.HIGH_ROLLER);
+        } else if (state.predictionCounts[play] === 5) {
+          goals.push(GoalTypes.ALL_IN);
+        }
+
+        if (state.correctBets.length === 3) {
+          goals.push(GoalTypes.LUCKY_GUESS);
+        } else if (state.correctBets.length === 4) {
+          goals.push(GoalTypes.SMARTY_PANTS);
+        } else if (state.correctBets.length === 5) {
+          goals.push(GoalTypes.MASTERMIND);
+        }
+
+        for (const goal of goals) {
+          const trophyGained = await reportGoal(goal);
+          if (trophyGained) {
+            const trophyCard = new NewTrophyCard(contentScale!, goal);
+            overlay.push(new GenericCard(contentScale!, renderer, trophyCard));
+          }
+        }
 
         navigator.vibrate(200);
       }
@@ -346,7 +427,6 @@ function handleLockPredictions(data: any) {
  */
 function handleClearPredictions() {
   const ballSlot = stage.getChildByName('ballSlot') as PIXI.Sprite;
-  //renderer.resetLastRenderTime = true;
   state.balls.forEach((ball, i) => {
     if (ball.selectedTarget !== null) {
       undoPrediction(state, ball.selectedTarget, ball);
@@ -355,6 +435,7 @@ function handleClearPredictions() {
   });
 
   state.stage = GameStages.INITIAL;
+  state.correctBets = [];
 }
 
 /**
@@ -370,6 +451,32 @@ function reportScore(score: number) {
     predictScore: score,
     id: PlaybookBridge.getPlayerID()
   }));
+}
+
+/**
+ * Report a trophy achievement to the server.
+ * @param goal
+ */
+async function reportGoal(goal: string) : Promise<boolean> {
+  return new Promise<boolean>((resolve, reject) => {
+    const request = new XMLHttpRequest();
+    request.open('POST', `${PlaybookBridge.getSectionAPIUrl()}/updateTrophy`);
+    request.setRequestHeader('Content-Type', 'application/json');
+    request.send(JSON.stringify({
+      trophyId: GoalTypesMetadata[goal].serverId,
+      userId: PlaybookBridge.getPlayerID()
+    }));
+    request.addEventListener('load', () => {
+      // TODO: Ideally this endpoint should return 409 if a trophy already exists,
+      // but I don't have the luxury of time now to do that.
+      if (request.responseText === 'Trophy already gained') {
+        resolve(false);
+      } else {
+        resolve(true);
+      }
+    });
+    request.addEventListener('error', reject);
+  });
 }
 
 /**
@@ -409,6 +516,14 @@ function initBallEvents(ball: Ball, ballSlot: PIXI.Sprite, fieldOverlay: FieldOv
       ball.sprite!.interactive = true;
       ball.sprite!.tint = 0xffffff;
     }
+  });
+
+  state.emitter.on(state.EVENT_IS_SHOWING_PAYOUTS_CHANGED, (isShowingPayouts: boolean) => {
+    ball.setHollow(isShowingPayouts && ball.selectedTarget !== null);
+  });
+
+  state.emitter.on(state.EVENT_PREDICTION_COUNTS_CHANGED, () => {
+    ball.setHollow(state.isShowingPayouts && ball.selectedTarget !== null);
   });
 
   const onTouchStart = function (e: PIXI.interaction.InteractionEvent) {
@@ -475,32 +590,64 @@ function initBallEvents(ball: Ball, ballSlot: PIXI.Sprite, fieldOverlay: FieldOv
 }
 
 /**
- * Initializes events for the continue banner.
- * @param continueBanner
+ * Initializes events for the game stage banner.
+ * @param banner
  */
-function initContinueBannerEvents(continueBanner: PIXI.Graphics) {
+function initGameStageBannerEvents(banner: GameStageBanner) {
   state.emitter.on(state.EVENT_STAGE_CHANGED, function (stage: string) {
-    continueBanner.visible = stage === GameStages.CONTINUE || stage === GameStages.CONFIRMED;
+    banner.visible = stage === GameStages.CONTINUE || stage === GameStages.CONFIRMED;
+    switch (stage) {
+      case GameStages.CONTINUE:
+        banner.text = 'Waiting for half-inning\u2026'.toUpperCase();
+        break;
+      case GameStages.CONFIRMED:
+        banner.text = 'Predictions locked'.toUpperCase();
+        break;
+      default:
+    }
+
     renderer.markDirty();
   });
 
-  continueBanner.interactive = true;
-  continueBanner.on('tap', function () {
-    PlaybookBridge.goToCollection();
+  banner.interactive = true;
+  banner.on('tap', function () {
+    if (state.stage === GameStages.CONFIRMED) {
+      const overlay = stage.getChildByName('overlay') as GenericOverlay;
+
+      const cardContent = new PIXI.Container();
+
+      const title = new PIXI.Text(
+        'Predictions are locked until the end of the half-inning. You\'ll be ' +
+        'notified whenever any of them come true.\n\nIn the meantime, why not ' +
+        'collect some cards?'
+      );
+      title.style.fontSize = 72.0 * contentScale!;
+      title.style.fontFamily = 'rockwell';
+      title.style.fontWeight = 'bold';
+      title.style.fill = 0x002b65;
+      title.style.wordWrap = true;
+      title.style.wordWrapWidth = window.innerWidth - 256.0 * contentScale!;
+      cardContent.addChild(title);
+
+      const card = new GenericCard(contentScale!, renderer, cardContent);
+      overlay.push(card);
+    }
   });
 }
 
 /**
  * Initializes events for the generic overlay.
  */
-function initGenericOverlayEvents(overlay: GenericOverlay) {
-  overlay.on('push', () => {
-    state.overlayCount++;
-  });
+function initGenericOverlaysEvents(overlays: GenericOverlay[]) {
+  for (const overlay of overlays) {
+    overlay.on('push', () => {
+      state.overlayCount++;
+    });
 
-  overlay.on('pop', () => {
-    state.overlayCount--;
-  });
+    overlay.on('pop', () => {
+      state.overlayCount--;
+    });
+  }
 
   state.emitter.on(state.EVENT_OVERLAY_COUNT_CHANGED, (count: number) => {
     PlaybookBridge.setShouldHandleBackPressed(count > 0);
@@ -519,16 +666,30 @@ function initScoreTabEvents(scoreTab: PIXI.Sprite) {
 }
 
 /**
+ * Initializes events for the grass.
+ */
+function initGrassEvents(grass: PIXI.Sprite) {
+  state.emitter.on(state.EVENT_IS_SHOWING_PAYOUTS_CHANGED, (isShowingPayouts: boolean) => {
+    if (isShowingPayouts) {
+      grass.texture = PIXI.loader.resources['resources/Prediction-BG-Payout.jpg'].texture;
+    } else {
+      grass.texture = PIXI.loader.resources['resources/Prediction-BG.jpg'].texture;
+    }
+    renderer.markDirty();
+  });
+}
+
+/**
  * Initializes events for the field overlay.
  */
 function initFieldOverlayEvents(fieldOverlay: FieldOverlay) {
   // When prediction count changes, we need to update the ball counts.
   state.emitter.on(state.EVENT_PREDICTION_COUNTS_CHANGED, (value: { [name: string]: number }, oldValue: { [name: string]: number }) => {
     const events = new Set(Object.keys(value));
-    const oldEvents = new Set(Object.keys(oldValue));
+    const oldEvents = oldValue === null ? new Set() : new Set(Object.keys(oldValue));
 
     // Compute the difference between the two counts.
-    const changed = [...events].filter(x => oldEvents.has(x));
+    const changed = [...events].filter(x => oldEvents.has(x) || oldValue === null);
     changed.forEach(name => {
       const area = fieldOverlay.getAreaByName(name);
       const count = value[name];
@@ -540,6 +701,14 @@ function initFieldOverlayEvents(fieldOverlay: FieldOverlay) {
       }
       renderer.markDirty();
     });
+  });
+
+  state.emitter.on(state.EVENT_IS_SHOWING_PAYOUTS_CHANGED, (isShowingPayouts: boolean) => {
+    if (isShowingPayouts) {
+      fieldOverlay.showPayouts();
+    } else {
+      fieldOverlay.hidePayouts();
+    }
   });
 }
 
@@ -589,44 +758,15 @@ function initPayoutsTabEvents(payoutsTab: PayoutsTab, fieldOverlay: FieldOverlay
                               grassBackground: PIXI.Sprite) {
   payoutsTab.interactive = true;
   payoutsTab.on('tap', () => {
-    if (fieldOverlay.isShowingPayouts()) {
-      payoutsTab.selectLabels();
-      grassBackground.texture = PIXI.loader.resources['resources/Prediction-BG.jpg'].texture;
-      fieldOverlay.hidePayouts();
-    } else {
-      payoutsTab.selectPayouts();
-      grassBackground.texture = PIXI.loader.resources['resources/Prediction-BG-Payout.jpg'].texture;
-      fieldOverlay.showPayouts();
-    }
-    renderer.markDirty();
+    state.isShowingPayouts = !state.isShowingPayouts;
   });
-}
 
-/**
- * Initializes events for the prediction correct overlay.
- * @param overlay
- * @param scoreTextPosition
- */
-function initPredictionCorrectOverlayEvents(overlay: PredictionCorrectOverlay, scoreTextPosition: PIXI.Point) {
-  overlay.interactive = true;
-  overlay.on('tap', () => {
-    const backgroundFadeOut = new PIXI.action.FadeOut(0.25);
-    const backgroundCallFunc = new PIXI.action.CallFunc(() => overlay.destroy());
-    const backgroundSequence = new PIXI.action.Sequence([backgroundFadeOut, backgroundCallFunc]);
-
-    const ballMoveTo = new PIXI.action.MoveTo(
-      scoreTextPosition.x, scoreTextPosition.y, 0.25
-    );
-    const ballScaleTo = new PIXI.action.ScaleTo(0, 0, 0.25);
-    const ballFadeOut = new PIXI.action.FadeOut(0.50);
-
-    PIXI.actionManager.runAction(overlay.ball, ballMoveTo);
-    PIXI.actionManager.runAction(overlay.ball, ballScaleTo);
-    PIXI.actionManager.runAction(overlay.ball, ballFadeOut);
-    PIXI.actionManager.runAction(overlay.textContainer, ballMoveTo);
-    PIXI.actionManager.runAction(overlay.textContainer, ballScaleTo);
-    PIXI.actionManager.runAction(overlay.textContainer, ballFadeOut);
-    PIXI.actionManager.runAction(overlay.background, backgroundSequence);
+  state.emitter.on(state.EVENT_IS_SHOWING_PAYOUTS_CHANGED, (isShowingPayouts: boolean) => {
+    if (isShowingPayouts) {
+      payoutsTab.selectPayouts();
+    } else {
+      payoutsTab.selectLabels();
+    }
   });
 }
 
@@ -877,6 +1017,7 @@ function setup() {
   const grass = new PIXI.Sprite(grassTexture);
   grass.scale.x = window.innerWidth / grassTexture.width;
   grass.scale.y = window.innerHeight / grassTexture.height;
+  initGrassEvents(grass);
 
   // Add banner on top to screen.
   const bannerTexture = PIXI.loader.resources['resources/prediction.json'].textures!['Prediction-Banner.png'];
@@ -965,30 +1106,15 @@ function setup() {
   const ballCountSprites = createBallCountSprites(fieldOverlay, state.balls[0].sprite!);
 
   // Add continue banner.
-  const continueBanner = new PIXI.Graphics();
-  continueBanner.beginFill(0xc53626);
-  continueBanner.drawRect(0, 0, window.innerWidth, ballSlot.height);
-  continueBanner.endFill();
-  continueBanner.position.set(0, window.innerHeight - ballSlot.height);
-  continueBanner.visible = false;
-  initContinueBannerEvents(continueBanner);
-
-  const continueBannerLabel = new PIXI.Text('Continue \u22b2'.toUpperCase());
-  continueBannerLabel.style.fontFamily = 'proxima-nova-excn';
-  continueBannerLabel.style.fontWeight = '900';
-  continueBannerLabel.style.fontSize = 104.0 * contentScale;
-  continueBannerLabel.style.fill = 0xffffff;
-  continueBannerLabel.anchor.set(1.0, 0.5);
-  continueBannerLabel.position.set(
-    window.innerWidth - (64.0 * contentScale),
-    continueBanner.height / 2
-  );
-  continueBanner.addChild(continueBannerLabel);
+  const gameStageBanner = new GameStageBanner(contentScale, { height: ballSlot.height });
+  initGameStageBannerEvents(gameStageBanner);
 
   // Add overlays.
   const genericOverlay = new GenericOverlay();
   genericOverlay.name = 'overlay';
-  initGenericOverlayEvents(genericOverlay);
+  const baseballsOverlay = new GenericOverlay(new BaseballsOverlayBackground(renderer));
+  baseballsOverlay.name = 'baseballsOverlay';
+  initGenericOverlaysEvents([genericOverlay, baseballsOverlay]);
 
   // Add the items in order of appearance.
   stage.addChild(grass);
@@ -1000,7 +1126,9 @@ function setup() {
   stage.addChild(payoutsTab);
   ballSprites.forEach(sprite => stage.addChild(sprite));
   ballCountSprites.forEach(sprite => stage.addChild(sprite));
-  stage.addChild(continueBanner);
+  stage.addChild(gameStageBanner);
+  stage.addChild(genericOverlay);
+  stage.addChild(baseballsOverlay);
 
   /**
    * Begin the animation loop.
@@ -1012,10 +1140,17 @@ function setup() {
       renderer.markDirty();
     }
 
+    if (renderer.emitters.length > 0) {
+      renderer.markDirty();
+    }
+
     // For mobile phones, we don't go full-blast at 60 fps.
     // Re-render only if dirty.
     if (renderer.dirty) {
       PIXI.actionManager.update((now - lastRenderTime) / 1000);
+      for (const emitter of renderer.emitters) {
+        emitter.update((now - lastRenderTime) / 1000);
+      }
       fieldOverlay.update();
       renderer.render(stage);
     }
@@ -1026,7 +1161,7 @@ function setup() {
 
   let lastRenderTime = performance.now();
   renderer.markDirty();
-  PlaybookBridge.notifyLoaded(state);
+  PlaybookBridge.notifyLoaded();
   beginDrawLoop(lastRenderTime);
 };
 
@@ -1043,6 +1178,7 @@ configureFonts(['proxima-nova', 'proxima-nova-excn', 'SCOREBOARD', 'rockwell'])
       .add('resources/Prediction-BG-Payout.jpg')
       .add('resources/Prediction-Overlay.png')
       .add('resources/Prediction-Overlay-Payout.png')
+      .add('resources/Item-Ball.png')
       .add('resources/Item-Ball-Rotated.png')
       .load(setup);
   });

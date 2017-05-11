@@ -1,4 +1,6 @@
 'use strict';
+import GameStages from './GameStages';
+
 interface PlaybookBridge {
   getAPIUrl: () => string,
   getSectionAPIUrl: () => string
@@ -7,6 +9,7 @@ interface PlaybookBridge {
   notifyLoaded: (state?: any) => void
   goToLeaderboard: () => void,
   goToCollection: () => void,
+  goToTrophyCase: () => void,
   setShouldHandleBackPressed: (shouldHandle: boolean) => void
 }
 
@@ -61,12 +64,25 @@ if (!window.PlaybookBridge) {
      * Notifies the hosting application that we have finished loading.
      * This restores from localStorage in the mock bridge.
      */
-    notifyLoaded: function (state?: any) {
-      const restoredState = localStorage.getItem('prediction');
-      console.log('Loading state: ', restoredState);
-      if (restoredState != null) {
-        state.fromJSON(restoredState);
+    notifyLoaded: function () {
+      let restoredState = localStorage.getItem('prediction');
+      if (restoredState === null) {
+        restoredState = JSON.stringify({
+          stage: GameStages.INITIAL,
+          score: 0,
+          balls: new Array(5).fill({ selectedTarget: null }),
+          isShowingPayouts: false,
+          correctBets: []
+        });
       }
+
+      console.log('Loading state: ', restoredState);
+      window.dispatchEvent(new MessageEvent('message', {
+        data: {
+          action: 'RESTORE_GAME_STATE',
+          payload: restoredState
+        }
+      }));
     },
 
     /**
@@ -81,6 +97,12 @@ if (!window.PlaybookBridge) {
     goToCollection: function () {
       window.location.href = window.location.href.replace('prediction', 'collection');
     },
+
+    /**
+     * Changes to the trophy case.
+     * This is a no-op for the mock bridge.
+     */
+    goToTrophyCase: function () {},
 
     /**
      * Tells the hosting application that we should handle back button presses.

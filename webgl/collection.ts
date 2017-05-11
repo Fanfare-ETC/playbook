@@ -25,7 +25,7 @@ import ICard from './lib/collection/ICard';
 import TrayTip from './lib/collection/TrayTip';
 import GenericCard from './lib/GenericCard';
 import GenericOverlay from './lib/GenericOverlay';
-import BaseballsOverlayBackground from './lib/collection/BaseballsOverlayBackground';
+import BaseballsOverlayBackground from './lib/BaseballsOverlayBackground';
 import SetScoredCard from './lib/collection/SetScoredCard';
 import NewTrophyCard from './lib/collection/NewTrophyCard';
 
@@ -657,7 +657,7 @@ async function scoreCardSet(choice: GoalChoice, goal: string) {
     trophyGained: trophyGained
   };
   state.selectedGoal = null;
-  state.goal = getRandomGoal();
+  state.goal = getRandomGoal(goal);
 }
 
 /**
@@ -764,6 +764,7 @@ function receiveCard(play: string) {
   card.dragOrigRotation = cardNode.rotation;
   card.dragOrigScale = cardScale;
 
+  navigator.vibrate(200);
   initCardEvents(card);
 }
 
@@ -892,10 +893,17 @@ function getCardsInSlots() : ICard[] {
 
 /**
  * Returns a random goal from the list of goals.
+ * @param exclude
  */
-function getRandomGoal() : string {
-  const visibleGoals = Object.keys(GoalTypesMetadata)
+function getRandomGoal(exclude?: string) : string {
+  let visibleGoals = Object.keys(GoalTypesMetadata)
     .filter(goal => !GoalTypesMetadata[goal].isHidden);
+
+  // Exclude a specific goal if needed.
+  if (exclude !== undefined) {
+    visibleGoals = visibleGoals.filter(goal => goal !== exclude);
+  }
+
   const randomChoice = Math.floor((Math.random() * visibleGoals.length));
   return visibleGoals[randomChoice];
 }
@@ -1341,7 +1349,7 @@ function setup() {
 
   let lastRenderTime = performance.now();
   renderer.markDirty();
-  PlaybookBridge.notifyLoaded(state);
+  PlaybookBridge.notifyLoaded();
   beginDrawLoop(lastRenderTime);
 };
 

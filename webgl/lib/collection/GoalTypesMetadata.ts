@@ -18,7 +18,7 @@ const GoalTypesMetadata: IGoalTypesMetadataMap = {
   [GoalTypes.EACH_COLOR_2]: {
     description: '2 RED & 2 BLUE',
     file: 'trophy1.png',
-    score: 6,
+    score: 2,
     isHidden: true,
     serverId: 1,
     example: 'Collection-Example-2-2.png'
@@ -42,7 +42,7 @@ const GoalTypesMetadata: IGoalTypesMetadataMap = {
   [GoalTypes.SAME_COLOR_3]: {
     description: '3 CARDS OF SAME COLOR',
     file: 'trophy4.png',
-    score: 6,
+    score: 4,
     isHidden: false,
     serverId: 4,
     example: 'Collection-Example-3.png'
@@ -58,7 +58,7 @@ const GoalTypesMetadata: IGoalTypesMetadataMap = {
   [GoalTypes.SAME_COLOR_5]: {
     description: '5 CARDS OF SAME COLOR',
     file: 'trophy6.png',
-    score: 12,
+    score: 16,
     isHidden: false,
     serverId: 6,
     example: 'Collection-Example-5.png'
@@ -66,7 +66,7 @@ const GoalTypesMetadata: IGoalTypesMetadataMap = {
   [GoalTypes.IDENTICAL_CARDS_3]: {
     description: '3 IDENTICAL CARDS',
     file: 'trophy7.png',
-    score: 6,
+    score: 4,
     isHidden: false,
     serverId: 7,
     example: 'Collection-Example-3.png'
@@ -82,7 +82,7 @@ const GoalTypesMetadata: IGoalTypesMetadataMap = {
   [GoalTypes.IDENTICAL_CARDS_5]: {
     description: '5 IDENTICAL CARDS',
     file: 'trophy9.png',
-    score: 12,
+    score: 16,
     isHidden: false,
     serverId: 9,
     example: 'Collection-Example-5.png'
@@ -90,7 +90,7 @@ const GoalTypesMetadata: IGoalTypesMetadataMap = {
   [GoalTypes.OUT_3]: {
     description: 'SET SHOWS 3 OUTS',
     file: 'trophy10.png',
-    score: 6,
+    score: 4,
     isHidden: false,
     serverId: 10,
     example: 'Collection-Example-3.png'
@@ -106,7 +106,7 @@ const GoalTypesMetadata: IGoalTypesMetadataMap = {
   [GoalTypes.UNIQUE_OUT_CARDS_4]: {
     description: '4 UNIQUE OUT CARDS',
     file: 'trophy11.png',
-    score: 12,
+    score: 16,
     isHidden: false,
     serverId: 12,
     example: 'Collection-Example-4.png'
@@ -114,7 +114,7 @@ const GoalTypesMetadata: IGoalTypesMetadataMap = {
   [GoalTypes.BASES_3]: {
     description: 'ANY 3 BASE CARDS',
     file: 'trophy13.png',
-    score: 8,
+    score: 4,
     isHidden: false,
     serverId: 13,
     example: 'Collection-Example-3.png'
@@ -130,7 +130,7 @@ const GoalTypesMetadata: IGoalTypesMetadataMap = {
   [GoalTypes.BASES_SEQ_3]: {
     description: '3 BASE CARDS IN ORDER',
     file: 'trophy15.png',
-    score: 8,
+    score: 16,
     isHidden: false,
     serverId: 15,
     example: 'Collection-Example-3.png'

@@ -72,7 +72,7 @@
             </struct>
         </struct>
         <key>shapePadding</key>
-        <uint>0</uint>
+        <uint>4</uint>
         <key>jpgQuality</key>
         <uint>80</uint>
         <key>pngOptimizationLevel</key>
@@ -283,6 +283,36 @@
                 <key>scale9FromFile</key>
                 <false/>
             </struct>
+            <key type="filename">trophy/Trophy-PredictBig-B.png</key>
+            <key type="filename">trophy/Trophy-PredictBig-G.png</key>
+            <key type="filename">trophy/Trophy-PredictMany-B.png</key>
+            <key type="filename">trophy/Trophy-PredictMany-G.png</key>
+            <struct type="IndividualSpriteSettings">
+                <key>pivotPoint</key>
+                <point_f>0.5,0.5</point_f>
+                <key>scale9Enabled</key>
+                <false/>
+                <key>scale9Borders</key>
+                <rect>83,83,165,165</rect>
+                <key>scale9Paddings</key>
+                <rect>83,83,165,165</rect>
+                <key>scale9FromFile</key>
+                <false/>
+            </struct>
+            <key type="filename">trophy/Trophy-PredictBig-S.png</key>
+            <key type="filename">trophy/Trophy-PredictMany-S.png</key>
+            <struct type="IndividualSpriteSettings">
+                <key>pivotPoint</key>
+                <point_f>0.5,0.5</point_f>
+                <key>scale9Enabled</key>
+                <false/>
+                <key>scale9Borders</key>
+                <rect>83,83,166,165</rect>
+                <key>scale9Paddings</key>
+                <rect>83,83,166,165</rect>
+                <key>scale9FromFile</key>
+                <false/>
+            </struct>
         </map>
         <key>fileList</key>
         <array>
@@ -298,6 +328,12 @@
             <filename>Ball-Text-x3.png</filename>
             <filename>Ball-Text-x4.png</filename>
             <filename>Ball-Text-x5.png</filename>
+            <filename>trophy/Trophy-PredictBig-B.png</filename>
+            <filename>trophy/Trophy-PredictBig-G.png</filename>
+            <filename>trophy/Trophy-PredictBig-S.png</filename>
+            <filename>trophy/Trophy-PredictMany-B.png</filename>
+            <filename>trophy/Trophy-PredictMany-G.png</filename>
+            <filename>trophy/Trophy-PredictMany-S.png</filename>
         </array>
         <key>ignoreFileList</key>
         <array/>

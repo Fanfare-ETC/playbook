@@ -64,8 +64,6 @@ class FieldOverlay extends PIXI.Sprite {
    * Toggles showing the payouts for the betting table.
    */
   showPayouts() {
-    this._balls.filter(ball => ball.selectedTarget)
-      .forEach(ball => ball.setHollow(true));
     this.texture = this._payoutsTexture;
   }
 
@@ -73,8 +71,6 @@ class FieldOverlay extends PIXI.Sprite {
    * Hides the payouts.
    */
   hidePayouts() {
-    this._balls.filter(ball => ball.selectedTarget)
-      .forEach(ball => ball.setHollow(false));
     this.texture = this._defaultTexture;
   }
 

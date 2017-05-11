@@ -13,7 +13,11 @@ import android.widget.TextView;
 /**
  * Created by ramya on 4/25/17.
  */
-
+/*
+Class to draw lines and dots on the canvas based
+on the drawing and order of markers.
+This class is customized for the bird drawing
+*/
 public class BirdDrawing {
 
     private static View view;
@@ -43,7 +47,7 @@ public class BirdDrawing {
 
                 int[] loc0 = new int[2];
                 int[] loc1 = new int[2];
-                int[] canvasloc = TreasureHuntFragment.LinesView.canvasLocation;
+                int[] canvasloc = TreasureHuntFragment.positionView.canvasLocation;
 
                 if (TreasureHuntFragment.gameState.game_on) {
                     ImageView v2 = (ImageView) view.findViewById(R.id.bird_v2);

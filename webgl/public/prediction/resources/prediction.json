@@ -2,7 +2,7 @@
 
 "Ball-Text-x1.png":
 {
-	"frame": {"x":256,"y":0,"w":64,"h":64},
+	"frame": {"x":272,"y":0,"w":64,"h":64},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":64,"h":64},
@@ -10,7 +10,7 @@
 },
 "Ball-Text-x2.png":
 {
-	"frame": {"x":384,"y":0,"w":64,"h":64},
+	"frame": {"x":408,"y":0,"w":64,"h":64},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":64,"h":64},
@@ -18,7 +18,7 @@
 },
 "Ball-Text-x3.png":
 {
-	"frame": {"x":320,"y":0,"w":64,"h":64},
+	"frame": {"x":340,"y":0,"w":64,"h":64},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":64,"h":64},
@@ -26,7 +26,7 @@
 },
 "Ball-Text-x4.png":
 {
-	"frame": {"x":128,"y":0,"w":64,"h":64},
+	"frame": {"x":136,"y":0,"w":64,"h":64},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":64,"h":64},
@@ -34,7 +34,7 @@
 },
 "Ball-Text-x5.png":
 {
-	"frame": {"x":64,"y":0,"w":64,"h":64},
+	"frame": {"x":68,"y":0,"w":64,"h":64},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":64,"h":64},
@@ -42,7 +42,7 @@
 },
 "Item-Ball-Hollow.png":
 {
-	"frame": {"x":0,"y":0,"w":64,"h":64},
+	"frame": {"x":204,"y":0,"w":64,"h":64},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":64,"h":64},
@@ -50,7 +50,7 @@
 },
 "Item-Ball.png":
 {
-	"frame": {"x":192,"y":0,"w":64,"h":64},
+	"frame": {"x":0,"y":0,"w":64,"h":64},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":64,"h":64},
@@ -58,7 +58,7 @@
 },
 "Prediction-Banner.png":
 {
-	"frame": {"x":0,"y":459,"w":1440,"h":80},
+	"frame": {"x":476,"y":0,"w":1440,"h":80},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":1440,"h":80},
@@ -66,7 +66,7 @@
 },
 "Prediction-Button-Continue.png":
 {
-	"frame": {"x":0,"y":539,"w":1440,"h":160},
+	"frame": {"x":0,"y":84,"w":1440,"h":160},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":1440,"h":160},
@@ -74,7 +74,7 @@
 },
 "Prediction-Holder-BallsSlot.png":
 {
-	"frame": {"x":0,"y":219,"w":1440,"h":240},
+	"frame": {"x":408,"y":307,"w":1440,"h":240},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":1440,"h":240},
@@ -82,7 +82,7 @@
 },
 "Prediction-Oddstab.png":
 {
-	"frame": {"x":448,"y":0,"w":404,"h":219},
+	"frame": {"x":0,"y":307,"w":404,"h":219},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":404,"h":219},
@@ -90,11 +90,59 @@
 },
 "Prediction-Scoretab.png":
 {
-	"frame": {"x":852,"y":0,"w":404,"h":219},
+	"frame": {"x":1444,"y":84,"w":404,"h":219},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":404,"h":219},
 	"sourceSize": {"w":404,"h":219}
+},
+"Trophy-PredictBig-B.png":
+{
+	"frame": {"x":1337,"y":551,"w":330,"h":330},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":330,"h":330},
+	"sourceSize": {"w":330,"h":330}
+},
+"Trophy-PredictBig-G.png":
+{
+	"frame": {"x":1003,"y":551,"w":330,"h":330},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":330,"h":330},
+	"sourceSize": {"w":330,"h":330}
+},
+"Trophy-PredictBig-S.png":
+{
+	"frame": {"x":1671,"y":551,"w":331,"h":330},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":331,"h":330},
+	"sourceSize": {"w":331,"h":330}
+},
+"Trophy-PredictMany-B.png":
+{
+	"frame": {"x":669,"y":551,"w":330,"h":330},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":330,"h":330},
+	"sourceSize": {"w":330,"h":330}
+},
+"Trophy-PredictMany-G.png":
+{
+	"frame": {"x":0,"y":551,"w":330,"h":330},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":330,"h":330},
+	"sourceSize": {"w":330,"h":330}
+},
+"Trophy-PredictMany-S.png":
+{
+	"frame": {"x":334,"y":551,"w":331,"h":330},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":331,"h":330},
+	"sourceSize": {"w":331,"h":330}
 }},
 "meta": {
 	"app": "http://www.codeandweb.com/texturepacker",
@@ -103,6 +151,6 @@
 	"format": "RGBA8888",
 	"size": {"w":2048,"h":1024},
 	"scale": "1",
-	"smartupdate": "$TexturePacker:SmartUpdate:4785b4fa666d683945e65b0a07d425c7:3df8700b78d2d7b9329d99df71a973a9:c2dafc9a2723fca7ffed9e1bdf9e070c$"
+	"smartupdate": "$TexturePacker:SmartUpdate:1cf060cfe43dbb3b31be1c4eafde63ca:d3cffe12168aa903c36c13cbbb7d13b9:c2dafc9a2723fca7ffed9e1bdf9e070c$"
 }
 }

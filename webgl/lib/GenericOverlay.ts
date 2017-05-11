@@ -1,16 +1,19 @@
 'use strict';
-import GenericCard from './GenericCard';
-
 export interface IOverlayBackground extends PIXI.DisplayObject {
   onShow: () => void;
   onHide: () => void;
 }
 
+export interface IOverlayCard extends PIXI.DisplayObject {
+  show: () => void;
+  emitter: PIXI.utils.EventEmitter;
+}
+
 class GenericOverlay extends PIXI.Container {
   private _background: PIXI.Graphics;
   private _customBackground: IOverlayBackground | null = null;
-  private _current: GenericCard | null = null;
-  private _cardQueue: GenericCard[] = [];
+  private _current: IOverlayCard | null = null;
+  private _cardQueue: IOverlayCard[] = [];
   private _isAnimating: boolean = false;
 
   constructor(background?: IOverlayBackground) {
@@ -32,13 +35,13 @@ class GenericOverlay extends PIXI.Container {
   private _initEvents() {
     const background = this._customBackground !== null ? this._customBackground : this._background;
     background.interactive = true;
-    background.on('tap', () => {
+    background.on('touchend', (e: PIXI.interaction.InteractionEvent) => {
       if (this._isAnimating) { return; }
       this._hide();
     });
   }
 
-  push(card: GenericCard) {
+  push(card: IOverlayCard) {
     this._cardQueue.push(card);
     this.emit('push');
     if (this._current === null) {

@@ -242,7 +242,7 @@ public class CollectionFragment extends WebViewFragment {
         }
 
         @JavascriptInterface
-        public void notifyLoaded(String state) {
+        public void notifyLoaded() {
             Log.d(TAG, "The JavaScript world has arrived");
             getActivity().runOnUiThread(new Runnable() {
                 @Override
