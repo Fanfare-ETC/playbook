@@ -9,8 +9,8 @@ android {
         applicationId 'edu.cmu.etc.fanfare.playbook'
         minSdkVersion 21
         targetSdkVersion 25
-        versionCode 50
-        versionName '1.6.3'
+        versionCode 51
+        versionName '1.6.4'
 
         buildConfigField 'String', 'PLAYBOOK_TREASUREHUNT_API_HOST', '"10.0.2.2"'
         buildConfigField 'Integer', 'PLAYBOOK_TREASUREHUNT_API_PORT', '9000'
