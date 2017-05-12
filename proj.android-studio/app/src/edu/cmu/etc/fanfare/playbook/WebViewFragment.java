@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
@@ -82,6 +83,8 @@ public class WebViewFragment extends PlaybookFragment {
         Integer version = getWebViewMajorVersion();
         if (version == null) {
             showWebViewNotInstalledDialog();
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            mWebViewIsCompatible = true;
         } else if (version >= MIN_WEB_VIEW_VERSION) {
             mWebViewIsCompatible = true;
         } else {
